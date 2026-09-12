@@ -12,7 +12,7 @@ export function CitationDialog({ citations, label = "Periksa sumber" }: { citati
     <Dialog.Root>
       <Dialog.Trigger asChild><Button variant="secondary" size="sm"><Database aria-hidden="true" className="size-3.5" />{label}<span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">{unique.length}</span></Button></Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-100 bg-slate-950/70 backdrop-blur-sm" />
+        <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
         <Dialog.Content className="fixed inset-y-0 right-0 z-100 w-[min(100vw,480px)] overflow-y-auto border-l border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
           <div className="flex items-start gap-3"><div className="min-w-0 flex-1"><Dialog.Title className="text-xl font-semibold">Ledger bukti</Dialog.Title><Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">Setiap angka memakai provider, endpoint, field, dan waktu data.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup sumber"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close></div>
           <div className="mt-4 flex gap-2 rounded-lg border border-attention/30 bg-attention/8 p-3 text-xs leading-5 text-muted-foreground"><Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-attention" /><p>Nilai pada prototype adalah simulasi. Tautan berlabel provider atau dokumentasi menunjukkan sumber produksi yang akan dipakai, bukan bukti bahwa event fixture benar-benar terjadi.</p></div>

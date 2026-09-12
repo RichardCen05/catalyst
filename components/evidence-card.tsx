@@ -1,9 +1,10 @@
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
-import type { PillarResult } from "@/lib/types";
+import type { PillarResult, SymbolCode } from "@/lib/types";
+import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-export function EvidenceCard({ pillar, index }: { pillar: PillarResult; index: number }) {
+export function EvidenceCard({ pillar, index, symbol }: { pillar: PillarResult; index: number; symbol: SymbolCode }) {
   return (
     <article className="min-w-0 max-w-full rounded-xl border border-border bg-surface p-4 shadow-panel">
       <div className="flex items-start gap-3">
@@ -24,6 +25,7 @@ export function EvidenceCard({ pillar, index }: { pillar: PillarResult; index: n
           <div className="mt-4"><CitationDialog citations={pillar.citations} label="Periksa field sumber" /></div>
         </div>
       </details>
+      <AskAgentButton context={{ label: `${symbol} · ${pillar.label}`, question: `Jelaskan bukti ${pillar.label} untuk ${symbol}.`, symbol }} label={`Tanya pilar ${pillar.label}`} className="mt-2 w-full justify-start" />
     </article>
   );
 }

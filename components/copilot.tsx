@@ -17,8 +17,8 @@ const prompts = [
 interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
 
 export function Copilot({ dismissible = false, workspace = false }: { dismissible?: boolean; workspace?: boolean }) {
-  const { profile, insights, setCopilotOpen } = useCatalystStore();
-  const [input, setInput] = useState("");
+  const { profile, insights, setCopilotOpen, copilotContext, clearCopilotContext } = useCatalystStore();
+  const [input, setInput] = useState(() => copilotContext?.question ?? "");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: "intro", role: "assistant", text: `Saya membaca fixture dengan urutan ${profile.config.pillarOrder.join(" → ")}. Tanyakan ticker, perbandingan, dampak berita/cuaca/kebijakan, atau data yang masih kosong.` },
@@ -32,7 +32,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, userInsights: insights }) });
+      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights }) });
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
       setMessages((current) => [...current, { id: `a-${current.length}`, role: "assistant", text: answer.text, answer }]);
@@ -43,13 +43,14 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
 
   const onSubmit = (event: FormEvent) => { event.preventDefault(); void submit(input); };
   return (
-    <div className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
+    <div role={dismissible ? "dialog" : undefined} aria-label={dismissible ? "Catalyst Copilot" : undefined} className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
         <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><Bot aria-hidden="true" className="size-5" /></div>
         <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Catalyst Copilot</p><p className="truncate font-mono text-[11px] text-muted-foreground">Simulasi agent · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup copilot"><X aria-hidden="true" className="size-4" /></Button> : null}
       </div>
       <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
+      {copilotContext ? <div className="flex items-center gap-2 border-b border-border bg-primary/8 px-4 py-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Konteks</span><span className="min-w-0 flex-1 truncate text-xs font-medium">{copilotContext.label}</span><button type="button" onClick={clearCopilotContext} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Hapus konteks"><X aria-hidden="true" className="size-3.5" /></button></div> : null}
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.map((message) => <div key={message.id} className={message.role === "user" ? "ml-7" : "mr-2"}>
           <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <UserRound aria-hidden="true" className="size-3" /> : <Bot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Agent"}</div>

@@ -190,8 +190,10 @@ export interface UserInsight {
   pillar?: PillarKey;
   category: "data-error" | "missing-context" | "alternative-interpretation";
   note: string;
+  sourceUrl?: string;
   status: "pending" | "incorporated" | "dismissed";
   createdAt: string;
+  reviewHistory: Array<{ status: UserInsight["status"]; at: string }>;
 }
 
 export interface ChatRequest {
@@ -211,6 +213,12 @@ export interface ChatAnswer {
   relatedSymbols: SymbolCode[];
 }
 
+export interface CopilotContext {
+  label: string;
+  question: string;
+  symbol?: SymbolCode;
+}
+
 export interface CausalNode {
   id: string;
   label: string;
@@ -219,6 +227,10 @@ export interface CausalNode {
   sourceType?: MarketEvent["sourceType"] | "market" | "financial";
   direction?: ImpactDirection;
   relevance?: number;
+  basis: "Reported input" | "Causal hypothesis" | "Aggregation point" | "Observed correlation";
+  confidence: "High" | "Medium" | "Low";
+  lag: string;
+  counterEvidence: string;
   citations: Citation[];
 }
 
@@ -229,6 +241,9 @@ export interface CausalEdge {
   label: string;
   direction: ImpactDirection;
   relevance: number;
+  basis: "Reported input" | "Causal hypothesis" | "Observed correlation";
+  confidence: "High" | "Medium" | "Low";
+  lag: string;
   citations: Citation[];
 }
 

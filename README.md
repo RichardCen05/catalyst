@@ -2,6 +2,8 @@
 
 Catalyst adalah prototype agent riset IDX untuk Sectors Hackathon Track 01. Enam emiten memiliki analisis lengkap berdasarkan Konsentrasi, Volume, Momentum, dan Katalis. Dua belas emiten lain menunjukkan state data yang belum cukup.
 
+**Trace the move. Trust the evidence.**
+
 Semua data pada prototype berupa fixture statis. Tidak ada panggilan pasar langsung, LLM, scraping, penjadwalan, login, database, atau eksekusi transaksi.
 
 ## Jalankan lokal
@@ -11,7 +13,7 @@ pnpm install
 pnpm dev
 ```
 
-Buka `http://localhost:3000`, selesaikan setup empat langkah, lalu gunakan halaman Today, Companies, Causal Impact, Copilot, Agent, dan Method.
+Buka `http://localhost:3000`, selesaikan setup dua langkah, lalu ikuti tur interaktif lima titik. Alur inti berjalan dari perubahan di Today menuju company evidence, causal chain, Copilot, dan koreksi user.
 
 ## Pemeriksaan
 
@@ -23,7 +25,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-Unit test memeriksa kalkulator, citation gate, language gate, personalisasi, causal graph, human insight loop, dan watchlist scoping. Playwright memeriksa setup, transparansi formula, komentar koreksi, causal impact, Copilot, dua profil, theme persistence, breakpoint, serta WCAG A/AA otomatis.
+Unit test memeriksa kalkulator, citation gate, language gate, personalisasi, causal graph, human insight loop, dan watchlist scoping. Playwright memeriksa tutorial, comparison workbench, transparansi formula, komentar koreksi, causal impact, Copilot kontekstual, Audit, dua profil, Graphite Aubergine theme, breakpoint, serta WCAG A/AA otomatis.
 
 ## Interface
 

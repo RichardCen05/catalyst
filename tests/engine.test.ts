@@ -85,6 +85,7 @@ describe("Catalyst agent engine", () => {
         note: "Kontrak penjualan belum dibedakan per mata uang.",
         status: "pending",
         createdAt: "2026-09-12T10:00:00.000Z",
+        reviewHistory: [{ status: "pending", at: "2026-09-12T10:00:00.000Z" }],
       }],
     });
     const after = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);

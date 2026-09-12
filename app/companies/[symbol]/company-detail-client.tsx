@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Bot, Check, ChevronDown, ChevronRight, Clock3, GitBranch, HelpCircle, TableProperties, ThumbsDown, ThumbsUp } from "lucide-react";
 import { agentEngine } from "@/lib/agent/engine";
-import { companies } from "@/lib/data/fixtures";
+import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode } from "@/lib/types";
 import { formatAsOf, formatCurrency } from "@/lib/utils";
-import { AgentTrace } from "@/components/agent-trace";
+import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
@@ -37,9 +37,9 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
         <div className="mt-5 grid gap-3 border-t border-border pt-4 lg:grid-cols-[minmax(0,1fr)_auto]"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Evidence summary</p><p className="mt-1 text-sm leading-6">{analysis.thesis}</p></div><div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/8 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-primary"><Check aria-hidden="true" className="size-3.5" />No combined score</div></div>
       </header>
 
-      <PriceChart data={analysis.priceSeries} symbol={symbol} />
+      <PriceChart data={analysis.priceSeries} symbol={symbol} events={events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol))} />
 
-      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Personalized order</p><h2 id="pillars-title" className="mt-1 text-lg font-semibold">Empat pilar bukti</h2></div><Link href="/agent" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Ubah urutan<ChevronRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar, index) => <EvidenceCard key={pillar.key} pillar={pillar} index={index} />)}</div></section>
+      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Personalized order</p><h2 id="pillars-title" className="mt-1 text-lg font-semibold">Empat pilar bukti</h2></div><Link href="/agent" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Ubah urutan<ChevronRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar, index) => <EvidenceCard key={pillar.key} pillar={pillar} index={index} symbol={symbol} />)}</div></section>
 
       <Panel className="mt-4">
         <details className="group">
@@ -48,14 +48,7 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
         </details>
       </Panel>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
-        <AgentTrace traces={analysis.hypotheses} />
-        <Panel>
-          <PanelHeader eyebrow="Fail closed" title="Belum diperiksa" />
-          <ul className="divide-y divide-border px-4">{analysis.missingEvidence.map((item) => <li key={item} className="flex gap-2 py-3 text-sm leading-6 text-muted-foreground"><AlertTriangle aria-hidden="true" className="mt-1 size-3.5 shrink-0 text-attention" />{item}</li>)}</ul>
-          <div className="border-t border-border p-4"><p className="text-xs leading-5 text-muted-foreground">Kekosongan data tidak diisi dengan estimasi tersembunyi.</p></div>
-        </Panel>
-      </div>
+      <Panel className="mt-4"><div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-attention/10 text-attention"><AlertTriangle aria-hidden="true" className="size-4" /></span><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-attention">Audit tersedia</p><p className="mt-1 text-sm font-medium">{analysis.missingEvidence.length} batas data · {analysis.hypotheses.length} hipotesis · {analysis.sources.length} sumber</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Trace teknis disimpan di sini agar analisis utama tetap ringkas.</p></div></div><AnalysisAudit symbol={symbol} traces={analysis.hypotheses} missingEvidence={analysis.missingEvidence} sourceCount={analysis.sources.length} /></div></Panel>
 
       <div className="mt-4"><AnalysisReview symbol={symbol} /></div>
 

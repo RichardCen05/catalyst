@@ -27,8 +27,10 @@ export const userInsightSchema = z.object({
   pillar: pillarSchema.optional(),
   category: z.enum(["data-error", "missing-context", "alternative-interpretation"]),
   note: z.string().trim().min(8).max(800),
+  sourceUrl: z.url().startsWith("https://").optional(),
   status: z.enum(["pending", "incorporated", "dismissed"]),
   createdAt: z.string().datetime(),
+  reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
 export const chatRequestSchema = z.object({

@@ -3,40 +3,40 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f4f7fb;
+  --background: #f7f5fa;
   --surface: #ffffff;
-  --surface-raised: #f8fafc;
-  --foreground: #10233f;
-  --muted: #e9eef6;
-  --muted-foreground: #526176;
-  --border: #d8e1ee;
-  --primary: #1e40af;
+  --surface-raised: #f1edf5;
+  --foreground: #221a29;
+  --muted: #eee9f2;
+  --muted-foreground: #62576c;
+  --border: #d8cedf;
+  --primary: #6940a5;
   --primary-foreground: #ffffff;
-  --attention: #d97706;
-  --attention-foreground: #7c3f00;
+  --attention: #a86100;
+  --attention-foreground: #7d4900;
   --positive: #08683b;
   --danger: #b42334;
-  --ring: #2563eb;
-  --chart-grid: #d8e1ee;
+  --ring: #6940a5;
+  --chart-grid: #d8cedf;
   color-scheme: light;
 }
 
 .dark {
-  --background: #08111f;
-  --surface: #0f1b2d;
-  --surface-raised: #142238;
-  --foreground: #f1f5f9;
-  --muted: #182841;
-  --muted-foreground: #a9b8cc;
-  --border: #2b3d57;
-  --primary: #60a5fa;
-  --primary-foreground: #06101f;
-  --attention: #fbbf24;
-  --attention-foreground: #fcd46b;
-  --positive: #4ade80;
-  --danger: #fb7185;
-  --ring: #60a5fa;
-  --chart-grid: #263a55;
+  --background: #0b0a0f;
+  --surface: #15121b;
+  --surface-raised: #1d1924;
+  --foreground: #f4f0f7;
+  --muted: #27212f;
+  --muted-foreground: #aba3b1;
+  --border: #40364d;
+  --primary: #c4a7ff;
+  --primary-foreground: #160b26;
+  --attention: #e4b65a;
+  --attention-foreground: #e4b65a;
+  --positive: #58c99a;
+  --danger: #ff7a85;
+  --ring: #c4a7ff;
+  --chart-grid: #332b3e;
   color-scheme: dark;
 }
 
@@ -55,7 +55,7 @@
   --color-positive: var(--positive);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
-  --shadow-panel: 0 1px 1px rgb(2 8 23 / 0.05), 0 10px 30px rgb(2 8 23 / 0.04);
+  --shadow-panel: 0 1px 1px rgb(11 8 15 / 0.08), 0 12px 32px rgb(36 20 51 / 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -67,12 +67,33 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 .font-mono, code, pre, kbd, .tabular { font-variant-numeric: tabular-nums; }
 .chart-grid { stroke: var(--chart-grid); }
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+.react-flow__controls-button {
+  border-bottom-color: var(--border) !important;
+  background: var(--surface) !important;
+  fill: var(--foreground) !important;
+}
+.react-flow__controls-button:hover { background: var(--muted) !important; }
+.react-flow__controls-button svg { fill: currentColor; }
 
 .skip-link {
   position: fixed; left: 12px; top: 8px; z-index: 1000; transform: translateY(-150%);
   border-radius: 8px; background: var(--primary); color: var(--primary-foreground); padding: 10px 14px;
 }
 .skip-link:focus { transform: translateY(0); }
+
+.tour-highlight {
+  position: relative;
+  z-index: 121;
+  outline: 2px solid var(--primary);
+  outline-offset: 5px;
+  box-shadow: 0 0 0 9px color-mix(in srgb, var(--primary) 18%, transparent);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

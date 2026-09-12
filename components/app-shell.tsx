@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, Building2, FlaskConical, Menu, Moon, Newspaper, Settings2, Sun, X } from "lucide-react";
+import { BarChart3, Bot, Building2, Compass, FlaskConical, Menu, Moon, Newspaper, Settings2, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
@@ -23,14 +23,16 @@ const navItems = [
 ];
 
 const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").then((mod) => mod.OnboardingWizard), { ssr: false });
+const GuidedTour = dynamic(() => import("@/components/guided-tour").then((mod) => mod.GuidedTour), { ssr: false });
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const [mobileNav, setMobileNav] = useState(false);
   const copilotOpen = useCatalystStore((state) => state.copilotOpen);
+  const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
+  const startTour = useCatalystStore((state) => state.startTour);
   const copilotPage = pathname.startsWith("/copilot");
-  const widePage = copilotPage || pathname.startsWith("/impact");
   const mobileNavItems = navItems.filter((item) => item.href !== "/method");
 
   const nav = (onNavigate?: () => void) => <>
@@ -44,13 +46,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh bg-background">
       <a href="#main-content" className="skip-link">Lewati navigasi</a>
       <div className="demo-banner relative z-50 flex min-h-8 items-center justify-center gap-2 border-b border-attention/25 bg-attention/10 px-3 py-1 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-attention-foreground"><FlaskConical aria-hidden="true" className="size-3" /><strong>Demo Mode</strong><span aria-hidden="true">·</span><span>Data simulasi, bukan kondisi pasar terkini</span></div>
-      <div className={cn("grid min-h-[calc(100dvh-33px)]", widePage ? "xl:grid-cols-[224px_minmax(0,1fr)]" : "xl:grid-cols-[224px_minmax(0,1fr)_360px]")}>
+      <div className="grid min-h-[calc(100dvh-33px)] xl:grid-cols-[224px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-[calc(100dvh-33px)] flex-col border-r border-border bg-surface p-3 xl:flex">
           <Link href="/" className="mb-5 flex min-h-12 items-center gap-3 rounded-lg px-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="block text-base font-semibold text-foreground">Catalyst</span><span className="block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Evidence agent</span></div></Link>
           <CommandPalette />
           <nav aria-label="Navigasi utama" className="mt-4 space-y-1">{nav()}</nav>
           <div className="mt-auto border-t border-border pt-3">
-            <p className="mb-2 px-2 text-xs leading-5 text-muted-foreground">Empat bukti untuk setiap gerak.</p>
+            <p className="mb-2 px-2 text-xs leading-5 text-muted-foreground">Trace the move. Trust the evidence.</p>
+            <Button variant="ghost" className="w-full justify-start" onClick={startTour}><Compass aria-hidden="true" className="size-4" /><span>Ulangi tur</span></Button>
             <Button variant="ghost" className="w-full justify-start" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" /><span>Ganti tema</span></Button>
           </div>
         </aside>
@@ -70,12 +73,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {!widePage ? <aside className="sticky top-0 hidden h-[calc(100dvh-33px)] border-l border-border xl:block"><Copilot /></aside> : null}
       </div>
 
-      {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-slate-950/70" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-5 flex items-center gap-3"><CatalystLogo className="text-primary" /><span className="font-semibold">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-1">{nav(() => setMobileNav(false))}</nav><div className="mt-6"><CommandPalette /></div></aside></div> : null}
-      {copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:hidden"><Copilot dismissible /></div> : null}
+      {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-5 flex items-center gap-3"><CatalystLogo className="text-primary" /><span className="font-semibold">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-1">{nav(() => setMobileNav(false))}</nav><div className="mt-6"><CommandPalette /></div></aside></div> : null}
+      {!copilotPage && pathname !== "/" && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya agent</Button> : null}
+      {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <OnboardingWizard />
+      <GuidedTour />
     </div>
   );
 }

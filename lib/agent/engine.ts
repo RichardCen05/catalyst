@@ -341,12 +341,19 @@ function buildCausalGraph(
     const link = event.impactLinks.find((item) => item.symbol === symbol);
     return link ? [{ event, link }] : [];
   });
-  const visible = linked.filter(({ link }) => link.relevance >= options.minRelevance);
+  const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= 90 ? "High" : relevance >= 75 ? "Medium" : "Low";
+  const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : "1-10 sesi";
+  const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);
+  const visible = eligible.slice(0, 3);
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
     label: symbol,
     kind: "company",
     detail: `${analysis.company.name}. Titik temu seluruh jalur; bukan kesimpulan transaksi.`,
+    basis: "Aggregation point",
+    confidence: "High",
+    lag: "N/A",
+    counterEvidence: "Emiten menghubungkan jalur, tetapi tidak membuktikan bahwa setiap input menyebabkan perubahan harga.",
     citations: analysis.company.citations,
   }];
   const edges: CausalGraph["edges"] = [];
@@ -357,15 +364,19 @@ function buildCausalGraph(
     const mechanismLabel = link.path.split(/→|->/)[1]?.trim() ?? "Jalur eksposur";
     nodes.push({
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance, citations: event.citations,
+      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
+      counterEvidence: "Nilai ini berasal dari fixture. Kejadian, waktu, dan cakupan produksi masih perlu diverifikasi pada sumber langsung.", citations: event.citations,
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${link.path}. ${link.rationale}`,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance, citations: link.citations,
+      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event),
+      counterEvidence: link.rationale.includes("belum") || link.rationale.includes("harus") ? link.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: link.citations,
     });
     edges.push(
-      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, citations: link.citations },
+      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), citations: event.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), citations: link.citations },
     );
   }
 
@@ -376,11 +387,13 @@ function buildCausalGraph(
       : "Mixed";
     nodes.push({
       id: nodeId, label: `${pillar.label}: ${pillar.status}`, kind: "observation", detail: pillar.summary,
-      sourceType: pillar.key === "catalyst" ? undefined : "market", direction, relevance: 100, citations: pillar.citations,
+      sourceType: pillar.key === "catalyst" ? undefined : "market", direction, relevance: 100,
+      basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis",
+      counterEvidence: pillar.conflict ?? "Observasi bergerak pada jendela yang sama; hubungan kausal tidak disimpulkan dari korelasi ini.", citations: pillar.citations,
     });
     edges.push({
       id: `company-${symbol}-to-${nodeId}`, from: `company-${symbol}`, to: nodeId,
-      label: "observed", direction, relevance: 100, citations: pillar.citations,
+      label: "observed", direction, relevance: 100, basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis", citations: pillar.citations,
     });
   }
 
