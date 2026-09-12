@@ -34,18 +34,18 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   };
 
   return (
-    <Panel className="overflow-hidden" data-tour="research-case">
+    <Panel className="overflow-hidden">
       <PanelHeader
         title="Research mandate"
         action={<span className={`rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${status === "closed" ? "border-positive/35 bg-positive/10 text-positive" : "border-primary/35 bg-primary/10 text-primary"}`}>Case {status}</span>}
       />
 
-      <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]">
+      <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]" data-tour="research-mandate">
         <div>
           <label htmlFor={`mandate-${symbol}`} className="text-xs font-medium">Research mandate</label>
           <textarea id={`mandate-${symbol}`} value={mandate} onChange={(event) => { setCaseMandate(symbol, event.target.value); setSaved(false); }} rows={3} className="mt-2 w-full resize-y rounded-[8px] border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" />
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={saveMandate}><Save aria-hidden="true" className="size-3.5" />Simpan dan susun ulang plan</Button>
+            <Button size="sm" onClick={saveMandate} data-tour-action={symbol === "ANTM" ? "save-mandate" : undefined}><Save aria-hidden="true" className="size-3.5" />Simpan dan susun ulang plan</Button>
             {saved ? <span className="inline-flex items-center gap-1 text-xs text-positive" role="status"><Check aria-hidden="true" className="size-3.5" />Mandate tersimpan</span> : null}
           </div>
         </div>

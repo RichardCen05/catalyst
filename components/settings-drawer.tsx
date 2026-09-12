@@ -19,7 +19,9 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const startTour = useCatalystStore((state) => state.startTour);
+  const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
   const restartTour = () => {
+    setCopilotOpen(false);
     router.push("/");
     startTour();
   };

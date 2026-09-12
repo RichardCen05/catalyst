@@ -47,6 +47,7 @@ export function ResearchCaseWorkspace({
               <Link
                 key={tab.value}
                 id={`case-tab-${tab.value}`}
+                data-tour-action={tab.value === "evidence" && symbol === "ANTM" ? "open-evidence" : undefined}
                 role="tab"
                 aria-selected={active}
                 aria-controls={`case-panel-${tab.value}`}

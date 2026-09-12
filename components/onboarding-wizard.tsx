@@ -44,7 +44,7 @@ export function OnboardingWizard() {
             </div> : null}
 
             {step === 2 ? <div>
-              <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-[6px] bg-brand text-white"><Compass aria-hidden="true" className="size-5" /></span><div><h2 className="editorial text-xl">Ikuti empat langkah inti</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Tur membawa Anda dari perubahan Today ke Research Case, Impact, lalu Copilot. Sekitar 30 detik.</p></div></div>
+              <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-[6px] bg-brand text-white"><Compass aria-hidden="true" className="size-5" /></span><div><h2 className="editorial text-xl">Coba alur riset secara langsung</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Tur menyorot kontrol yang perlu diklik dari Today hingga Copilot. Tujuh aksi singkat, sekitar 90 detik.</p></div></div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-border bg-background p-4"><Database aria-hidden="true" className="size-5 text-primary" /><h3 className="mt-3 font-semibold">Data tetap fixture</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">Semua angka, peristiwa, dan jawaban agent adalah simulasi yang dapat diperiksa.</p></div>
                 <div className="rounded-xl border border-border bg-background p-4"><Eye aria-hidden="true" className="size-5 text-primary" /><h3 className="mt-3 font-semibold">Koreksi menjadi hipotesis</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">Catatan user tidak mengubah angka, formula, sumber, atau verdict.</p></div>

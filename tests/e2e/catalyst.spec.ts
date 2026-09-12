@@ -7,7 +7,7 @@ async function finishSetup(page: Page) {
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Lanjut" }).click();
   await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
-  await page.getByRole("dialog", { name: "Mulai dari perubahan" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.getByRole("dialog", { name: "Temukan perubahan material" }).getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { name: "Apa yang berubah di watchlist?" })).toBeVisible();
 }
 
@@ -18,20 +18,36 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await setup.getByRole("button", { name: "Lanjut" }).click();
   await setup.getByRole("button", { name: "Masuk dan mulai tur" }).click();
 
-  const tour = page.getByRole("dialog");
-  await expect(tour).toHaveAccessibleName("Mulai dari perubahan");
-  await expect(tour.getByRole("button", { name: "Kembali" })).toHaveCount(0);
-  await tour.getByRole("button", { name: "Lanjut" }).click();
-  await expect(tour).toHaveAccessibleName("Uji satu Research Case");
+  await expect(page.getByRole("dialog", { name: "Temukan perubahan material" })).toContainText("Klik case ANTM");
+  await expect(page.locator("[data-tour-spotlight]")).toBeVisible();
+  await page.locator('[data-tour-action="open-antm-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
-  await tour.getByRole("button", { name: "Lanjut" }).click();
-  await expect(tour).toHaveAccessibleName("Uji jalur sebab-akibat");
+
+  await expect(page.getByRole("dialog", { name: "Tentukan pertanyaan riset" })).toContainText("Simpan dan susun ulang plan");
+  await page.locator('[data-tour-action="save-mandate"]').click();
+  await expect(page.getByRole("dialog", { name: "Buka empat pemeriksaan" })).toContainText("Evidence 4");
+  await page.locator('[data-tour-action="open-evidence"]').click();
+  await expect(page).toHaveURL(/tab=evidence/);
+
+  await expect(page.getByRole("dialog", { name: "Audit rumus dan sumber" })).toContainText("Perhitungan dan input");
+  await page.locator('[data-tour-action="toggle-calculation"]').click();
+  await expect(page.getByText("Hasil deterministik", { exact: true })).toBeVisible();
+
+  await expect(page.getByRole("dialog", { name: "Lacak jalur sebab-akibat" })).toContainText("Causal chain");
+  await page.locator('[data-tour-action="open-impact"]').click();
   await expect(page).toHaveURL(/\/impact\?case=ANTM$/);
-  await tour.getByRole("button", { name: "Lanjut" }).click();
-  await expect(tour).toHaveAccessibleName("Tanya dan koreksi agent");
-  await expect(page).toHaveURL(/\/copilot$/);
-  await tour.getByRole("button", { name: "Selesai" }).click();
-  await expect(tour).toBeHidden();
+
+  await expect(page.getByRole("dialog", { name: "Bandingkan penjelasan" })).toContainText("peringkat 2");
+  await page.locator('[data-tour-action="competing-hypothesis-2"]').click();
+  await expect(page.getByRole("dialog", { name: "Bawa tantangan ke Copilot" })).toContainText("Challenge hypothesis");
+  await page.locator('[data-tour-action="challenge-hypothesis"]').click();
+
+  const complete = page.getByRole("dialog", { name: "Alur inti selesai" });
+  await expect(complete).toContainText("pertanyaan dan konteks hipotesis");
+  await complete.getByRole("button", { name: "Mulai bertanya" }).click();
+  const copilot = page.getByRole("dialog", { name: "Catalyst Copilot" });
+  await expect(copilot).toBeVisible();
+  await expect(copilot.getByLabel("Tanya Catalyst")).toHaveValue(/Uji hipotesis/);
   const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasOverflow).toBe(false);
 });

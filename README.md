@@ -13,7 +13,7 @@ pnpm install
 pnpm dev
 ```
 
-Buka `http://localhost:3000`, selesaikan setup dua langkah, lalu ikuti tur interaktif empat titik. Alur inti berjalan dari perubahan di Today menuju Research Case, causal Impact, dan Copilot dalam konteks case yang sama.
+Buka `http://localhost:3000`, selesaikan setup dua langkah, lalu ikuti tujuh aksi pada guided tour. Spotlight menyorot kontrol nyata dan tur baru maju setelah user membuka case, menyusun ulang mandate, memeriksa Evidence serta rumus, menelusuri causal Impact, membandingkan hipotesis, dan membawa konteksnya ke Copilot.
 
 ## Model produk
 
