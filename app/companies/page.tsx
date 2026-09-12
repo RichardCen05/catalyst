@@ -30,7 +30,7 @@ export default function CompaniesPage() {
 
   return (
     <div data-tour="company-universe">
-      <PageHeader eyebrow="Company universe" title="Pilih kasus yang siap diperiksa" description="Default hanya menampilkan watchlist dengan empat pilar lengkap. Data kosong dipisahkan agar antrean tetap pendek." />
+      <PageHeader eyebrow="Utility · company universe" title="Cari fixture dan pembanding" description="Surface pendukung untuk memilih pembanding atau memeriksa coverage. Investigasi aktif tetap dikelola di Research Cases." />
       <Panel className="mb-4 p-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Cakupan emiten">{(Object.keys(viewLabels) as View[]).map((item) => <button key={item} onClick={() => { setView(item); setSelected([]); }} aria-pressed={view === item} className={cn("min-h-10 cursor-pointer rounded-lg border px-3 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", view === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:bg-muted")}>{viewLabels[item]}{item === "incomplete" ? ` · ${companies.filter((company) => !company.analyzed).length}` : ""}</button>)}</div>
         <div className="mt-3 grid gap-3 border-t border-border pt-3 sm:grid-cols-[minmax(0,1fr)_220px]">

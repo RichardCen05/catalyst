@@ -43,7 +43,7 @@ function ImpactContent() {
   const searchParams = useSearchParams();
   const profile = useCatalystStore((state) => state.profile);
   const eventParam = events.find((event) => event.id === searchParams.get("event"));
-  const companyParam = searchParams.get("company")?.toUpperCase() as SymbolCode | undefined;
+  const companyParam = (searchParams.get("case") ?? searchParams.get("company"))?.toUpperCase() as SymbolCode | undefined;
   const requestedSymbol = companies.some((company) => company.symbol === companyParam && company.analyzed)
     ? companyParam
     : eventParam?.impactLinks.find((link) => profile.watchlist.includes(link.symbol))?.symbol;

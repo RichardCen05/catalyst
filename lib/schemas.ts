@@ -38,4 +38,13 @@ export const chatRequestSchema = z.object({
   profile: profileSchema,
   contextSymbol: symbolSchema.optional(),
   userInsights: z.array(userInsightSchema).max(100).optional(),
+  playbook: z.object({
+    preferredComparables: z.record(z.string(), z.array(symbolSchema).max(6)),
+    materialityRules: z.array(z.string().max(400)).max(30),
+    knownExposures: z.array(z.string().max(400)).max(50),
+    thesisAssumptions: z.array(z.string().max(400)).max(50),
+    trustedSources: z.array(z.string().max(400)).max(30),
+    falsifiers: z.array(z.string().max(400)).max(50),
+  }).optional(),
+  caseMandate: z.string().max(600).optional(),
 });

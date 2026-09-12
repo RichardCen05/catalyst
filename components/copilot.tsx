@@ -17,7 +17,7 @@ const prompts = [
 interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
 
 export function Copilot({ dismissible = false, workspace = false }: { dismissible?: boolean; workspace?: boolean }) {
-  const { profile, insights, setCopilotOpen, copilotContext, clearCopilotContext } = useCatalystStore();
+  const { profile, insights, playbook, caseMandates, setCopilotOpen, copilotContext, clearCopilotContext } = useCatalystStore();
   const [input, setInput] = useState(() => copilotContext?.question ?? "");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -32,7 +32,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights }) });
+      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
       setMessages((current) => [...current, { id: `a-${current.length}`, role: "assistant", text: answer.text, answer }]);

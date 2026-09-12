@@ -41,7 +41,7 @@ export function OnboardingWizard() {
           <div className="min-h-[330px] p-5 sm:p-6">
             {step === 1 ? <div>
               <h2 className="text-lg font-semibold">Pilih fokus awal</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Mulai dari emiten yang analisisnya siap. Watchlist dan horizon dapat diubah lagi di Agent.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Mulai dari emiten yang case-nya siap. Watchlist dan horizon dapat diubah lagi lewat settings.</p>
               <div className="mt-5 grid gap-2 sm:grid-cols-3">{readyCompanies.map((company) => {
                 const selected = profile.watchlist.includes(company.symbol);
                 return <button key={company.symbol} onClick={() => toggleTicker(company.symbol)} aria-pressed={selected} className={cn("min-h-16 cursor-pointer rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted")}><span className="flex items-center justify-between"><span className="font-mono text-sm font-semibold">{company.symbol}</span>{selected ? <Check aria-hidden="true" className="size-4 text-primary" /> : null}</span><span className="mt-1 block truncate text-xs text-muted-foreground">{company.subsector}</span></button>;

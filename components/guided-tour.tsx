@@ -7,11 +7,11 @@ import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 
 const steps = [
-  { title: "Mulai dari perubahan", body: "Today menaruh data baru, konflik, dan catatan yang belum diperiksa di urutan teratas.", href: "/", target: "today-delta" },
-  { title: "Pilih atau bandingkan emiten", body: "Companies dibuka dari watchlist yang datanya siap. Pilih dua sampai empat emiten untuk membaca buktinya berdampingan.", href: "/companies", target: "company-universe" },
-  { title: "Baca bukti dalam urutan waktu", body: "Timeline ANTM menyatukan harga, volume, dan peristiwa. Empat pilar tetap dapat diperiksa sampai rumus dan field sumber.", href: "/companies/ANTM", target: "evidence-timeline" },
-  { title: "Uji jalur sebab-akibat", body: "Impact Map membedakan sumber, hipotesis mekanisme, emiten, dan observasi. Klik node untuk melihat batas buktinya.", href: "/impact?company=ANTM", target: "causal-chain" },
-  { title: "Tanya dan koreksi", body: "Copilot menjawab dari fixture. Koreksi user masuk sebagai hipotesis terbuka, bukan pengganti fakta.", href: "/copilot", target: "copilot-workspace" },
+  { title: "Mulai dari perubahan", body: "Today hanya menampilkan perubahan watchlist yang layak dibuka sebagai case: apa yang berubah, mengapa, dan apa pembatalnya.", href: "/", target: "today-delta" },
+  { title: "Pilih Research Case", body: "Setiap case menyatukan trigger, thesis, prioritas, dan pertanyaan yang masih terbuka.", href: "/cases", target: "research-cases" },
+  { title: "Berikan research mandate", body: "Agent memecah mandate, menyusun source plan, menjalankan empat protokol uji, lalu menunggu review Anda.", href: "/cases/ANTM", target: "research-case" },
+  { title: "Uji jalur sebab-akibat", body: "Impact membedakan sumber, mekanisme, emiten, dan observasi. Pilih panah untuk memeriksa exposure dan kondisi pembatalnya.", href: "/impact?case=ANTM", target: "causal-chain" },
+  { title: "Lanjutkan case di Copilot", body: "Copilot memakai ticker dan catatan case yang sama. Koreksi Anda tetap menjadi hipotesis sampai sumber memverifikasinya.", href: "/copilot", target: "copilot-workspace" },
 ] as const;
 
 export function GuidedTour() {

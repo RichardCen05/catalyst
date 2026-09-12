@@ -3,16 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BarChart3, Bot, Building2, FlaskConical, Newspaper, Search, Settings2, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConical, Newspaper, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const actions = [
   { label: "Buka Today", href: "/", icon: BarChart3 },
-  { label: "Cari emiten", href: "/companies", icon: Building2 },
-  { label: "Buka impact map", href: "/impact", icon: Newspaper },
+  { label: "Buka Research Cases", href: "/cases", icon: BriefcaseBusiness },
+  { label: "Buka causal impact", href: "/impact", icon: Newspaper },
   { label: "Tanya Catalyst Copilot", href: "/copilot", icon: Bot },
-  { label: "Atur agent", href: "/agent", icon: Settings2 },
-  { label: "Baca metode", href: "/method", icon: FlaskConical },
+  { label: "Edit Investor Research Playbook", href: "/playbook", icon: BookOpenCheck },
+  { label: "Buka company universe", href: "/companies", icon: Building2 },
+  { label: "Baca method & limits", href: "/method", icon: FlaskConical },
 ];
 
 export function CommandPalette() {

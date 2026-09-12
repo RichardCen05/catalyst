@@ -9,6 +9,13 @@ describe("agent output gates", () => {
       label: "Volume",
       status: "Elevated",
       summary: "Aktivitas berada di atas baseline.",
+      protocol: {
+        claim: "Aktivitas menyimpang dari baseline.",
+        supportingEvidence: "Robust z 3.2.",
+        challengingEvidence: "Penyebab belum diisolasi.",
+        insufficientWhen: "Baseline tidak tersedia.",
+        nextQuestion: "Apakah perubahan bertahan?",
+      },
       metrics: [{ label: "Robust z", value: "3.2", citations: [] }],
       citations: [],
     } satisfies PillarResult;

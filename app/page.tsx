@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Today · changes first" title={`Selamat datang, ${profile.name}`} description={`${profile.watchlist.length} emiten · horizon ${profile.config.horizon}. Angka dan verdict tidak berubah karena personalisasi.`} action={<CitationDialog citations={citations} label="Sumber" />} />
+      <PageHeader eyebrow="Watchlist change investigator" title="Apa yang berubah di watchlist?" description="Apa yang berubah, mengapa mungkin berubah, dan bukti apa yang dapat membatalkannya?" action={<CitationDialog citations={citations} label="Sumber" />} />
 
       <section className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs" aria-label="Status pembaruan">
         <span className="inline-flex items-center gap-2 font-medium"><Radio aria-hidden="true" className="size-4 text-primary" />{cases.length} perubahan perlu dibaca</span>
@@ -55,13 +55,13 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.75fr)]">
         <Panel data-tour="today-delta">
-          <PanelHeader eyebrow="Since last check" title="Berubah sejak pemeriksaan terakhir" action={<Link href="/companies" className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Companies<ArrowRight aria-hidden="true" className="size-3.5" /></Link>} />
+          <PanelHeader eyebrow="Since last check" title="Berubah sejak pemeriksaan terakhir" action={<Link href="/cases" className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Semua case<ArrowRight aria-hidden="true" className="size-3.5" /></Link>} />
           <div className="divide-y divide-border">
             {cases.map((analysis) => {
               const delta = deltaBySymbol[analysis.company.symbol] ?? { label: "Analisis diperbarui", detail: analysis.thesis, tone: "watch" as const };
               const Icon = deltaIcon[delta.tone];
               const openNotes = pending.filter((item) => item.symbol === analysis.company.symbol).length;
-              return <Link key={analysis.company.symbol} href={`/companies/${analysis.company.symbol}`} className="group grid min-h-24 gap-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-center"><span className={`grid size-9 place-items-center rounded-lg ${delta.tone === "conflict" ? "bg-danger/10 text-danger" : delta.tone === "new" ? "bg-primary/10 text-primary" : "bg-attention/10 text-attention-foreground"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span><span className="text-sm font-medium">{delta.label}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><MessageSquareWarning aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{delta.detail}</p></div><StatusBadge status={analysis.evidenceState} /></Link>;
+              return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="group grid min-h-24 gap-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-center"><span className={`grid size-9 place-items-center rounded-lg ${delta.tone === "conflict" ? "bg-danger/10 text-danger" : delta.tone === "new" ? "bg-primary/10 text-primary" : "bg-attention/10 text-attention-foreground"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span><span className="text-sm font-medium">{delta.label}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><MessageSquareWarning aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{delta.detail}</p></div><StatusBadge status={analysis.evidenceState} /></Link>;
             })}
           </div>
         </Panel>

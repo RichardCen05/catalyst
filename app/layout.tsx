@@ -10,7 +10,7 @@ const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-mono", weight
 
 export const metadata: Metadata = {
   title: { default: "Catalyst", template: "%s | Catalyst" },
-  description: "Prototype agent riset IDX berbasis empat pilar bukti.",
+  description: "Watchlist change investigator untuk menguji apa yang berubah, mengapa, dan bukti pembatalnya.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

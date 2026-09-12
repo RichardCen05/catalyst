@@ -4,22 +4,22 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, Building2, Compass, FlaskConical, Menu, Moon, Newspaper, Settings2, Sun, X } from "lucide-react";
+import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, Menu, Moon, Newspaper, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
 import { Copilot } from "@/components/copilot";
 import { Button } from "@/components/ui/button";
+import { SettingsDrawer } from "@/components/settings-drawer";
 import { useCatalystStore } from "@/lib/store";
+import type { SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Today", icon: BarChart3 },
-  { href: "/companies", label: "Companies", icon: Building2 },
-  { href: "/impact", label: "Impact map", icon: Newspaper },
+  { href: "/cases", label: "Research Cases", icon: BriefcaseBusiness },
+  { href: "/impact", label: "Impact", icon: Newspaper },
   { href: "/copilot", label: "Copilot", icon: Bot },
-  { href: "/agent", label: "Agent", icon: Settings2 },
-  { href: "/method", label: "Method", icon: FlaskConical },
 ];
 
 const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").then((mod) => mod.OnboardingWizard), { ssr: false });
@@ -31,9 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileNav, setMobileNav] = useState(false);
   const copilotOpen = useCatalystStore((state) => state.copilotOpen);
   const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
-  const startTour = useCatalystStore((state) => state.startTour);
   const copilotPage = pathname.startsWith("/copilot");
-  const mobileNavItems = navItems.filter((item) => item.href !== "/method");
+  const caseSymbol = pathname.match(/^\/cases\/([^/]+)$/)?.[1] as SymbolCode | undefined;
+  const mobileNavItems = navItems;
 
   const nav = (onNavigate?: () => void) => <>
     {navItems.map((item) => {
@@ -48,13 +48,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="demo-banner relative z-50 flex min-h-8 items-center justify-center gap-2 border-b border-attention/25 bg-attention/10 px-3 py-1 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-attention-foreground"><FlaskConical aria-hidden="true" className="size-3" /><strong>Demo Mode</strong><span aria-hidden="true">·</span><span>Data simulasi, bukan kondisi pasar terkini</span></div>
       <div className="grid min-h-[calc(100dvh-33px)] xl:grid-cols-[224px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-[calc(100dvh-33px)] flex-col border-r border-border bg-surface p-3 xl:flex">
-          <Link href="/" className="mb-5 flex min-h-12 items-center gap-3 rounded-lg px-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="block text-base font-semibold text-foreground">Catalyst</span><span className="block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Evidence agent</span></div></Link>
+          <Link href="/" className="mb-5 flex min-h-12 items-center gap-3 rounded-lg px-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="block text-base font-semibold text-foreground">Catalyst</span><span className="block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Change investigator</span></div></Link>
           <CommandPalette />
           <nav aria-label="Navigasi utama" className="mt-4 space-y-1">{nav()}</nav>
           <div className="mt-auto border-t border-border pt-3">
             <p className="mb-2 px-2 text-xs leading-5 text-muted-foreground">Trace the move. Trust the evidence.</p>
-            <Button variant="ghost" className="w-full justify-start" onClick={startTour}><Compass aria-hidden="true" className="size-4" /><span>Ulangi tur</span></Button>
-            <Button variant="ghost" className="w-full justify-start" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" /><span>Ganti tema</span></Button>
+            <SettingsDrawer />
           </div>
         </aside>
 
@@ -64,11 +63,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="flex min-w-0 items-center gap-2 text-primary"><CatalystLogo className="size-7" /><span className="font-semibold text-foreground">Catalyst</span></Link>
             <div className="ml-auto flex items-center gap-1">
               <Button variant="ghost" size="icon" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Ganti tema"><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" /></Button>
+              <SettingsDrawer compact />
               <Link href="/copilot" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Bot aria-hidden="true" className="size-4" /><span className="hidden sm:inline">Tanya agent</span><span className="sr-only sm:hidden">Buka copilot</span></Link>
             </div>
           </header>
           <main id="main-content" tabIndex={-1} className="min-w-0 p-3 pb-20 focus:outline-none sm:p-5 sm:pb-20 lg:p-6 xl:pb-6">{children}</main>
-          <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-surface/98 px-1 pb-[env(safe-area-inset-bottom)] xl:hidden">
+          <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-surface/98 px-1 pb-[env(safe-area-inset-bottom)] xl:hidden">
             {mobileNavItems.map((item) => { const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("flex min-h-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-md text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "text-primary" : "text-muted-foreground")}><item.icon aria-hidden="true" className="size-4" />{item.label}</Link>; })}
           </nav>
         </div>
@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-5 flex items-center gap-3"><CatalystLogo className="text-primary" /><span className="font-semibold">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-1">{nav(() => setMobileNav(false))}</nav><div className="mt-6"><CommandPalette /></div></aside></div> : null}
-      {!copilotPage && pathname !== "/" && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya agent</Button> : null}
+      {!copilotPage && !caseSymbol && pathname !== "/" && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya agent</Button> : null}
       {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <OnboardingWizard />
       <GuidedTour />

@@ -70,6 +70,25 @@ describe("Catalyst agent engine", () => {
     expect(graph?.edges.every((edge) =>
       edge.citations.length > 0 && edge.citations.every(isCompleteCitation),
     )).toBe(true);
+    expect(graph?.edges.every((edge) =>
+      edge.exposure && edge.expectedObservable && edge.alternativeExplanation
+      && edge.falsificationCondition && edge.confidenceBasis && edge.lag,
+    )).toBe(true);
+  });
+
+  it("organizes company analysis as a hypothesis-driven Research Case", () => {
+    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+
+    expect(researchCase?.caseId).toMatch(/^CASE-ANTM-/);
+    expect(researchCase?.trigger.title).toBeTruthy();
+    expect(researchCase?.mandate).toContain("Investigasi perubahan ANTM");
+    expect(researchCase?.lifecycle.map((step) => step.key)).toEqual(["mandate", "decompose", "source-plan", "evidence", "review"]);
+    expect(researchCase?.sourcePlan.length).toBeGreaterThan(2);
+    expect(researchCase?.unresolvedQuestions.length).toBeGreaterThan(3);
+    expect(researchCase?.pillars.every((pillar) =>
+      pillar.protocol.claim && pillar.protocol.supportingEvidence && pillar.protocol.challengingEvidence
+      && pillar.protocol.insufficientWhen && pillar.protocol.nextQuestion,
+    )).toBe(true);
   });
 
   it("treats a user correction as an open hypothesis without changing analysis facts", () => {

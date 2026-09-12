@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { agentEngine } from "@/lib/agent/engine";
 import { chatRequestSchema } from "@/lib/schemas";
-import type { SymbolCode, UserInsight, UserProfile } from "@/lib/types";
+import type { InvestorResearchPlaybook, SymbolCode, UserInsight, UserProfile } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +12,8 @@ export async function POST(request: Request) {
       profile: parsed.data.profile as UserProfile,
       contextSymbol: parsed.data.contextSymbol as SymbolCode | undefined,
       userInsights: parsed.data.userInsights as UserInsight[] | undefined,
+      playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
+      caseMandate: parsed.data.caseMandate,
     });
     return NextResponse.json({ answer, mode: "fixture" });
   } catch {

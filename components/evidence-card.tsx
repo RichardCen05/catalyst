@@ -14,6 +14,15 @@ export function EvidenceCard({ pillar, index, symbol }: { pillar: PillarResult; 
       </div>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">{pillar.summary}</p>
       {pillar.conflict ? <div className="mt-3 flex gap-2 rounded-lg border border-danger/25 bg-danger/8 p-3 text-xs leading-5 text-foreground"><AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-danger" />{pillar.conflict}</div> : null}
+      <div className="mt-4 rounded-lg border border-border bg-background p-3">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Klaim yang diuji</p>
+        <p className="mt-1 text-xs leading-5">{pillar.protocol.claim}</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div><p className="text-[10px] font-semibold uppercase tracking-wider text-positive">Bukti pendukung</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>
+          <div><p className="text-[10px] font-semibold uppercase tracking-wider text-attention-foreground">Bukti penyangkal</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{pillar.protocol.challengingEvidence}</p></div>
+        </div>
+        <details className="group mt-3 border-t border-border pt-2"><summary className="flex min-h-9 cursor-pointer list-none items-center text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Batas & langkah berikutnya<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary><dl className="grid gap-3 pt-2 text-xs leading-5"><div><dt className="font-medium">Tidak cukup bila</dt><dd className="mt-1 text-muted-foreground">{pillar.protocol.insufficientWhen}</dd></div><div><dt className="font-medium">Pertanyaan berikutnya</dt><dd className="mt-1 text-muted-foreground">{pillar.protocol.nextQuestion}</dd></div></dl></details>
+      </div>
       <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border">
         {pillar.metrics.slice(0, 2).map((metric) => <div key={metric.label} className="min-w-0 bg-background p-2.5"><dt className="truncate text-[11px] text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums">{metric.value}</dd><dd className="mt-1 inline-flex items-center gap-1 text-[9px] uppercase tracking-wider text-primary"><Database aria-hidden="true" className="size-2.5" />{metric.citations.length} source</dd></div>)}
       </dl>

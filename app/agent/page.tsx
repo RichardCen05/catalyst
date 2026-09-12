@@ -26,7 +26,7 @@ export default function AgentPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Agent studio" title="Atur prioritas, bukan kebenaran" description="Konfigurasi mengubah ranking, urutan, kedalaman, dan quick prompt. Kalkulator, sumber, ambang, konflik, dan language gate tidak berubah." />
+      <PageHeader eyebrow="Utility · correction queue" title="Review catatan dan presentation memory" description="Surface pendukung untuk memeriksa koreksi user dan urutan penyajian. Research judgment eksplisit dikelola di Investor Research Playbook." />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
         <div className="space-y-4">
           <Panel>

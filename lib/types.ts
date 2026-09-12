@@ -19,6 +19,15 @@ export type Horizon = "event" | "swing" | "position";
 export type AnswerDepth = "compact" | "standard" | "forensic";
 export type EvidenceState = "Corroborated" | "Mixed Evidence" | "Insufficient Evidence";
 export type ImpactDirection = "Supported" | "Adverse" | "Mixed" | "Unrelated" | "Unverified";
+export type ResearchCaseStatus = "open" | "closed";
+
+export interface HypothesisProtocol {
+  claim: string;
+  supportingEvidence: string;
+  challengingEvidence: string;
+  insufficientWhen: string;
+  nextQuestion: string;
+}
 
 export interface Citation {
   id: string;
@@ -47,6 +56,7 @@ export interface PillarResult {
   metrics: MetricValue[];
   citations: Citation[];
   conflict?: string;
+  protocol: HypothesisProtocol;
   calculation?: {
     name: string;
     formula: string;
@@ -115,7 +125,34 @@ export interface HypothesisTrace {
   citations: Citation[];
 }
 
-export interface AnalysisCase {
+export interface ResearchCase {
+  caseId: string;
+  status: ResearchCaseStatus;
+  trigger: {
+    title: string;
+    detail: string;
+    eventId?: string;
+  };
+  mandate: string;
+  priority: {
+    novelty: "New" | "Updated" | "Persistent";
+    materiality: "High" | "Medium" | "Low";
+    uncertainty: "High" | "Medium" | "Low";
+    reason: string;
+  };
+  contradictions: string[];
+  counterEvidence: string[];
+  userNotes: UserInsight[];
+  unresolvedQuestions: string[];
+  nextResearchActions: string[];
+  sourcePlan: string[];
+  clarificationGate: string;
+  lifecycle: Array<{
+    key: "mandate" | "decompose" | "source-plan" | "evidence" | "review";
+    label: string;
+    state: "complete" | "active" | "blocked";
+  }>;
+  primaryCausalPath: string;
   company: Company;
   evidenceState: EvidenceState;
   thesis: string;
@@ -126,6 +163,17 @@ export interface AnalysisCase {
   priceSeries: PricePoint[];
   financialContext: FinancialInput[];
   asOf: string;
+}
+
+export type AnalysisCase = ResearchCase;
+
+export interface InvestorResearchPlaybook {
+  preferredComparables: Partial<Record<SymbolCode, SymbolCode[]>>;
+  materialityRules: string[];
+  knownExposures: string[];
+  thesisAssumptions: string[];
+  trustedSources: string[];
+  falsifiers: string[];
 }
 
 export interface ImpactLink {
@@ -201,6 +249,8 @@ export interface ChatRequest {
   profile: UserProfile;
   contextSymbol?: SymbolCode;
   userInsights?: UserInsight[];
+  playbook?: InvestorResearchPlaybook;
+  caseMandate?: string;
 }
 
 export interface ChatAnswer {
@@ -244,6 +294,11 @@ export interface CausalEdge {
   basis: "Reported input" | "Causal hypothesis" | "Observed correlation";
   confidence: "High" | "Medium" | "Low";
   lag: string;
+  exposure: string;
+  expectedObservable: string;
+  alternativeExplanation: string;
+  falsificationCondition: string;
+  confidenceBasis: string;
   citations: Citation[];
 }
 
