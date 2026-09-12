@@ -119,6 +119,7 @@ function GuidedTourContent() {
   const [complete, setComplete] = useState(false);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const revealedStep = useRef<string | null>(null);
+  const normalizedStart = useRef(false);
   const current = steps[step];
 
   const advance = useCallback(() => {
@@ -127,8 +128,10 @@ function GuidedTourContent() {
   }, [step]);
 
   useEffect(() => {
-    if (step === 0 && pathname !== "/") router.replace("/");
-  }, [pathname, router, step]);
+    if (normalizedStart.current) return;
+    normalizedStart.current = true;
+    if (pathname !== "/") router.replace("/");
+  }, [pathname, router]);
 
   useEffect(() => {
     const onAction = (event: MouseEvent) => {
