@@ -3,6 +3,7 @@
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
 import { BookOpenCheck, Building2, Compass, FlaskConical, History, Moon, Settings2, Sun, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,13 @@ const utilityLinks = [
 ] as const;
 
 export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const startTour = useCatalystStore((state) => state.startTour);
+  const restartTour = () => {
+    router.push("/");
+    startTour();
+  };
 
   return (
     <Dialog.Root>
@@ -31,7 +37,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
             {utilityLinks.map((item) => <Dialog.Close key={item.href} asChild><Link href={item.href} className="flex min-h-20 items-start gap-3 rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/45 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><item.icon aria-hidden="true" className="size-4" /></span><span><strong className="block text-sm">{item.label}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{item.description}</span></span></Link></Dialog.Close>)}
           </nav>
           <div className="mt-5 grid gap-2 border-t border-border pt-4">
-            <Dialog.Close asChild><Button variant="secondary" className="justify-start" onClick={startTour}><Compass aria-hidden="true" className="size-4" />Ulangi tur inti</Button></Dialog.Close>
+            <Dialog.Close asChild><Button variant="secondary" className="justify-start" onClick={restartTour}><Compass aria-hidden="true" className="size-4" />Ulangi tur inti</Button></Dialog.Close>
             <Button variant="secondary" className="justify-start" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" />Ganti tema</Button>
           </div>
         </Dialog.Content>

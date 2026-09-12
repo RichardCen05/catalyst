@@ -12,6 +12,7 @@ async function finishSetup(page: Page) {
 }
 
 test("first-time tutorial guides the core research flow", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await setup.getByRole("button", { name: "Lanjut" }).click();
@@ -19,20 +20,20 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
 
   const tour = page.getByRole("dialog");
   await expect(tour).toHaveAccessibleName("Mulai dari perubahan");
-  await tour.getByRole("button", { name: "Berikutnya" }).click();
-  await expect(tour).toHaveAccessibleName("Pilih Research Case");
-  await expect(page).toHaveURL(/\/cases$/);
-  await tour.getByRole("button", { name: "Berikutnya" }).click();
-  await expect(tour).toHaveAccessibleName("Berikan research mandate");
+  await expect(tour.getByRole("button", { name: "Kembali" })).toHaveCount(0);
+  await tour.getByRole("button", { name: "Lanjut" }).click();
+  await expect(tour).toHaveAccessibleName("Uji satu Research Case");
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
-  await tour.getByRole("button", { name: "Berikutnya" }).click();
+  await tour.getByRole("button", { name: "Lanjut" }).click();
   await expect(tour).toHaveAccessibleName("Uji jalur sebab-akibat");
   await expect(page).toHaveURL(/\/impact\?case=ANTM$/);
-  await tour.getByRole("button", { name: "Berikutnya" }).click();
-  await expect(tour).toHaveAccessibleName("Lanjutkan case di Copilot");
+  await tour.getByRole("button", { name: "Lanjut" }).click();
+  await expect(tour).toHaveAccessibleName("Tanya dan koreksi agent");
   await expect(page).toHaveURL(/\/copilot$/);
   await tour.getByRole("button", { name: "Selesai" }).click();
   await expect(tour).toBeHidden();
+  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  expect(hasOverflow).toBe(false);
 });
 
 test("Today prioritizes changes and removes dashboard clutter", async ({ page }) => {
@@ -98,7 +99,7 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(page.getByText(rule)).toBeVisible();
 });
 
-test("default theme uses the Graphite Aubergine tokens", async ({ page }) => {
+test("default theme uses the editorial black-cherry tokens", async ({ page }) => {
   await finishSetup(page);
   const tokens = await page.evaluate(() => {
     const style = getComputedStyle(document.documentElement);
@@ -106,9 +107,10 @@ test("default theme uses the Graphite Aubergine tokens", async ({ page }) => {
       background: style.getPropertyValue("--background").trim(),
       surface: style.getPropertyValue("--surface").trim(),
       primary: style.getPropertyValue("--primary").trim(),
+      brand: style.getPropertyValue("--brand").trim(),
     };
   });
-  expect(tokens).toEqual({ background: "#0b0a0f", surface: "#15121b", primary: "#c4a7ff" });
+  expect(tokens).toEqual({ background: "#0d0a0c", surface: "#151013", primary: "#f08bb3", brand: "#9e0142" });
 });
 
 test("Companies defaults to ready watchlist and opens comparison workbench", async ({ page }) => {

@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Fira_Code, Fira_Sans } from "next/font/google";
-import "./globals.css";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import "@xyflow/react/dist/style.css";
+import "./globals.css";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/app-shell";
 
-const firaSans = Fira_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600", "700"], display: "swap" });
-const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-mono", weight: ["400", "500", "600"], display: "swap" });
+const sans = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+const editorial = Newsreader({ subsets: ["latin"], variable: "--font-editorial", weight: ["400", "500"], style: ["normal", "italic"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Catalyst", template: "%s | Catalyst" },
   description: "Watchlist change investigator untuk menguji apa yang berubah, mengapa, dan bukti pembatalnya.",
+  icons: { icon: "/catalyst-mark.png", apple: "/catalyst-mark.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body className={`${firaSans.variable} ${firaCode.variable} font-[family-name:var(--font-sans)] antialiased`}>
+      <body className={`${sans.variable} ${mono.variable} ${editorial.variable} font-[family-name:var(--font-sans)] antialiased`}>
         <Providers><AppShell>{children}</AppShell></Providers>
       </body>
     </html>
