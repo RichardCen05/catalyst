@@ -118,6 +118,8 @@ function GuidedTourContent() {
   const [step, setStep] = useState(0);
   const [complete, setComplete] = useState(false);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
+  const [coachSize, setCoachSize] = useState({ width: 400, height: 300 });
+  const coachRef = useRef<HTMLElement | null>(null);
   const revealedStep = useRef<string | null>(null);
   const normalizedStart = useRef(false);
   const current = steps[step];
@@ -132,6 +134,14 @@ function GuidedTourContent() {
     normalizedStart.current = true;
     if (pathname !== "/") router.replace("/");
   }, [pathname, router]);
+
+  useEffect(() => {
+    const previousPaddingBottom = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = "50vh";
+    return () => {
+      document.body.style.paddingBottom = previousPaddingBottom;
+    };
+  }, []);
 
   useEffect(() => {
     const onAction = (event: MouseEvent) => {
@@ -181,16 +191,44 @@ function GuidedTourContent() {
     };
   }, [complete, current.id, current.selector, pathname]);
 
+  useEffect(() => {
+    const coach = coachRef.current;
+    if (!coach) return;
+    const measure = () => {
+      const rect = coach.getBoundingClientRect();
+      setCoachSize((previous) => {
+        const next = { width: Math.ceil(rect.width), height: Math.ceil(rect.height) };
+        return previous.width === next.width && previous.height === next.height ? previous : next;
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(coach);
+    return () => observer.disconnect();
+  }, [current.id]);
+
   const desktopPosition = useMemo(() => {
     if (!targetRect || typeof window === "undefined" || window.innerWidth < 768) return undefined;
-    const width = 390;
-    const height = 270;
-    const left = Math.max(16, Math.min(targetRect.left, window.innerWidth - width - 16));
-    const top = targetRect.top + targetRect.height + height + 16 < window.innerHeight
-      ? targetRect.top + targetRect.height + 12
-      : Math.max(48, targetRect.top - height - 12);
+    const margin = 8;
+    const gap = 12;
+    const width = Math.min(400, window.innerWidth - margin * 2);
+    const height = coachSize.height;
+    const targetBottom = targetRect.top + targetRect.height;
+    const spaceBelow = window.innerHeight - targetBottom - margin;
+    const spaceAbove = targetRect.top - margin;
+    const preferredLeft = targetRect.left + targetRect.width / 2 - width / 2;
+    const left = Math.max(margin, Math.min(preferredLeft, window.innerWidth - width - margin));
+
+    let top: number;
+    if (spaceBelow >= height + gap) top = targetBottom + gap;
+    else if (spaceAbove >= height + gap) top = targetRect.top - height - gap;
+    else {
+      const belowTop = Math.min(targetBottom + gap, window.innerHeight - height - margin);
+      const aboveTop = Math.max(margin, targetRect.top - height - gap);
+      top = spaceBelow >= spaceAbove ? belowTop : aboveTop;
+    }
     return { left, top, width };
-  }, [targetRect]);
+  }, [coachSize.height, targetRect]);
 
   if (complete) return (
     <div className="pointer-events-none fixed inset-0 z-[120] bg-background/70" aria-live="polite">
@@ -207,26 +245,26 @@ function GuidedTourContent() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[120]" aria-live="polite">
       {targetRect ? <div data-tour-spotlight className="fixed rounded-[10px] border-2 border-primary bg-primary/5 shadow-[0_0_0_9999px_rgba(8,5,7,0.76)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none" style={targetRect} /> : <div className="absolute inset-0 bg-background/72" />}
-      <section role="dialog" aria-modal="false" aria-labelledby="guided-tour-title" className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[46dvh] max-w-lg overflow-y-auto rounded-[12px] border border-border bg-surface p-4 shadow-2xl sm:bottom-6 sm:p-5 md:inset-x-auto md:bottom-auto md:mx-0" style={desktopPosition}>
+      <section ref={coachRef} data-guided-tour-card role="dialog" aria-modal="false" aria-labelledby="guided-tour-title" className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[56dvh] max-w-lg overflow-y-auto rounded-[12px] border border-border bg-surface p-4 shadow-2xl sm:bottom-6 md:inset-x-auto md:bottom-auto md:mx-0 md:max-h-none md:overflow-visible" style={desktopPosition}>
         <div className="flex items-start gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-[6px] bg-brand text-white"><Compass aria-hidden="true" className="size-4" /></span>
+          <span className="grid size-8 shrink-0 place-items-center rounded-[6px] bg-brand text-white"><Compass aria-hidden="true" className="size-4" /></span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah {step + 1}/{steps.length}</p><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{current.destination}</p></div>
-            <h2 id="guided-tour-title" className="editorial mt-2 text-xl">{current.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{current.body}</p>
+            <h2 id="guided-tour-title" className="editorial mt-1.5 text-lg">{current.title}</h2>
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{current.body}</p>
           </div>
         </div>
 
-        <div className="mt-4 rounded-[8px] border border-primary/30 bg-primary/8 p-3">
+        <div className="mt-3 rounded-[8px] border border-primary/30 bg-primary/8 p-2.5">
           <p className="flex items-center gap-2 text-xs font-semibold text-foreground"><MousePointerClick aria-hidden="true" className="size-4 text-primary" />Lakukan sekarang</p>
-          <p className="mt-1.5 text-sm leading-5">{current.action}</p>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">{current.outcome}</p>
+          <p className="mt-1 text-sm leading-5">{current.action}</p>
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{current.outcome}</p>
         </div>
 
-        <div className="mt-4 grid grid-cols-7 gap-1" aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
-        <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
-          <Button variant="ghost" size="sm" className="pointer-events-auto" onClick={finishTour}>Lewati tur</Button>
-          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto ml-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka lokasi</Button> : <p className="ml-auto font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Aksi yang disorot akan melanjutkan tur</p>}
+        <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
+          <div className="grid w-24 shrink-0 grid-cols-7 gap-1" aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
+          <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
+          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka lokasi</Button> : <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Klik sorotan untuk lanjut</p>}
         </div>
       </section>
     </div>

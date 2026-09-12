@@ -11,6 +11,54 @@ async function finishSetup(page: Page) {
   await expect(page.getByRole("heading", { name: "Apa yang berubah di watchlist?" })).toBeVisible();
 }
 
+async function expectDesktopTourComposition(page: Page, targetSelector: string) {
+  await expect.poll(async () => page.evaluate((selector) => {
+    const target = document.querySelector<HTMLElement>(selector);
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"][aria-labelledby="guided-tour-title"]');
+    if (!target || !dialog) return null;
+    const targetRect = target.getBoundingClientRect();
+    const dialogRect = dialog.getBoundingClientRect();
+    const overlapWidth = Math.max(0, Math.min(targetRect.right, dialogRect.right) - Math.max(targetRect.left, dialogRect.left));
+    const overlapHeight = Math.max(0, Math.min(targetRect.bottom, dialogRect.bottom) - Math.max(targetRect.top, dialogRect.top));
+    return {
+      targetCenterOffset: Math.abs(targetRect.top + targetRect.height / 2 - window.innerHeight / 2),
+      overlaps: overlapWidth * overlapHeight > 0,
+      dialogScrolls: dialog.scrollHeight > dialog.clientHeight + 1,
+      dialogInsideViewport: dialogRect.top >= 8 && dialogRect.bottom <= window.innerHeight - 8,
+    };
+  }, targetSelector)).toEqual({
+    targetCenterOffset: expect.any(Number),
+    overlaps: false,
+    dialogScrolls: false,
+    dialogInsideViewport: true,
+  });
+
+  const centerOffset = await page.locator(targetSelector).evaluate((target) => {
+    const rect = target.getBoundingClientRect();
+    return Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
+  });
+  expect(centerOffset).toBeLessThan(150);
+}
+
+test("desktop tutorial centers each action without covering it", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
+  await setup.getByRole("button", { name: "Lanjut" }).click();
+  await setup.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+
+  await expect(page.getByRole("dialog", { name: "Temukan perubahan material" })).toBeVisible();
+  await expectDesktopTourComposition(page, '[data-tour-action="open-antm-case"]');
+  await page.locator('[data-tour-action="open-antm-case"]').click();
+  await expect(page.getByRole("dialog", { name: "Tentukan pertanyaan riset" })).toBeVisible();
+  await page.locator('[data-tour-action="save-mandate"]').click();
+  await expect(page.getByRole("dialog", { name: "Buka empat pemeriksaan" })).toBeVisible();
+  await page.locator('[data-tour-action="open-evidence"]').click();
+
+  await expect(page.getByRole("dialog", { name: "Audit rumus dan sumber" })).toBeVisible();
+  await expectDesktopTourComposition(page, '[data-tour-action="toggle-calculation"]');
+});
+
 test("first-time tutorial guides the core research flow", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
