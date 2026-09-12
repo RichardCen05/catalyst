@@ -19,6 +19,16 @@ export type Horizon = "event" | "swing" | "position";
 export type AnswerDepth = "compact" | "standard" | "forensic";
 export type EvidenceState = "Corroborated" | "Mixed Evidence" | "Insufficient Evidence";
 export type ImpactDirection = "Supported" | "Adverse" | "Mixed" | "Unrelated" | "Unverified";
+export type ResearchCaseStatus = "open" | "closed";
+export type BusinessImpactDimension = "volume" | "pricing" | "margin" | "cash-flow" | "balance-sheet" | "valuation";
+
+export interface HypothesisProtocol {
+  claim: string;
+  supportingEvidence: string;
+  challengingEvidence: string;
+  insufficientWhen: string;
+  nextQuestion: string;
+}
 
 export interface Citation {
   id: string;
@@ -47,6 +57,7 @@ export interface PillarResult {
   metrics: MetricValue[];
   citations: Citation[];
   conflict?: string;
+  protocol: HypothesisProtocol;
   calculation?: {
     name: string;
     formula: string;
@@ -115,7 +126,90 @@ export interface HypothesisTrace {
   citations: Citation[];
 }
 
-export interface AnalysisCase {
+export interface AppliedPlaybookRule {
+  id: string;
+  kind: "materiality" | "exposure" | "assumption" | "source" | "falsifier" | "comparable";
+  rule: string;
+  effect: string;
+}
+
+export interface ResearchPlan {
+  mandate: string;
+  focus: BusinessImpactDimension;
+  rationale: string;
+  hypothesisTree: Array<{
+    id: string;
+    claim: string;
+    test: string;
+    state: "primary" | "supporting" | "challenge";
+  }>;
+  observables: Array<{
+    dimension: BusinessImpactDimension;
+    metric: string;
+    expectedChange: string;
+    window: string;
+  }>;
+}
+
+export interface BusinessImpactResult {
+  dimension: BusinessImpactDimension;
+  label: string;
+  status: "Primary test" | "Supporting" | "Open";
+  mechanism: string;
+  observable: string;
+  implication: string;
+  citations: Citation[];
+}
+
+export interface CaseResolution {
+  outcome: "supported" | "challenged" | "open";
+  finalHypothesis: string;
+  falsifiedBy: string;
+  wrongAssumption: string;
+  reusableRule: string;
+  resolvedAt: string;
+}
+
+export interface AnalysisContext {
+  mandate?: string;
+  playbook?: InvestorResearchPlaybook;
+  userInsights?: UserInsight[];
+  resolution?: CaseResolution;
+}
+
+export interface ResearchCase {
+  caseId: string;
+  status: ResearchCaseStatus;
+  trigger: {
+    title: string;
+    detail: string;
+    eventId?: string;
+  };
+  mandate: string;
+  priority: {
+    novelty: "New" | "Updated" | "Persistent";
+    materiality: "High" | "Medium" | "Low";
+    uncertainty: "High" | "Medium" | "Low";
+    reason: string;
+    ruleTrace: AppliedPlaybookRule[];
+  };
+  contradictions: string[];
+  counterEvidence: string[];
+  userNotes: UserInsight[];
+  unresolvedQuestions: string[];
+  nextResearchActions: string[];
+  sourcePlan: string[];
+  clarificationGate: string;
+  lifecycle: Array<{
+    key: "mandate" | "decompose" | "source-plan" | "evidence" | "review";
+    label: string;
+    state: "complete" | "active" | "blocked";
+  }>;
+  researchPlan: ResearchPlan;
+  businessImpact: BusinessImpactResult[];
+  appliedRules: AppliedPlaybookRule[];
+  resolution?: CaseResolution;
+  primaryCausalPath: string;
   company: Company;
   evidenceState: EvidenceState;
   thesis: string;
@@ -126,6 +220,17 @@ export interface AnalysisCase {
   priceSeries: PricePoint[];
   financialContext: FinancialInput[];
   asOf: string;
+}
+
+export type AnalysisCase = ResearchCase;
+
+export interface InvestorResearchPlaybook {
+  preferredComparables: Partial<Record<SymbolCode, SymbolCode[]>>;
+  materialityRules: string[];
+  knownExposures: string[];
+  thesisAssumptions: string[];
+  trustedSources: string[];
+  falsifiers: string[];
 }
 
 export interface ImpactLink {
@@ -190,8 +295,10 @@ export interface UserInsight {
   pillar?: PillarKey;
   category: "data-error" | "missing-context" | "alternative-interpretation";
   note: string;
+  sourceUrl?: string;
   status: "pending" | "incorporated" | "dismissed";
   createdAt: string;
+  reviewHistory: Array<{ status: UserInsight["status"]; at: string }>;
 }
 
 export interface ChatRequest {
@@ -199,6 +306,8 @@ export interface ChatRequest {
   profile: UserProfile;
   contextSymbol?: SymbolCode;
   userInsights?: UserInsight[];
+  playbook?: InvestorResearchPlaybook;
+  caseMandate?: string;
 }
 
 export interface ChatAnswer {
@@ -211,14 +320,24 @@ export interface ChatAnswer {
   relatedSymbols: SymbolCode[];
 }
 
+export interface CopilotContext {
+  label: string;
+  question: string;
+  symbol?: SymbolCode;
+}
+
 export interface CausalNode {
   id: string;
   label: string;
-  kind: "source" | "mechanism" | "company" | "observation";
+  kind: "source" | "mechanism" | "company" | "observation" | "business-impact";
   detail: string;
   sourceType?: MarketEvent["sourceType"] | "market" | "financial";
   direction?: ImpactDirection;
   relevance?: number;
+  basis: "Reported input" | "Causal hypothesis" | "Aggregation point" | "Observed correlation";
+  confidence: "High" | "Medium" | "Low";
+  lag: string;
+  counterEvidence: string;
   citations: Citation[];
 }
 
@@ -229,6 +348,29 @@ export interface CausalEdge {
   label: string;
   direction: ImpactDirection;
   relevance: number;
+  basis: "Reported input" | "Causal hypothesis" | "Observed correlation";
+  confidence: "High" | "Medium" | "Low";
+  lag: string;
+  exposure: string;
+  expectedObservable: string;
+  alternativeExplanation: string;
+  falsificationCondition: string;
+  confidenceBasis: string;
+  businessImpactDimension: BusinessImpactDimension;
+  businessImpactImplication: string;
+  citations: Citation[];
+}
+
+export interface CompetingHypothesis {
+  id: string;
+  rank: number;
+  claim: string;
+  targetObservable: string;
+  supportingEvidence: string;
+  counterEvidence: string;
+  discriminator: string;
+  status: "leading" | "plausible" | "challenged";
+  confidence: "High" | "Medium" | "Low";
   citations: Citation[];
 }
 
@@ -236,6 +378,8 @@ export interface CausalGraph {
   targetSymbol: SymbolCode;
   nodes: CausalNode[];
   edges: CausalEdge[];
+  targetObservable: string;
+  competingHypotheses: CompetingHypothesis[];
   hiddenRelationshipCount: number;
   asOf: string;
 }
@@ -254,10 +398,10 @@ export interface NewsProvider {
 }
 
 export interface AgentEngine {
-  analyzeCompany(symbol: string, profile: UserProfile): AnalysisCase | null;
+  analyzeCompany(symbol: string, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null;
   mapEventImpact(eventId: string, profile: UserProfile, scope: "watchlist" | "market"): MarketEvent | null;
   answerFollowUp(request: ChatRequest): ChatAnswer;
-  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number }): CausalGraph | null;
+  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext }): CausalGraph | null;
 }
 
 export interface MemoryStore {

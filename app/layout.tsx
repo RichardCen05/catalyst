@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
-// React Flow's stylesheet first, so the overrides in globals.css win without
-// needing to fight it on specificity.
 import "@xyflow/react/dist/style.css";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -13,7 +11,8 @@ const editorial = Newsreader({ subsets: ["latin"], variable: "--font-editorial",
 
 export const metadata: Metadata = {
   title: { default: "Catalyst", template: "%s | Catalyst" },
-  description: "Prototype agent riset IDX berbasis empat pilar bukti.",
+  description: "Watchlist change investigator untuk menguji apa yang berubah, mengapa, dan bukti pembatalnya.",
+  icons: { icon: "/catalyst-mark.png", apple: "/catalyst-mark.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

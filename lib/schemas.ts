@@ -27,8 +27,10 @@ export const userInsightSchema = z.object({
   pillar: pillarSchema.optional(),
   category: z.enum(["data-error", "missing-context", "alternative-interpretation"]),
   note: z.string().trim().min(8).max(800),
+  sourceUrl: z.url().startsWith("https://").optional(),
   status: z.enum(["pending", "incorporated", "dismissed"]),
   createdAt: z.string().datetime(),
+  reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
 export const chatRequestSchema = z.object({
@@ -36,4 +38,13 @@ export const chatRequestSchema = z.object({
   profile: profileSchema,
   contextSymbol: symbolSchema.optional(),
   userInsights: z.array(userInsightSchema).max(100).optional(),
+  playbook: z.object({
+    preferredComparables: z.record(z.string(), z.array(symbolSchema).max(6)),
+    materialityRules: z.array(z.string().max(400)).max(30),
+    knownExposures: z.array(z.string().max(400)).max(50),
+    thesisAssumptions: z.array(z.string().max(400)).max(50),
+    trustedSources: z.array(z.string().max(400)).max(30),
+    falsifiers: z.array(z.string().max(400)).max(50),
+  }).optional(),
+  caseMandate: z.string().max(600).optional(),
 });

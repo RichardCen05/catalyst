@@ -34,78 +34,16 @@ export default function MethodPage() {
   return (
     <div className="mx-auto max-w-[1180px]">
       <PageHeader eyebrow="Method and limits" title="Cara Catalyst menyusun bukti" description="Prototype memakai fixture statis dan kalkulator deterministik. Halaman ini menjelaskan rumus, sumber, batas personalisasi, dan kondisi saat agent harus berhenti." />
+      <Panel>
+        <PanelHeader eyebrow="Four-pillar model" title="Tidak ada skor daya tarik gabungan" />
+        <div className="grid gap-px bg-border md:grid-cols-2">{pillars.map((pillar, index) => <article key={pillar.name} className="bg-surface p-4 sm:p-5"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-md bg-primary/10 font-mono text-xs font-semibold text-primary">{index + 1}</span><h2 className="font-semibold">{pillar.name}</h2></div><dl className="mt-4 space-y-3 text-sm"><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Input produksi yang direpresentasikan</dt><dd className="mt-1 leading-6">{pillar.input}</dd></div><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Proses</dt><dd className="mt-1 leading-6">{pillar.formula}</dd></div><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Output</dt><dd className="mt-1 leading-6 text-muted-foreground">{pillar.output}</dd></div></dl></article>)}</div>
+      </Panel>
 
-      <Reveal>
-        <Panel>
-          <PanelHeader eyebrow="Four-pillar model" title="Tidak ada skor daya tarik gabungan" />
-          <div className="grid gap-px bg-border md:grid-cols-2">
-            {pillars.map((pillar, index) => (
-              <article key={pillar.name} className="bg-surface px-6 py-6">
-                <div className="flex items-baseline gap-3.5">
-                  <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
-                  <h2 className="editorial text-[21px]">{pillar.name}</h2>
-                </div>
-                <dl className="mt-5 space-y-4 text-[13px]">
-                  <div>
-                    <dt className="meta text-muted-foreground">Input produksi yang direpresentasikan</dt>
-                    <dd className="mt-1.5 leading-[1.65]">{pillar.input}</dd>
-                  </div>
-                  <div>
-                    <dt className="meta text-muted-foreground">Proses</dt>
-                    <dd className="mt-1.5 leading-[1.65]">{pillar.formula}</dd>
-                  </div>
-                  <div>
-                    <dt className="meta text-muted-foreground">Output</dt>
-                    <dd className="mt-1.5 leading-[1.65] text-muted-foreground">{pillar.output}</dd>
-                  </div>
-                </dl>
-              </article>
-            ))}
-          </div>
-        </Panel>
-      </Reveal>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Reveal>
-          <Panel className="h-full">
-            <PanelHeader eyebrow="Orchestration" title="Sepuluh tahap agent" />
-            <ol className="divide-y divide-border">
-              {stages.map((item, index) => (
-                <li key={item} className="flex gap-4 px-5 py-3.5 text-[13px] leading-[1.65]">
-                  <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ol>
-          </Panel>
-        </Reveal>
-
-        <div className="space-y-6">
-          <Reveal index={1}>
-            <Panel>
-              <PanelHeader eyebrow="Data contract" title="Citation gate" />
-              <div className="px-5 py-5">
-                <p className="flex gap-3 text-[13px] leading-[1.7]">
-                  <IconSource className="mt-1 size-4 shrink-0 text-muted-foreground" />
-                  Setiap angka output harus membawa provider, endpoint, field, dan asOf. Tautan fixture diberi label provider/dokumentasi agar tidak disalahartikan sebagai bukti event aktual.
-                </p>
-                <pre tabIndex={0} className="mt-4 overflow-x-auto rounded-[6px] bg-muted px-3.5 py-3 font-mono text-[11.5px] leading-[1.7] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><code>{`{ provider, endpoint, field, asOf, url, access }`}</code></pre>
-              </div>
-            </Panel>
-          </Reveal>
-
-          <Reveal index={2}>
-            <Panel>
-              <PanelHeader eyebrow="Human collaboration" title="Terlihat, dapat dibalik, dapat dihapus" />
-              <ul className="divide-y divide-border">
-                {["Koreksi user disimpan sebagai hipotesis terbuka", "Status review dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau formula", "Seluruh memori dapat dihapus dari Agent Studio"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 px-5 py-3 text-[13px]">
-                    <IconVerified className="size-3.5 shrink-0 text-positive" />{item}
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          </Reveal>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Panel><PanelHeader eyebrow="Orchestration" title="Sepuluh tahap agent" /><ol className="divide-y divide-border px-4">{["Resolver membatasi ticker, watchlist, atau pasar.", "Planner membentuk tiga sampai enam hipotesis.", "Tool simulator memilih fixture yang diperlukan.", "Kalkulator menghasilkan metrik dari data.", "Contradiction gate membandingkan origin dan foreign flow.", "Citation gate memeriksa provider, endpoint, field, asOf, dan tujuan tautan.", "Language gate menahan advisory dan atribusi motif.", "Human-review gate menambahkan koreksi user sebagai hipotesis terbuka.", "Personalizer mengatur ranking serta kedalaman.", "Renderer membentuk kartu, causal chain, atau jawaban chat."].map((item, index) => <li key={item} className="flex gap-3 py-3 text-sm leading-6"><span className="font-mono text-xs text-primary">{String(index + 1).padStart(2, "0")}</span><span>{item}</span></li>)}</ol></Panel>
+        <div className="space-y-4">
+          <Panel><PanelHeader eyebrow="Data contract" title="Citation gate" /><div className="p-4"><div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/8 p-3"><Database aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-6">Setiap angka output harus membawa provider, endpoint, field, dan asOf. Tautan fixture diberi label provider/dokumentasi agar tidak disalahartikan sebagai bukti event aktual.</p></div><pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] leading-5 text-muted-foreground"><code>{`{ provider, endpoint, field, asOf, url, access }`}</code></pre></div></Panel>
+          <Panel><PanelHeader eyebrow="Human collaboration" title="Terlihat, dapat dibalik, dapat dihapus" /><div className="space-y-3 p-4">{["Koreksi user disimpan sebagai hipotesis terbuka", "Status review dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau formula", "Resolution memory dapat ditinjau dari Research Audit"].map((item) => <div key={item} className="flex items-center gap-2 text-sm"><CheckCircle2 aria-hidden="true" className="size-4 text-positive" />{item}</div>)}</div></Panel>
         </div>
       </div>
 

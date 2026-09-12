@@ -70,6 +70,66 @@ describe("Catalyst agent engine", () => {
     expect(graph?.edges.every((edge) =>
       edge.citations.length > 0 && edge.citations.every(isCompleteCitation),
     )).toBe(true);
+    expect(graph?.edges.every((edge) =>
+      edge.exposure && edge.expectedObservable && edge.alternativeExplanation
+      && edge.falsificationCondition && edge.confidenceBasis && edge.lag,
+    )).toBe(true);
+  });
+
+  it("compares several hypotheses against one business observable", () => {
+    const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+
+    expect(graph?.targetObservable).toBe("Realized pricing");
+    expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
+    expect(graph?.competingHypotheses.map((item) => item.rank)).toEqual([1, 2, 3]);
+    expect(graph?.competingHypotheses.every((item) =>
+      item.targetObservable === graph.targetObservable
+      && item.supportingEvidence
+      && item.counterEvidence
+      && item.discriminator,
+    )).toBe(true);
+    expect(graph?.edges.every((edge) => edge.businessImpactDimension && edge.businessImpactImplication)).toBe(true);
+  });
+
+  it("organizes company analysis as a hypothesis-driven Research Case", () => {
+    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+
+    expect(researchCase?.caseId).toMatch(/^CASE-ANTM-/);
+    expect(researchCase?.trigger.title).toBeTruthy();
+    expect(researchCase?.mandate).toContain("Investigasi perubahan ANTM");
+    expect(researchCase?.lifecycle.map((step) => step.key)).toEqual(["mandate", "decompose", "source-plan", "evidence", "review"]);
+    expect(researchCase?.sourcePlan.length).toBeGreaterThan(2);
+    expect(researchCase?.unresolvedQuestions.length).toBeGreaterThan(3);
+    expect(researchCase?.pillars.every((pillar) =>
+      pillar.protocol.claim && pillar.protocol.supportingEvidence && pillar.protocol.challengingEvidence
+      && pillar.protocol.insufficientWhen && pillar.protocol.nextQuestion,
+    )).toBe(true);
+  });
+
+  it("replans the visible investigation when the mandate changes", () => {
+    const baseline = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const mandate = "Uji apakah pelemahan rupiah menekan margin dan cash flow ANTM.";
+    const replanned = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      mandate,
+      playbook: {
+        preferredComparables: { ANTM: ["INCO"] },
+        materialityRules: ["Naikkan prioritas bila margin atau arus kas dapat berubah."],
+        knownExposures: ["ANTM: biaya energi dan kontrak USD."],
+        thesisAssumptions: ["ANTM: harga jual tidak sepenuhnya mengimbangi biaya USD."],
+        trustedSources: ["Sectors financials lalu filing perusahaan."],
+        falsifiers: ["ANTM: margin bertahan dan arus kas operasi tidak melemah."],
+      },
+    });
+
+    expect(replanned?.researchPlan.mandate).toBe(mandate);
+    expect(replanned?.researchPlan.focus).toBe("margin");
+    expect(replanned?.researchPlan.hypothesisTree[0].claim).toContain("margin");
+    expect(replanned?.researchPlan.observables.some((item) => item.dimension === "margin")).toBe(true);
+    expect(replanned?.sourcePlan).not.toEqual(baseline?.sourcePlan);
+    expect(replanned?.clarificationGate).toContain("margin");
+    expect(replanned?.businessImpact.map((item) => item.dimension)).toEqual([
+      "volume", "pricing", "margin", "cash-flow", "balance-sheet", "valuation",
+    ]);
   });
 
   it("treats a user correction as an open hypothesis without changing analysis facts", () => {
@@ -85,6 +145,7 @@ describe("Catalyst agent engine", () => {
         note: "Kontrak penjualan belum dibedakan per mata uang.",
         status: "pending",
         createdAt: "2026-09-12T10:00:00.000Z",
+        reviewHistory: [{ status: "pending", at: "2026-09-12T10:00:00.000Z" }],
       }],
     });
     const after = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);

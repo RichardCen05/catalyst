@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
+import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConical, Newspaper, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   IconAgent,
@@ -16,12 +17,13 @@ import {
 } from "@/components/ui/icons";
 
 const actions = [
-  { label: "Buka Today", href: "/", icon: IconToday },
-  { label: "Cari emiten", href: "/companies", icon: IconCompanies },
-  { label: "Buka impact map", href: "/impact", icon: IconImpact },
-  { label: "Tanya Catalyst Copilot", href: "/copilot", icon: IconCopilot },
-  { label: "Atur agent", href: "/agent", icon: IconAgent },
-  { label: "Baca metode", href: "/method", icon: IconMethod },
+  { label: "Buka Today", href: "/", icon: BarChart3 },
+  { label: "Buka Research Cases", href: "/cases", icon: BriefcaseBusiness },
+  { label: "Buka causal impact", href: "/impact", icon: Newspaper },
+  { label: "Tanya Catalyst Copilot", href: "/copilot", icon: Bot },
+  { label: "Edit Investor Research Playbook", href: "/playbook", icon: BookOpenCheck },
+  { label: "Buka company universe", href: "/companies", icon: Building2 },
+  { label: "Baca method & limits", href: "/method", icon: FlaskConical },
 ];
 
 export function CommandPalette() {
@@ -56,8 +58,8 @@ export function CommandPalette() {
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-100 bg-foreground/35 backdrop-blur-[3px]" />
-        <Dialog.Content className="fixed left-1/2 top-[16vh] z-100 w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-[12px] border border-border bg-surface shadow-overlay focus:outline-none">
+        <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-[16vh] z-100 w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-2xl focus:outline-none">
           <Dialog.Title className="sr-only">Command palette</Dialog.Title>
           <div className="flex items-center gap-3 border-b border-border px-4">
             <IconSearch className="size-4 text-muted-foreground" />

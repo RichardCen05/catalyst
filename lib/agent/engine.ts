@@ -9,7 +9,11 @@ import {
 } from "@/lib/agent/metrics";
 import type {
   AgentEngine,
+  AnalysisContext,
   AnalysisCase,
+  AppliedPlaybookRule,
+  BusinessImpactDimension,
+  BusinessImpactResult,
   CausalGraph,
   ChatAnswer,
   ChatRequest,
@@ -85,7 +89,116 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
   ];
 }
 
-function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase | null {
+const impactLabels: Record<BusinessImpactDimension, string> = {
+  volume: "Operating volume",
+  pricing: "Realized pricing",
+  margin: "Operating margin",
+  "cash-flow": "Operating cash flow",
+  "balance-sheet": "Balance-sheet capacity",
+  valuation: "Valuation implication",
+};
+
+const impactObservables: Record<BusinessImpactDimension, string> = {
+  volume: "Production, sales volume, utilization, or transaction throughput",
+  pricing: "Realized price, yield, take rate, or revenue per unit",
+  margin: "Gross margin, operating margin, spread, or cost per unit",
+  "cash-flow": "Operating cash flow, working capital, or cash conversion",
+  "balance-sheet": "Net debt, liquidity headroom, capital ratio, or funding mix",
+  valuation: "Forward earnings, cash-flow expectation, or peer multiple gap",
+};
+
+function mandateFocus(mandate: string, symbol?: SymbolCode): BusinessImpactDimension {
+  const value = mandate.toLowerCase();
+  if (value.includes("margin") || value.includes("spread") || value.includes("biaya")) return "margin";
+  if (value.includes("cash flow") || value.includes("arus kas")) return "cash-flow";
+  if (value.includes("balance") || value.includes("utang") || value.includes("likuiditas")) return "balance-sheet";
+  if (value.includes("valuasi") || value.includes("valuation") || value.includes("multiple")) return "valuation";
+  if (value.includes("harga") || value.includes("pricing") || value.includes("yield")) return "pricing";
+  const defaults: Partial<Record<SymbolCode, BusinessImpactDimension>> = {
+    ANTM: "pricing",
+    BBCA: "margin",
+    BBRI: "margin",
+    TLKM: "cash-flow",
+    PGAS: "margin",
+    GOTO: "cash-flow",
+  };
+  return defaults[symbol ?? "ANTM"] ?? "volume";
+}
+
+function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): AppliedPlaybookRule[] {
+  const playbook = context?.playbook;
+  if (!playbook) return [];
+  const forSymbol = (value: string) => value.toUpperCase().includes(symbol);
+  const rules: AppliedPlaybookRule[] = [];
+  const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string) => {
+    if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect });
+  };
+  playbook.materialityRules.filter((rule) => !rule.startsWith("[Resolution ") || rule.startsWith(`[Resolution ${symbol}]`)).forEach((rule) => add("materiality", rule, rule.startsWith(`[Resolution ${symbol}]`)
+    ? "Menggunakan ulang pelajaran dari resolution case ini."
+    : "Menentukan apakah trigger layak membuka dan menaikkan prioritas case."));
+  add("exposure", playbook.knownExposures.find(forSymbol), "Membatasi jalur kausal pada exposure yang sudah dinyatakan user.");
+  add("assumption", playbook.thesisAssumptions.find(forSymbol), "Menjadi asumsi yang harus tetap benar selama case terbuka.");
+  add("source", playbook.trustedSources[0], "Menempatkan sumber ini pada urutan pertama source plan.");
+  add("falsifier", playbook.falsifiers.find(forSymbol), "Menjadi kondisi pembatal thesis yang dapat diperiksa.");
+  const comparables = playbook.preferredComparables[symbol];
+  add("comparable", comparables?.length ? comparables.join(" · ") : undefined, "Menetapkan pembanding yang dipakai saat menguji materialitas relatif.");
+  return rules;
+}
+
+function createResearchPlan(
+  symbol: SymbolCode,
+  mandate: string,
+  pillars: PillarResult[],
+  context?: AnalysisContext,
+) {
+  const focus = mandateFocus(mandate, symbol);
+  const focusLabel = impactLabels[focus].toLowerCase();
+  const trustedSource = context?.playbook?.trustedSources[0] ?? "Sectors company data dan filing";
+  const falsifier = context?.playbook?.falsifiers.find((item) => item.toUpperCase().includes(symbol))
+    ?? `${focusLabel} tidak bergerak sesuai jalur pada jendela observasi.`;
+  return {
+    mandate,
+    focus,
+    rationale: `Mandate mengutamakan ${focusLabel}; planner menata ulang pertanyaan, sumber, dan observable tanpa mengubah data dasar.`,
+    hypothesisTree: [
+      { id: `${symbol}-plan-primary`, claim: `Trigger mengubah ${focusLabel} ${symbol}.`, test: `Cari perubahan pada ${impactObservables[focus].toLowerCase()}.`, state: "primary" as const },
+      { id: `${symbol}-plan-support`, claim: "Arus, volume, dan momentum bergerak setelah trigger.", test: pillars.map((pillar) => pillar.label).join(" → "), state: "supporting" as const },
+      { id: `${symbol}-plan-challenge`, claim: "Penjelasan alternatif lebih kuat daripada trigger utama.", test: falsifier, state: "challenge" as const },
+    ],
+    observables: [
+      { dimension: focus, metric: impactObservables[focus], expectedChange: `Bergerak konsisten dengan arah trigger pada ${symbol}.`, window: focus === "valuation" ? "1-3 bulan" : "1-10 sesi" },
+      ...(focus === "volume" ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: "1-10 sesi" }]),
+    ],
+    sourcePlan: [
+      `${trustedSource}: uji ${focusLabel} dan periode pembanding.`,
+      `Sectors daily series dan broker evidence: pastikan perubahan terjadi setelah trigger.`,
+      `Company filing: periksa ${impactObservables[focus].toLowerCase()}.`,
+      `Pembanding sektor: pisahkan perubahan perusahaan dari faktor pasar yang sama.`,
+    ],
+    clarificationGate: `Fokus aktif: ${focus}. Sebelum menutup case, pastikan definisi perubahan material dan jendela ${focusLabel} telah dipilih.`,
+  };
+}
+
+function createBusinessImpact(
+  focus: BusinessImpactDimension,
+  symbol: SymbolCode,
+  citations: Citation[],
+): BusinessImpactResult[] {
+  const dimensions: BusinessImpactDimension[] = ["volume", "pricing", "margin", "cash-flow", "balance-sheet", "valuation"];
+  return dimensions.map((dimension) => ({
+    dimension,
+    label: impactLabels[dimension],
+    status: dimension === focus ? "Primary test" : ["volume", "pricing"].includes(dimension) ? "Supporting" : "Open",
+    mechanism: dimension === focus
+      ? `Mandate meminta jalur trigger diterjemahkan langsung ke ${impactLabels[dimension].toLowerCase()}.`
+      : `Uji apakah jalur utama ${symbol} mencapai ${impactLabels[dimension].toLowerCase()}.`,
+    observable: impactObservables[dimension],
+    implication: `Case belum selesai sampai perubahan ${impactLabels[dimension].toLowerCase()} dinyatakan supported, challenged, atau tetap open.`,
+    citations,
+  }));
+}
+
+function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
   const company = fixtureMarketDataProvider.getCompany(symbol);
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
@@ -134,6 +247,13 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase |
         ? "Origin partisipan dominan tidak searah dengan foreign flow agregat. Kesimpulan konsentrasi ditahan."
         : `${percent(concentration.topBuyerShare)} nilai partisipasi sisi akumulasi berasal dari peserta teratas.`,
       conflict: conflict ? "Partisipan berlabel asing dominan, sementara foreign flow agregat bernilai negatif." : undefined,
+      protocol: {
+        claim: "Perubahan didukung konsentrasi partisipasi yang konsisten lintas broker summary, registry, dan foreign flow.",
+        supportingEvidence: `${percent(concentration.topBuyerShare)} nilai sisi akumulasi berasal dari peserta teratas; HHI ${concentration.hhi.toFixed(3)}.`,
+        challengingEvidence: conflict ? "Origin partisipan dominan berlawanan dengan foreign flow agregat." : "Konsentrasi belum membuktikan identitas, motif, atau keberlanjutan partisipan.",
+        insufficientWhen: "Broker summary, registry origin, foreign flow, atau free float tidak tersedia pada jendela yang sama.",
+        nextQuestion: "Apakah konsentrasi dan foreign flow tetap searah setelah trigger melewati jendela observasi?",
+      },
       metrics: [
         { label: "Top participant share", value: percent(concentration.topBuyerShare), citations: concentrationCitations },
         { label: "HHI", value: concentration.hhi.toFixed(3), citations: concentrationCitations },
@@ -154,6 +274,13 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase |
       summary: volume.robustZ === null
         ? "Likuiditas atau baseline tidak cukup untuk mengklasifikasikan anomali."
         : `Volume terakhir berada pada robust z ${volume.robustZ.toFixed(2)} terhadap baseline 45 hari bursa.`,
+      protocol: {
+        claim: "Aktivitas setelah trigger menyimpang secara material dari baseline volume yang robust.",
+        supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos gate." : `Robust z ${volume.robustZ.toFixed(2)} dengan status ${volume.status}.`,
+        challengingEvidence: volume.status === "Normal" ? "Volume masih berada dalam rentang baseline." : "Kenaikan volume sendiri tidak mengidentifikasi penyebab atau arah eksposur.",
+        insufficientWhen: "Baseline kurang dari 30 observasi, MAD nol, atau median nilai harian di bawah gate likuiditas.",
+        nextQuestion: "Apakah anomali volume bertahan dan muncul setelah—bukan sebelum—trigger?",
+      },
       metrics: [
         { label: "Robust z", value: volume.robustZ === null ? "Belum tersedia" : volume.robustZ.toFixed(2), citations: dailyCitations },
         { label: "Latest volume", value: compact(currentPoint.volume), citations: dailyCitations },
@@ -170,6 +297,13 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase |
     {
       key: "momentum", label: "Momentum", status: momentum.status,
       summary: `Return 3 hari ${percent(stockReturn)}; residual terhadap IHSG ${percent(momentum.residual)}.`,
+      protocol: {
+        claim: "Perubahan harga tidak cukup dijelaskan oleh IHSG atau pergerakan sektor pada jendela yang sama.",
+        supportingEvidence: `Residual beta-adjusted ${percent(momentum.residual)}; return saham ${percent(stockReturn)} versus sektor ${percent(fixture.sectorReturn)}.`,
+        challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta fixture dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : `Status ${momentum.status} menunjukkan penjelasan pasar atau sektor masih relevan.`,
+        insufficientWhen: "Close harian, IHSG, beta, atau pembanding sektor tidak tersedia untuk jendela yang sama.",
+        nextQuestion: "Apakah residual tetap terlihat pada jendela alternatif tanpa bergantung pada satu hari ekstrem?",
+      },
       metrics: [
         { label: "3-day return", value: percent(stockReturn), citations: momentumCitations },
         { label: "IHSG return", value: percent(marketReturn), citations: momentumCitations },
@@ -189,6 +323,13 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase |
       summary: primaryEvent
         ? `${primaryEvent.title}. Jalur utama: ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "Belum terverifikasi"}.`
         : "Belum ada peristiwa dengan jalur dampak terverifikasi.",
+      protocol: {
+        claim: "Trigger mendahului perubahan dan memiliki jalur eksposur perusahaan yang dapat diuji.",
+        supportingEvidence: primaryEvent ? `${relatedEvents.length} input terhubung; jalur utama ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "belum lengkap"}.` : "Belum ada input terhubung.",
+        challengingEvidence: primaryEvent ? "Timing dan jalur eksposur belum membuktikan kausalitas tanpa observable operasional berikutnya." : "Tidak ada trigger terverifikasi dalam fixture.",
+        insufficientWhen: "Sumber, waktu publikasi, exposure perusahaan, atau expected observable tidak dapat diperiksa.",
+        nextQuestion: "Observable operasional atau keuangan apa yang harus muncul, dan kapan, bila jalur ini benar?",
+      },
       metrics: [
         { label: "Linked events", value: String(relatedEvents.length), citations: catalystCitations.length ? catalystCitations : [citations.news(`none-${symbol}`)] },
         { label: "Primary direction", value: catalystDirection, citations: catalystCitations.length ? catalystCitations : [citations.news(`none-${symbol}`)] },
@@ -221,7 +362,59 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile): AnalysisCase |
   const hypotheses = createTrace(symbol, pillars, relatedEvents);
   const sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
 
+  const contradictions = pillars.flatMap((pillar) => pillar.conflict ? [pillar.conflict] : []);
+  const primaryLink = primaryEvent?.impactLinks.find((link) => link.symbol === symbol);
+  const defaultMandate = `Investigasi perubahan ${symbol}: uji apakah trigger, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya.`;
+  const mandate = context?.mandate?.trim() || defaultMandate;
+  const appliedRules = compilePlaybook(symbol, context);
+  const researchPlan = createResearchPlan(symbol, mandate, ordered, context);
+  const businessImpactCitations = uniqueCitations([
+    ...fixture.financialContext.flatMap((item) => item.citations),
+    ...sources,
+  ]);
+  const businessImpact = createBusinessImpact(researchPlan.focus, symbol, businessImpactCitations);
+
   return {
+    caseId: `CASE-${symbol}-${company.asOf.slice(0, 10).replaceAll("-", "")}`,
+    status: "open",
+    trigger: {
+      title: primaryEvent?.title ?? "Perubahan snapshot watchlist",
+      detail: primaryEvent?.summary ?? company.summary,
+      eventId: primaryEvent?.id,
+    },
+    mandate,
+    priority: {
+      novelty: primaryEvent ? "New" : "Updated",
+      materiality: primaryLink && primaryLink.relevance >= 85 ? "High" : "Medium",
+      uncertainty: contradictions.length || evidenceState !== "Corroborated" ? "High" : "Medium",
+      reason: primaryLink ? `Exposure relevance ${primaryLink.relevance}/100; ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Snapshot berubah, tetapi jalur trigger belum lengkap.",
+      ruleTrace: appliedRules.filter((rule) => rule.kind === "materiality" || rule.kind === "exposure" || rule.kind === "falsifier"),
+    },
+    contradictions,
+    counterEvidence: ordered.map((pillar) => `${pillar.label}: ${pillar.protocol.challengingEvidence}`),
+    userNotes: [],
+    unresolvedQuestions: [
+      ...ordered.map((pillar) => pillar.protocol.nextQuestion),
+      "Apakah ada perubahan material pada exposure perusahaan yang belum tercakup fixture?",
+    ],
+    nextResearchActions: [
+      "Periksa expected observable terhadap filing atau financial input berikutnya.",
+      "Ulangi contradiction gate setelah jendela event berakhir.",
+    ],
+    sourcePlan: researchPlan.sourcePlan,
+    clarificationGate: researchPlan.clarificationGate,
+    lifecycle: [
+      { key: "mandate", label: "Mandate", state: "complete" },
+      { key: "decompose", label: "Question split", state: "complete" },
+      { key: "source-plan", label: "Source plan", state: "complete" },
+      { key: "evidence", label: "Evidence tests", state: "complete" },
+      { key: "review", label: "Review & challenge", state: "active" },
+    ],
+    primaryCausalPath: primaryLink?.path ?? "Belum ada jalur utama yang terverifikasi.",
+    researchPlan,
+    businessImpact,
+    appliedRules,
+    resolution: context?.resolution,
     company, evidenceState, thesis, pillars: ordered, hypotheses, sources,
     missingEvidence: [
       "Data intraday dan antrean order tidak tersedia.",
@@ -267,10 +460,14 @@ function insightTraces(insights: UserInsight[]): HypothesisTrace[] {
   }));
 }
 
-function preferenceNote(profile: UserProfile, insightCount = 0): string {
+function preferenceNote(request: ChatRequest, symbol: SymbolCode | undefined, insightCount = 0): string {
+  const { profile, playbook, caseMandate } = request;
   const first = profile.config.pillarOrder[0];
   const collaboration = insightCount ? ` ${insightCount} catatan user terkait dimasukkan sebagai hipotesis terbuka.` : "";
-  return `Urutan dimulai dari ${first}; profil ${profile.name} memilih kedalaman ${profile.config.depth}. Fakta dan ambang tidak berubah.${collaboration}`;
+  const comparables = symbol ? playbook?.preferredComparables[symbol]?.join(" · ") : undefined;
+  const explicitRules = playbook?.materialityRules[0] ? ` Materiality rule: ${playbook.materialityRules[0]}` : "";
+  const mandate = caseMandate ? ` Mandate aktif: ${caseMandate}` : "";
+  return `Urutan dimulai dari ${first}; profil ${profile.name} memilih kedalaman ${profile.config.depth}.${comparables ? ` Preferred comparables: ${comparables}.` : ""}${explicitRules}${mandate} Fakta dan ambang tidak berubah.${collaboration}`;
 }
 
 function answerFollowUp(request: ChatRequest): ChatAnswer {
@@ -280,11 +477,12 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
   const analysis = primary ? buildAnalysis(primary, request.profile) : null;
   const insights = relevantInsights(request.userInsights, primary);
   const openInsightTraces = insightTraces(insights);
+  const personalizedNote = () => preferenceNote(request, primary, insights.length);
   if (guarded.refused) {
     return {
       text: guarded.text, refused: true, intent: "advice",
       hypotheses: [...(analysis?.hypotheses ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 4) ?? [],
-      preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: primary ? [primary] : [],
+      preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
@@ -298,7 +496,7 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
       return {
         text: `${symbols[0]} berstatus ${firstPillar.status} dengan ${firstPillar.metrics[0].value} pada peserta teratas. ${symbols[1]} berstatus ${secondPillar.status} dengan ${secondPillar.metrics[0].value}. Konflik sumber tetap ditampilkan bila origin broker dan foreign flow agregat berbeda.`,
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
-        citations: uniqueCitations([...firstPillar.citations, ...secondPillar.citations]), preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: symbols.slice(0, 2),
+        citations: uniqueCitations([...firstPillar.citations, ...secondPillar.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
       };
     }
   }
@@ -310,43 +508,67 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
     const text = scoped.length
       ? scoped.map((link) => `${link.symbol}: ${link.direction}. ${link.path}.`).join(" ")
       : "Peristiwa tersebut tidak memiliki jalur dampak ke watchlist aktif pada fixture ini.";
-    return { text, refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: scoped.map((link) => link.symbol) };
+    return { text, refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
   if (question.includes("belum") || question.includes("data apa") || question.includes("tidak diperiksa")) {
     return {
       text: analysis ? analysis.missingEvidence.join(" ") : "Data intraday, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototype.",
-      refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: primary ? [primary] : [],
+      refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
   if (analysis && (question.includes("kenapa") || question.includes("daftar") || primary)) {
     return {
-      text: `${analysis.company.symbol} masuk karena status bukti ${analysis.evidenceState}. ${analysis.thesis} Pilar pertama mengikuti profil Anda: ${analysis.pillars[0].label}.`,
-      refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: [analysis.company.symbol],
+      text: `${analysis.company.symbol} masuk karena trigger ${analysis.trigger.title} membuka research case dengan status bukti ${analysis.evidenceState}. ${analysis.thesis} Pilar pertama mengikuti playbook Anda: ${analysis.pillars[0].label}.`,
+      refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
 
-  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari fixture Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: preferenceNote(request.profile, insights.length), relatedSymbols: [] };
+  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari fixture Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
 }
 
 function buildCausalGraph(
   symbol: SymbolCode,
   profile: UserProfile,
-  options: { scope: "watchlist" | "market"; minRelevance: number },
+  options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext },
 ): CausalGraph | null {
-  const analysis = buildAnalysis(symbol, profile);
+  const analysis = buildAnalysis(symbol, profile, options.context);
   if (!analysis || (options.scope === "watchlist" && !profile.watchlist.includes(symbol))) return null;
   const linked = fixtureNewsProvider.listEvents().flatMap((event) => {
     const link = event.impactLinks.find((item) => item.symbol === symbol);
     return link ? [{ event, link }] : [];
   });
-  const visible = linked.filter(({ link }) => link.relevance >= options.minRelevance);
+  const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= 90 ? "High" : relevance >= 75 ? "Medium" : "Low";
+  const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : "1-10 sesi";
+  const expectedFor = (event: MarketEvent) => {
+    if (event.category === "company") return "Filing atau metrik operasional berikutnya bergerak konsisten dengan trigger.";
+    if (event.category === "commodity") return "Realisasi harga, volume penjualan, atau margin berubah pada periode berikutnya.";
+    if (event.category === "rates") return "Biaya dana, yield aset, atau margin bunga menunjukkan perubahan yang searah.";
+    if (event.category === "currency") return "Pendapatan, biaya input, atau translasi valuta menunjukkan perubahan yang searah.";
+    if (event.category === "weather") return "Volume produksi, jam operasi, atau logistik menunjukkan gangguan pada lag terkait.";
+    return "Metrik biaya, volume, atau kapasitas menunjukkan dampak setelah aturan berlaku.";
+  };
+  const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension => {
+    if (event.category === "commodity") return "pricing";
+    if (event.category === "rates") return "margin";
+    if (event.category === "currency") return "cash-flow";
+    if (event.category === "weather") return "volume";
+    if (event.category === "policy") return "margin";
+    return analysis.researchPlan.focus;
+  };
+  const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);
+  const visible = eligible.slice(0, 3);
+  const targetImpact = analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0];
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
     label: symbol,
     kind: "company",
     detail: `${analysis.company.name}. Titik temu seluruh jalur; bukan kesimpulan transaksi.`,
+    basis: "Aggregation point",
+    confidence: "High",
+    lag: "N/A",
+    counterEvidence: "Emiten menghubungkan jalur, tetapi tidak membuktikan bahwa setiap input menyebabkan perubahan harga.",
     citations: analysis.company.citations,
   }];
   const edges: CausalGraph["edges"] = [];
@@ -357,15 +579,19 @@ function buildCausalGraph(
     const mechanismLabel = link.path.split(/→|->/)[1]?.trim() ?? "Jalur eksposur";
     nodes.push({
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance, citations: event.citations,
+      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
+      counterEvidence: "Nilai ini berasal dari fixture. Kejadian, waktu, dan cakupan produksi masih perlu diverifikasi pada sumber langsung.", citations: event.citations,
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${link.path}. ${link.rationale}`,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance, citations: link.citations,
+      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event),
+      counterEvidence: link.rationale.includes("belum") || link.rationale.includes("harus") ? link.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: link.citations,
     });
     edges.push(
-      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, citations: link.citations },
+      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevance ${link.relevance}/100, sumber dan waktu tersedia; belum merupakan bukti kausal.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau trigger perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila observable perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Exposure path tertulis dan relevance ${link.relevance}/100; isolasi faktor lain belum lengkap.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: link.citations },
     );
   }
 
@@ -376,11 +602,21 @@ function buildCausalGraph(
       : "Mixed";
     nodes.push({
       id: nodeId, label: `${pillar.label}: ${pillar.status}`, kind: "observation", detail: pillar.summary,
-      sourceType: pillar.key === "catalyst" ? undefined : "market", direction, relevance: 100, citations: pillar.citations,
+      sourceType: pillar.key === "catalyst" ? undefined : "market", direction, relevance: 100,
+      basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis",
+      counterEvidence: pillar.conflict ?? "Observasi bergerak pada jendela yang sama; hubungan kausal tidak disimpulkan dari korelasi ini.", citations: pillar.citations,
     });
     edges.push({
       id: `company-${symbol}-to-${nodeId}`, from: `company-${symbol}`, to: nodeId,
-      label: "observed", direction, relevance: 100, citations: pillar.citations,
+      label: "observed", direction, relevance: 100, basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis",
+      exposure: `${symbol} · observasi ${pillar.label.toLowerCase()} pada jendela case.`,
+      expectedObservable: pillar.protocol.supportingEvidence,
+      alternativeExplanation: pillar.protocol.challengingEvidence,
+      falsificationCondition: pillar.protocol.insufficientWhen,
+      confidenceBasis: pillar.conflict ? "Confidence rendah karena contradiction gate aktif." : "Input deterministik tersedia dan memiliki citation metadata; korelasi bukan kausalitas.",
+      businessImpactDimension: pillar.key === "volume" ? "volume" : pillar.key === "momentum" ? "valuation" : pillar.key === "concentration" ? "cash-flow" : analysis.researchPlan.focus,
+      businessImpactImplication: `Observasi ini hanya material bila terhubung ke ${impactLabels[pillar.key === "volume" ? "volume" : pillar.key === "momentum" ? "valuation" : pillar.key === "concentration" ? "cash-flow" : analysis.researchPlan.focus].toLowerCase()}.`,
+      citations: pillar.citations,
     });
   }
 
@@ -388,13 +624,28 @@ function buildCausalGraph(
     targetSymbol: symbol,
     nodes,
     edges,
+    targetObservable: targetImpact.label,
+    competingHypotheses: visible.map(({ event, link }, index) => ({
+      id: `${symbol}-competing-${event.id}`,
+      rank: index + 1,
+      claim: `${event.title} menjelaskan perubahan ${targetImpact.label.toLowerCase()} ${symbol}.`,
+      targetObservable: targetImpact.label,
+      supportingEvidence: `${link.path}. Relevance ${link.relevance}/100 dan waktu sumber tersedia.`,
+      counterEvidence: index === 0
+        ? "Jalur belum mengisolasi input lain yang muncul pada jendela yang sama."
+        : `Hipotesis peringkat ${index + 1} memiliki relevansi lebih rendah daripada penjelasan utama.`,
+      discriminator: `${expectedFor(event)} Periksa setelah ${lagFor(event)}.`,
+      status: index === 0 ? "leading" : link.relevance >= 75 ? "plausible" : "challenged",
+      confidence: confidenceFor(link.relevance),
+      citations: uniqueCitations([...event.citations, ...link.citations]),
+    })),
     hiddenRelationshipCount: linked.length - visible.length,
     asOf: analysis.asOf,
   };
 }
 
 export const agentEngine: AgentEngine = {
-  analyzeCompany: (symbol, profile) => buildAnalysis(symbol.toUpperCase() as SymbolCode, profile),
+  analyzeCompany: (symbol, profile, context) => buildAnalysis(symbol.toUpperCase() as SymbolCode, profile, context),
   mapEventImpact: (eventId, profile, scope) => {
     const event = fixtureNewsProvider.getEvent(eventId);
     if (!event) return null;
