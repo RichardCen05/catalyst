@@ -55,7 +55,7 @@ test("primary flow opens a watchlist change as a Research Case", async ({ page }
   await page.getByRole("link", { name: /ANTM Filing operasi baru/ }).click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
   await expect(page.getByRole("heading", { name: /Research Case · ANTM/ })).toBeVisible();
-  await expect(page.getByText("Apa yang berubah, mengapa mungkin berubah, dan bukti apa yang dapat membatalkannya?")).toBeVisible();
+  await expect(page.getByRole("tablist", { name: "Bagian Research Case" })).toBeVisible();
 });
 
 test("Research Case runs a mandate lifecycle and exposes hypothesis protocols", async ({ page }) => {
@@ -68,17 +68,54 @@ test("Research Case runs a mandate lifecycle and exposes hypothesis protocols", 
   await expect(page.getByText("Mandate tersimpan")).toBeVisible();
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Mandate");
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Source plan");
+  await page.getByRole("tab", { name: "Evidence 4" }).click();
   await expect(page.getByText("Klaim yang diuji", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti pendukung", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti penyangkal", { exact: true }).first()).toBeVisible();
-  await page.getByText("Batas & langkah berikutnya", { exact: true }).first().click();
+  await page.getByText("Batas dan langkah berikutnya", { exact: true }).first().click();
   await expect(page.getByText("Tidak cukup bila", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Pertanyaan berikutnya", { exact: true }).first()).toBeVisible();
 
+  await page.getByRole("tab", { name: "Case" }).click();
   await page.getByRole("button", { name: "Tandai case selesai" }).click();
   await expect(page.getByText("Case closed", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Buka kembali case" }).click();
   await expect(page.getByText("Case open", { exact: true })).toBeVisible();
+});
+
+test("Research Case tabs keep each investigation layer focused and deep-linkable", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await finishSetup(page);
+  await page.goto("/cases/ANTM");
+
+  const caseTabs = page.getByRole("tablist", { name: "Bagian Research Case" });
+  await expect(caseTabs.getByRole("tab")).toHaveText(["Case", "Evidence 4", "Timeline 3", "Financials", "Review"]);
+  await expect(caseTabs.getByRole("tab", { name: "Review" })).toBeInViewport();
+  await expect(caseTabs.getByRole("tab", { name: "Case" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Research mandate" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence timeline" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toHaveCount(0);
+
+  await caseTabs.getByRole("tab", { name: "Evidence 4" }).click();
+  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=evidence$/);
+  await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toBeVisible();
+  const pillarTabs = page.getByRole("tablist", { name: "Pilar analisis" });
+  await expect(pillarTabs.getByRole("tab", { name: /Konsentrasi/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toBeVisible();
+
+  await pillarTabs.getByRole("tab", { name: /Volume/ }).click();
+  await expect(page).toHaveURL(/tab=evidence&pillar=volume$/);
+  await expect(page.getByRole("heading", { name: "Volume", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toHaveCount(0);
+
+  await caseTabs.getByRole("tab", { name: "Timeline 3" }).click();
+  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=timeline$/);
+  await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
+
+  await page.goto("/cases/ANTM?tab=review");
+  await expect(caseTabs.getByRole("tab", { name: "Review" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Koreksi analisis ini" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
 });
 
 test("Investor Research Playbook persists explicit judgment rules into a case", async ({ page }) => {
@@ -95,7 +132,7 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(page.getByLabel("Materiality rules")).toHaveValue(rule);
 
   await page.goto("/cases/ANTM");
-  await page.getByText("Buka case file lengkap", { exact: true }).click();
+  await page.getByText("Case file dan unresolved questions", { exact: true }).click();
   await expect(page.getByText(rule)).toBeVisible();
 });
 
@@ -154,12 +191,15 @@ test("company analysis aligns events on an evidence timeline", async ({ page }) 
 test("user completes setup and opens a four-pillar company case", async ({ page }) => {
   await finishSetup(page);
   await page.getByRole("link", { name: /ANTM/ }).first().click();
+  await page.getByRole("tab", { name: "Evidence 4" }).click();
   await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toBeVisible();
   await expect(page.getByText("Plan → Query → Verify → Summarize")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Review" }).click();
   await page.getByRole("button", { name: "Buka audit" }).click();
   const audit = page.getByRole("dialog", { name: "Audit analisis ANTM" });
   await expect(audit.getByText("Plan → Query → Verify → Summarize")).toBeVisible();
   await audit.getByRole("button", { name: "Tutup audit" }).click();
+  await page.getByRole("tab", { name: "Timeline 3" }).click();
   await page.getByRole("button", { name: /Fokus chart/ }).click();
   await expect(page.getByRole("dialog", { name: "ANTM vs IHSG" })).toBeVisible();
   await page.getByRole("button", { name: "Tutup chart" }).click();
@@ -222,7 +262,7 @@ test("user correction becomes a reversible open hypothesis", async ({ page }) =>
 test("formula details and source destinations are inspectable", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/companies/ANTM");
-  await page.getByText("Lihat perhitungan dan semua input").first().click();
+  await page.getByText("Perhitungan dan input").first().click();
   await expect(page.getByText(/HHI =/).first()).toBeVisible();
   await page.getByRole("button", { name: /Periksa field sumber/ }).first().click();
   await expect(page.getByRole("dialog")).toContainText("Endpoint");

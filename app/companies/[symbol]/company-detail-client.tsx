@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Bot, Check, ChevronDown, ChevronRight, Clock3, GitBranch, HelpCircle, TableProperties } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Bot, ChevronDown, ChevronRight, Clock3, GitBranch, HelpCircle, TableProperties } from "lucide-react";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
@@ -13,14 +13,16 @@ import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
 import { PriceChart } from "@/components/price-chart";
 import { ResearchCaseOverview } from "@/components/research-case-overview";
+import { ResearchCaseWorkspace } from "@/components/research-case-workspace";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
+export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol: SymbolCode; workspaceTabs?: boolean }) {
   const { profile, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
   const analysis = agentEngine.analyzeCompany(symbol, profile);
+  const relatedEvents = events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol));
 
   if (!analysis) return (
     <div>
@@ -31,20 +33,22 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowLeft aria-hidden="true" className="size-4" />Research Cases</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?case=${symbol}`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-3.5" />Lihat causal chain</Link><CitationDialog citations={analysis.sources} /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Research Case · ${symbol}`, question: `Lanjutkan investigasi perubahan ${symbol} dari mandate dan unresolved questions.`, symbol })}><Bot aria-hidden="true" className="size-3.5" />Lanjutkan di Copilot</Button></div></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowLeft aria-hidden="true" className="size-4" />Research Cases</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?case=${symbol}`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-3.5" />{workspaceTabs ? "Causal chain" : "Lihat causal chain"}</Link><CitationDialog citations={analysis.sources} label={workspaceTabs ? "Sumber" : "Periksa sumber"} /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Research Case · ${symbol}`, question: `Lanjutkan investigasi perubahan ${symbol} dari mandate dan unresolved questions.`, symbol })}><Bot aria-hidden="true" className="size-3.5" />{workspaceTabs ? "Copilot" : "Lanjutkan di Copilot"}</Button></div></div>
 
-      <header className="mb-4 rounded-xl border border-border bg-surface p-4 shadow-panel sm:p-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Research Case · {company.symbol}</p>
-        <p className="mt-2 text-sm text-muted-foreground">Apa yang berubah, mengapa mungkin berubah, dan bukti apa yang dapat membatalkannya?</p>
-        <div className="mt-4 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs text-primary">IDX:{company.symbol}</span><span className="text-xs text-muted-foreground">{company.sector} · {company.subsector}</span></div><h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Research Case · {company.symbol}</h1><p className="mt-1 text-sm text-muted-foreground">{company.name}</p><p className="mt-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground"><Clock3 aria-hidden="true" className="size-3" />asOf {formatAsOf(analysis.asOf)} WIB</p></div><div className="sm:text-right"><p className="font-mono text-2xl font-semibold tabular-nums">{formatCurrency(company.price).replace("Rp", "Rp ")}</p><p className={`mt-1 font-mono text-sm ${company.changePct >= 0 ? "text-positive" : "text-danger"}`}>{company.changePct >= 0 ? "+" : ""}{company.changePct.toFixed(1)}% · fixture</p><div className="mt-2"><StatusBadge status={analysis.evidenceState} /></div></div></div>
-        <div className="mt-5 grid gap-3 border-t border-border pt-4 lg:grid-cols-[minmax(0,1fr)_auto]"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Evidence summary</p><p className="mt-1 text-sm leading-6">{analysis.thesis}</p></div><div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/8 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-primary"><Check aria-hidden="true" className="size-3.5" />No combined score</div></div>
+      <header className="mb-6 border-b border-border pb-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span className="text-primary">IDX:{company.symbol}</span><span>{company.sector}</span><span aria-hidden="true">/</span><span>{company.subsector}</span></div><h1 className="editorial mt-3 text-[30px] sm:text-[38px]">Research Case · {company.symbol}</h1><p className="mt-1 text-sm text-muted-foreground">{company.name}</p><p className="mt-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground"><Clock3 aria-hidden="true" className="size-3" />asOf {formatAsOf(analysis.asOf)} WIB</p></div>
+          <div className="shrink-0 sm:text-right"><p className="font-mono text-2xl font-semibold tabular-nums">{formatCurrency(company.price).replace("Rp", "Rp ")}</p><p className={`mt-1 font-mono text-sm ${company.changePct >= 0 ? "text-positive" : "text-danger"}`}>{company.changePct >= 0 ? "+" : ""}{company.changePct.toFixed(1)}% · fixture</p><div className="mt-2"><StatusBadge status={analysis.evidenceState} /></div></div>
+        </div>
+        <p className="mt-5 max-w-3xl text-sm leading-6 text-foreground">{analysis.thesis}</p>
       </header>
 
+      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} relatedEvents={relatedEvents} /> : <>
       <ResearchCaseOverview researchCase={analysis} symbol={symbol} />
 
-      <PriceChart data={analysis.priceSeries} symbol={symbol} events={events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol))} />
+      <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} />
 
-      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Hypothesis testing protocol</p><h2 id="pillars-title" className="mt-1 text-lg font-semibold">Empat protokol uji</h2></div><Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Buka playbook<ChevronRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar, index) => <EvidenceCard key={pillar.key} pillar={pillar} index={index} symbol={symbol} />)}</div></section>
+      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Hypothesis testing protocol</p><h2 id="pillars-title" className="mt-1 text-lg font-semibold">Empat protokol uji</h2></div><Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Buka playbook<ChevronRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar) => <EvidenceCard key={pillar.key} pillar={pillar} symbol={symbol} />)}</div></section>
 
       <Panel className="mt-4">
         <details className="group">
@@ -56,6 +60,7 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
       <Panel className="mt-4"><div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-attention/10 text-attention"><AlertTriangle aria-hidden="true" className="size-4" /></span><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-attention">Audit tersedia</p><p className="mt-1 text-sm font-medium">{analysis.missingEvidence.length} batas data · {analysis.hypotheses.length} hipotesis · {analysis.sources.length} sumber</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Trace teknis disimpan di sini agar analisis utama tetap ringkas.</p></div></div><AnalysisAudit symbol={symbol} traces={analysis.hypotheses} missingEvidence={analysis.missingEvidence} sourceCount={analysis.sources.length} /></div></Panel>
 
       <div className="mt-4"><AnalysisReview symbol={symbol} /></div>
+      </>}
 
     </div>
   );

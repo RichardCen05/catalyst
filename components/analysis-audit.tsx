@@ -24,18 +24,17 @@ export function AnalysisAudit({ symbol, traces, missingEvidence, sourceCount }: 
         <Dialog.Content className="fixed inset-y-0 right-0 z-100 w-[min(100vw,620px)] overflow-y-auto border-l border-border bg-surface p-4 shadow-2xl focus:outline-none sm:p-6">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Fixture-only audit</p>
-              <Dialog.Title className="mt-1 text-xl font-semibold">Audit analisis {symbol}</Dialog.Title>
+              <Dialog.Title className="editorial text-2xl">Audit analisis {symbol}</Dialog.Title>
               <Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">Periksa trace, gate, sumber, dan batas bukti tanpa memenuhi layar utama.</Dialog.Description>
             </div>
             <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup audit"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close>
           </div>
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-lg border border-border bg-background p-3"><p className="font-mono text-lg font-semibold">{traces.length}</p><p className="mt-1 text-xs text-muted-foreground">Hipotesis diuji</p></div>
-            <div className="rounded-lg border border-border bg-background p-3"><p className="flex items-center gap-1.5 font-mono text-lg font-semibold"><Database aria-hidden="true" className="size-4 text-primary" />{sourceCount}</p><p className="mt-1 text-xs text-muted-foreground">Sumber terhubung</p></div>
-            <div className="rounded-lg border border-border bg-background p-3"><p className="flex items-center gap-1.5 text-sm font-semibold text-positive"><CheckCircle2 aria-hidden="true" className="size-4" />3 gate aktif</p><p className="mt-1 text-xs text-muted-foreground">Citation, conflict, language</p></div>
-          </div>
+          <dl className="mt-5 grid border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-border">
+            <div className="py-3 sm:px-3 sm:first:pl-0"><dt className="text-xs text-muted-foreground">Hipotesis diuji</dt><dd className="mt-1 font-mono text-lg font-semibold">{traces.length}</dd></div>
+            <div className="border-t border-border py-3 sm:border-t-0 sm:px-3"><dt className="text-xs text-muted-foreground">Sumber terhubung</dt><dd className="mt-1 flex items-center gap-1.5 font-mono text-lg font-semibold"><Database aria-hidden="true" className="size-4 text-primary" />{sourceCount}</dd></div>
+            <div className="border-t border-border py-3 sm:border-t-0 sm:px-3"><dt className="text-xs text-muted-foreground">Gate aktif</dt><dd className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-positive"><CheckCircle2 aria-hidden="true" className="size-4" />3 · citation, conflict, language</dd></div>
+          </dl>
 
           <div className="mt-4"><AgentTrace traces={traces} /></div>
 

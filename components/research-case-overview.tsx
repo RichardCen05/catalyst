@@ -24,7 +24,6 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
     return {
       comparables: playbook.preferredComparables[symbol] ?? [],
       exposures: playbook.knownExposures.filter(containsSymbol),
-      assumptions: playbook.thesisAssumptions.filter(containsSymbol),
       falsifiers: playbook.falsifiers.filter(containsSymbol),
     };
   }, [playbook, symbol]);
@@ -36,57 +35,52 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   };
 
   return (
-    <Panel className="mb-4 overflow-hidden" data-tour="research-case">
+    <Panel className="overflow-hidden" data-tour="research-case">
       <PanelHeader
-        eyebrow={researchCase.caseId}
-        title="Research mandate & lifecycle"
-        action={<span className={`rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${status === "closed" ? "border-positive/35 bg-positive/10 text-positive" : "border-primary/35 bg-primary/10 text-primary"}`}>Case {status}</span>}
+        title="Research mandate"
+        action={<span className={`rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${status === "closed" ? "border-positive/35 bg-positive/10 text-positive" : "border-primary/35 bg-primary/10 text-primary"}`}>Case {status}</span>}
       />
-      <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
+
+      <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]">
         <div>
           <label htmlFor={`mandate-${symbol}`} className="text-xs font-medium">Research mandate</label>
-          <textarea id={`mandate-${symbol}`} value={mandate} onChange={(event) => { setCaseMandate(symbol, event.target.value); setSaved(false); }} rows={3} className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" />
+          <textarea id={`mandate-${symbol}`} value={mandate} onChange={(event) => { setCaseMandate(symbol, event.target.value); setSaved(false); }} rows={3} className="mt-2 w-full resize-y rounded-[8px] border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Button size="sm" onClick={saveMandate}><Save aria-hidden="true" className="size-3.5" />Simpan mandate</Button>
             {saved ? <span className="inline-flex items-center gap-1 text-xs text-positive" role="status"><Check aria-hidden="true" className="size-3.5" />Mandate tersimpan</span> : null}
           </div>
         </div>
-        <div className="rounded-lg border border-border bg-background p-3">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Trigger</p>
-          <h3 className="mt-1 text-sm font-semibold leading-5">{researchCase.trigger.title}</h3>
-          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{researchCase.trigger.detail}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase tracking-wider">
-            <span className="rounded border border-primary/30 px-2 py-1 text-primary">{researchCase.priority.novelty}</span>
-            <span className="rounded border border-attention/30 px-2 py-1 text-attention-foreground">{researchCase.priority.materiality} materiality</span>
-            <span className="rounded border border-border px-2 py-1 text-muted-foreground">{researchCase.priority.uncertainty} uncertainty</span>
-          </div>
-        </div>
+        <section className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0" aria-labelledby="case-trigger-title">
+          <p className="font-mono text-[10px] text-muted-foreground">{researchCase.caseId}</p>
+          <h3 id="case-trigger-title" className="mt-2 text-sm font-semibold leading-5">{researchCase.trigger.title}</h3>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">{researchCase.trigger.detail}</p>
+          <dl className="mt-3 grid grid-cols-3 gap-2 text-[10px]"><div><dt className="text-muted-foreground">Novelty</dt><dd className="mt-0.5 font-mono text-primary">{researchCase.priority.novelty}</dd></div><div><dt className="text-muted-foreground">Materiality</dt><dd className="mt-0.5 font-mono text-attention-foreground">{researchCase.priority.materiality}</dd></div><div><dt className="text-muted-foreground">Uncertainty</dt><dd className="mt-0.5 font-mono">{researchCase.priority.uncertainty}</dd></div></dl>
+        </section>
       </div>
 
       <ol aria-label="Agent lifecycle" className="grid gap-px border-y border-border bg-border sm:grid-cols-5">
-        {researchCase.lifecycle.map((step, index) => {
+        {researchCase.lifecycle.map((step) => {
           const complete = status === "closed" || step.state === "complete";
-          return <li key={step.key} className="flex min-h-14 items-center gap-2 bg-background px-3"><span className={`grid size-5 shrink-0 place-items-center rounded-full border ${complete ? "border-positive/40 bg-positive/10 text-positive" : "border-primary/40 bg-primary/10 text-primary"}`}>{complete ? <Check aria-hidden="true" className="size-3" /> : <Circle aria-hidden="true" className="size-2.5 fill-current" />}</span><span><span className="block font-mono text-[9px] text-muted-foreground">0{index + 1}</span><span className="block text-[11px] font-medium">{step.label}</span></span></li>;
+          return <li key={step.key} className="flex min-h-14 items-center gap-2 bg-background px-3"><span className={`grid size-5 shrink-0 place-items-center rounded-full border ${complete ? "border-positive/40 bg-positive/10 text-positive" : "border-primary/40 bg-primary/10 text-primary"}`}>{complete ? <Check aria-hidden="true" className="size-3" /> : <Circle aria-hidden="true" className="size-2.5 fill-current" />}</span><span className="text-[11px] font-medium">{step.label}</span></li>;
         })}
       </ol>
 
-      <div className="grid gap-3 p-4 md:grid-cols-3">
-        <article className="rounded-lg border border-border bg-background p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Working thesis</p><p className="mt-2 text-sm leading-6">{researchCase.thesis}</p></article>
-        <article className="rounded-lg border border-border bg-background p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-attention-foreground">Key challenge</p><p className="mt-2 text-sm leading-6">{researchCase.contradictions[0] ?? researchCase.counterEvidence[0]}</p></article>
-        <article className="rounded-lg border border-border bg-background p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Primary causal path</p><p className="mt-2 text-sm leading-6">{researchCase.primaryCausalPath}</p><Link href={`/impact?case=${symbol}`} className="mt-2 inline-flex min-h-9 items-center gap-1 text-xs font-medium text-primary"><GitBranch aria-hidden="true" className="size-3.5" />Uji chain</Link></article>
+      <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
+        <section className="p-4 sm:p-5"><h3 className="text-xs font-semibold">Current challenge</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{researchCase.contradictions[0] ?? researchCase.counterEvidence[0]}</p></section>
+        <section className="p-4 sm:p-5"><h3 className="text-xs font-semibold">Causal path</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{researchCase.primaryCausalPath}</p><Link href={`/impact?case=${symbol}`} className="mt-2 inline-flex min-h-9 items-center gap-1 text-xs font-medium text-primary"><GitBranch aria-hidden="true" className="size-3.5" />Periksa chain</Link></section>
       </div>
 
       <details className="group border-t border-border">
-        <summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Buka case file lengkap<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary>
-        <div className="grid gap-4 border-t border-border p-4 lg:grid-cols-2">
-          <section><h3 className="text-xs font-semibold">Source plan & clarification gate</h3><p className="mt-2 rounded border border-border bg-surface p-2 text-xs leading-5 text-muted-foreground">{researchCase.clarificationGate}</p><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground"><li>— Prioritas Anda: {playbook.trustedSources[0] ?? "Belum ada trusted source."}</li>{researchCase.sourcePlan.slice(0, 3).map((item) => <li key={item}>— {item}</li>)}</ul></section>
-          <section><h3 className="text-xs font-semibold">Unresolved questions</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.unresolvedQuestions.slice(0, 4).map((item) => <li key={item}>— {item}</li>)}</ul></section>
-          <section><h3 className="text-xs font-semibold">Counter-evidence & user notes</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.counterEvidence.slice(0, 2).map((item) => <li key={item}>— {item}</li>)}{caseNotes.map((item) => <li key={item.id} className="text-attention-foreground">— Catatan user ({item.status}): {item.note}</li>)}</ul></section>
-          <section><h3 className="text-xs font-semibold">Playbook context</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Comparables: {playbookContext.comparables.join(" · ") || "Belum ditulis"}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbook.materialityRules[0] ?? "Materiality rule belum ditulis."}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbookContext.exposures[0] ?? "Known exposure belum ditulis untuk emiten ini."}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbookContext.falsifiers[0] ?? "Falsifier belum ditulis untuk emiten ini."}</p><Link href="/playbook" className="mt-2 inline-flex min-h-9 items-center text-xs font-medium text-primary">Edit Investor Research Playbook</Link></section>
+        <summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5">Case file dan unresolved questions<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary>
+        <div className="grid gap-6 border-t border-border bg-background p-4 sm:p-5 lg:grid-cols-2">
+          <section><h3 className="text-xs font-semibold">Source plan</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{researchCase.clarificationGate}</p><ul className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground"><li>Prioritas Anda: {playbook.trustedSources[0] ?? "Belum ada trusted source."}</li>{researchCase.sourcePlan.slice(0, 3).map((item) => <li key={item}>{item}</li>)}</ul></section>
+          <section><h3 className="text-xs font-semibold">Unresolved questions</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.unresolvedQuestions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul></section>
+          <section><h3 className="text-xs font-semibold">Counter-evidence dan catatan</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.counterEvidence.slice(0, 2).map((item) => <li key={item}>{item}</li>)}{caseNotes.map((item) => <li key={item.id} className="text-attention-foreground">Catatan user ({item.status}): {item.note}</li>)}</ul></section>
+          <section><h3 className="text-xs font-semibold">Playbook context</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Comparables: {playbookContext.comparables.join(" · ") || "Belum ditulis"}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbook.materialityRules[0] ?? "Materiality rule belum ditulis."}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbookContext.exposures[0] ?? "Known exposure belum ditulis untuk emiten ini."}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{playbookContext.falsifiers[0] ?? "Falsifier belum ditulis untuk emiten ini."}</p><Link href="/playbook" className="mt-2 inline-flex min-h-9 items-center text-xs font-medium text-primary">Edit research playbook</Link></section>
         </div>
       </details>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3"><p className="text-xs text-muted-foreground">Menutup case menyimpan keputusan riset; bukti dan catatan tetap dapat diaudit.</p>{status === "closed" ? <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "open")}><RotateCcw aria-hidden="true" className="size-3.5" />Buka kembali case</Button> : <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "closed")}><X aria-hidden="true" className="size-3.5" />Tandai case selesai</Button>}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Menutup case menyimpan status; bukti dan catatan tetap tersedia.</p>{status === "closed" ? <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "open")}><RotateCcw aria-hidden="true" className="size-3.5" />Buka kembali case</Button> : <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "closed")}><X aria-hidden="true" className="size-3.5" />Tandai case selesai</Button>}</div>
     </Panel>
   );
 }
