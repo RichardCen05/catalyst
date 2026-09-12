@@ -1,17 +1,43 @@
 "use client";
 
 import * as Tabs from "@radix-ui/react-tabs";
-import { CheckCircle2, CircleHelp, SearchCheck, ShieldAlert } from "lucide-react";
 import type { HypothesisTrace } from "@/lib/types";
+import { IconAttention, IconInspect, IconUnknown, IconVerified } from "@/components/ui/icons";
 
 export function AgentTrace({ traces }: { traces: HypothesisTrace[] }) {
   return (
-    <Tabs.Root defaultValue="0" className="rounded-xl border border-border bg-surface shadow-panel">
-      <div className="border-b border-border px-4 py-3"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Simulasi agent</p><h2 className="mt-1 text-base font-semibold">Plan → Query → Verify → Summarize</h2></div>
-      <Tabs.List aria-label="Hipotesis agent" className="flex gap-1 overflow-x-auto border-b border-border p-2">
-        {traces.map((trace, index) => <Tabs.Trigger key={trace.id} value={String(index)} className="min-h-10 shrink-0 cursor-pointer rounded-md px-3 font-mono text-xs text-muted-foreground transition-colors data-[state=active]:bg-primary/12 data-[state=active]:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">H{index + 1}</Tabs.Trigger>)}
+    <Tabs.Root defaultValue="0" className="rounded-[12px] border border-border bg-surface">
+      <div className="border-b border-border px-5 py-4">
+        <p className="meta text-muted-foreground">Simulasi agent</p>
+        <h2 className="editorial mt-1.5 text-[17px]">Plan → Query → Verify → Summarize</h2>
+      </div>
+      <Tabs.List aria-label="Hipotesis agent" className="flex gap-1 overflow-x-auto border-b border-border px-3 py-2">
+        {traces.map((trace, index) => (
+          <Tabs.Trigger key={trace.id} value={String(index)} className="min-h-9 shrink-0 cursor-pointer rounded-[6px] px-3 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">H{index + 1}</Tabs.Trigger>
+        ))}
       </Tabs.List>
-      {traces.map((trace, index) => <Tabs.Content key={trace.id} value={String(index)} className="p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><div className="flex items-start gap-3"><span className="mt-0.5">{trace.outcome === "supported" ? <CheckCircle2 aria-hidden="true" className="size-5 text-positive" /> : trace.outcome === "challenged" ? <ShieldAlert aria-hidden="true" className="size-5 text-attention" /> : <CircleHelp aria-hidden="true" className="size-5 text-muted-foreground" />}</span><div><h3 className="font-medium">{trace.hypothesis}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{trace.verification}</p></div></div><div className="mt-4 flex gap-2 rounded-lg bg-background p-3"><SearchCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><div><p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Fixture query</p><p className="mt-1 text-xs leading-5">{trace.query}</p></div></div></Tabs.Content>)}
+      {traces.map((trace, index) => (
+        <Tabs.Content key={trace.id} value={String(index)} className="px-5 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 shrink-0">
+              {trace.outcome === "supported" ? <IconVerified className="size-4 text-positive" />
+                : trace.outcome === "challenged" ? <IconAttention className="size-4 text-attention" />
+                : <IconUnknown className="size-4 text-muted-foreground" />}
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-[14px] font-medium leading-[1.5]">{trace.hypothesis}</h3>
+              <p className="mt-2 text-[13px] leading-[1.65] text-muted-foreground">{trace.verification}</p>
+            </div>
+          </div>
+          <div className="mt-5 flex gap-3 border-t border-border pt-4">
+            <IconInspect className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="meta text-muted-foreground">Fixture query</p>
+              <p className="mt-1.5 font-mono text-[11.5px] leading-[1.7]">{trace.query}</p>
+            </div>
+          </div>
+        </Tabs.Content>
+      ))}
     </Tabs.Root>
   );
 }

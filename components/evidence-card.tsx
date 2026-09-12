@@ -1,27 +1,83 @@
-import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
 import type { PillarResult } from "@/lib/types";
 import { CitationDialog } from "@/components/citation-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { IconConflict, IconSource } from "@/components/ui/icons";
 
 export function EvidenceCard({ pillar, index }: { pillar: PillarResult; index: number }) {
   return (
-    <article className="min-w-0 max-w-full rounded-xl border border-border bg-surface p-4 shadow-panel">
-      <div className="flex items-start gap-3">
-        <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary/12 font-mono text-xs font-semibold text-primary">{index + 1}</span>
-        <div className="min-w-0 flex-1"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Pilar {index + 1}</p><h3 className="mt-0.5 text-base font-semibold">{pillar.label}</h3></div>
+    <article className="flex min-w-0 max-w-full flex-col rounded-[12px] border border-border bg-surface transition-shadow duration-200 hover:shadow-lift">
+      <div className="flex items-start gap-4 px-5 pt-5">
+        <span className="mt-0.5 font-mono text-[11px] tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
+        <div className="min-w-0 flex-1">
+          <p className="meta text-muted-foreground">Pilar bukti</p>
+          <h3 className="editorial mt-1.5 text-[19px]">{pillar.label}</h3>
+        </div>
         <StatusBadge status={pillar.status} />
       </div>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">{pillar.summary}</p>
-      {pillar.conflict ? <div className="mt-3 flex gap-2 rounded-lg border border-danger/25 bg-danger/8 p-3 text-xs leading-5 text-foreground"><AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-danger" />{pillar.conflict}</div> : null}
-      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border">
-        {pillar.metrics.slice(0, 2).map((metric) => <div key={metric.label} className="min-w-0 bg-background p-2.5"><dt className="truncate text-[11px] text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums">{metric.value}</dd><dd className="mt-1 inline-flex items-center gap-1 text-[9px] uppercase tracking-wider text-primary"><Database aria-hidden="true" className="size-2.5" />{metric.citations.length} source</dd></div>)}
+
+      <div className="px-5 pb-6 pt-3.5">
+        <p className="text-[13.5px] leading-[1.65] text-muted-foreground">{pillar.summary}</p>
+        {pillar.conflict ? (
+          <p className="mt-4 flex gap-2.5 rounded-[8px] bg-danger-soft p-3 text-[12px] leading-[1.6] text-danger">
+            <IconConflict className="mt-0.5 size-3.5 shrink-0" />
+            {pillar.conflict}
+          </p>
+        ) : null}
+      </div>
+
+      <dl className="mt-auto grid grid-cols-2 border-t border-border">
+        {pillar.metrics.slice(0, 2).map((metric, position) => (
+          <div key={metric.label} className={`min-w-0 px-5 py-4 ${position === 0 ? "border-r border-border" : ""}`}>
+            <dt className="truncate text-[11px] text-muted-foreground" title={metric.label}>{metric.label}</dt>
+            <dd className="mt-1.5 break-words font-mono text-[17px] tabular-nums">{metric.value}</dd>
+            <dd className="meta mt-1.5 inline-flex items-center gap-1 text-muted-foreground"><IconSource className="size-2.5" />{metric.citations.length} source</dd>
+          </div>
+        ))}
       </dl>
-      <details className="group mt-3 rounded-lg border border-border bg-background">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><Calculator aria-hidden="true" className="size-3.5" />Lihat perhitungan dan semua input<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary>
-        <div className="border-t border-border p-3">
-          {pillar.calculation ? <div><p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{pillar.calculation.name}</p><code className="mt-2 block overflow-x-auto rounded-md border border-border bg-surface p-2.5 text-[11px] leading-5 text-foreground">{pillar.calculation.formula}</code><dl className="mt-3 grid gap-3 text-xs"><div><dt className="text-muted-foreground">Substitusi fixture</dt><dd className="mt-1 break-words font-mono leading-5">{pillar.calculation.substitution}</dd></div><div><dt className="text-muted-foreground">Hasil deterministik</dt><dd className="mt-1 font-mono font-semibold text-foreground">{pillar.calculation.result}</dd></div></dl><ul className="mt-3 space-y-1.5 text-xs leading-5 text-muted-foreground">{pillar.calculation.notes.map((note) => <li key={note} className="flex gap-2"><span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-full bg-primary" />{note}</li>)}</ul></div> : null}
-          {pillar.metrics.length > 2 ? <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{pillar.metrics.slice(2).map((metric) => <div key={metric.label} className="rounded-md border border-border p-2"><dt className="text-[10px] text-muted-foreground">{metric.label}</dt><dd className="mt-1 break-words font-mono text-xs font-semibold">{metric.value}</dd></div>)}</dl> : null}
-          <div className="mt-4"><CitationDialog citations={pillar.citations} label="Periksa field sumber" /></div>
+
+      <details className="group border-t border-border">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-5 text-[12px] font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          Lihat perhitungan dan semua input
+          <span aria-hidden="true" className="ml-auto font-mono text-[15px] leading-none text-muted-foreground">
+            <span className="group-open:hidden">+</span>
+            <span className="hidden group-open:inline">−</span>
+          </span>
+        </summary>
+        <div className="border-t border-border px-5 py-5">
+          {pillar.calculation ? (
+            <div>
+              <p className="meta text-muted-foreground">{pillar.calculation.name}</p>
+              <code className="mt-2.5 block overflow-x-auto rounded-[6px] bg-muted px-3 py-2.5 font-mono text-[11.5px] leading-[1.7]">{pillar.calculation.formula}</code>
+              <dl className="mt-4 space-y-3 text-[12px]">
+                <div>
+                  <dt className="text-muted-foreground">Substitusi fixture</dt>
+                  <dd className="mt-1 break-words font-mono leading-[1.6]">{pillar.calculation.substitution}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Hasil deterministik</dt>
+                  <dd className="mt-1 font-mono font-medium">{pillar.calculation.result}</dd>
+                </div>
+              </dl>
+              <ul className="mt-4 space-y-2 text-[12px] leading-[1.6] text-muted-foreground">
+                {pillar.calculation.notes.map((note) => (
+                  <li key={note} className="flex gap-2.5"><span aria-hidden="true" className="mt-[9px] h-px w-2 shrink-0 bg-border" />{note}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {pillar.metrics.length > 2 ? (
+            <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-3 border-t border-border pt-4 sm:grid-cols-3">
+              {pillar.metrics.slice(2).map((metric) => (
+                <div key={metric.label}>
+                  <dt className="text-[10px] text-muted-foreground">{metric.label}</dt>
+                  <dd className="mt-1 break-words font-mono text-[12px] tabular-nums">{metric.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+
+          <div className="mt-5"><CitationDialog citations={pillar.citations} label="Periksa field sumber" /></div>
         </div>
       </details>
     </article>

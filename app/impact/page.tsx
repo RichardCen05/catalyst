@@ -2,7 +2,6 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Eye, Filter, GitBranch, SearchX, SlidersHorizontal } from "lucide-react";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
@@ -11,7 +10,9 @@ import { CausalChain } from "@/components/causal-chain";
 import { CitationDialog } from "@/components/citation-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { Reveal } from "@/components/ui/reveal";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { IconBranch, IconEmpty, IconFilter, IconSliders, IconWatch } from "@/components/ui/icons";
 import { cn, formatAsOf } from "@/lib/utils";
 
 const sourceLabels: Record<MarketEvent["sourceType"] | "all", string> = {
@@ -23,6 +24,8 @@ const sourceLabels: Record<MarketEvent["sourceType"] | "all", string> = {
   weather: "Cuaca",
   policy: "Kebijakan",
 };
+
+const selectClass = "h-11 w-full cursor-pointer appearance-none rounded-[6px] border border-border bg-surface pl-10 pr-3 text-[13px] outline-none transition-colors focus:border-foreground/40 focus:ring-2 focus:ring-ring/25";
 
 function filterSource(graph: CausalGraph, sourceType: keyof typeof sourceLabels): CausalGraph {
   if (sourceType === "all") return graph;
@@ -61,29 +64,99 @@ function ImpactContent() {
   });
 
   return (
-    <div>
-      <PageHeader eyebrow="Causal impact explorer" title="Lacak sebab, mekanisme, dan bukti" description="Peta dimulai dari perusahaan lalu memperlihatkan sumber yang relevan: Sectors, filing, komoditas, makro, kebijakan, dan cuaca. Hubungan tanpa jalur eksplisit tidak ditambahkan." action={graph ? <CitationDialog citations={graph.nodes.flatMap((node) => node.citations)} label="Ledger seluruh chain" /> : null} />
+    <div className="mx-auto max-w-[1320px]">
+      <PageHeader
+        eyebrow="Causal impact explorer"
+        title="Lacak sebab, mekanisme, dan bukti"
+        description="Peta dimulai dari perusahaan lalu memperlihatkan sumber yang relevan: Sectors, filing, komoditas, makro, kebijakan, dan cuaca. Hubungan tanpa jalur eksplisit tidak ditambahkan."
+        action={graph ? <CitationDialog citations={graph.nodes.flatMap((node) => node.citations)} label="Ledger seluruh chain" /> : null}
+      />
 
-      <Panel className="mb-4 p-3">
-        <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-          <fieldset className="flex min-h-11 items-center gap-1 rounded-lg border border-border bg-background p-1"><legend className="sr-only">Cakupan perusahaan</legend>{(["watchlist", "market"] as const).map((item) => <button key={item} onClick={() => setScope(item)} aria-pressed={scope === item} className={cn("min-h-9 flex-1 cursor-pointer rounded-md px-3 text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", scope === item ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted")}>{item}</button>)}</fieldset>
-          <label className="relative"><span className="sr-only">Pilih emiten</span><GitBranch aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><select value={activeSymbol} onChange={(event) => setSymbol(event.target.value as SymbolCode)} className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">{availableCompanies.map((company) => <option key={company.symbol} value={company.symbol}>{company.symbol} · {company.name}</option>)}</select></label>
-          <label className="relative"><span className="sr-only">Filter sumber</span><Filter aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><select value={sourceType} onChange={(event) => setSourceType(event.target.value as keyof typeof sourceLabels)} className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">{(Object.keys(sourceLabels) as Array<keyof typeof sourceLabels>).map((item) => <option key={item} value={item}>{sourceLabels[item]}</option>)}</select></label>
-          <label className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-background px-3 text-xs text-muted-foreground"><SlidersHorizontal aria-hidden="true" className="size-4" /><span>Min.</span><select value={minimum} onChange={(event) => setMinimum(Number(event.target.value))} aria-label="Relevansi minimum" className="h-9 cursor-pointer bg-transparent font-mono text-foreground outline-none"><option value={80}>80</option><option value={70}>70</option><option value={60}>60</option><option value={0}>Semua</option></select></label>
+      <div className="mb-6">
+        <div className="grid gap-3 md:grid-cols-[1fr_1.2fr_1fr_auto]">
+          <fieldset className="flex min-h-11 items-center gap-1 rounded-[6px] border border-border bg-surface p-1">
+            <legend className="sr-only">Cakupan perusahaan</legend>
+            {(["watchlist", "market"] as const).map((item) => (
+              <button key={item} onClick={() => setScope(item)} aria-pressed={scope === item} className={cn("min-h-9 flex-1 cursor-pointer rounded-[4px] px-3 text-[12px] capitalize transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", scope === item ? "bg-foreground font-medium text-background" : "text-muted-foreground hover:text-foreground")}>{item}</button>
+            ))}
+          </fieldset>
+          <label className="relative">
+            <span className="sr-only">Pilih emiten</span>
+            <IconBranch className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <select value={activeSymbol} onChange={(event) => setSymbol(event.target.value as SymbolCode)} className={selectClass}>
+              {availableCompanies.map((company) => <option key={company.symbol} value={company.symbol}>{company.symbol} · {company.name}</option>)}
+            </select>
+          </label>
+          <label className="relative">
+            <span className="sr-only">Filter sumber</span>
+            <IconFilter className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <select value={sourceType} onChange={(event) => setSourceType(event.target.value as keyof typeof sourceLabels)} className={selectClass}>
+              {(Object.keys(sourceLabels) as Array<keyof typeof sourceLabels>).map((item) => <option key={item} value={item}>{sourceLabels[item]}</option>)}
+            </select>
+          </label>
+          <label className="flex min-h-11 items-center gap-2 rounded-[6px] border border-border bg-surface px-3.5 text-[12px] text-muted-foreground">
+            <IconSliders className="size-4 shrink-0" />
+            <span>Min.</span>
+            <select value={minimum} onChange={(event) => setMinimum(Number(event.target.value))} aria-label="Relevansi minimum" className="h-9 cursor-pointer bg-transparent font-mono text-foreground outline-none">
+              <option value={80}>80</option>
+              <option value={70}>70</option>
+              <option value={60}>60</option>
+              <option value={0}>Semua</option>
+            </select>
+          </label>
         </div>
-        <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><p><Eye aria-hidden="true" className="mr-1.5 inline size-3.5 text-primary" />Default menyembunyikan jalur ber-relevansi rendah agar chain tetap terbaca.</p>{graph?.hiddenRelationshipCount ? <button onClick={() => { setMinimum(0); setSourceType("all"); }} className="min-h-9 cursor-pointer self-start rounded-md px-2 font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Tampilkan {graph.hiddenRelationshipCount} hubungan tersembunyi</button> : <span className="font-mono text-[10px] text-positive">Semua hubungan pada filter tampil</span>}</div>
-      </Panel>
 
-      {graph ? <CausalChain key={`${activeSymbol}-${minimum}-${sourceType}`} graph={graph} /> : <Panel className="p-10 text-center"><SearchX aria-hidden="true" className="mx-auto size-7 text-muted-foreground" /><h2 className="mt-3 font-semibold">Belum ada chain pada scope ini</h2><p className="mt-1 text-sm text-muted-foreground">Pilih market atau emiten lain. Catalyst tidak membuat hubungan pengganti.</p></Panel>}
+        <div className="mt-3 flex flex-col gap-2 text-[12px] leading-[1.6] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-2"><IconWatch className="mt-0.5 size-3.5 shrink-0" />Default menyembunyikan jalur ber-relevansi rendah agar chain tetap terbaca.</p>
+          {graph?.hiddenRelationshipCount
+            ? <button onClick={() => { setMinimum(0); setSourceType("all"); }} className="min-h-9 cursor-pointer self-start rounded-[6px] px-2 font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Tampilkan {graph.hiddenRelationshipCount} hubungan tersembunyi</button>
+            : <span className="meta text-positive">Semua hubungan pada filter tampil</span>}
+        </div>
+      </div>
 
-      <Panel className="mt-4">
-        <PanelHeader eyebrow="Source queue" title={`Input yang terhubung ke ${activeSymbol}`} />
-        {relatedEvents.length ? <div className="grid gap-3 p-4 md:grid-cols-2">{relatedEvents.map((event) => { const link = event.impactLinks.find((item) => item.symbol === activeSymbol)!; return <article key={event.id} className="rounded-lg border border-border bg-background p-3"><div className="flex flex-wrap items-center gap-2"><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">{event.sourceType}</span><StatusBadge status={link.direction} /><span className="ml-auto font-mono text-[9px] text-muted-foreground">{link.relevance}/100</span></div><h3 className="mt-2 text-sm font-semibold leading-5">{event.title}</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{link.path}</p><div className="mt-3 flex items-center justify-between gap-2"><span className="font-mono text-[9px] text-muted-foreground">{formatAsOf(event.publishedAt)} WIB</span><CitationDialog citations={event.citations} label="Buka sumber" /></div></article>; })}</div> : <div className="p-8 text-center text-sm text-muted-foreground">Tidak ada sumber pada filter ini.</div>}
-      </Panel>
+      {graph ? (
+        <CausalChain key={`${activeSymbol}-${minimum}-${sourceType}`} graph={graph} />
+      ) : (
+        <Panel className="px-6 py-16 text-center">
+          <IconEmpty className="mx-auto size-6 text-muted-foreground" />
+          <h2 className="editorial mt-5 text-[21px]">Belum ada chain pada scope ini</h2>
+          <p className="mt-2 text-[13px] text-muted-foreground">Pilih market atau emiten lain. Catalyst tidak membuat hubungan pengganti.</p>
+        </Panel>
+      )}
+
+      <Reveal className="mt-6">
+        <Panel>
+          <PanelHeader eyebrow="Source queue" title={`Input yang terhubung ke ${activeSymbol}`} />
+          {relatedEvents.length ? (
+            <div className="cascade grid gap-px bg-border md:grid-cols-2">
+              {relatedEvents.map((event) => {
+                const link = event.impactLinks.find((item) => item.symbol === activeSymbol)!;
+                return (
+                  <article key={event.id} className="bg-surface px-5 py-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="meta text-muted-foreground">{event.sourceType}</span>
+                      <StatusBadge status={link.direction} />
+                      <span className="ml-auto font-mono text-[10px] tabular-nums text-muted-foreground">{link.relevance}/100</span>
+                    </div>
+                    <h3 className="mt-3 text-[13.5px] font-medium leading-[1.5]">{event.title}</h3>
+                    <p className="mt-2.5 text-[12.5px] leading-[1.65] text-muted-foreground">{link.path}</p>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <span className="meta text-muted-foreground">{formatAsOf(event.publishedAt)} WIB</span>
+                      <CitationDialog citations={event.citations} label="Buka sumber" />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="px-6 py-12 text-center text-[13px] text-muted-foreground">Tidak ada sumber pada filter ini.</p>
+          )}
+        </Panel>
+      </Reveal>
     </div>
   );
 }
 
 export default function ImpactPage() {
-  return <Suspense fallback={<Panel className="h-96 animate-pulse bg-muted" aria-label="Memuat causal impact explorer" />}><ImpactContent /></Suspense>;
+  return <Suspense fallback={<Panel className="h-96 animate-pulse" aria-label="Memuat causal impact explorer" />}><ImpactContent /></Suspense>;
 }
