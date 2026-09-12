@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 export function OnboardingWizard() {
   const [step, setStep] = useState(1);
   const { profile, setWatchlist, completeOnboarding } = useCatalystStore();
-  const readyCompanies = companies.filter((company) => company.analyzed);
+  const commodityDesk = new Set<SymbolCode>(["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]);
+  const readyCompanies = companies.filter((company) => company.analyzed && commodityDesk.has(company.symbol));
   const readySelected = profile.watchlist.filter((item) => readyCompanies.some((company) => company.symbol === item));
   const toggleTicker = (symbol: SymbolCode) => {
     if (profile.watchlist.includes(symbol)) {
@@ -34,13 +35,13 @@ export function OnboardingWizard() {
 
           <div className="min-h-[330px] p-5 sm:p-6">
             {step === 1 ? <div>
-              <h2 className="text-lg font-semibold">Build your event-driven watchlist</h2>
-              <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Catalyst is built for a discretionary event-driven IDX investor reviewing 10–30 names after a material change. Choose the prepared cases for this prototype.</p>
+              <h2 className="text-lg font-semibold">Build your commodity-sensitive watchlist</h2>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Catalyst starts with miners and energy names, where commodity prices, FX, weather, production volume, and regulation create observable causal paths.</p>
               <div className="mt-5 grid gap-2 sm:grid-cols-3">{readyCompanies.map((company) => {
                 const selected = profile.watchlist.includes(company.symbol);
                 return <button key={company.symbol} onClick={() => toggleTicker(company.symbol)} aria-pressed={selected} className={cn("min-h-16 cursor-pointer rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted")}><span className="flex items-center justify-between"><span className="font-mono text-sm font-semibold">{company.symbol}</span>{selected ? <Check aria-hidden="true" className="size-4 text-primary" /> : null}</span><span className="mt-1 block truncate text-xs text-muted-foreground">{company.subsector}</span></button>;
               })}</div>
-              <div className="mt-6 border-t border-border pt-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Fixed research ritual</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Review material deltas → open one Research Case → challenge competing explanations → save a resolution.</p></div>
+              <div className="mt-6 border-t border-border pt-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Fixed research ritual</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Detect a material delta → clarify the business outcome → test market confirmation and business transmission → choose a disposition.</p></div>
             </div> : null}
 
             {step === 2 ? <div>

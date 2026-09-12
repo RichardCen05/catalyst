@@ -19,15 +19,17 @@ import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol: SymbolCode; workspaceTabs?: boolean }) {
-  const { profile, playbook, caseMandates, caseResolutions, insights, openCopilot } = useCatalystStore();
+  const { profile, playbook, caseMandates, caseClarifications, caseResolutions, insights, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
   const analysis = agentEngine.analyzeCompany(symbol, profile, {
     mandate: caseMandates[symbol],
+    clarificationChoice: caseClarifications[symbol],
     playbook,
     userInsights: insights,
     resolution: caseResolutions[symbol],
   });
   const relatedEvents = events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol));
+  const causalGraph = agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance: 60, context: { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] } });
 
   if (!analysis) return (
     <div>
@@ -38,7 +40,7 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowLeft aria-hidden="true" className="size-4" />Research Cases</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?case=${symbol}`} data-tour-action={symbol === "ANTM" ? "open-impact" : undefined} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-3.5" />{workspaceTabs ? "Causal chain" : "Lihat causal chain"}</Link><CitationDialog citations={analysis.sources} label={workspaceTabs ? "Sumber" : "Periksa sumber"} /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Research Case · ${symbol}`, question: `Lanjutkan investigasi perubahan ${symbol} dari mandate dan unresolved questions.`, symbol })}><Bot aria-hidden="true" className="size-3.5" />{workspaceTabs ? "Copilot" : "Lanjutkan di Copilot"}</Button></div></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowLeft aria-hidden="true" className="size-4" />Research Cases</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={analysis.clarification.required ? `/cases/${symbol}#clarification-gate` : `/cases/${symbol}?tab=hypotheses`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-3.5" />{analysis.clarification.required ? "Clarify outcome" : "Competing causes"}</Link><CitationDialog citations={analysis.sources} label={workspaceTabs ? "Sumber" : "Periksa sumber"} /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Research Case · ${symbol}`, question: `Lanjutkan investigasi perubahan ${symbol} dari mandate dan unresolved questions.`, symbol })}><Bot aria-hidden="true" className="size-3.5" />{workspaceTabs ? "Copilot" : "Lanjutkan di Copilot"}</Button></div></div>
 
       <header className="mb-6 border-b border-border pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -48,7 +50,7 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
         <p className="mt-5 max-w-3xl text-sm leading-6 text-foreground">{analysis.thesis}</p>
       </header>
 
-      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} relatedEvents={relatedEvents} /> : <>
+      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} relatedEvents={relatedEvents} causalGraph={causalGraph} /> : <>
       <ResearchCaseOverview researchCase={analysis} symbol={symbol} />
 
       <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} />

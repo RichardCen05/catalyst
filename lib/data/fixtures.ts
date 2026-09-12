@@ -37,6 +37,7 @@ function cite(
 
 const externalSource: Record<string, Pick<Citation, "provider" | "url" | "urlLabel" | "access">> = {
   "evt-nickel": { provider: "Sectors Commodity Fixture", url: "https://docs.sectors.app/api-references/v2/mining/commodities-trade/commodity-price", urlLabel: "Buka dokumentasi komoditas", access: "documentation" },
+  "evt-tin": { provider: "Sectors Commodity Fixture", url: "https://docs.sectors.app/api-references/v2/mining/commodities-trade/commodity-price", urlLabel: "Buka dokumentasi komoditas", access: "documentation" },
   "evt-coal": { provider: "Sectors Commodity Fixture", url: "https://docs.sectors.app/api-references/v2/mining/commodities-trade/commodity-price", urlLabel: "Buka dokumentasi komoditas", access: "documentation" },
   "evt-rate": { provider: "Bank Indonesia Fixture", url: "https://www.bi.go.id/id/fungsi-utama/moneter/bi-rate/default.aspx", urlLabel: "Buka provider BI-Rate", access: "provider" },
   "evt-rupiah": { provider: "Bank Indonesia Fixture", url: "https://www.bi.go.id/id/statistik/informasi-kurs/jisdor/default.aspx", urlLabel: "Buka provider JISDOR", access: "provider" },
@@ -67,8 +68,8 @@ type CompanySeed = [SymbolCode, string, Sector, string, number, number, number, 
 
 const companySeeds: CompanySeed[] = [
   ["ANTM", "Aneka Tambang Tbk", "Basic Materials", "Diversified Metals", 3120, 5.8, 74.9, true, "Corroborated", "Arus partisipan, volume, dan katalis nikel menguat pada jendela yang sama."],
-  ["INCO", "Vale Indonesia Tbk", "Basic Materials", "Nickel", 4860, 2.1, 48.3, false, "Insufficient Evidence", "Eksposur nikel terlihat, tetapi bukti broker belum lengkap."],
-  ["TINS", "Timah Tbk", "Basic Materials", "Tin", 1285, -0.8, 9.5, false, "Mixed Evidence", "Volume naik tanpa dukungan momentum relatif."],
+  ["INCO", "Vale Indonesia Tbk", "Basic Materials", "Nickel", 4860, 2.1, 48.3, true, "Corroborated", "Eksposur nikel diuji terhadap realized pricing, margin, dan konfirmasi aktivitas pasar."],
+  ["TINS", "Timah Tbk", "Basic Materials", "Tin", 1285, -0.8, 9.5, true, "Mixed Evidence", "Harga timah dan volume pasar belum bergerak sepenuhnya searah."],
   ["BBCA", "Bank Central Asia Tbk", "Financials", "Banks", 10450, 0.9, 1288, true, "Corroborated", "Partisipasi luas dan momentum relatif bergerak selaras."],
   ["BBRI", "Bank Rakyat Indonesia Tbk", "Financials", "Banks", 4970, -1.4, 753, true, "Mixed Evidence", "Akumulasi partisipan asing bertentangan dengan foreign flow agregat."],
   ["BMRI", "Bank Mandiri Tbk", "Financials", "Banks", 7040, 1.2, 827, false, "Insufficient Evidence", "Snapshot tersedia; pemeriksaan empat pilar belum dijalankan."],
@@ -79,8 +80,8 @@ const companySeeds: CompanySeed[] = [
   ["BUKA", "Bukalapak.com Tbk", "Technology", "Digital Commerce", 151, 0.7, 15.6, false, "Insufficient Evidence", "Likuiditas tersedia; hipotesis belum memiliki bukti lintas pilar."],
   ["EMTK", "Elang Mahkota Teknologi Tbk", "Technology", "Media & Technology", 590, -1.0, 37.2, false, "Mixed Evidence", "Peristiwa kebijakan relevan, tetapi jalur dampak belum spesifik."],
   ["PGAS", "Perusahaan Gas Negara Tbk", "Energy", "Gas Distribution", 1835, 3.2, 44.6, true, "Corroborated", "Kebijakan gas, volume, dan momentum relatif saling mendukung."],
-  ["ADRO", "Alamtri Resources Indonesia Tbk", "Energy", "Coal", 2740, -2.2, 88.1, false, "Mixed Evidence", "Katalis harga batu bara bersifat adverse; data broker belum diperiksa."],
-  ["PTBA", "Bukit Asam Tbk", "Energy", "Coal", 2930, -1.7, 67.1, false, "Mixed Evidence", "Tekanan komoditas tercatat tanpa bukti konsentrasi lengkap."],
+  ["ADRO", "Alamtri Resources Indonesia Tbk", "Energy", "Coal", 2740, -2.2, 88.1, true, "Mixed Evidence", "Katalis harga batu bara bersifat adverse dan diuji terhadap realized pricing serta cash flow."],
+  ["PTBA", "Bukit Asam Tbk", "Energy", "Coal", 2930, -1.7, 67.1, true, "Mixed Evidence", "Tekanan harga batu bara diuji terhadap bauran kontrak domestik dan volume penjualan."],
   ["ICBP", "Indofood CBP Sukses Makmur Tbk", "Consumer", "Packaged Food", 11750, 1.5, 137, false, "Insufficient Evidence", "Rupiah dan biaya input memberi konteks; bukti broker belum lengkap."],
   ["MYOR", "Mayora Indah Tbk", "Consumer", "Packaged Food", 2670, 0.2, 59.4, false, "Insufficient Evidence", "Data harga tersedia; katalis biaya input belum terhubung ke bukti lain."],
   ["AMRT", "Sumber Alfaria Trijaya Tbk", "Consumer", "Food Retail", 3260, 2.0, 135, false, "Insufficient Evidence", "Tekanan konsumsi relevan; bukti lintas pilar belum lengkap."],
@@ -129,6 +130,16 @@ export const events: MarketEvent[] = [
       impact("INCO", "Supported", 90, "Harga nikel → realized price → margin", "Eksposur langsung ada; bukti partisipan belum lengkap.", "evt-nickel", true),
       impact("TINS", "Unrelated", 18, "Harga nikel → tidak ada jalur material langsung", "Komoditas utama perusahaan berbeda.", "evt-nickel", true),
     ], citations: [citations.external("evt-nickel")],
+  },
+  {
+    id: "evt-tin",
+    title: "Harga timah acuan melemah setelah kenaikan persediaan",
+    summary: "Fixture komoditas menguji transmisi harga timah ke realized pricing, volume penjualan, dan margin produsen.",
+    category: "commodity", sourceType: "commodity", publishedAt: "2026-09-10T15:40:00+07:00", asOf: DATA_AS_OF, sector: "Basic Materials",
+    impactLinks: [
+      impact("TINS", "Adverse", 93, "Harga timah → realized price → margin", "Eksposur komoditas langsung; bauran kontrak dan inventory lag masih perlu diperiksa.", "evt-tin", true),
+      impact("ANTM", "Unrelated", 14, "Harga timah → tidak ada exposure utama", "Kontribusi timah tidak material pada fixture bisnis ANTM.", "evt-tin", true),
+    ], citations: [citations.external("evt-tin")],
   },
   {
     id: "evt-rate", title: "Skenario suku bunga acuan dipertahankan", summary: "Fixture menguji biaya dana, pertumbuhan kredit, dan valuasi sektor bank.",
@@ -249,6 +260,20 @@ export const analysisFixtures: Record<string, CompanyAnalysisFixture> = {
   ]), broker: broker(
     [{ code: "ZP", origin: "foreign", value: 420e9 }, { code: "AK", origin: "local", value: 260e9 }, { code: "CC", origin: "local", value: 180e9 }, { code: "BK", origin: "foreign", value: 120e9 }],
     [{ code: "YP", origin: "local", value: 310e9 }, { code: "PD", origin: "local", value: 260e9 }, { code: "RX", origin: "foreign", value: 170e9 }], 360e9, 1.42e12, 5.72e9, 24.03e9, 3120) },
+  INCO: { symbol: "INCO", priceSeries: makeSeries(4480, 7.8, 31_000_000, 2.1, 7), sectorReturn: 0.031, beta: 1.18, catalystEventIds: ["evt-nickel", "evt-rupiah"], financialContext: financialContext("INCO", [
+    ["Nickel production", "+6,7% YoY", "2026 H1 fixture", "Menjadi observable volume sebelum perubahan harga komoditas diterjemahkan ke pendapatan."],
+    ["Realized nickel price", "US$15.840/t", "2026 Q2 fixture", "Menguji basis pricing aktual terhadap perubahan harga acuan."],
+    ["EBITDA margin", "22,8%", "2026 Q2 fixture", "Menguji apakah realized price diteruskan ke margin setelah biaya energi."],
+  ]), broker: broker(
+    [{ code: "ZP", origin: "foreign", value: 250e9 }, { code: "AK", origin: "local", value: 190e9 }, { code: "BK", origin: "foreign", value: 160e9 }],
+    [{ code: "YP", origin: "local", value: 210e9 }, { code: "PD", origin: "local", value: 155e9 }], 118e9, 880e9, 1.98e9, 9.94e9, 4860) },
+  TINS: { symbol: "TINS", priceSeries: makeSeries(1335, -1.4, 27_000_000, 1.8, 8), sectorReturn: 0.031, beta: 1.22, catalystEventIds: ["evt-tin", "evt-rupiah"], financialContext: financialContext("TINS", [
+    ["Tin sales volume", "+3,9% YoY", "2026 H1 fixture", "Membedakan perubahan realized price dari perubahan volume penjualan."],
+    ["Average selling price", "US$30.420/t", "2026 Q2 fixture", "Menguji lag antara harga acuan, kontrak, dan harga jual aktual."],
+    ["Operating margin", "9,6%", "2026 Q2 fixture", "Menguji transmisi pricing setelah biaya penambangan dan pemurnian."],
+  ]), broker: broker(
+    [{ code: "AK", origin: "local", value: 118e9 }, { code: "CC", origin: "local", value: 96e9 }, { code: "ZP", origin: "foreign", value: 82e9 }],
+    [{ code: "YP", origin: "local", value: 140e9 }, { code: "RX", origin: "foreign", value: 91e9 }], -24e9, 510e9, 2.52e9, 7.45e9, 1285) },
   BBCA: { symbol: "BBCA", priceSeries: makeSeries(9900, 11.5, 58_000_000, 1.65, 2), sectorReturn: 0.018, beta: 0.78, catalystEventIds: ["evt-rate", "evt-bank-liquidity"], financialContext: financialContext("BBCA", [
     ["NIM", "5,8%", "2026 Q2 fixture", "Menguji transmisi biaya dana dan yield aset dalam pilar Katalis."],
     ["CASA ratio", "82,1%", "2026 Q2 fixture", "Memberi konteks struktur biaya dana, tanpa menggantikan bukti flow."],
@@ -284,14 +309,28 @@ export const analysisFixtures: Record<string, CompanyAnalysisFixture> = {
   ]), broker: broker(
     [{ code: "AK", origin: "local", value: 310e9 }, { code: "ZP", origin: "foreign", value: 260e9 }, { code: "CC", origin: "local", value: 200e9 }],
     [{ code: "YP", origin: "local", value: 250e9 }, { code: "PD", origin: "local", value: 190e9 }], 145e9, 1.2e12, 10.6e9, 24.2e9, 1835) },
+  ADRO: { symbol: "ADRO", priceSeries: makeSeries(2940, -4.8, 49_000_000, 2.35, 9), sectorReturn: -0.008, beta: 1.08, catalystEventIds: ["evt-coal", "evt-rupiah"], financialContext: financialContext("ADRO", [
+    ["Coal sales volume", "+2,8% YoY", "2026 H1 fixture", "Menguji apakah volume mengimbangi tekanan realized price."],
+    ["Average selling price", "US$63,7/t", "2026 Q2 fixture", "Menguji transmisi benchmark batu bara ke harga kontrak aktual."],
+    ["Operating cash flow", "US$518M", "2026 H1 fixture", "Menjadi outcome kas setelah pricing, volume, royalti, dan biaya."],
+  ]), broker: broker(
+    [{ code: "AK", origin: "local", value: 275e9 }, { code: "ZP", origin: "foreign", value: 230e9 }, { code: "CC", origin: "local", value: 175e9 }],
+    [{ code: "YP", origin: "local", value: 315e9 }, { code: "RX", origin: "foreign", value: 225e9 }], -66e9, 1.05e12, 12.4e9, 31.9e9, 2740) },
+  PTBA: { symbol: "PTBA", priceSeries: makeSeries(3120, -3.9, 38_000_000, 1.95, 10), sectorReturn: -0.008, beta: 0.84, catalystEventIds: ["evt-coal", "evt-rupiah"], financialContext: financialContext("PTBA", [
+    ["Coal sales volume", "+7,1% YoY", "2026 H1 fixture", "Menguji apakah kenaikan volume menahan tekanan harga jual."],
+    ["Domestic market share", "52,6%", "2026 H1 fixture", "Membedakan exposure kontrak domestik dari benchmark ekspor."],
+    ["Cash cost", "US$41,2/t", "2026 Q2 fixture", "Menguji ruang margin saat realized price melemah."],
+  ]), broker: broker(
+    [{ code: "CC", origin: "local", value: 210e9 }, { code: "AK", origin: "local", value: 185e9 }, { code: "ZP", origin: "foreign", value: 150e9 }],
+    [{ code: "YP", origin: "local", value: 248e9 }, { code: "PD", origin: "local", value: 181e9 }], -31e9, 820e9, 4.18e9, 11.5e9, 2930) },
 };
 
 export const demoProfiles: UserProfile[] = [
   {
     id: "flow-first", name: "Raka", description: "Flow-first, mencari konfirmasi partisipan sebelum membaca peristiwa.",
-    watchlist: ["ANTM", "BBCA", "BBRI", "TLKM", "PGAS", "ICBP"], owned: ["ANTM", "BBCA", "TLKM"],
+    watchlist: ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"], owned: ["ANTM", "PGAS"],
     config: { horizon: "event", depth: "standard", pillarOrder: ["concentration", "volume", "momentum", "catalyst"] },
-    preferredSectors: ["Basic Materials", "Financials", "Infrastructure"], preferredEventTypes: ["commodity", "company"], hasOnboarded: false,
+    preferredSectors: ["Basic Materials", "Energy"], preferredEventTypes: ["commodity", "company", "currency", "weather", "policy"], hasOnboarded: false,
   },
   {
     id: "catalyst-first", name: "Maya", description: "Catalyst-first, membuka analisis dari jalur dampak dan timing peristiwa.",

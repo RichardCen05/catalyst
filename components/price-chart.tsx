@@ -17,7 +17,12 @@ function Chart({ data, events, height = 310 }: { data: PricePoint[]; events: Mar
 
 export function PriceChart({ data, symbol, events }: { data: PricePoint[]; symbol: SymbolCode; events: MarketEvent[] }) {
   const [open, setOpen] = useState(false);
-  const timelineEvents = [...events].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3);
+  const sortedEvents = [...events].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+  const companyEvidence = sortedEvents.find((event) => event.sourceType === "filing" || event.sourceType === "sectors");
+  const timelineEvents = [...sortedEvents.slice(0, 2), ...(companyEvidence ? [companyEvidence] : [])]
+    .filter((event, index, values) => values.findIndex((item) => item.id === event.id) === index)
+    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
+    .slice(0, 3);
   return (
     <div data-tour="evidence-timeline" className="rounded-xl border border-border bg-surface shadow-panel">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">45 hari bursa · {symbol} vs IHSG</p><h2 className="mt-1 text-base font-semibold">Evidence timeline</h2></div><div className="flex flex-wrap gap-2"><AskAgentButton context={{ label: `${symbol} · Evidence timeline`, question: `Jelaskan perubahan utama pada evidence timeline ${symbol}.`, symbol }} label={`Tanya timeline ${symbol}`} /><Button variant="secondary" size="sm" onClick={() => setOpen(true)}><Expand aria-hidden="true" className="size-3.5" />Fokus chart</Button></div></div>

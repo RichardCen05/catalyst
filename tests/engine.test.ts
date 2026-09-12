@@ -58,13 +58,14 @@ describe("Catalyst agent engine", () => {
     }
   });
 
-  it("builds a cited causal chain across source, mechanism, company, and observation", () => {
+  it("builds a cited causal chain that terminates in a business outcome", () => {
     const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
     expect(graph).not.toBeNull();
     expect(new Set(graph?.nodes.map((node) => node.kind))).toEqual(
-      new Set(["source", "mechanism", "company", "observation"]),
+      new Set(["source", "mechanism", "company", "business-impact"]),
     );
+    expect(graph?.nodes.filter((node) => node.kind === "business-impact").every((node) => node.citations.length > 0)).toBe(true);
     expect(graph?.nodes.some((node) => node.sourceType === "weather")).toBe(true);
     expect(graph?.edges.length).toBeGreaterThan(4);
     expect(graph?.edges.every((edge) =>
@@ -104,6 +105,46 @@ describe("Catalyst agent engine", () => {
       pillar.protocol.claim && pillar.protocol.supportingEvidence && pillar.protocol.challengingEvidence
       && pillar.protocol.insufficientWhen && pillar.protocol.nextQuestion,
     )).toBe(true);
+  });
+
+  it("turns every detected change into an explicit contract and research disposition", () => {
+    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+
+    expect(researchCase?.materialChange.whatChanged).toContain("ANTM");
+    expect(researchCase?.materialChange.baseline).toMatch(/45 hari|sektor/i);
+    expect(researchCase?.materialChange.whyMaterial).toBeTruthy();
+    expect(researchCase?.materialChange.rule).toBeTruthy();
+    expect(researchCase?.researchDisposition.kind).toBe("escalate");
+    expect(researchCase?.researchDisposition.reason).toBeTruthy();
+    expect(researchCase?.researchDisposition.monitorObservable).toBeTruthy();
+    expect(researchCase?.researchDisposition.reopenWhen).toBeTruthy();
+  });
+
+  it("blocks an ambiguous mandate until the user chooses a clarification branch", () => {
+    const ambiguous = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      mandate: "Cari tahu apa yang terjadi pada ANTM.",
+    });
+    expect(ambiguous?.clarification.required).toBe(true);
+    expect(ambiguous?.clarification.options).toHaveLength(2);
+    expect(ambiguous?.lifecycle.find((item) => item.key === "decompose")?.state).toBe("blocked");
+
+    const resolved = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      mandate: "Cari tahu apa yang terjadi pada ANTM.",
+      clarificationChoice: "pricing",
+    });
+    expect(resolved?.clarification.required).toBe(false);
+    expect(resolved?.clarification.selectedOptionId).toBe("pricing");
+    expect(resolved?.researchPlan.focus).toBe("pricing");
+  });
+
+  it("organizes evidence into market confirmation and business transmission", () => {
+    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+
+    expect(researchCase?.evidenceLayers).toEqual([
+      expect.objectContaining({ key: "market-confirmation", pillarKeys: ["concentration", "volume", "momentum"] }),
+      expect.objectContaining({ key: "business-transmission", pillarKeys: ["catalyst"] }),
+    ]);
+    expect(demoProfiles[0].watchlist).toEqual(["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]);
   });
 
   it("replans the visible investigation when the mandate changes", () => {

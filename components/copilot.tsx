@@ -10,7 +10,7 @@ import { CitationDialog } from "@/components/citation-dialog";
 const prompts = [
   "Kenapa ANTM masuk daftar hari ini?",
   "Berita nikel ini berdampak ke watchlist saya?",
-  "Bandingkan konsentrasi BBCA dan BBRI.",
+  "Bandingkan transmisi nikel ANTM dan INCO.",
   "Data apa yang belum diperiksa?",
 ];
 
@@ -21,7 +21,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const [input, setInput] = useState(() => copilotContext?.question ?? "");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: "intro", role: "assistant", text: `Saya membaca fixture dengan urutan ${profile.config.pillarOrder.join(" → ")}. Tanyakan ticker, perbandingan, dampak berita/cuaca/kebijakan, atau data yang masih kosong.` },
+    { id: "intro", role: "assistant", text: "Saya memeriksa Market Confirmation, lalu Business Transmission. Tanyakan perubahan material, perbandingan emiten komoditas, dampak berita/cuaca/kebijakan, atau bukti yang masih kosong." },
   ]);
   const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
   const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];

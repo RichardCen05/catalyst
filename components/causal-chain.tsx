@@ -35,11 +35,12 @@ const sourceIcons = {
 function ChainNode({ data }: NodeProps<ChainFlowNode>) {
   const node = data.causal;
   const Icon = node.kind === "company" ? Building2 : node.kind === "mechanism" ? Network : sourceIcons[node.sourceType ?? "market"];
+  const terminal = node.kind === "observation" || node.kind === "business-impact";
   return (
     <div className={`w-[210px] rounded-xl border bg-surface shadow-panel ${node.kind === "company" ? "border-primary ring-2 ring-primary/15" : node.kind === "source" ? "border-attention/40" : "border-border"}`}>
       {node.kind !== "source" ? <Handle type="target" position={Position.Left} className="!size-2 !border-0 !bg-primary" /> : null}
       <button type="button" onClick={() => data.onSelect(node.id)} className="w-full cursor-pointer rounded-[inherit] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><span className="flex items-center gap-2"><span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-3.5" /></span><span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{node.kind}</span></span><span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5">{node.label}</span><span className="mt-2 block font-mono text-[9px] text-muted-foreground">{node.basis}{node.relevance ? ` · ${node.relevance}/100` : ""}</span></button>
-      {node.kind !== "observation" ? <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" /> : null}
+      {!terminal ? <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" /> : null}
     </div>
   );
 }
@@ -64,7 +65,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       source: graph.nodes.filter((node) => node.kind === "source"),
       mechanism: graph.nodes.filter((node) => node.kind === "mechanism"),
       company: graph.nodes.filter((node) => node.kind === "company"),
-      observation: graph.nodes.filter((node) => node.kind === "observation"),
+      observation: graph.nodes.filter((node) => node.kind === "observation" || node.kind === "business-impact"),
     };
     const x = { source: 0, mechanism: 290, company: 590, observation: 890 };
     const maxRows = Math.max(groups.source.length, groups.observation.length, 1);
@@ -99,7 +100,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
 
   return (
     <div data-tour="causal-chain" className="overflow-hidden rounded-xl border border-border bg-surface">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-[10px] text-muted-foreground"><span className="font-mono uppercase tracking-wider text-primary">Klik node untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span><span aria-hidden="true">→</span><span>Observasi 4 pilar</span></div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-[10px] text-muted-foreground"><span className="font-mono uppercase tracking-wider text-primary">Klik node untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span><span aria-hidden="true">→</span><span>Business outcome</span></div>
       <div className="h-[540px] w-full" aria-label={`Causal chain ${graph.targetSymbol}`}>
         <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.38} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} onNodeClick={(_, node) => { setSelectedId(node.id); setSelectedEdgeId(null); }} onEdgeClick={(_, edge) => setSelectedEdgeId(edge.id)}>
           <Background gap={20} size={1} color="var(--chart-grid)" />

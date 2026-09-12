@@ -125,6 +125,60 @@ function mandateFocus(mandate: string, symbol?: SymbolCode): BusinessImpactDimen
   return defaults[symbol ?? "ANTM"] ?? "volume";
 }
 
+function explicitMandateFocus(mandate: string): BusinessImpactDimension | undefined {
+  const value = mandate.toLowerCase();
+  if (/margin|spread|biaya per unit/.test(value)) return "margin";
+  if (/cash flow|arus kas|working capital/.test(value)) return "cash-flow";
+  if (/balance sheet|neraca|utang|likuiditas/.test(value)) return "balance-sheet";
+  if (/valuasi|valuation|multiple/.test(value)) return "valuation";
+  if (/realized price|realisasi harga|pricing|harga jual/.test(value)) return "pricing";
+  if (/volume produksi|volume penjualan|utilisasi|throughput/.test(value)) return "volume";
+  return undefined;
+}
+
+const clarificationFocus: Partial<Record<SymbolCode, [BusinessImpactDimension, BusinessImpactDimension]>> = {
+  ANTM: ["pricing", "volume"],
+  INCO: ["pricing", "margin"],
+  TINS: ["pricing", "volume"],
+  PGAS: ["margin", "volume"],
+  ADRO: ["pricing", "cash-flow"],
+  PTBA: ["pricing", "volume"],
+  BBCA: ["margin", "balance-sheet"],
+  BBRI: ["margin", "balance-sheet"],
+  TLKM: ["cash-flow", "volume"],
+  GOTO: ["cash-flow", "pricing"],
+};
+
+function createClarification(symbol: SymbolCode, mandate: string, choice?: string) {
+  const inferred = explicitMandateFocus(mandate);
+  const [primary, secondary] = clarificationFocus[symbol] ?? [mandateFocus(mandate, symbol), "volume"];
+  const focusOptions = [inferred, primary, secondary]
+    .filter((item): item is BusinessImpactDimension => Boolean(item))
+    .filter((item, index, values) => values.indexOf(item) === index)
+    .slice(0, 2);
+  const options = focusOptions.map((focus) => ({
+    id: focus,
+    label: impactLabels[focus],
+    question: `Apakah trigger terutama perlu diuji terhadap ${impactLabels[focus].toLowerCase()} ${symbol}?`,
+    focus,
+    sourceConsequence: focus === "pricing"
+      ? "Utamakan commodity reference, realized price, revenue segment, dan kontrak penjualan."
+      : focus === "volume"
+        ? "Utamakan production report, sales volume, utilization, dan gangguan operasi."
+        : `Utamakan financial fields dan filing yang menjelaskan ${impactLabels[focus].toLowerCase()}.`,
+    observable: impactObservables[focus],
+  }));
+  const selected = options.find((option) => option.id === choice) ?? options.find((option) => option.focus === inferred);
+  return {
+    required: !selected,
+    reason: selected
+      ? `Mandate diarahkan ke ${impactLabels[selected.focus].toLowerCase()}; source plan dan observable mengikuti pilihan ini.`
+      : "Mandate belum menyebut outcome bisnis yang harus berubah. Pilih satu cabang sebelum agent menyusun plan final.",
+    selectedOptionId: selected?.id,
+    options,
+  };
+}
+
 function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): AppliedPlaybookRule[] {
   const playbook = context?.playbook;
   if (!playbook) return [];
@@ -133,8 +187,10 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string) => {
     if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect });
   };
-  playbook.materialityRules.filter((rule) => !rule.startsWith("[Resolution ") || rule.startsWith(`[Resolution ${symbol}]`)).forEach((rule) => add("materiality", rule, rule.startsWith(`[Resolution ${symbol}]`)
-    ? "Menggunakan ulang pelajaran dari resolution case ini."
+  playbook.materialityRules
+    .filter((rule) => (!rule.startsWith("[Resolution ") && !rule.startsWith("[Accepted ")) || rule.startsWith(`[Resolution ${symbol}]`) || rule.startsWith(`[Accepted ${symbol}]`))
+    .forEach((rule) => add("materiality", rule, rule.startsWith(`[Resolution ${symbol}]`) || rule.startsWith(`[Accepted ${symbol}]`)
+    ? "Menggunakan ulang rule yang disetujui dari resolution case ini."
     : "Menentukan apakah trigger layak membuka dan menaikkan prioritas case."));
   add("exposure", playbook.knownExposures.find(forSymbol), "Membatasi jalur kausal pada exposure yang sudah dinyatakan user.");
   add("assumption", playbook.thesisAssumptions.find(forSymbol), "Menjadi asumsi yang harus tetap benar selama case terbuka.");
@@ -149,9 +205,10 @@ function createResearchPlan(
   symbol: SymbolCode,
   mandate: string,
   pillars: PillarResult[],
+  focusOverride?: BusinessImpactDimension,
   context?: AnalysisContext,
 ) {
-  const focus = mandateFocus(mandate, symbol);
+  const focus = focusOverride ?? mandateFocus(mandate, symbol);
   const focusLabel = impactLabels[focus].toLowerCase();
   const trustedSource = context?.playbook?.trustedSources[0] ?? "Sectors company data dan filing";
   const falsifier = context?.playbook?.falsifiers.find((item) => item.toUpperCase().includes(symbol))
@@ -196,6 +253,32 @@ function createBusinessImpact(
     implication: `Case belum selesai sampai perubahan ${impactLabels[dimension].toLowerCase()} dinyatakan supported, challenged, atau tetap open.`,
     citations,
   }));
+}
+
+function createResearchDisposition(
+  evidenceState: EvidenceState,
+  materiality: "High" | "Medium" | "Low",
+  primaryImpact: BusinessImpactResult,
+  contradictions: string[],
+) {
+  const kind = materiality === "Low"
+    ? "dismiss" as const
+    : evidenceState === "Corroborated" && materiality === "High" && contradictions.length === 0
+      ? "escalate" as const
+      : "monitor" as const;
+  const labels = { escalate: "Escalate research", monitor: "Monitor observable", dismiss: "Dismiss trigger" } as const;
+  const reason = kind === "escalate"
+    ? `Perubahan material memiliki bukti lintas lapisan dan perlu investigasi aktif pada ${primaryImpact.label.toLowerCase()}.`
+    : kind === "monitor"
+      ? `Penjelasan belum cukup bersih untuk dieskalasi; tunggu ${primaryImpact.observable.toLowerCase()}.`
+      : "Trigger tidak melewati materiality contract dan tidak perlu membuka investigasi aktif.";
+  return {
+    kind,
+    label: labels[kind],
+    reason,
+    monitorObservable: primaryImpact.observable,
+    reopenWhen: `Buka kembali bila ${primaryImpact.observable.toLowerCase()} berubah atau counter-evidence utama tidak lagi berlaku.`,
+  };
 }
 
 function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
@@ -354,10 +437,10 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         ? "Mixed Evidence"
         : company.evidenceState;
   const thesis = evidenceState === "Corroborated"
-    ? "Empat pilar memberi bukti yang saling menguatkan pada jendela pengamatan."
+    ? "Market Confirmation dan Business Transmission memberi bukti yang saling menguatkan pada jendela pengamatan."
     : evidenceState === "Mixed Evidence"
-      ? "Bukti lintas pilar tidak seluruhnya searah; konflik ditampilkan tanpa dipaksa menjadi satu skor."
-      : "Fixture belum cukup untuk menyimpulkan hubungan lintas pilar.";
+      ? "Dua lapisan bukti tidak seluruhnya searah; konflik ditampilkan tanpa dipaksa menjadi satu skor."
+      : "Fixture belum cukup untuk menghubungkan perilaku pasar dengan transmisi bisnis.";
   assertSafeOutput(thesis);
   const hypotheses = createTrace(symbol, pillars, relatedEvents);
   const sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
@@ -367,12 +450,20 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const defaultMandate = `Investigasi perubahan ${symbol}: uji apakah trigger, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya.`;
   const mandate = context?.mandate?.trim() || defaultMandate;
   const appliedRules = compilePlaybook(symbol, context);
-  const researchPlan = createResearchPlan(symbol, mandate, ordered, context);
+  const clarification = createClarification(symbol, mandate, context?.clarificationChoice);
+  const selectedFocus = clarification.options.find((option) => option.id === clarification.selectedOptionId)?.focus;
+  const researchPlan = createResearchPlan(symbol, mandate, ordered, selectedFocus, context);
   const businessImpactCitations = uniqueCitations([
     ...fixture.financialContext.flatMap((item) => item.citations),
     ...sources,
   ]);
   const businessImpact = createBusinessImpact(researchPlan.focus, symbol, businessImpactCitations);
+  const materiality = primaryLink && primaryLink.relevance >= 85 ? "High" as const : "Medium" as const;
+  const primaryBusinessImpact = businessImpact.find((item) => item.status === "Primary test") ?? businessImpact[0];
+  const researchDisposition = createResearchDisposition(evidenceState, materiality, primaryBusinessImpact, contradictions);
+  const materialityRule = appliedRules.find((rule) => rule.kind === "materiality")?.rule
+    ?? "Buka case bila trigger memiliki exposure perusahaan dan dapat mencapai volume, pricing, margin, atau cash flow.";
+  const volumeRatio = currentPoint.volume / baselineMedian;
 
   return {
     caseId: `CASE-${symbol}-${company.asOf.slice(0, 10).replaceAll("-", "")}`,
@@ -382,10 +473,18 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       detail: primaryEvent?.summary ?? company.summary,
       eventId: primaryEvent?.id,
     },
+    materialChange: {
+      whatChanged: `${symbol}: ${primaryEvent?.title ?? "snapshot watchlist berubah"}.`,
+      baseline: `Volume ${volumeRatio.toFixed(2)}× median 45 hari; return 3 hari ${percent(stockReturn)} versus sektor ${percent(fixture.sectorReturn)}.`,
+      whyMaterial: primaryLink
+        ? `Exposure relevance ${primaryLink.relevance}/100 dan jalur mencapai ${primaryBusinessImpact.label.toLowerCase()}.`
+        : `Perubahan belum memiliki exposure path yang cukup untuk melewati kontrak materialitas.`,
+      rule: materialityRule,
+    },
     mandate,
     priority: {
       novelty: primaryEvent ? "New" : "Updated",
-      materiality: primaryLink && primaryLink.relevance >= 85 ? "High" : "Medium",
+      materiality,
       uncertainty: contradictions.length || evidenceState !== "Corroborated" ? "High" : "Medium",
       reason: primaryLink ? `Exposure relevance ${primaryLink.relevance}/100; ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Snapshot berubah, tetapi jalur trigger belum lengkap.",
       ruleTrace: appliedRules.filter((rule) => rule.kind === "materiality" || rule.kind === "exposure" || rule.kind === "falsifier"),
@@ -403,16 +502,22 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     ],
     sourcePlan: researchPlan.sourcePlan,
     clarificationGate: researchPlan.clarificationGate,
+    clarification,
     lifecycle: [
       { key: "mandate", label: "Mandate", state: "complete" },
-      { key: "decompose", label: "Question split", state: "complete" },
-      { key: "source-plan", label: "Source plan", state: "complete" },
-      { key: "evidence", label: "Evidence tests", state: "complete" },
-      { key: "review", label: "Review & challenge", state: "active" },
+      { key: "decompose", label: "Clarify outcome", state: clarification.required ? "blocked" : "complete" },
+      { key: "source-plan", label: "Source plan", state: clarification.required ? "blocked" : "complete" },
+      { key: "evidence", label: "Evidence tests", state: clarification.required ? "blocked" : "complete" },
+      { key: "review", label: "Disposition", state: clarification.required ? "blocked" : "active" },
     ],
     primaryCausalPath: primaryLink?.path ?? "Belum ada jalur utama yang terverifikasi.",
     researchPlan,
     businessImpact,
+    evidenceLayers: [
+      { key: "market-confirmation", label: "Market Confirmation", purpose: "Uji apakah perubahan benar-benar terlihat pada partisipasi, aktivitas, dan gerak relatif.", pillarKeys: ["concentration", "volume", "momentum"] },
+      { key: "business-transmission", label: "Business Transmission", purpose: "Uji apakah trigger mencapai exposure dan observable operasional atau keuangan perusahaan.", pillarKeys: ["catalyst"] },
+    ],
+    researchDisposition,
     appliedRules,
     resolution: context?.resolution,
     company, evidenceState, thesis, pillars: ordered, hypotheses, sources,
@@ -491,6 +596,17 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
     const first = buildAnalysis(symbols[0], request.profile);
     const second = buildAnalysis(symbols[1], request.profile);
     if (first && second) {
+      if (question.includes("transmisi") || question.includes("bisnis") || question.includes("katalis")) {
+        const firstImpact = first.businessImpact.find((item) => item.status === "Primary test") ?? first.businessImpact[0];
+        const secondImpact = second.businessImpact.find((item) => item.status === "Primary test") ?? second.businessImpact[0];
+        const firstCatalyst = first.pillars.find((pillar) => pillar.key === "catalyst")!;
+        const secondCatalyst = second.pillars.find((pillar) => pillar.key === "catalyst")!;
+        return {
+          text: `${symbols[0]} menguji transmisi ke ${firstImpact.label.toLowerCase()} dengan katalis ${firstCatalyst.status}; disposition ${first.researchDisposition.label}. ${symbols[1]} menguji transmisi ke ${secondImpact.label.toLowerCase()} dengan katalis ${secondCatalyst.status}; disposition ${second.researchDisposition.label}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`,
+          refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
+          citations: uniqueCitations([...firstCatalyst.citations, ...secondCatalyst.citations, ...firstImpact.citations, ...secondImpact.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
+        };
+      }
       const firstPillar = first.pillars.find((pillar) => pillar.key === "concentration")!;
       const secondPillar = second.pillars.find((pillar) => pillar.key === "concentration")!;
       return {
@@ -520,7 +636,7 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
 
   if (analysis && (question.includes("kenapa") || question.includes("daftar") || primary)) {
     return {
-      text: `${analysis.company.symbol} masuk karena trigger ${analysis.trigger.title} membuka research case dengan status bukti ${analysis.evidenceState}. ${analysis.thesis} Pilar pertama mengikuti playbook Anda: ${analysis.pillars[0].label}.`,
+      text: `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Baseline: ${analysis.materialChange.baseline} Material bagi Playbook karena ${analysis.materialChange.whyMaterial} Disposition saat ini: ${analysis.researchDisposition.label}.`,
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
@@ -595,28 +711,30 @@ function buildCausalGraph(
     );
   }
 
-  for (const pillar of analysis.pillars) {
-    const nodeId = `observation-${pillar.key}`;
-    const direction = pillar.key === "catalyst" && ["Supported", "Adverse", "Mixed", "Unrelated", "Unverified"].includes(pillar.status)
-      ? pillar.status as CausalGraph["edges"][number]["direction"]
-      : "Mixed";
+  const outcomeDirection: CausalGraph["edges"][number]["direction"] = analysis.evidenceState === "Corroborated"
+    ? "Supported"
+    : analysis.evidenceState === "Mixed Evidence" ? "Mixed" : "Unverified";
+  const outcomeNodes = analysis.businessImpact.filter((item) => item.status === "Primary test" || item.status === "Supporting").slice(0, 3);
+  for (const outcome of outcomeNodes) {
+    const nodeId = `business-impact-${outcome.dimension}`;
+    const confidence = outcome.status === "Primary test" && analysis.evidenceState === "Corroborated" ? "High" : "Medium";
     nodes.push({
-      id: nodeId, label: `${pillar.label}: ${pillar.status}`, kind: "observation", detail: pillar.summary,
-      sourceType: pillar.key === "catalyst" ? undefined : "market", direction, relevance: 100,
-      basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis",
-      counterEvidence: pillar.conflict ?? "Observasi bergerak pada jendela yang sama; hubungan kausal tidak disimpulkan dari korelasi ini.", citations: pillar.citations,
+      id: nodeId, label: `${outcome.label} · ${outcome.status}`, kind: "business-impact", detail: `${outcome.observable}. ${outcome.implication}`,
+      sourceType: "financial", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? 100 : 85,
+      basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? "1-3 bulan" : "1-10 sesi",
+      counterEvidence: `Jalur belum terkonfirmasi bila ${outcome.observable.toLowerCase()} tidak bergerak pada jendela yang dipilih.`, citations: outcome.citations,
     });
     edges.push({
       id: `company-${symbol}-to-${nodeId}`, from: `company-${symbol}`, to: nodeId,
-      label: "observed", direction, relevance: 100, basis: "Observed correlation", confidence: pillar.conflict ? "Low" : "High", lag: "Jendela analisis",
-      exposure: `${symbol} · observasi ${pillar.label.toLowerCase()} pada jendela case.`,
-      expectedObservable: pillar.protocol.supportingEvidence,
-      alternativeExplanation: pillar.protocol.challengingEvidence,
-      falsificationCondition: pillar.protocol.insufficientWhen,
-      confidenceBasis: pillar.conflict ? "Confidence rendah karena contradiction gate aktif." : "Input deterministik tersedia dan memiliki citation metadata; korelasi bukan kausalitas.",
-      businessImpactDimension: pillar.key === "volume" ? "volume" : pillar.key === "momentum" ? "valuation" : pillar.key === "concentration" ? "cash-flow" : analysis.researchPlan.focus,
-      businessImpactImplication: `Observasi ini hanya material bila terhubung ke ${impactLabels[pillar.key === "volume" ? "volume" : pillar.key === "momentum" ? "valuation" : pillar.key === "concentration" ? "cash-flow" : analysis.researchPlan.focus].toLowerCase()}.`,
-      citations: pillar.citations,
+      label: outcome.status === "Primary test" ? "primary test" : "supporting", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? 100 : 85, basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? "1-3 bulan" : "1-10 sesi",
+      exposure: `${symbol} · ${outcome.mechanism}`,
+      expectedObservable: outcome.observable,
+      alternativeExplanation: "Observable dapat berubah karena bauran produk, biaya, kontrak, atau faktor sektor lain pada periode yang sama.",
+      falsificationCondition: `Jalur ditahan bila ${outcome.observable.toLowerCase()} tidak berubah konsisten pada jendela observasi.`,
+      confidenceBasis: `${outcome.status}; evidence state ${analysis.evidenceState}. Angka tetap memerlukan field keuangan berikutnya.`,
+      businessImpactDimension: outcome.dimension,
+      businessImpactImplication: outcome.implication,
+      citations: outcome.citations,
     });
   }
 

@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConical, Newspaper, Search, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConical, GitBranch, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const actions = [
   { label: "Buka Today", href: "/", icon: BarChart3 },
   { label: "Buka Research Cases", href: "/cases", icon: BriefcaseBusiness },
-  { label: "Buka causal impact", href: "/impact", icon: Newspaper },
+  { label: "Buka competing hypotheses ANTM", href: "/cases/ANTM?tab=hypotheses", icon: GitBranch },
   { label: "Tanya Catalyst Copilot", href: "/copilot", icon: Bot },
   { label: "Edit Investor Research Playbook", href: "/playbook", icon: BookOpenCheck },
   { label: "Buka company universe", href: "/companies", icon: Building2 },

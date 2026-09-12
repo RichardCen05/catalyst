@@ -8,7 +8,15 @@ async function finishSetup(page: Page) {
   await dialog.getByRole("button", { name: "Lanjut" }).click();
   await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
   await page.getByRole("dialog", { name: "Temukan perubahan material" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang berubah di watchlist?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apa yang berubah—dan apakah material?" })).toBeVisible();
+}
+
+async function resolveDefaultClarification(page: Page) {
+  await page.goto("/cases/ANTM");
+  const choice = page.locator('[data-tour-action="resolve-clarification"]');
+  await expect(choice).toBeVisible();
+  await choice.click();
+  await expect(page.getByText("Clarification resolved", { exact: true })).toBeVisible();
 }
 
 async function expectDesktopTourComposition(page: Page, targetSelector: string) {
@@ -50,13 +58,14 @@ test("desktop tutorial centers each action without covering it", async ({ page }
   await expect(page.getByRole("dialog", { name: "Temukan perubahan material" })).toBeVisible();
   await expectDesktopTourComposition(page, '[data-tour-action="open-antm-case"]');
   await page.locator('[data-tour-action="open-antm-case"]').click();
-  await expect(page.getByRole("dialog", { name: "Tentukan pertanyaan riset" })).toBeVisible();
-  await page.locator('[data-tour-action="save-mandate"]').click();
-  await expect(page.getByRole("dialog", { name: "Buka empat pemeriksaan" })).toBeVisible();
-  await page.locator('[data-tour-action="open-evidence"]').click();
+  await expect(page.getByRole("dialog", { name: "Pilih outcome yang diuji" })).toBeVisible();
+  await expectDesktopTourComposition(page, '[data-tour-action="resolve-clarification"]');
+  await page.locator('[data-tour-action="resolve-clarification"]').click();
+  await expect(page.getByRole("dialog", { name: "Konfirmasi gerak pasar" })).toBeVisible();
+  await page.locator('[data-tour-action="open-market"]').click();
 
-  await expect(page.getByRole("dialog", { name: "Audit rumus dan sumber" })).toBeVisible();
-  await expectDesktopTourComposition(page, '[data-tour-action="toggle-calculation"]');
+  await expect(page.getByRole("dialog", { name: "Uji transmisi ke bisnis" })).toBeVisible();
+  await expectDesktopTourComposition(page, '[data-tour-action="open-business"]');
 });
 
 test("first-time tutorial guides the core research flow", async ({ page }) => {
@@ -71,19 +80,19 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await page.locator('[data-tour-action="open-antm-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
 
-  await expect(page.getByRole("dialog", { name: "Tentukan pertanyaan riset" })).toContainText("Simpan dan susun ulang plan");
-  await page.locator('[data-tour-action="save-mandate"]').click();
-  await expect(page.getByRole("dialog", { name: "Buka empat pemeriksaan" })).toContainText("Evidence 4");
-  await page.locator('[data-tour-action="open-evidence"]').click();
-  await expect(page).toHaveURL(/tab=evidence/);
+  await expect(page.getByRole("dialog", { name: "Pilih outcome yang diuji" })).toContainText("Clarification gate");
+  await page.locator('[data-tour-action="resolve-clarification"]').click();
+  await expect(page.getByRole("dialog", { name: "Konfirmasi gerak pasar" })).toContainText("Market Confirmation");
+  await page.locator('[data-tour-action="open-market"]').click();
+  await expect(page).toHaveURL(/tab=market/);
 
-  await expect(page.getByRole("dialog", { name: "Audit rumus dan sumber" })).toContainText("Perhitungan dan input");
-  await page.locator('[data-tour-action="toggle-calculation"]').click();
-  await expect(page.getByText("Hasil deterministik", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Uji transmisi ke bisnis" })).toContainText("Business Transmission");
+  await page.locator('[data-tour-action="open-business"]').click();
+  await expect(page).toHaveURL(/tab=business/);
 
-  await expect(page.getByRole("dialog", { name: "Lacak jalur sebab-akibat" })).toContainText("Causal chain");
-  await page.locator('[data-tour-action="open-impact"]').click();
-  await expect(page).toHaveURL(/\/impact\?case=ANTM$/);
+  await expect(page.getByRole("dialog", { name: "Buka hipotesis yang bersaing" })).toContainText("Hypotheses");
+  await page.getByRole("tab", { name: "Hypotheses" }).click();
+  await expect(page).toHaveURL(/tab=hypotheses/);
 
   await expect(page.getByRole("dialog", { name: "Bandingkan penjelasan" })).toContainText("peringkat 2");
   await page.locator('[data-tour-action="competing-hypothesis-2"]').click();
@@ -91,7 +100,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await page.locator('[data-tour-action="challenge-hypothesis"]').click();
 
   const complete = page.getByRole("dialog", { name: "Alur inti selesai" });
-  await expect(complete).toContainText("pertanyaan dan konteks hipotesis");
+  await expect(complete).toContainText("menantang satu hipotesis");
   await complete.getByRole("button", { name: "Mulai bertanya" }).click();
   const copilot = page.getByRole("dialog", { name: "Catalyst Copilot" });
   await expect(copilot).toBeVisible();
@@ -103,8 +112,8 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
 test("onboarding is scoped to a discretionary event-driven research ritual", async ({ page }) => {
   await page.goto("/");
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
-  await expect(setup.getByRole("heading", { name: "Build your event-driven watchlist" })).toBeVisible();
-  await expect(setup.getByText(/discretionary event-driven IDX investor/)).toBeVisible();
+  await expect(setup.getByRole("heading", { name: "Build your commodity-sensitive watchlist" })).toBeVisible();
+  await expect(setup.getByText(/miners and energy names/)).toBeVisible();
   await expect(setup.getByRole("button", { name: /Swing/ })).toHaveCount(0);
   await expect(setup.getByRole("button", { name: /Position/ })).toHaveCount(0);
 });
@@ -114,18 +123,20 @@ test("Today prioritizes changes and removes dashboard clutter", async ({ page })
   await expect(page.getByRole("heading", { name: "Berubah sejak pemeriksaan terakhir" })).toBeVisible();
   await expect(page.getByText("Emiten fixture")).toHaveCount(0);
   await expect(page.getByText("Agent health")).toHaveCount(0);
-  await expect(page.getByText(/Filing operasi baru/)).toBeVisible();
+  await expect(page.getByText(/Harga nikel acuan berbalik naik/).first()).toBeVisible();
+  await expect(page.getByText("Baseline", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Rule", { exact: true }).first()).toBeVisible();
 });
 
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Today", "Research Cases", "Impact", "Copilot"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Today", "Research Cases", "Copilot"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
 
-  await page.getByRole("link", { name: /ANTM Filing operasi baru/ }).click();
+  await page.locator('a[href="/cases/ANTM"]').first().click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
   await expect(page.getByRole("heading", { name: /Research Case · ANTM/ })).toBeVisible();
   await expect(page.getByRole("tablist", { name: "Bagian Research Case" })).toBeVisible();
@@ -161,7 +172,8 @@ test("Research Case runs a mandate lifecycle and exposes hypothesis protocols", 
   await expect(page.getByText("Mandate tersimpan")).toBeVisible();
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Mandate");
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Source plan");
-  await page.getByRole("tab", { name: "Evidence 4" }).click();
+  await page.getByRole("tab", { name: "Market confirmation 3" }).click();
+  await expect(page.getByRole("heading", { name: "Market Confirmation" })).toBeVisible();
   await expect(page.getByText("Klaim yang diuji", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti pendukung", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti penyangkal", { exact: true }).first()).toBeVisible();
@@ -186,13 +198,14 @@ test("editing the mandate visibly replans the case and its business impact test"
   await expect(plan.getByText(/Trigger mengubah operating margin ANTM/)).toBeVisible();
   await expect(plan.getByText(/Fokus aktif: margin/)).toBeVisible();
 
-  await page.getByRole("tab", { name: "Business impact" }).click();
-  await expect(page.getByRole("heading", { name: "Business Impact Test" })).toBeVisible();
+  await page.getByRole("tab", { name: "Business transmission" }).click();
+  await expect(page.getByRole("heading", { name: "Business Transmission" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Where must the effect land?" })).toBeVisible();
   await expect(page.getByText("Operating margin", { exact: true })).toBeVisible();
   await expect(page.getByText("Primary test", { exact: true })).toBeVisible();
   await expect(page.getByText("Valuation implication", { exact: true })).toBeVisible();
 
-  await page.goto("/impact?case=ANTM");
+  await page.goto("/cases/ANTM?tab=hypotheses");
   await expect(page.getByRole("region", { name: "Competing hypotheses for Operating margin" })).toBeVisible();
 });
 
@@ -202,27 +215,30 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await page.goto("/cases/ANTM");
 
   const caseTabs = page.getByRole("tablist", { name: "Bagian Research Case" });
-  await expect(caseTabs.getByRole("tab")).toHaveText(["Case", "Evidence 4", "Timeline 3", "Business impact", "Review"]);
+  await expect(caseTabs.getByRole("tab")).toHaveText(["Case", "Market confirmation 3", "Business transmission", "Hypotheses", "Review"]);
   await expect(caseTabs.getByRole("tab", { name: "Case" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Research mandate" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Market Confirmation" })).toHaveCount(0);
 
-  await caseTabs.getByRole("tab", { name: "Evidence 4" }).click();
-  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=evidence$/);
-  await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toBeVisible();
-  const pillarTabs = page.getByRole("tablist", { name: "Pilar analisis" });
+  await caseTabs.getByRole("tab", { name: "Market confirmation 3" }).click();
+  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=market$/);
+  await expect(page.getByRole("heading", { name: "Market Confirmation" })).toBeVisible();
+  const pillarTabs = page.getByRole("tablist", { name: "Market confirmation tests" });
   await expect(pillarTabs.getByRole("tab", { name: /Konsentrasi/ })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toBeVisible();
 
   await pillarTabs.getByRole("tab", { name: /Volume/ }).click();
-  await expect(page).toHaveURL(/tab=evidence&pillar=volume$/);
+  await expect(page).toHaveURL(/tab=market&pillar=volume$/);
   await expect(page.getByRole("heading", { name: "Volume", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toHaveCount(0);
 
-  await caseTabs.getByRole("tab", { name: "Timeline 3" }).click();
-  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=timeline$/);
+  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
+
+  await caseTabs.getByRole("tab", { name: "Business transmission" }).click();
+  await expect(page).toHaveURL(/\/cases\/ANTM\?tab=business$/);
+  await expect(page.getByRole("heading", { name: "Business Transmission" })).toBeVisible();
 
   await page.goto("/cases/ANTM?tab=review");
   await expect(caseTabs.getByRole("tab", { name: "Review" })).toHaveAttribute("aria-selected", "true");
@@ -249,7 +265,7 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(ruleTrace.getByText(/Menentukan apakah trigger layak/)).toBeVisible();
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /ANTM Filing operasi baru/ })).toContainText("Rule applied");
+  await expect(page.locator('a[href="/cases/ANTM"]').first()).toContainText(rule);
 });
 
 test("default theme uses the editorial black-cherry tokens", async ({ page }) => {
@@ -278,7 +294,7 @@ test("Case picker opens a focused inline comparison", async ({ page }) => {
 
 test("evidence opens Copilot with its company and pillar context", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/cases/ANTM?tab=evidence");
+  await page.goto("/cases/ANTM?tab=market");
   await page.getByRole("button", { name: "Tanya pilar Konsentrasi" }).click();
   const copilot = page.getByRole("dialog", { name: "Catalyst Copilot" });
   await expect(copilot).toBeVisible();
@@ -290,7 +306,8 @@ test("evidence opens Copilot with its company and pillar context", async ({ page
 
 test("company analysis aligns events on an evidence timeline", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/cases/ANTM?tab=timeline");
+  await page.goto("/cases/ANTM?tab=market");
+  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
   await expect(page.getByText("ANTM memublikasikan pembaruan operasi kuartalan")).toBeVisible();
   await page.getByRole("button", { name: "Tanya timeline ANTM" }).click();
@@ -300,15 +317,16 @@ test("company analysis aligns events on an evidence timeline", async ({ page }) 
 test("user completes setup and opens a four-pillar company case", async ({ page }) => {
   await finishSetup(page);
   await page.getByRole("link", { name: /ANTM/ }).first().click();
-  await page.getByRole("tab", { name: "Evidence 4" }).click();
-  await expect(page.getByRole("heading", { name: "Empat protokol uji" })).toBeVisible();
+  await page.getByRole("tab", { name: "Market confirmation 3" }).click();
+  await expect(page.getByRole("heading", { name: "Market Confirmation" })).toBeVisible();
   await expect(page.getByText("Plan → Query → Verify → Summarize")).toHaveCount(0);
   await page.getByRole("tab", { name: "Review" }).click();
   await page.getByRole("button", { name: "Buka audit" }).click();
   const audit = page.getByRole("dialog", { name: "Audit analisis ANTM" });
   await expect(audit.getByText("Plan → Query → Verify → Summarize")).toBeVisible();
   await audit.getByRole("button", { name: "Tutup audit" }).click();
-  await page.getByRole("tab", { name: "Timeline 3" }).click();
+  await page.getByRole("tab", { name: "Market confirmation 3" }).click();
+  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
   await page.getByRole("button", { name: /Fokus chart/ }).click();
   await expect(page.getByRole("dialog", { name: "ANTM vs IHSG" })).toBeVisible();
   await page.getByRole("button", { name: "Tutup chart" }).click();
@@ -316,8 +334,9 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
 
 test("causal map exposes multiple sources and copilot answers through the API", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/impact?event=evt-nickel");
-  await expect(page.getByRole("heading", { name: "Lacak sebab, mekanisme, dan bukti" })).toBeVisible();
+  await resolveDefaultClarification(page);
+  await page.goto("/cases/ANTM?tab=hypotheses&event=evt-nickel");
+  await expect(page.getByRole("region", { name: /Competing hypotheses/ })).toBeVisible();
   await expect(page.getByText(/Curah hujan tinggi diuji/).first()).toBeVisible();
   await page.getByRole("link", { name: "Copilot", exact: true }).click();
   await page.getByLabel("Tanya Catalyst").fill("Berita nikel ini berdampak ke watchlist saya?");
@@ -327,7 +346,8 @@ test("causal map exposes multiple sources and copilot answers through the API", 
 
 test("causal map labels hypotheses, confidence, lag, and counter-evidence", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/impact?company=ANTM");
+  await resolveDefaultClarification(page);
+  await page.goto("/cases/ANTM?tab=hypotheses");
   await page.getByRole("button", { name: /mechanism potensi realisasi harga/i }).click();
   const selected = page.getByLabel("Detail node terpilih");
   await expect(selected.getByText("Causal hypothesis", { exact: true })).toBeVisible();
@@ -340,7 +360,8 @@ test("causal map labels hypotheses, confidence, lag, and counter-evidence", asyn
 
 test("Causal Impact compares competing explanations for one observable", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/impact?case=ANTM");
+  await resolveDefaultClarification(page);
+  await page.goto("/cases/ANTM?tab=hypotheses");
 
   const workspace = page.getByRole("region", { name: "Competing hypotheses for Realized pricing" });
   await expect(workspace.getByText("3 explanations compete for the same observable.", { exact: true })).toBeVisible();
@@ -355,7 +376,8 @@ test("Causal Impact compares competing explanations for one observable", async (
 
 test("each causal edge exposes an inspectable falsification contract", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/impact?case=ANTM");
+  await resolveDefaultClarification(page);
+  await page.goto("/cases/ANTM?tab=hypotheses");
   await page.getByText("Buka daftar hubungan aksesibel", { exact: true }).click();
   await page.getByRole("button", { name: /Periksa hubungan/ }).first().click();
   const contract = page.getByLabel("Detail hubungan terpilih");
@@ -395,21 +417,25 @@ test("closing a case stores a reusable research resolution", async ({ page }) =>
   await resolution.getByLabel("Reusable rule").fill("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.");
   await resolution.getByRole("button", { name: "Simpan resolution dan tutup case" }).click();
 
-  await expect(resolution.getByText("Resolution saved", { exact: true })).toBeVisible();
+  await expect(resolution.getByText(/Resolution saved/)).toBeVisible();
   await expect(resolution.getByText("Case closed", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("region", { name: "Case Resolution" }).getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true })).toBeVisible();
 
   await page.goto("/cases?view=audit");
   await expect(page.getByRole("heading", { name: "Resolution memory" })).toBeVisible();
-  await expect(page.getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true }).first()).toBeVisible();
+  const proposal = page.getByRole("button", { name: "Accept into Playbook" }).locator("xpath=ancestor::article");
+  await expect(proposal).toContainText("pending");
+  await proposal.getByRole("button", { name: "Accept into Playbook" }).click();
+  await expect(page.getByText("accepted", { exact: true })).toBeVisible();
   await page.goto("/playbook");
-  await expect(page.getByLabel("Materiality rules")).toHaveValue(/\[Resolution ANTM\] Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas\./);
+  await expect(page.getByLabel("Falsifiers")).toHaveValue(/\[Accepted ANTM\] Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas\./);
 });
 
 test("formula details and source destinations are inspectable", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/cases/ANTM?tab=evidence");
+  await page.goto("/cases/ANTM?tab=market");
   await page.getByText("Perhitungan dan input").first().click();
   await expect(page.getByText(/HHI =/).first()).toBeVisible();
   await page.getByRole("button", { name: /Periksa field sumber/ }).first().click();

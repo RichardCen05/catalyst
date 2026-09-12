@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, Menu, Moon, Newspaper, Sun, X } from "lucide-react";
+import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/", label: "Today", icon: BarChart3 },
   { href: "/cases", label: "Research Cases", icon: BriefcaseBusiness },
-  { href: "/impact", label: "Impact", icon: Newspaper },
   { href: "/copilot", label: "Copilot", icon: Bot },
 ];
 
@@ -68,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           <main id="main-content" tabIndex={-1} className="min-w-0 px-4 pb-24 pt-6 focus:outline-none sm:px-7 sm:pt-8 lg:px-9 lg:pt-10 xl:pb-10">{children}</main>
-          <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-surface/98 px-1 pb-[env(safe-area-inset-bottom)] xl:hidden">
+          <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-border bg-surface/98 px-1 pb-[env(safe-area-inset-bottom)] xl:hidden">
             {mobileNavItems.map((item) => { const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-[6px] text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "text-foreground" : "text-muted-foreground")}>{active ? <span aria-hidden="true" className="absolute top-0 h-[2px] w-6 rounded-full bg-brand" /> : null}<item.icon aria-hidden="true" className={cn("size-4", active && "text-primary")} />{item.label}</Link>; })}
           </nav>
         </div>

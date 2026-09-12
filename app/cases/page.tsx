@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, BookOpenCheck, BriefcaseBusiness, ClipboardCheck, ExternalLink, Search, Trash2 } from "lucide-react";
+import { ArrowRight, BookOpenCheck, BriefcaseBusiness, Check, ClipboardCheck, ExternalLink, Search, Trash2, X } from "lucide-react";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
@@ -26,7 +26,7 @@ function ResearchCasesContent() {
   const searchParams = useSearchParams();
   const requested = searchParams.get("view") as CaseHubView | null;
   const activeView = views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
-  const { profile, playbook, caseMandates, caseStatuses, caseResolutions, insights, setInsightStatus, removeInsight } = useCatalystStore();
+  const { profile, playbook, caseMandates, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<SymbolCode[]>(() => (searchParams.get("compare") ?? "")
     .split(",")
@@ -34,13 +34,13 @@ function ResearchCasesContent() {
     .filter((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed))
     .slice(0, 3));
   const cases = profile.watchlist
-    .map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))
+    .map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))
     .filter((item) => item !== null);
   const filteredCompanies = useMemo(() => {
     const value = query.trim().toLowerCase();
     return companies.filter((company) => !value || `${company.symbol} ${company.name} ${company.sector}`.toLowerCase().includes(value));
   }, [query]);
-  const compared = selected.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], playbook })).filter((item) => item !== null);
+  const compared = selected.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook })).filter((item) => item !== null);
   const resolutions = Object.entries(caseResolutions).filter((entry): entry is [SymbolCode, CaseResolution] => Boolean(entry[1]));
 
   const toggleCompare = (symbol: SymbolCode) => setSelected((current) => current.includes(symbol)
@@ -49,7 +49,7 @@ function ResearchCasesContent() {
 
   return (
     <div data-tour="research-cases">
-      <PageHeader eyebrow="Research Cases" title="Investigate material change" description="For discretionary event-driven IDX investors reviewing a 10–30 name watchlist. Open a case, compare an explanation, then preserve the lesson." />
+      <PageHeader eyebrow="Commodity-sensitive research cases" title="Investigate one material change" description="For event-driven IDX investors tracking miners and energy names through commodity, FX, weather, operations, and policy exposure." />
 
       <nav aria-label="Research Case hub" className="mb-4 flex min-w-0 overflow-x-auto border-b border-border">
         {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}{item.value === "audit" && insights.filter((entry) => entry.status === "pending").length ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{insights.filter((entry) => entry.status === "pending").length}</span> : null}</Link>)}
@@ -59,7 +59,7 @@ function ResearchCasesContent() {
         <div className="divide-y divide-border">
           {cases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
-            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness aria-hidden="true" className="size-4.5" /></span><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{analysis.priority.materiality}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status}</span></span><span className="mt-1 line-clamp-2 block text-xs leading-5 text-muted-foreground">{analysis.thesis}</span>{analysis.priority.ruleTrace[0] ? <span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Rule · {analysis.priority.ruleTrace[0].rule}</span> : null}</span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><ArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
+            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness aria-hidden="true" className="size-4.5" /></span><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{analysis.priority.materiality}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status}</span></span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Disposition · {analysis.researchDisposition.label}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><ArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
           })}
         </div>
       </Panel> : null}
@@ -80,6 +80,7 @@ function ResearchCasesContent() {
         </Panel>
 
         <div className="space-y-4">
+          <Panel><div className="border-b border-border p-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Agent-proposed learning</p><h2 className="editorial mt-1 text-2xl">Rule proposals</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Resolution tidak otomatis mengubah Playbook. Anda harus menerima atau menolak setiap proposal.</p></div>{ruleProposals.length ? <div className="divide-y divide-border">{ruleProposals.map((proposal) => <article key={proposal.id} className="p-4"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs font-semibold">{proposal.symbol}</span><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{proposal.kind}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", proposal.status === "accepted" ? "border-positive/30 text-positive" : proposal.status === "rejected" ? "border-danger/30 text-danger" : "border-attention/30 text-attention-foreground")}>{proposal.status}</span></div><p className="mt-2 text-sm leading-6">{proposal.rule}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Evidence: {proposal.evidence}</p>{proposal.status === "pending" ? <div className="mt-3 flex gap-2"><Button size="sm" onClick={() => setRuleProposalStatus(proposal.id, "accepted")}><Check aria-hidden="true" className="size-3.5" />Accept into Playbook</Button><Button variant="ghost" size="sm" onClick={() => setRuleProposalStatus(proposal.id, "rejected")}><X aria-hidden="true" className="size-3.5" />Reject</Button></div> : null}</article>)}</div> : <div className="p-5 text-sm leading-6 text-muted-foreground">Close a case with a reusable lesson. Catalyst will propose—never silently apply—the next rule.</div>}</Panel>
           <Panel><div className="border-b border-border p-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Closed-case lessons</p><h2 className="editorial mt-1 text-2xl">Resolution memory</h2></div>{resolutions.length ? <div className="divide-y divide-border">{resolutions.map(([symbol, resolution]) => <article key={symbol} className="p-4"><div className="flex items-center gap-2"><ClipboardCheck aria-hidden="true" className="size-4 text-positive" /><span className="font-mono text-xs font-semibold">{symbol}</span><span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{resolution.outcome}</span></div><p className="mt-2 text-sm leading-6">{resolution.reusableRule}</p><Link href={`/cases/${symbol}?tab=review`} className="mt-2 inline-flex min-h-8 items-center text-xs font-medium text-primary">Open resolution</Link></article>)}</div> : <div className="p-5 text-sm leading-6 text-muted-foreground">Close a case with a resolution to build reusable research memory.</div>}</Panel>
           <Panel className="p-4"><BookOpenCheck aria-hidden="true" className="size-5 text-primary" /><h2 className="mt-3 text-sm font-semibold">Research judgment remains explicit</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Comparables, materiality, exposure, trusted sources, and falsifiers live in one Playbook.</p><Link href="/playbook" className="mt-3 inline-flex min-h-9 items-center text-xs font-medium text-primary">Open Investor Research Playbook</Link></Panel>
         </div>

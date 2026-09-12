@@ -12,6 +12,7 @@ import type {
   LearnedPreference,
   InvestorResearchPlaybook,
   PillarKey,
+  RuleProposal,
   ResearchCaseStatus,
   SymbolCode,
   UserInsight,
@@ -25,8 +26,10 @@ interface CatalystState {
   insights: UserInsight[];
   playbook: InvestorResearchPlaybook;
   caseMandates: Partial<Record<SymbolCode, string>>;
+  caseClarifications: Partial<Record<SymbolCode, string>>;
   caseStatuses: Partial<Record<SymbolCode, ResearchCaseStatus>>;
   caseResolutions: Partial<Record<SymbolCode, CaseResolution>>;
+  ruleProposals: RuleProposal[];
   copilotOpen: boolean;
   copilotContext: CopilotContext | null;
   tourOpen: boolean;
@@ -46,8 +49,10 @@ interface CatalystState {
   recordInsight: (input: Omit<UserInsight, "id" | "createdAt" | "status" | "reviewHistory">) => void;
   setInsightStatus: (id: string, status: UserInsight["status"]) => void;
   setCaseMandate: (symbol: SymbolCode, mandate: string) => void;
+  setCaseClarification: (symbol: SymbolCode, choiceId: string) => void;
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
+  setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
   setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
   removeInsight: (id: string) => void;
@@ -63,13 +68,38 @@ const basePreferences: LearnedPreference[] = [
 export const defaultPlaybook: InvestorResearchPlaybook = {
   preferredComparables: {
     ANTM: ["INCO", "TINS"],
-    BBCA: ["BBRI", "BMRI"],
+    INCO: ["ANTM"],
+    TINS: ["ANTM"],
+    PGAS: ["ADRO", "PTBA"],
+    ADRO: ["PTBA"],
+    PTBA: ["ADRO"],
   },
   materialityRules: ["Prioritaskan perubahan yang dapat memengaruhi volume, margin, atau arus kas."],
-  knownExposures: ["ANTM: harga nikel, volume penjualan, rupiah, dan jam operasi tambang."],
-  thesisAssumptions: ["ANTM: harga acuan perlu diterjemahkan ke realisasi harga atau pendapatan."],
+  knownExposures: [
+    "ANTM: harga nikel, volume penjualan, rupiah, dan jam operasi tambang.",
+    "INCO: harga nikel, volume produksi, energi, dan curah hujan.",
+    "TINS: harga timah, volume produksi, cuaca laut, dan regulasi ekspor.",
+    "PGAS: harga gas, volume distribusi, kontrak, dan kebijakan harga.",
+    "ADRO: harga batu bara, stripping ratio, cuaca, dan volume penjualan.",
+    "PTBA: harga batu bara, DMO, biaya angkut, dan volume penjualan.",
+  ],
+  thesisAssumptions: [
+    "ANTM: harga acuan perlu diterjemahkan ke realisasi harga atau pendapatan.",
+    "INCO: harga nikel harus melewati kontrak dan volume produksi sebelum dianggap material.",
+    "TINS: harga timah harus dipisahkan dari perubahan volume dan izin operasi.",
+    "PGAS: perubahan harga perlu diuji terhadap struktur kontrak dan volume distribusi.",
+    "ADRO: harga acuan perlu diuji bersama volume dan biaya produksi.",
+    "PTBA: perubahan harga perlu diuji terhadap DMO dan biaya logistik.",
+  ],
   trustedSources: ["Sectors financials dan filing perusahaan sebelum berita sekunder."],
-  falsifiers: ["ANTM: thesis katalis melemah bila volume penjualan atau realisasi harga tidak ikut berubah."],
+  falsifiers: [
+    "ANTM: thesis katalis melemah bila volume penjualan atau realisasi harga tidak ikut berubah.",
+    "INCO: thesis melemah bila harga realisasi dan volume produksi tidak mengonfirmasi perubahan nikel.",
+    "TINS: thesis melemah bila volume penjualan dan margin tidak berubah setelah harga timah bergerak.",
+    "PGAS: thesis melemah bila volume distribusi dan margin tidak berubah pada periode kontrak berikutnya.",
+    "ADRO: thesis melemah bila volume penjualan atau margin tidak mengonfirmasi perubahan batu bara.",
+    "PTBA: thesis melemah bila realisasi harga dan arus kas tidak bergerak setelah faktor DMO diperhitungkan.",
+  ],
 };
 
 export const useCatalystStore = create<CatalystState>()(
@@ -81,8 +111,10 @@ export const useCatalystStore = create<CatalystState>()(
       insights: [],
       playbook: structuredClone(defaultPlaybook),
       caseMandates: {},
+      caseClarifications: {},
       caseStatuses: {},
       caseResolutions: {},
+      ruleProposals: [],
       copilotOpen: false,
       copilotContext: null,
       tourOpen: false,
@@ -124,28 +156,52 @@ export const useCatalystStore = create<CatalystState>()(
         return { insights: [insight, ...state.insights], preferences: [learned, ...state.preferences] };
       }),
       setInsightStatus: (id, status) => set((state) => ({ insights: state.insights.map((item) => item.id === id ? { ...item, status, reviewHistory: [...(item.reviewHistory ?? [{ status: item.status, at: item.createdAt }]), { status, at: new Date().toISOString() }] } : item) })),
-      setCaseMandate: (symbol, mandate) => set((state) => ({ caseMandates: { ...state.caseMandates, [symbol]: mandate } })),
+      setCaseMandate: (symbol, mandate) => set((state) => {
+        const caseClarifications = { ...state.caseClarifications };
+        delete caseClarifications[symbol];
+        return { caseMandates: { ...state.caseMandates, [symbol]: mandate }, caseClarifications };
+      }),
+      setCaseClarification: (symbol, choiceId) => set((state) => ({ caseClarifications: { ...state.caseClarifications, [symbol]: choiceId } })),
       setCaseStatus: (symbol, status) => set((state) => ({ caseStatuses: { ...state.caseStatuses, [symbol]: status } })),
-      saveCaseResolution: (symbol, resolution) => set((state) => ({
-        caseStatuses: { ...state.caseStatuses, [symbol]: "closed" },
-        caseResolutions: { ...state.caseResolutions, [symbol]: { ...resolution, resolvedAt: new Date().toISOString() } },
-        playbook: {
-          ...state.playbook,
-          materialityRules: [
-            ...state.playbook.materialityRules.filter((item) => !item.startsWith(`[Resolution ${symbol}]`)),
-            `[Resolution ${symbol}] ${resolution.reusableRule}`,
-          ],
-        },
-      })),
+      saveCaseResolution: (symbol, resolution) => set((state) => {
+        const resolvedAt = new Date().toISOString();
+        const proposalKind: RuleProposal["kind"] = resolution.outcome === "challenged" ? "falsifier" : "materiality";
+        const proposal: RuleProposal = {
+          id: `proposal-${symbol}-${Date.now()}`,
+          symbol,
+          kind: proposalKind,
+          rule: resolution.reusableRule,
+          evidence: resolution.falsifiedBy || resolution.finalHypothesis,
+          sourceResolutionAt: resolvedAt,
+          status: "pending",
+          createdAt: resolvedAt,
+        };
+        return {
+          caseStatuses: { ...state.caseStatuses, [symbol]: "closed" },
+          caseResolutions: { ...state.caseResolutions, [symbol]: { ...resolution, resolvedAt } },
+          ruleProposals: [proposal, ...state.ruleProposals.filter((item) => item.symbol !== symbol || item.status !== "pending")],
+        };
+      }),
+      setRuleProposalStatus: (id, status) => set((state) => {
+        const proposal = state.ruleProposals.find((item) => item.id === id);
+        if (!proposal) return state;
+        const prefixedRule = `[Accepted ${proposal.symbol}] ${proposal.rule}`;
+        const playbook = status === "accepted"
+          ? proposal.kind === "materiality"
+            ? { ...state.playbook, materialityRules: [...state.playbook.materialityRules.filter((item) => item !== prefixedRule), prefixedRule] }
+            : { ...state.playbook, falsifiers: [...state.playbook.falsifiers.filter((item) => item !== prefixedRule), prefixedRule] }
+          : state.playbook;
+        return { playbook, ruleProposals: state.ruleProposals.map((item) => item.id === id ? { ...item, status } : item) };
+      }),
       setPlaybookList: (key, values) => set((state) => ({ playbook: { ...state.playbook, [key]: values } })),
       setPreferredComparables: (symbol, values) => set((state) => ({ playbook: { ...state.playbook, preferredComparables: { ...state.playbook.preferredComparables, [symbol]: values } } })),
       removeInsight: (id) => set((state) => ({ insights: state.insights.filter((item) => item.id !== id), preferences: state.preferences.filter((item) => item.id !== `learned-${id}`) })),
       togglePreference: (id) => set((state) => ({ preferences: state.preferences.map((item) => item.id === id ? { ...item, active: !item.active } : item) })),
-      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseStatuses: {}, caseResolutions: {} }),
+      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseClarifications: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
     }),
     {
       name: "catalyst:v1",
-      version: 1,
+      version: 2,
       merge: (persisted, current) => {
         const stored = persisted as Partial<CatalystState>;
         return {
@@ -153,8 +209,10 @@ export const useCatalystStore = create<CatalystState>()(
           ...stored,
           playbook: stored.playbook ?? current.playbook,
           caseMandates: stored.caseMandates ?? current.caseMandates,
+          caseClarifications: stored.caseClarifications ?? current.caseClarifications,
           caseStatuses: stored.caseStatuses ?? current.caseStatuses,
           caseResolutions: stored.caseResolutions ?? current.caseResolutions,
+          ruleProposals: stored.ruleProposals ?? current.ruleProposals,
         };
       },
     },
