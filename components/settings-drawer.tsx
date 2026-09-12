@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BookOpenCheck, Building2, Compass, FlaskConical, History, Moon, Settings2, Sun, X } from "lucide-react";
+import { BookOpenCheck, BriefcaseBusiness, ClipboardCheck, Compass, FlaskConical, Moon, Settings2, Sun, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCatalystStore } from "@/lib/store";
@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 
 const utilityLinks = [
   { href: "/playbook", label: "Investor Research Playbook", description: "Comparables, exposure, rules, sources, dan falsifiers.", icon: BookOpenCheck },
-  { href: "/companies", label: "Company universe", description: "Daftar fixture lengkap dan comparison workbench.", icon: Building2 },
-  { href: "/agent", label: "Correction queue", description: "Catatan user yang menunggu verifikasi dan presentation order.", icon: History },
+  { href: "/cases?view=picker", label: "Case picker", description: "Open a company case or compare explanations inline.", icon: BriefcaseBusiness },
+  { href: "/cases?view=audit", label: "Research Audit", description: "User challenges and reusable closed-case resolutions.", icon: ClipboardCheck },
   { href: "/method", label: "Method & limits", description: "Formula, batas data, citation gate, dan disclaimer.", icon: FlaskConical },
 ] as const;
 

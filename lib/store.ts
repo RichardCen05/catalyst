@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { demoProfiles } from "@/lib/data/fixtures";
 import type {
   AnswerDepth,
+  CaseResolution,
   CopilotContext,
   FeedbackEvent,
   Horizon,
@@ -25,6 +26,7 @@ interface CatalystState {
   playbook: InvestorResearchPlaybook;
   caseMandates: Partial<Record<SymbolCode, string>>;
   caseStatuses: Partial<Record<SymbolCode, ResearchCaseStatus>>;
+  caseResolutions: Partial<Record<SymbolCode, CaseResolution>>;
   copilotOpen: boolean;
   copilotContext: CopilotContext | null;
   tourOpen: boolean;
@@ -45,6 +47,7 @@ interface CatalystState {
   setInsightStatus: (id: string, status: UserInsight["status"]) => void;
   setCaseMandate: (symbol: SymbolCode, mandate: string) => void;
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
+  saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
   removeInsight: (id: string) => void;
@@ -79,6 +82,7 @@ export const useCatalystStore = create<CatalystState>()(
       playbook: structuredClone(defaultPlaybook),
       caseMandates: {},
       caseStatuses: {},
+      caseResolutions: {},
       copilotOpen: false,
       copilotContext: null,
       tourOpen: false,
@@ -122,11 +126,22 @@ export const useCatalystStore = create<CatalystState>()(
       setInsightStatus: (id, status) => set((state) => ({ insights: state.insights.map((item) => item.id === id ? { ...item, status, reviewHistory: [...(item.reviewHistory ?? [{ status: item.status, at: item.createdAt }]), { status, at: new Date().toISOString() }] } : item) })),
       setCaseMandate: (symbol, mandate) => set((state) => ({ caseMandates: { ...state.caseMandates, [symbol]: mandate } })),
       setCaseStatus: (symbol, status) => set((state) => ({ caseStatuses: { ...state.caseStatuses, [symbol]: status } })),
+      saveCaseResolution: (symbol, resolution) => set((state) => ({
+        caseStatuses: { ...state.caseStatuses, [symbol]: "closed" },
+        caseResolutions: { ...state.caseResolutions, [symbol]: { ...resolution, resolvedAt: new Date().toISOString() } },
+        playbook: {
+          ...state.playbook,
+          materialityRules: [
+            ...state.playbook.materialityRules.filter((item) => !item.startsWith(`[Resolution ${symbol}]`)),
+            `[Resolution ${symbol}] ${resolution.reusableRule}`,
+          ],
+        },
+      })),
       setPlaybookList: (key, values) => set((state) => ({ playbook: { ...state.playbook, [key]: values } })),
       setPreferredComparables: (symbol, values) => set((state) => ({ playbook: { ...state.playbook, preferredComparables: { ...state.playbook.preferredComparables, [symbol]: values } } })),
       removeInsight: (id) => set((state) => ({ insights: state.insights.filter((item) => item.id !== id), preferences: state.preferences.filter((item) => item.id !== `learned-${id}`) })),
       togglePreference: (id) => set((state) => ({ preferences: state.preferences.map((item) => item.id === id ? { ...item, active: !item.active } : item) })),
-      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseStatuses: {} }),
+      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseStatuses: {}, caseResolutions: {} }),
     }),
     {
       name: "catalyst:v1",
@@ -139,6 +154,7 @@ export const useCatalystStore = create<CatalystState>()(
           playbook: stored.playbook ?? current.playbook,
           caseMandates: stored.caseMandates ?? current.caseMandates,
           caseStatuses: stored.caseStatuses ?? current.caseStatuses,
+          caseResolutions: stored.caseResolutions ?? current.caseResolutions,
         };
       },
     },

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Check, ChevronDown, Circle, GitBranch, RotateCcw, Save, X } from "lucide-react";
+import { Check, ChevronDown, Circle, GitBranch, Save } from "lucide-react";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
 import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const caseMandates = useCatalystStore((state) => state.caseMandates);
   const caseStatuses = useCatalystStore((state) => state.caseStatuses);
   const setCaseMandate = useCatalystStore((state) => state.setCaseMandate);
-  const setCaseStatus = useCatalystStore((state) => state.setCaseStatus);
   const playbook = useCatalystStore((state) => state.playbook);
   const insights = useCatalystStore((state) => state.insights);
   const [saved, setSaved] = useState(false);
@@ -46,7 +45,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
           <label htmlFor={`mandate-${symbol}`} className="text-xs font-medium">Research mandate</label>
           <textarea id={`mandate-${symbol}`} value={mandate} onChange={(event) => { setCaseMandate(symbol, event.target.value); setSaved(false); }} rows={3} className="mt-2 w-full resize-y rounded-[8px] border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" />
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={saveMandate}><Save aria-hidden="true" className="size-3.5" />Simpan mandate</Button>
+            <Button size="sm" onClick={saveMandate}><Save aria-hidden="true" className="size-3.5" />Simpan dan susun ulang plan</Button>
             {saved ? <span className="inline-flex items-center gap-1 text-xs text-positive" role="status"><Check aria-hidden="true" className="size-3.5" />Mandate tersimpan</span> : null}
           </div>
         </div>
@@ -57,6 +56,29 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
           <dl className="mt-3 grid grid-cols-3 gap-2 text-[10px]"><div><dt className="text-muted-foreground">Novelty</dt><dd className="mt-0.5 font-mono text-primary">{researchCase.priority.novelty}</dd></div><div><dt className="text-muted-foreground">Materiality</dt><dd className="mt-0.5 font-mono text-attention-foreground">{researchCase.priority.materiality}</dd></div><div><dt className="text-muted-foreground">Uncertainty</dt><dd className="mt-0.5 font-mono">{researchCase.priority.uncertainty}</dd></div></dl>
         </section>
       </div>
+
+      <section role="region" aria-label="Mandate-driven research plan" className="border-t border-border bg-background px-4 py-5 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Agent plan</p><span className="rounded border border-primary/35 bg-primary/8 px-2 py-0.5 font-mono text-[10px] text-primary">Focus · {researchCase.researchPlan.focus}</span></div>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{researchCase.researchPlan.rationale}</p>
+          </div>
+          <Link href={`/impact?case=${symbol}`} className="inline-flex min-h-9 shrink-0 items-center gap-1 text-xs font-medium text-primary"><GitBranch aria-hidden="true" className="size-3.5" />Uji hipotesis yang bersaing</Link>
+        </div>
+
+        <div className="mt-5 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border lg:grid-cols-[1.1fr_1fr_1fr]">
+          <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Hypothesis tree</h3><ol className="mt-3 space-y-3">{researchCase.researchPlan.hypothesisTree.map((item, index) => <li key={item.id} className="grid grid-cols-[22px_minmax(0,1fr)] gap-2 text-xs leading-5"><span className={`grid size-[22px] place-items-center rounded-full border font-mono text-[9px] ${item.state === "primary" ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{index + 1}</span><span><strong className="block font-medium text-foreground">{item.claim}</strong><span className="mt-0.5 block text-muted-foreground">{item.test}</span></span></li>)}</ol></section>
+          <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Source plan</h3><ol className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.sourcePlan.slice(0, 4).map((item, index) => <li key={item} className="flex gap-2"><span className="font-mono text-primary">{String(index + 1).padStart(2, "0")}</span>{item}</li>)}</ol></section>
+          <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Observable contract</h3><dl className="mt-3 space-y-3">{researchCase.researchPlan.observables.map((item) => <div key={`${item.dimension}-${item.metric}`}><dt className="font-mono text-[10px] text-primary">{item.dimension} · {item.window}</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{item.metric}. {item.expectedChange}</dd></div>)}</dl><p className="mt-4 border-t border-border pt-3 text-xs leading-5 text-attention-foreground">{researchCase.clarificationGate}</p></section>
+        </div>
+      </section>
+
+      <section role="region" aria-label="Playbook rule trace" className="border-t border-border px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h3 className="text-xs font-semibold">Why this case ranks here</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">Priority is compiled from rules you can inspect and change.</p></div><Link href="/playbook" className="inline-flex min-h-8 items-center text-xs font-medium text-primary">Edit Playbook</Link></div>
+        <dl className="mt-3 divide-y divide-border border-y border-border">
+          {researchCase.priority.ruleTrace.length ? researchCase.priority.ruleTrace.map((item) => <div key={item.id} className="grid gap-1 py-3 text-xs sm:grid-cols-[100px_minmax(180px,0.9fr)_minmax(0,1.1fr)] sm:gap-3"><dt className="font-mono text-[10px] uppercase tracking-wider text-primary">{item.kind}</dt><dd className="font-medium">{item.rule}</dd><dd className="leading-5 text-muted-foreground">{item.effect}</dd></div>) : <div className="py-3 text-xs text-muted-foreground">No explicit Playbook rule matched this case.</div>}
+        </dl>
+      </section>
 
       <ol aria-label="Agent lifecycle" className="grid gap-px border-y border-border bg-border sm:grid-cols-5">
         {researchCase.lifecycle.map((step) => {
@@ -80,7 +102,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
         </div>
       </details>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Menutup case menyimpan status; bukti dan catatan tetap tersedia.</p>{status === "closed" ? <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "open")}><RotateCcw aria-hidden="true" className="size-3.5" />Buka kembali case</Button> : <Button variant="secondary" size="sm" onClick={() => setCaseStatus(symbol, "closed")}><X aria-hidden="true" className="size-3.5" />Tandai case selesai</Button>}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Case ditutup dari tab Review setelah resolution dicatat.</p><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka Case Resolution</Link></div>
     </Panel>
   );
 }

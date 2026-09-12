@@ -24,14 +24,17 @@ const deltaBySymbol: Partial<Record<SymbolCode, { label: string; detail: string;
 const deltaIcon = { new: FileText, conflict: AlertTriangle, watch: ShieldQuestion } as const;
 
 export default function DashboardPage() {
-  const { profile, insights, feedback } = useCatalystStore();
+  const { profile, insights, feedback, playbook, caseMandates, caseStatuses, caseResolutions } = useCatalystStore();
   const rank = (symbol: SymbolCode) =>
     insights.filter((item) => item.symbol === symbol && item.status === "pending").length * 100
     + feedback.filter((item) => item.symbol === symbol && (item.action === "useful" || item.action === "show-more")).length * 10
-    - feedback.filter((item) => item.symbol === symbol && (item.action === "not-useful" || item.action === "show-less")).length * 10;
+    - feedback.filter((item) => item.symbol === symbol && (item.action === "not-useful" || item.action === "show-less")).length * 10
+    + playbook.knownExposures.filter((item) => item.toUpperCase().includes(symbol)).length * 20
+    + playbook.falsifiers.filter((item) => item.toUpperCase().includes(symbol)).length * 15;
   const cases = [...profile.watchlist]
+    .filter((symbol) => caseStatuses[symbol] !== "closed")
     .sort((first, second) => rank(second) - rank(first))
-    .map((symbol) => agentEngine.analyzeCompany(symbol, profile))
+    .map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))
     .filter((item) => item !== null)
     .slice(0, 4);
   const watchEvents = events
@@ -44,7 +47,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Watchlist change investigator" title="Apa yang berubah di watchlist?" description="Apa yang berubah, mengapa mungkin berubah, dan bukti apa yang dapat membatalkannya?" action={<CitationDialog citations={citations} label="Sumber" />} />
+      <PageHeader eyebrow="Event-driven IDX research ritual" title="Apa yang berubah di watchlist?" description="For discretionary investors reviewing material change across a 10–30 name watchlist: what changed, why, and what would disprove it?" action={<CitationDialog citations={citations} label="Sumber" />} />
 
       <section className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs" aria-label="Status pembaruan">
         <span className="inline-flex items-center gap-2 font-medium"><Radio aria-hidden="true" className="size-4 text-primary" />{cases.length} perubahan perlu dibaca</span>
@@ -61,7 +64,7 @@ export default function DashboardPage() {
               const delta = deltaBySymbol[analysis.company.symbol] ?? { label: "Analisis diperbarui", detail: analysis.thesis, tone: "watch" as const };
               const Icon = deltaIcon[delta.tone];
               const openNotes = pending.filter((item) => item.symbol === analysis.company.symbol).length;
-              return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="group grid min-h-24 gap-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-center"><span className={`grid size-9 place-items-center rounded-lg ${delta.tone === "conflict" ? "bg-danger/10 text-danger" : delta.tone === "new" ? "bg-primary/10 text-primary" : "bg-attention/10 text-attention-foreground"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span><span className="text-sm font-medium">{delta.label}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><MessageSquareWarning aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{delta.detail}</p></div><StatusBadge status={analysis.evidenceState} /></Link>;
+              return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="group grid min-h-24 gap-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-center"><span className={`grid size-9 place-items-center rounded-lg ${delta.tone === "conflict" ? "bg-danger/10 text-danger" : delta.tone === "new" ? "bg-primary/10 text-primary" : "bg-attention/10 text-attention-foreground"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span><span className="text-sm font-medium">{delta.label}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><MessageSquareWarning aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{delta.detail}</p>{analysis.priority.ruleTrace[0] ? <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-primary">Rule applied · {analysis.priority.ruleTrace[0].kind}</p> : null}</div><StatusBadge status={analysis.evidenceState} /></Link>;
             })}
           </div>
         </Panel>

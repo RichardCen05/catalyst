@@ -8,15 +8,16 @@ import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
 import { PriceChart } from "@/components/price-chart";
 import { ResearchCaseOverview } from "@/components/research-case-overview";
+import { CaseResolutionPanel } from "@/components/case-resolution";
 import { cn } from "@/lib/utils";
 
-export type ResearchCaseTab = "case" | "evidence" | "timeline" | "financials" | "review";
+export type ResearchCaseTab = "case" | "evidence" | "timeline" | "business" | "review";
 
 const tabLabels: Array<{ value: ResearchCaseTab; label: string }> = [
   { value: "case", label: "Case" },
   { value: "evidence", label: "Evidence 4" },
   { value: "timeline", label: "Timeline 3" },
-  { value: "financials", label: "Financials" },
+  { value: "business", label: "Business impact" },
   { value: "review", label: "Review" },
 ];
 
@@ -99,29 +100,31 @@ export function ResearchCaseWorkspace({
 
         {activeTab === "timeline" ? <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} /> : null}
 
-        {activeTab === "financials" ? (
-          <section aria-labelledby="financial-context-title" className="overflow-hidden rounded-[12px] border border-border bg-surface">
+        {activeTab === "business" ? (
+          <section aria-labelledby="business-impact-title" className="overflow-hidden rounded-[12px] border border-border bg-surface">
             <header className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
               <div className="max-w-2xl">
-                <h2 id="financial-context-title" className="editorial text-2xl">Financial context</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Input laporan keuangan yang dipakai untuk menguji jalur. Data ini mendukung empat pemeriksaan dan bukan pilar tambahan.</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Cross-pillar protocol</p>
+                <h2 id="business-impact-title" className="editorial mt-1 text-2xl">Business Impact Test</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Setiap jalur harus mencapai satu outcome bisnis yang dapat diamati. Hubungan yang berhenti pada harga atau sentimen tetap open.</p>
               </div>
               <CitationDialog citations={analysis.financialContext.flatMap((item) => item.citations)} label="Periksa field keuangan" />
             </header>
-            <dl className="divide-y divide-border">
-              {analysis.financialContext.map((item) => (
-                <div key={item.label} className="grid gap-2 px-4 py-4 sm:grid-cols-[minmax(160px,0.7fr)_minmax(120px,0.45fr)_minmax(0,1.5fr)] sm:items-start sm:px-5">
-                  <dt className="text-sm font-medium">{item.label}<span className="mt-1 block font-mono text-[10px] font-normal text-primary">{item.period}</span></dt>
-                  <dd className="font-mono text-lg font-semibold tabular-nums">{item.value}</dd>
-                  <dd className="text-sm leading-6 text-muted-foreground">{item.interpretation}</dd>
-                </div>
+            <div className="grid gap-px bg-border md:grid-cols-2">
+              {analysis.businessImpact.map((item) => (
+                <article key={item.dimension} className="bg-surface p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[10px] text-primary">{item.dimension}</p><h3 className="mt-1 text-sm font-semibold">{item.label}</h3></div><span className={cn("rounded border px-2 py-1 font-mono text-[9px] uppercase tracking-wider", item.status === "Primary test" ? "border-primary/40 bg-primary/10 text-primary" : item.status === "Supporting" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{item.status}</span></div>
+                  <dl className="mt-4 space-y-3 text-xs leading-5"><div><dt className="font-medium">Mechanism</dt><dd className="mt-1 text-muted-foreground">{item.mechanism}</dd></div><div><dt className="font-medium">Expected observable</dt><dd className="mt-1 text-muted-foreground">{item.observable}</dd></div><div><dt className="font-medium">Research implication</dt><dd className="mt-1 text-muted-foreground">{item.implication}</dd></div></dl>
+                </article>
               ))}
-            </dl>
+            </div>
+            <details className="group border-t border-border"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary sm:px-5">Financial inputs used by this test</summary><dl className="divide-y divide-border border-t border-border bg-background">{analysis.financialContext.map((item) => <div key={item.label} className="grid gap-2 px-4 py-4 sm:grid-cols-[minmax(160px,0.7fr)_minmax(120px,0.45fr)_minmax(0,1.5fr)] sm:items-start sm:px-5"><dt className="text-sm font-medium">{item.label}<span className="mt-1 block font-mono text-[10px] font-normal text-primary">{item.period}</span></dt><dd className="font-mono text-lg font-semibold tabular-nums">{item.value}</dd><dd className="text-sm leading-6 text-muted-foreground">{item.interpretation}</dd></div>)}</dl></details>
           </section>
         ) : null}
 
         {activeTab === "review" ? (
           <div>
+            <CaseResolutionPanel researchCase={analysis} symbol={symbol} />
             <section className="mb-4 flex flex-col gap-3 border-y border-border py-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Audit case">
               <div className="flex min-w-0 items-start gap-3">
                 <AlertTriangle aria-hidden="true" className="mt-1 size-4 shrink-0 text-attention" />

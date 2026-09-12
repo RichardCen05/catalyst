@@ -19,9 +19,14 @@ import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol: SymbolCode; workspaceTabs?: boolean }) {
-  const { profile, openCopilot } = useCatalystStore();
+  const { profile, playbook, caseMandates, caseResolutions, insights, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
-  const analysis = agentEngine.analyzeCompany(symbol, profile);
+  const analysis = agentEngine.analyzeCompany(symbol, profile, {
+    mandate: caseMandates[symbol],
+    playbook,
+    userInsights: insights,
+    resolution: caseResolutions[symbol],
+  });
   const relatedEvents = events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol));
 
   if (!analysis) return (

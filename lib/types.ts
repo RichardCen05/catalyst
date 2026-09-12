@@ -20,6 +20,7 @@ export type AnswerDepth = "compact" | "standard" | "forensic";
 export type EvidenceState = "Corroborated" | "Mixed Evidence" | "Insufficient Evidence";
 export type ImpactDirection = "Supported" | "Adverse" | "Mixed" | "Unrelated" | "Unverified";
 export type ResearchCaseStatus = "open" | "closed";
+export type BusinessImpactDimension = "volume" | "pricing" | "margin" | "cash-flow" | "balance-sheet" | "valuation";
 
 export interface HypothesisProtocol {
   claim: string;
@@ -125,6 +126,57 @@ export interface HypothesisTrace {
   citations: Citation[];
 }
 
+export interface AppliedPlaybookRule {
+  id: string;
+  kind: "materiality" | "exposure" | "assumption" | "source" | "falsifier" | "comparable";
+  rule: string;
+  effect: string;
+}
+
+export interface ResearchPlan {
+  mandate: string;
+  focus: BusinessImpactDimension;
+  rationale: string;
+  hypothesisTree: Array<{
+    id: string;
+    claim: string;
+    test: string;
+    state: "primary" | "supporting" | "challenge";
+  }>;
+  observables: Array<{
+    dimension: BusinessImpactDimension;
+    metric: string;
+    expectedChange: string;
+    window: string;
+  }>;
+}
+
+export interface BusinessImpactResult {
+  dimension: BusinessImpactDimension;
+  label: string;
+  status: "Primary test" | "Supporting" | "Open";
+  mechanism: string;
+  observable: string;
+  implication: string;
+  citations: Citation[];
+}
+
+export interface CaseResolution {
+  outcome: "supported" | "challenged" | "open";
+  finalHypothesis: string;
+  falsifiedBy: string;
+  wrongAssumption: string;
+  reusableRule: string;
+  resolvedAt: string;
+}
+
+export interface AnalysisContext {
+  mandate?: string;
+  playbook?: InvestorResearchPlaybook;
+  userInsights?: UserInsight[];
+  resolution?: CaseResolution;
+}
+
 export interface ResearchCase {
   caseId: string;
   status: ResearchCaseStatus;
@@ -139,6 +191,7 @@ export interface ResearchCase {
     materiality: "High" | "Medium" | "Low";
     uncertainty: "High" | "Medium" | "Low";
     reason: string;
+    ruleTrace: AppliedPlaybookRule[];
   };
   contradictions: string[];
   counterEvidence: string[];
@@ -152,6 +205,10 @@ export interface ResearchCase {
     label: string;
     state: "complete" | "active" | "blocked";
   }>;
+  researchPlan: ResearchPlan;
+  businessImpact: BusinessImpactResult[];
+  appliedRules: AppliedPlaybookRule[];
+  resolution?: CaseResolution;
   primaryCausalPath: string;
   company: Company;
   evidenceState: EvidenceState;
@@ -272,7 +329,7 @@ export interface CopilotContext {
 export interface CausalNode {
   id: string;
   label: string;
-  kind: "source" | "mechanism" | "company" | "observation";
+  kind: "source" | "mechanism" | "company" | "observation" | "business-impact";
   detail: string;
   sourceType?: MarketEvent["sourceType"] | "market" | "financial";
   direction?: ImpactDirection;
@@ -299,6 +356,21 @@ export interface CausalEdge {
   alternativeExplanation: string;
   falsificationCondition: string;
   confidenceBasis: string;
+  businessImpactDimension: BusinessImpactDimension;
+  businessImpactImplication: string;
+  citations: Citation[];
+}
+
+export interface CompetingHypothesis {
+  id: string;
+  rank: number;
+  claim: string;
+  targetObservable: string;
+  supportingEvidence: string;
+  counterEvidence: string;
+  discriminator: string;
+  status: "leading" | "plausible" | "challenged";
+  confidence: "High" | "Medium" | "Low";
   citations: Citation[];
 }
 
@@ -306,6 +378,8 @@ export interface CausalGraph {
   targetSymbol: SymbolCode;
   nodes: CausalNode[];
   edges: CausalEdge[];
+  targetObservable: string;
+  competingHypotheses: CompetingHypothesis[];
   hiddenRelationshipCount: number;
   asOf: string;
 }
@@ -324,10 +398,10 @@ export interface NewsProvider {
 }
 
 export interface AgentEngine {
-  analyzeCompany(symbol: string, profile: UserProfile): AnalysisCase | null;
+  analyzeCompany(symbol: string, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null;
   mapEventImpact(eventId: string, profile: UserProfile, scope: "watchlist" | "market"): MarketEvent | null;
   answerFollowUp(request: ChatRequest): ChatAnswer;
-  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number }): CausalGraph | null;
+  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext }): CausalGraph | null;
 }
 
 export interface MemoryStore {

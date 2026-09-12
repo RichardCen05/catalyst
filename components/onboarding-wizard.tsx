@@ -5,19 +5,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, ArrowRight, Check, Compass, Database, Eye } from "lucide-react";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
-import type { Horizon, SymbolCode } from "@/lib/types";
+import type { SymbolCode } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const horizons: Array<{ id: Horizon; label: string; detail: string }> = [
-  { id: "event", label: "Event", detail: "1-3 hari" },
-  { id: "swing", label: "Swing", detail: "1-4 minggu" },
-  { id: "position", label: "Position", detail: "1-3 bulan" },
-];
-
 export function OnboardingWizard() {
   const [step, setStep] = useState(1);
-  const { profile, setWatchlist, setHorizon, completeOnboarding } = useCatalystStore();
+  const { profile, setWatchlist, completeOnboarding } = useCatalystStore();
   const readyCompanies = companies.filter((company) => company.analyzed);
   const readySelected = profile.watchlist.filter((item) => readyCompanies.some((company) => company.symbol === item));
   const toggleTicker = (symbol: SymbolCode) => {
@@ -40,13 +34,13 @@ export function OnboardingWizard() {
 
           <div className="min-h-[330px] p-5 sm:p-6">
             {step === 1 ? <div>
-              <h2 className="text-lg font-semibold">Pilih fokus awal</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Mulai dari emiten yang case-nya siap. Watchlist dan horizon dapat diubah lagi lewat settings.</p>
+              <h2 className="text-lg font-semibold">Build your event-driven watchlist</h2>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Catalyst is built for a discretionary event-driven IDX investor reviewing 10–30 names after a material change. Choose the prepared cases for this prototype.</p>
               <div className="mt-5 grid gap-2 sm:grid-cols-3">{readyCompanies.map((company) => {
                 const selected = profile.watchlist.includes(company.symbol);
                 return <button key={company.symbol} onClick={() => toggleTicker(company.symbol)} aria-pressed={selected} className={cn("min-h-16 cursor-pointer rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted")}><span className="flex items-center justify-between"><span className="font-mono text-sm font-semibold">{company.symbol}</span>{selected ? <Check aria-hidden="true" className="size-4 text-primary" /> : null}</span><span className="mt-1 block truncate text-xs text-muted-foreground">{company.subsector}</span></button>;
               })}</div>
-              <fieldset className="mt-6"><legend className="text-sm font-medium">Horizon</legend><div className="mt-2 grid gap-2 sm:grid-cols-3">{horizons.map((item) => <button key={item.id} onClick={() => setHorizon(item.id)} aria-pressed={profile.config.horizon === item.id} className={cn("min-h-14 cursor-pointer rounded-lg border px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", profile.config.horizon === item.id ? "border-primary bg-primary/10" : "border-border bg-background")}><span className="block text-sm font-semibold">{item.label}</span><span className="block font-mono text-[10px] text-muted-foreground">{item.detail}</span></button>)}</div></fieldset>
+              <div className="mt-6 border-t border-border pt-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Fixed research ritual</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Review material deltas → open one Research Case → challenge competing explanations → save a resolution.</p></div>
             </div> : null}
 
             {step === 2 ? <div>

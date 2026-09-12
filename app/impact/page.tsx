@@ -8,6 +8,7 @@ import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { CausalGraph, MarketEvent, SymbolCode } from "@/lib/types";
 import { CausalChain } from "@/components/causal-chain";
+import { CompetingHypotheses } from "@/components/competing-hypotheses";
 import { CitationDialog } from "@/components/citation-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
@@ -42,6 +43,9 @@ function filterSource(graph: CausalGraph, sourceType: keyof typeof sourceLabels)
 function ImpactContent() {
   const searchParams = useSearchParams();
   const profile = useCatalystStore((state) => state.profile);
+  const playbook = useCatalystStore((state) => state.playbook);
+  const caseMandates = useCatalystStore((state) => state.caseMandates);
+  const caseResolutions = useCatalystStore((state) => state.caseResolutions);
   const eventParam = events.find((event) => event.id === searchParams.get("event"));
   const companyParam = (searchParams.get("case") ?? searchParams.get("company"))?.toUpperCase() as SymbolCode | undefined;
   const requestedSymbol = companies.some((company) => company.symbol === companyParam && company.analyzed)
@@ -53,7 +57,7 @@ function ImpactContent() {
   const [sourceType, setSourceType] = useState<keyof typeof sourceLabels>("all");
   const availableCompanies = useMemo(() => companies.filter((company) => company.analyzed && (scope === "market" || profile.watchlist.includes(company.symbol))), [profile.watchlist, scope]);
   const activeSymbol = availableCompanies.some((company) => company.symbol === symbol) ? symbol : availableCompanies[0]?.symbol ?? symbol;
-  const baseGraph = useMemo(() => agentEngine.buildCausalGraph(activeSymbol, profile, { scope, minRelevance: minimum }), [activeSymbol, minimum, profile, scope]);
+  const baseGraph = useMemo(() => agentEngine.buildCausalGraph(activeSymbol, profile, { scope, minRelevance: minimum, context: { mandate: caseMandates[activeSymbol], playbook, resolution: caseResolutions[activeSymbol] } }), [activeSymbol, caseMandates, caseResolutions, minimum, playbook, profile, scope]);
   const graph = useMemo(() => baseGraph ? filterSource(baseGraph, sourceType) : null, [baseGraph, sourceType]);
   const relatedEvents = events.filter((event) => {
     const link = event.impactLinks.find((item) => item.symbol === activeSymbol);
@@ -74,7 +78,7 @@ function ImpactContent() {
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><p><Eye aria-hidden="true" className="mr-1.5 inline size-3.5 text-primary" />Default membatasi tiga jalur agar chain tetap terbaca.</p>{graph?.hiddenRelationshipCount ? <button onClick={() => { setMinimum(0); setSourceType("all"); }} className="min-h-9 cursor-pointer self-start rounded-md px-2 font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Longgarkan filter · {graph.hiddenRelationshipCount} jalur tersisa</button> : <span className="font-mono text-[10px] text-positive">Semua jalur pada filter tampil</span>}</div>
       </Panel>
 
-      {graph ? <CausalChain key={`${activeSymbol}-${minimum}-${sourceType}`} graph={graph} /> : <Panel className="p-10 text-center"><SearchX aria-hidden="true" className="mx-auto size-7 text-muted-foreground" /><h2 className="mt-3 font-semibold">Belum ada chain pada scope ini</h2><p className="mt-1 text-sm text-muted-foreground">Pilih market atau emiten lain. Catalyst tidak membuat hubungan pengganti.</p></Panel>}
+      {graph ? <><CompetingHypotheses graph={graph} /><CausalChain key={`${activeSymbol}-${minimum}-${sourceType}`} graph={graph} /></> : <Panel className="p-10 text-center"><SearchX aria-hidden="true" className="mx-auto size-7 text-muted-foreground" /><h2 className="mt-3 font-semibold">Belum ada chain pada scope ini</h2><p className="mt-1 text-sm text-muted-foreground">Pilih market atau emiten lain. Catalyst tidak membuat hubungan pengganti.</p></Panel>}
 
       <details className="mt-4 rounded-xl border border-border bg-surface shadow-panel"><summary className="flex min-h-14 cursor-pointer items-center px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Daftar input terhubung · {relatedEvents.length}</summary>{relatedEvents.length ? <div className="grid gap-3 border-t border-border p-4 md:grid-cols-2">{relatedEvents.map((event) => { const link = event.impactLinks.find((item) => item.symbol === activeSymbol)!; return <article key={event.id} className="rounded-lg border border-border bg-background p-3"><div className="flex flex-wrap items-center gap-2"><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">{event.sourceType}</span><StatusBadge status={link.direction} /><span className="ml-auto font-mono text-[9px] text-muted-foreground">{link.relevance}/100</span></div><h3 className="mt-2 text-sm font-semibold leading-5">{event.title}</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">{link.path}</p><div className="mt-3 flex items-center justify-between gap-2"><span className="font-mono text-[9px] text-muted-foreground">{formatAsOf(event.publishedAt)} WIB</span><CitationDialog citations={event.citations} label="Buka sumber" /></div></article>; })}</div> : <div className="border-t border-border p-6 text-center text-sm text-muted-foreground">Tidak ada sumber pada filter ini.</div>}</details>
     </div>

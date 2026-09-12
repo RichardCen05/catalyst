@@ -290,7 +290,7 @@ export const demoProfiles: UserProfile[] = [
   {
     id: "flow-first", name: "Raka", description: "Flow-first, mencari konfirmasi partisipan sebelum membaca peristiwa.",
     watchlist: ["ANTM", "BBCA", "BBRI", "TLKM", "PGAS", "ICBP"], owned: ["ANTM", "BBCA", "TLKM"],
-    config: { horizon: "swing", depth: "standard", pillarOrder: ["concentration", "volume", "momentum", "catalyst"] },
+    config: { horizon: "event", depth: "standard", pillarOrder: ["concentration", "volume", "momentum", "catalyst"] },
     preferredSectors: ["Basic Materials", "Financials", "Infrastructure"], preferredEventTypes: ["commodity", "company"], hasOnboarded: false,
   },
   {

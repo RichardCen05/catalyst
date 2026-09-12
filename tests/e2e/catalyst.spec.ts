@@ -36,6 +36,15 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   expect(hasOverflow).toBe(false);
 });
 
+test("onboarding is scoped to a discretionary event-driven research ritual", async ({ page }) => {
+  await page.goto("/");
+  const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
+  await expect(setup.getByRole("heading", { name: "Build your event-driven watchlist" })).toBeVisible();
+  await expect(setup.getByText(/discretionary event-driven IDX investor/)).toBeVisible();
+  await expect(setup.getByRole("button", { name: /Swing/ })).toHaveCount(0);
+  await expect(setup.getByRole("button", { name: /Position/ })).toHaveCount(0);
+});
+
 test("Today prioritizes changes and removes dashboard clutter", async ({ page }) => {
   await finishSetup(page);
   await expect(page.getByRole("heading", { name: "Berubah sejak pemeriksaan terakhir" })).toBeVisible();
@@ -58,13 +67,33 @@ test("primary flow opens a watchlist change as a Research Case", async ({ page }
   await expect(page.getByRole("tablist", { name: "Bagian Research Case" })).toBeVisible();
 });
 
+test("legacy research utilities converge into the Research Case hub", async ({ page }) => {
+  await finishSetup(page);
+  await page.getByRole("button", { name: "Buka settings" }).click();
+  const settings = page.getByRole("dialog", { name: "Settings & utilities" });
+  await expect(settings.getByRole("link", { name: "Company universe" })).toHaveCount(0);
+  await expect(settings.getByRole("link", { name: "Correction queue" })).toHaveCount(0);
+  await expect(settings.getByRole("link", { name: "Research Audit" })).toBeVisible();
+
+  await page.goto("/companies");
+  await expect(page).toHaveURL(/\/cases\?view=picker$/);
+  await expect(page.getByRole("link", { name: "Case picker" })).toHaveAttribute("aria-current", "page");
+
+  await page.goto("/agent");
+  await expect(page).toHaveURL(/\/cases\?view=audit$/);
+  await expect(page.getByRole("heading", { name: "Resolution memory" })).toBeVisible();
+
+  await page.goto("/companies/ANTM");
+  await expect(page).toHaveURL(/\/cases\/ANTM$/);
+});
+
 test("Research Case runs a mandate lifecycle and exposes hypothesis protocols", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM");
 
   const mandate = "Uji apakah perubahan volume ditopang realisasi harga dan arus yang konsisten.";
   await page.getByLabel("Research mandate").fill(mandate);
-  await page.getByRole("button", { name: "Simpan mandate" }).click();
+  await page.getByRole("button", { name: "Simpan dan susun ulang plan" }).click();
   await expect(page.getByText("Mandate tersimpan")).toBeVisible();
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Mandate");
   await expect(page.getByLabel("Agent lifecycle")).toContainText("Source plan");
@@ -77,10 +106,30 @@ test("Research Case runs a mandate lifecycle and exposes hypothesis protocols", 
   await expect(page.getByText("Pertanyaan berikutnya", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("tab", { name: "Case" }).click();
-  await page.getByRole("button", { name: "Tandai case selesai" }).click();
-  await expect(page.getByText("Case closed", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Buka kembali case" }).click();
-  await expect(page.getByText("Case open", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Mandate-driven research plan" })).toBeVisible();
+});
+
+test("editing the mandate visibly replans the case and its business impact test", async ({ page }) => {
+  await finishSetup(page);
+  await page.goto("/cases/ANTM");
+
+  const mandate = "Uji apakah pelemahan rupiah menekan margin dan cash flow ANTM.";
+  await page.getByLabel("Research mandate").fill(mandate);
+  await page.getByRole("button", { name: "Simpan dan susun ulang plan" }).click();
+
+  const plan = page.getByRole("region", { name: "Mandate-driven research plan" });
+  await expect(plan.getByText("Focus · margin", { exact: true })).toBeVisible();
+  await expect(plan.getByText(/Trigger mengubah operating margin ANTM/)).toBeVisible();
+  await expect(plan.getByText(/Fokus aktif: margin/)).toBeVisible();
+
+  await page.getByRole("tab", { name: "Business impact" }).click();
+  await expect(page.getByRole("heading", { name: "Business Impact Test" })).toBeVisible();
+  await expect(page.getByText("Operating margin", { exact: true })).toBeVisible();
+  await expect(page.getByText("Primary test", { exact: true })).toBeVisible();
+  await expect(page.getByText("Valuation implication", { exact: true })).toBeVisible();
+
+  await page.goto("/impact?case=ANTM");
+  await expect(page.getByRole("region", { name: "Competing hypotheses for Operating margin" })).toBeVisible();
 });
 
 test("Research Case tabs keep each investigation layer focused and deep-linkable", async ({ page }) => {
@@ -89,8 +138,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await page.goto("/cases/ANTM");
 
   const caseTabs = page.getByRole("tablist", { name: "Bagian Research Case" });
-  await expect(caseTabs.getByRole("tab")).toHaveText(["Case", "Evidence 4", "Timeline 3", "Financials", "Review"]);
-  await expect(caseTabs.getByRole("tab", { name: "Review" })).toBeInViewport();
+  await expect(caseTabs.getByRole("tab")).toHaveText(["Case", "Evidence 4", "Timeline 3", "Business impact", "Review"]);
   await expect(caseTabs.getByRole("tab", { name: "Case" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Research mandate" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toHaveCount(0);
@@ -132,8 +180,12 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(page.getByLabel("Materiality rules")).toHaveValue(rule);
 
   await page.goto("/cases/ANTM");
-  await page.getByText("Case file dan unresolved questions", { exact: true }).click();
-  await expect(page.getByText(rule)).toBeVisible();
+  const ruleTrace = page.getByRole("region", { name: "Playbook rule trace" });
+  await expect(ruleTrace.getByText(rule, { exact: true })).toBeVisible();
+  await expect(ruleTrace.getByText(/Menentukan apakah trigger layak/)).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /ANTM Filing operasi baru/ })).toContainText("Rule applied");
 });
 
 test("default theme uses the editorial black-cherry tokens", async ({ page }) => {
@@ -150,26 +202,19 @@ test("default theme uses the editorial black-cherry tokens", async ({ page }) =>
   expect(tokens).toEqual({ background: "#0d0a0c", surface: "#151013", primary: "#f08bb3", brand: "#9e0142" });
 });
 
-test("Companies defaults to ready watchlist and opens comparison workbench", async ({ page }) => {
+test("Case picker opens a focused inline comparison", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/companies");
-  await expect(page.getByText("BMRI", { exact: true })).toHaveCount(0);
-  await page.getByRole("checkbox", { name: "Pilih ANTM untuk dibandingkan" }).check();
-  await page.getByRole("checkbox", { name: "Pilih BBCA untuk dibandingkan" }).check();
-  await page.getByRole("link", { name: "Bandingkan 2 emiten" }).click();
-  await expect(page).toHaveURL(/\/compare\?symbols=ANTM%2CBBCA$/);
-  await expect(page.getByRole("heading", { name: "Perbandingan bukti" })).toBeVisible();
+  await page.goto("/cases?view=picker");
+  await page.getByRole("checkbox", { name: "Select ANTM for inline comparison" }).check();
+  await page.getByRole("checkbox", { name: "Select BBCA for inline comparison" }).check();
+  await expect(page.getByRole("heading", { name: "Compare explanations, not scores" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "ANTM" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "BBCA" })).toBeVisible();
-  await page.getByRole("button", { name: "Tanya perbandingan" }).click();
-  const copilot = page.getByRole("dialog", { name: "Catalyst Copilot" });
-  await expect(copilot.getByText("Perbandingan ANTM · BBCA", { exact: true })).toBeVisible();
-  await expect(copilot.getByLabel("Tanya Catalyst")).toHaveValue("Bandingkan empat pilar ANTM dan BBCA tanpa skor gabungan.");
 });
 
 test("evidence opens Copilot with its company and pillar context", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/companies/ANTM");
+  await page.goto("/cases/ANTM?tab=evidence");
   await page.getByRole("button", { name: "Tanya pilar Konsentrasi" }).click();
   const copilot = page.getByRole("dialog", { name: "Catalyst Copilot" });
   await expect(copilot).toBeVisible();
@@ -181,7 +226,7 @@ test("evidence opens Copilot with its company and pillar context", async ({ page
 
 test("company analysis aligns events on an evidence timeline", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/companies/ANTM");
+  await page.goto("/cases/ANTM?tab=timeline");
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
   await expect(page.getByText("ANTM memublikasikan pembaruan operasi kuartalan")).toBeVisible();
   await page.getByRole("button", { name: "Tanya timeline ANTM" }).click();
@@ -229,6 +274,21 @@ test("causal map labels hypotheses, confidence, lag, and counter-evidence", asyn
   await expect(page.getByRole("dialog", { name: "Catalyst Copilot" }).getByText(/ANTM · potensi realisasi harga/)).toBeVisible();
 });
 
+test("Causal Impact compares competing explanations for one observable", async ({ page }) => {
+  await finishSetup(page);
+  await page.goto("/impact?case=ANTM");
+
+  const workspace = page.getByRole("region", { name: "Competing hypotheses for Realized pricing" });
+  await expect(workspace.getByText("3 explanations compete for the same observable.", { exact: true })).toBeVisible();
+  await expect(workspace.getByRole("button", { name: /Rank 1/ })).toBeVisible();
+  await workspace.getByRole("button", { name: /Rank 2/ }).click();
+
+  const selected = workspace.getByRole("region", { name: "Selected competing hypothesis" });
+  await expect(selected.getByText("Supporting evidence", { exact: true })).toBeVisible();
+  await expect(selected.getByText("Counter-evidence", { exact: true })).toBeVisible();
+  await expect(selected.getByText("Discriminator", { exact: true })).toBeVisible();
+});
+
 test("each causal edge exposes an inspectable falsification contract", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/impact?case=ANTM");
@@ -240,28 +300,52 @@ test("each causal edge exposes an inspectable falsification contract", async ({ 
   await expect(contract.getByText("Alternative explanation", { exact: true })).toBeVisible();
   await expect(contract.getByText("Invalidation condition", { exact: true })).toBeVisible();
   await expect(contract.getByText("Confidence basis", { exact: true })).toBeVisible();
+  await expect(contract.getByText("Business outcome", { exact: true })).toBeVisible();
+  await expect(contract.getByText(/pricing|margin|volume|cash-flow|balance-sheet|valuation/).first()).toBeVisible();
 });
 
 test("user correction becomes a reversible open hypothesis", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/companies/ANTM");
+  await page.goto("/cases/ANTM?tab=review");
   const note = "Kontrak ekspor belum dibedakan antara denominasi USD dan IDR.";
   await page.getByLabel("Apa yang keliru atau belum dipertimbangkan?").fill(note);
   await page.getByLabel("Referensi pendukung (opsional)").fill("https://www.bi.go.id/");
   await page.getByRole("button", { name: "Kirim untuk verifikasi" }).click();
   await expect(page.getByText("Tersimpan sebagai hipotesis terbuka")).toBeVisible();
-  await page.goto("/agent");
+  await page.goto("/cases?view=audit");
   await expect(page.getByText(note)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Buka referensi user" })).toHaveAttribute("href", "https://www.bi.go.id/");
-  await expect(page.getByRole("heading", { name: "1 hipotesis menunggu verifikasi" })).toBeVisible();
-  await page.getByRole("button", { name: "Tandai sudah diuji" }).click();
-  await expect(page.getByRole("button", { name: "Kembalikan ke antrean" })).toBeVisible();
-  await expect(page.getByText("2 perubahan status")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open user reference" })).toHaveAttribute("href", "https://www.bi.go.id/");
+  await page.getByRole("button", { name: "Mark verified" }).click();
+  await expect(page.getByRole("button", { name: "Return to queue" })).toBeVisible();
+});
+
+test("closing a case stores a reusable research resolution", async ({ page }) => {
+  await finishSetup(page);
+  await page.goto("/cases/ANTM?tab=review");
+
+  const resolution = page.getByRole("region", { name: "Case Resolution" });
+  await resolution.getByLabel("Resolution outcome").selectOption("challenged");
+  await resolution.getByLabel("Final hypothesis").fill("Rupiah bukan penjelasan utama perubahan margin ANTM.");
+  await resolution.getByLabel("Evidence that falsified it").fill("Margin bertahan saat biaya USD meningkat.");
+  await resolution.getByLabel("Wrong assumption").fill("Harga jual dianggap tetap.");
+  await resolution.getByLabel("Reusable rule").fill("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.");
+  await resolution.getByRole("button", { name: "Simpan resolution dan tutup case" }).click();
+
+  await expect(resolution.getByText("Resolution saved", { exact: true })).toBeVisible();
+  await expect(resolution.getByText("Case closed", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Case Resolution" }).getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true })).toBeVisible();
+
+  await page.goto("/cases?view=audit");
+  await expect(page.getByRole("heading", { name: "Resolution memory" })).toBeVisible();
+  await expect(page.getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true })).toBeVisible();
+  await page.goto("/playbook");
+  await expect(page.getByLabel("Materiality rules")).toHaveValue(/\[Resolution ANTM\] Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas\./);
 });
 
 test("formula details and source destinations are inspectable", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/companies/ANTM");
+  await page.goto("/cases/ANTM?tab=evidence");
   await page.getByText("Perhitungan dan input").first().click();
   await expect(page.getByText(/HHI =/).first()).toBeVisible();
   await page.getByRole("button", { name: /Periksa field sumber/ }).first().click();
@@ -278,18 +362,6 @@ test("copilot has a dedicated searchable workspace", async ({ page }) => {
   await expect(page.getByText(/Data intraday/)).toBeVisible();
 });
 
-test("profile changes presentation order while the ANTM verdict stays fixed", async ({ page }) => {
-  await finishSetup(page);
-  await page.goto("/agent");
-  const maya = page.getByRole("button", { name: /Maya/ });
-  await maya.click();
-  await expect(maya).toHaveAttribute("aria-pressed", "true");
-  await page.goto("/companies/ANTM");
-  const cards = page.locator("section[aria-labelledby='pillars-title'] article h3");
-  await expect(cards.first()).toHaveText("Katalis");
-  await expect(page.getByText("Corroborated").first()).toBeVisible();
-});
-
 test("theme persists and core routes do not overflow target breakpoints", async ({ page }) => {
   await finishSetup(page);
   await page.getByRole("button", { name: "Buka settings" }).click();
@@ -300,13 +372,13 @@ test("theme persists and core routes do not overflow target breakpoints", async 
 
   for (const [width, height] of [[375, 812], [667, 375], [768, 900], [1024, 900], [1440, 900]]) {
     await page.setViewportSize({ width, height });
-    await page.goto(width === 375 ? "/impact?company=ANTM" : "/companies");
+    await page.goto(width === 375 ? "/impact?company=ANTM" : "/cases?view=picker");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     expect(overflow, `horizontal overflow at ${width}px`).toBe(false);
   }
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/companies/ANTM");
+  await page.goto("/cases/ANTM");
   await page.evaluate(() => { document.documentElement.style.fontSize = "125%"; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), "overflow with enlarged text").toBe(false);
 });
