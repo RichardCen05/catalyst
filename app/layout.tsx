@@ -11,7 +11,7 @@ const editorial = Newsreader({ subsets: ["latin"], variable: "--font-editorial",
 
 export const metadata: Metadata = {
   title: { default: "Catalyst", template: "%s | Catalyst" },
-  description: "Watchlist change investigator untuk menguji apa yang berubah, mengapa, dan bukti pembatalnya.",
+  description: "Pemeriksa perubahan saham untuk menguji apa yang berubah, penyebabnya, dan bukti pembatalnya.",
   icons: { icon: "/catalyst-mark.png", apple: "/catalyst-mark.png" },
 };
 

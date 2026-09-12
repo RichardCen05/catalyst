@@ -61,8 +61,8 @@ interface CatalystState {
 }
 
 const basePreferences: LearnedPreference[] = [
-  { id: "pref-order", label: "Mulai dari Konsentrasi", explanation: "Dipilih langsung saat setup.", source: "explicit", active: true },
-  { id: "pref-sector", label: "Prioritaskan Basic Materials", explanation: "Berasal dari watchlist aktif.", source: "explicit", active: true },
+  { id: "pref-order", label: "Mulai dari Konsentrasi", explanation: "Dipilih langsung saat pengaturan awal.", source: "explicit", active: true },
+  { id: "pref-sector", label: "Prioritaskan bahan dasar", explanation: "Berasal dari daftar pantauan aktif.", source: "explicit", active: true },
 ];
 
 export const defaultPlaybook: InvestorResearchPlaybook = {
@@ -91,14 +91,14 @@ export const defaultPlaybook: InvestorResearchPlaybook = {
     "ADRO: harga acuan perlu diuji bersama volume dan biaya produksi.",
     "PTBA: perubahan harga perlu diuji terhadap DMO dan biaya logistik.",
   ],
-  trustedSources: ["Sectors financials dan filing perusahaan sebelum berita sekunder."],
+  trustedSources: ["Data keuangan Sectors dan keterbukaan emiten sebelum berita sekunder."],
   falsifiers: [
-    "ANTM: thesis katalis melemah bila volume penjualan atau realisasi harga tidak ikut berubah.",
-    "INCO: thesis melemah bila harga realisasi dan volume produksi tidak mengonfirmasi perubahan nikel.",
-    "TINS: thesis melemah bila volume penjualan dan margin tidak berubah setelah harga timah bergerak.",
-    "PGAS: thesis melemah bila volume distribusi dan margin tidak berubah pada periode kontrak berikutnya.",
-    "ADRO: thesis melemah bila volume penjualan atau margin tidak mengonfirmasi perubahan batu bara.",
-    "PTBA: thesis melemah bila realisasi harga dan arus kas tidak bergerak setelah faktor DMO diperhitungkan.",
+    "ANTM: hipotesis katalis melemah bila volume penjualan atau realisasi harga tidak ikut berubah.",
+    "INCO: hipotesis melemah bila harga realisasi dan volume produksi tidak mengonfirmasi perubahan nikel.",
+    "TINS: hipotesis melemah bila volume penjualan dan margin tidak berubah setelah harga timah bergerak.",
+    "PGAS: hipotesis melemah bila volume distribusi dan margin tidak berubah pada periode kontrak berikutnya.",
+    "ADRO: hipotesis melemah bila volume penjualan atau margin tidak mengonfirmasi perubahan batu bara.",
+    "PTBA: hipotesis melemah bila realisasi harga dan arus kas tidak bergerak setelah faktor DMO diperhitungkan.",
   ],
 };
 
@@ -140,7 +140,7 @@ export const useCatalystStore = create<CatalystState>()(
       recordFeedback: (input) => set((state) => {
         const feedback: FeedbackEvent = { ...input, id: `fb-${Date.now()}`, createdAt: new Date().toISOString() };
         const label = input.action === "show-more" ? "Tampilkan analisis lebih dalam" : input.action === "useful" ? "Sumber ini berguna" : "Kurangi prioritas kasus serupa";
-        const learned: LearnedPreference = { id: `learned-${feedback.id}`, label, explanation: "Dipelajari dari feedback yang dapat dibatalkan.", source: "feedback", active: true };
+        const learned: LearnedPreference = { id: `learned-${feedback.id}`, label, explanation: "Dipelajari dari masukan yang dapat dibatalkan.", source: "feedback", active: true };
         return { feedback: [feedback, ...state.feedback], preferences: [learned, ...state.preferences] };
       }),
       recordInsight: (input) => set((state) => {
@@ -149,7 +149,7 @@ export const useCatalystStore = create<CatalystState>()(
         const learned: LearnedPreference = {
           id: `learned-${insight.id}`,
           label: `Verifikasi ulang ${insight.symbol}${insight.pillar ? ` · ${insight.pillar}` : ""}`,
-          explanation: "Catatan user disimpan sebagai hipotesis terbuka sampai diverifikasi terhadap sumber.",
+          explanation: "Catatan pengguna disimpan sebagai hipotesis terbuka sampai diperiksa terhadap sumber.",
           source: "feedback",
           active: true,
         };
@@ -185,7 +185,7 @@ export const useCatalystStore = create<CatalystState>()(
       setRuleProposalStatus: (id, status) => set((state) => {
         const proposal = state.ruleProposals.find((item) => item.id === id);
         if (!proposal) return state;
-        const prefixedRule = `[Accepted ${proposal.symbol}] ${proposal.rule}`;
+        const prefixedRule = `[Disetujui ${proposal.symbol}] ${proposal.rule}`;
         const playbook = status === "accepted"
           ? proposal.kind === "materiality"
             ? { ...state.playbook, materialityRules: [...state.playbook.materialityRules.filter((item) => item !== prefixedRule), prefixedRule] }

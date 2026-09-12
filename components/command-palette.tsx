@@ -7,13 +7,13 @@ import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConic
 import { Button } from "@/components/ui/button";
 
 const actions = [
-  { label: "Buka Today", href: "/", icon: BarChart3 },
-  { label: "Buka Research Cases", href: "/cases", icon: BriefcaseBusiness },
-  { label: "Buka competing hypotheses ANTM", href: "/cases/ANTM?tab=hypotheses", icon: GitBranch },
-  { label: "Tanya Catalyst Copilot", href: "/copilot", icon: Bot },
-  { label: "Edit Investor Research Playbook", href: "/playbook", icon: BookOpenCheck },
-  { label: "Buka company universe", href: "/companies", icon: Building2 },
-  { label: "Baca method & limits", href: "/method", icon: FlaskConical },
+  { label: "Buka Hari ini", href: "/", icon: BarChart3 },
+  { label: "Buka Kasus", href: "/cases", icon: BriefcaseBusiness },
+  { label: "Buka Sebab akibat ANTM", href: "/impact?company=ANTM", icon: GitBranch },
+  { label: "Tanya asisten Catalyst", href: "/copilot", icon: Bot },
+  { label: "Edit aturan riset", href: "/playbook", icon: BookOpenCheck },
+  { label: "Buka daftar emiten", href: "/companies", icon: Building2 },
+  { label: "Baca metode dan batas", href: "/method", icon: FlaskConical },
 ];
 
 export function CommandPalette() {
@@ -41,7 +41,7 @@ export function CommandPalette() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <Button variant="secondary" size="sm" aria-label="Buka command palette" className="hidden w-full justify-start text-muted-foreground lg:flex">
+        <Button variant="secondary" size="sm" aria-label="Buka pencarian" className="hidden w-full justify-start text-muted-foreground lg:flex">
           <Search aria-hidden="true" className="size-4" />
           <span>Cari atau buka</span><kbd className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-[10px]">/</kbd>
         </Button>
@@ -49,11 +49,11 @@ export function CommandPalette() {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
         <Dialog.Content className="fixed left-1/2 top-[16vh] z-100 w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-2xl focus:outline-none">
-          <Dialog.Title className="sr-only">Command palette</Dialog.Title>
+          <Dialog.Title className="sr-only">Pencarian halaman</Dialog.Title>
           <div className="flex items-center gap-2 border-b border-border px-4">
             <Search aria-hidden="true" className="size-4 text-muted-foreground" />
             <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari halaman..." className="h-14 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground" aria-label="Cari halaman" />
-            <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup command palette"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close>
+            <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup pencarian"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close>
           </div>
           <div className="p-2">
             {filtered.map((action) => (

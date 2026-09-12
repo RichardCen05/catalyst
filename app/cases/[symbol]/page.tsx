@@ -11,5 +11,5 @@ export default async function ResearchCasePage({ params }: { params: Promise<{ s
   const { symbol } = await params;
   const company = companies.find((item) => item.symbol === symbol.toUpperCase() && item.analyzed);
   if (!company) notFound();
-  return <Suspense fallback={<div className="min-h-64 rounded-[12px] border border-border bg-surface" role="status"><span className="sr-only">Memuat Research Case</span></div>}><CompanyDetailClient symbol={company.symbol} workspaceTabs /></Suspense>;
+  return <Suspense fallback={<div className="min-h-64 rounded-[12px] border border-border bg-surface" role="status"><span className="sr-only">Memuat kasus</span></div>}><CompanyDetailClient symbol={company.symbol} workspaceTabs /></Suspense>;
 }

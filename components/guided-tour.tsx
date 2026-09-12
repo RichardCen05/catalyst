@@ -28,80 +28,47 @@ interface TargetRect {
 const steps: TourStep[] = [
   {
     id: "today",
-    title: "Temukan perubahan material",
-    body: "Today menyaring watchlist menjadi perubahan yang layak diselidiki. Anda tidak perlu membaca seluruh pasar.",
-    action: "Klik case ANTM yang disorot.",
-    outcome: "Anda akan membuka satu ruang investigasi, bukan halaman profil saham biasa.",
+    title: "Pilih perubahan yang penting",
+    body: "Mulai setiap hari dari daftar perubahan pada saham yang Anda pantau.",
+    action: "Pilih kasus ANTM yang disorot.",
+    outcome: "Anda melihat apa yang berubah, pembandingnya, dan alasan kasus ini penting.",
     href: "/",
     selector: '[data-tour-action="open-antm-case"]',
     actionSelector: '[data-tour-action="open-antm-case"]',
-    destination: "Today",
+    destination: "Hari ini",
   },
   {
     id: "clarify",
-    title: "Pilih outcome yang diuji",
-    body: "Mandate awal masih ambigu. Agent berhenti sebelum meranking penyebab dan menawarkan dua interpretasi yang memakai sumber serta observable berbeda.",
-    action: "Pilih opsi pertama pada Clarification gate.",
-    outcome: "Pilihan Anda membuka hypothesis tree dan source plan yang spesifik pada pricing.",
+    title: "Tentukan yang ingin dibuktikan",
+    body: "Pertanyaan awal belum cukup spesifik. Pilih hasil bisnis agar Catalyst tidak menebak.",
+    action: "Pilih opsi Realisasi harga.",
+    outcome: "Sumber dan indikator berikutnya mengikuti pilihan Anda.",
     href: "/cases/ANTM",
     selector: '[data-tour-action="resolve-clarification"]',
     actionSelector: '[data-tour-action="resolve-clarification"]',
-    destination: "Case · clarification",
+    destination: "Kasus",
   },
   {
-    id: "market",
-    title: "Konfirmasi gerak pasar",
-    body: "Market Confirmation menguji apakah perubahan terlihat serempak pada konsentrasi, volume, dan momentum—tanpa melebur ketiganya menjadi skor.",
-    action: "Klik tab “Market confirmation”.",
-    outcome: "Anda dapat membuka formula, input, bukti pendukung, dan bukti penyangkal tiap pemeriksaan.",
+    id: "impact",
+    title: "Lacak penyebab dan dampaknya",
+    body: "Kasus sudah merangkum bukti pasar dan dampak bisnis. Sekarang lihat jalur yang menghubungkannya.",
+    action: "Pilih Buka sebab akibat.",
+    outcome: "Anda melihat penyebab yang bersaing, jalur ke emiten, dan kondisi pembatalnya.",
     href: "/cases/ANTM",
-    selector: '[data-tour-action="open-market"]',
-    actionSelector: '[data-tour-action="open-market"]',
-    destination: "Case · market confirmation",
+    selector: '[data-tour-action="open-impact"]',
+    actionSelector: '[data-tour-action="open-impact"]',
+    destination: "Kasus",
   },
   {
-    id: "business",
-    title: "Uji transmisi ke bisnis",
-    body: "Gerak pasar belum cukup. Business Transmission memeriksa katalis, exposure perusahaan, dan observable finansial tempat dampak seharusnya muncul.",
-    action: "Klik tab “Business transmission”.",
-    outcome: "Jalur wajib berakhir pada volume, pricing, margin, cash flow, balance sheet, atau valuation implication.",
-    href: "/cases/ANTM?tab=market",
-    selector: '[data-tour-action="open-business"]',
-    actionSelector: '[data-tour-action="open-business"]',
-    destination: "Case · business transmission",
-  },
-  {
-    id: "hypotheses",
-    title: "Buka hipotesis yang bersaing",
-    body: "Catalyst tidak mengunci satu narasi. Workspace ini membandingkan beberapa penyebab yang berusaha menjelaskan observable yang sama.",
-    action: "Klik tab “Hypotheses”.",
-    outcome: "Anda akan melihat ranking, counter-evidence, discriminator, dan causal chain dalam case yang sama.",
-    href: "/cases/ANTM?tab=business",
-    selector: '[data-tour-action="open-hypotheses"]',
-    actionSelector: '[data-tour-action="open-hypotheses"]',
-    destination: "Case · competing hypotheses",
-  },
-  {
-    id: "compete",
-    title: "Bandingkan penjelasan",
-    body: "Catalyst tidak mengunci satu narasi. Beberapa penyebab bersaing menjelaskan observable yang sama.",
-    action: "Pilih penjelasan peringkat 2.",
-    outcome: "Bandingkan supporting evidence, counter-evidence, dan discriminator-nya.",
-    href: "/cases/ANTM?tab=hypotheses",
-    selector: '[data-tour-action="competing-hypothesis-2"]',
-    actionSelector: '[data-tour-action="competing-hypothesis-2"]',
-    destination: "Case · competing hypotheses",
-  },
-  {
-    id: "copilot",
-    title: "Bawa tantangan ke Copilot",
-    body: "Copilot menerima ticker, hipotesis terpilih, counter-evidence, dan pertanyaan lanjutan sebagai satu konteks.",
-    action: "Klik “Challenge hypothesis”.",
-    outcome: "Prompt akan terisi otomatis; Anda dapat mengubahnya sebelum agent memeriksa fixture.",
-    href: "/cases/ANTM?tab=hypotheses",
-    selector: '[data-tour-action="challenge-hypothesis"]',
-    actionSelector: '[data-tour-action="challenge-hypothesis"]',
-    destination: "Hypothesis → Copilot",
+    id: "action",
+    title: "Tentukan tindakan riset",
+    body: "Setelah bukti dibaca, Catalyst merangkum apakah kasus perlu dilanjutkan, dipantau, atau dihentikan.",
+    action: "Pilih Lihat tindakan riset.",
+    outcome: "Ini tindakan riset, bukan saran transaksi.",
+    href: "/impact?company=ANTM",
+    selector: '[data-tour-action="show-next-action"]',
+    actionSelector: '[data-tour-action="show-next-action"]',
+    destination: "Sebab akibat",
   },
 ];
 
@@ -134,6 +101,12 @@ function GuidedTourContent() {
     normalizedStart.current = true;
     if (pathname !== "/") router.replace("/");
   }, [pathname, router]);
+
+  useEffect(() => {
+    if (complete) return;
+    const expectedPath = current.href.split("?")[0];
+    if (pathname !== expectedPath) router.push(current.href);
+  }, [complete, current.href, pathname, router]);
 
   useEffect(() => {
     const previousPaddingBottom = document.body.style.paddingBottom;
@@ -234,10 +207,11 @@ function GuidedTourContent() {
     <div className="pointer-events-none fixed inset-0 z-[120] bg-background/70" aria-live="polite">
       <section role="dialog" aria-labelledby="guided-tour-complete-title" className="pointer-events-auto absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-w-lg rounded-[12px] border border-primary/35 bg-surface p-5 shadow-2xl sm:bottom-6">
         <span className="grid size-10 place-items-center rounded-[7px] bg-positive/10 text-positive"><Check aria-hidden="true" className="size-5" /></span>
-        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Guided flow complete</p>
-        <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Alur inti selesai</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah menemukan perubahan material, memperjelas outcome, menguji konfirmasi pasar dan transmisi bisnis, lalu menantang satu hipotesis melalui Copilot.</p>
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Prompt sudah terisi dan masih dapat diedit.</p><Button size="sm" onClick={finishTour}>Mulai bertanya<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
+        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tur selesai</p>
+        <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Ritual harian selesai</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah memilih perubahan, menetapkan pertanyaan, melacak sebab akibat, dan menentukan tindakan riset.</p>
+        <div className="mt-4 rounded-[8px] border border-primary/30 bg-primary/8 p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan riset ANTM</p><p className="mt-1 text-sm font-semibold">Lanjutkan riset</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Pantau realisasi harga dan volume penjualan. Ini bukan saran transaksi.</p></div>
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Ulangi alur ini saat ada perubahan baru.</p><Button size="sm" onClick={finishTour}>Selesai<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
       </section>
     </div>
   );
@@ -262,9 +236,9 @@ function GuidedTourContent() {
         </div>
 
         <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
-          <div className="grid w-24 shrink-0 grid-cols-7 gap-1" aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
+          <div className="grid w-24 shrink-0 grid-cols-4 gap-1" aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
           <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
-          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka lokasi</Button> : <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Klik sorotan untuk lanjut</p>}
+          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p>}
         </div>
       </section>
     </div>

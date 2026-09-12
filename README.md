@@ -1,10 +1,10 @@
 # Catalyst
 
-Catalyst adalah prototype **watchlist change investigator** untuk investor discretionary event-driven IDX dan Sectors Hackathon Track 01. Wedge awalnya adalah enam emiten commodity-sensitive—nikel, timah, gas, dan batu bara—karena perubahan harga komoditas, FX, cuaca, produksi, dan regulasi dapat diuji melalui causal contract yang konkret.
+Catalyst adalah prototipe pemeriksa perubahan saham untuk investor IDX yang berfokus pada peristiwa. Cakupan awalnya enam emiten komoditas pada sektor nikel, timah, gas, dan batu bara. Harga komoditas, rupiah, cuaca, produksi, dan regulasi ditelusuri sampai dampaknya pada bisnis.
 
-**Trace the move. Trust the evidence.**
+**Lacak perubahan. Periksa buktinya.**
 
-Semua data pada prototype berupa fixture statis. Tidak ada panggilan pasar langsung, LLM, scraping, penjadwalan, login, database, atau eksekusi transaksi.
+Semua data pada prototipe berupa data contoh statis. Tidak ada panggilan pasar langsung, LLM, pengambilan web, penjadwalan, login, basis data, atau eksekusi transaksi.
 
 ## Jalankan lokal
 
@@ -13,21 +13,19 @@ pnpm install
 pnpm dev
 ```
 
-Buka `http://localhost:3000`, selesaikan setup dua langkah, lalu ikuti tujuh aksi pada guided tour. Spotlight menyorot kontrol nyata dan tur hanya maju setelah user membuka case, menyelesaikan clarification gate, memeriksa Market Confirmation dan Business Transmission, membandingkan hipotesis, lalu membawa konteksnya ke Copilot.
+Buka `http://localhost:3000`, selesaikan pengaturan dua langkah, lalu ikuti empat tindakan pada tur. Tur hanya maju setelah pengguna memilih perubahan, menetapkan pertanyaan, membuka peta sebab akibat, dan melihat tindakan riset.
 
 ## Model produk
 
-- `Research Case` memuat material-change contract, trigger, mandate, working thesis, priority, lifecycle, dua lapisan bukti, causal path, kontradiksi, counter-evidence, disposition, catatan user, source plan, dan unresolved questions.
-- Perubahan mandate menyusun ulang hypothesis tree, source plan, observable contract, clarification gate, dan Business Impact Test yang terlihat di UI.
-- Setiap protokol mengungkap klaim, bukti pendukung, bukti penyangkal, kondisi insufficient, pertanyaan berikutnya, formula, input, dan citation metadata.
-- `Investor Research Playbook` menyimpan preferred comparables, materiality rules, known exposure, thesis assumptions, trusted sources, dan falsifiers yang ditulis eksplisit oleh user.
-- Priority dan ranking menyebutkan Playbook rule yang diterapkan; rule tidak mengubah fakta, formula, atau verdict bukti.
-- Tab `Hypotheses` di dalam Research Case membandingkan beberapa penyebab terhadap observable yang sama. Setiap causal edge memiliki exposure, expected observable, alternative explanation, lag, confidence basis, invalidation condition, serta implikasi volume, pricing, margin, cash flow, balance sheet, atau valuation.
-- `Case Resolution` menyimpan hipotesis akhir, bukti pembatal, asumsi yang salah, dan rule yang boleh digunakan ulang.
-- Navigasi utama hanya berisi Today, Research Cases, dan Copilot. Impact menyatu ke tab Hypotheses; Company universe serta Compare menyatu ke Case picker; correction queue, resolution memory, dan rule proposals menyatu ke Research Audit.
-- Clarification gate memblokir plan ketika mandate tidak menyebut outcome bisnis. Agent menawarkan dua interpretasi beserta konsekuensi sumber dan observable sebelum melanjutkan.
-- Setiap case berakhir pada Research Disposition: `Escalate research`, `Monitor observable`, atau `Dismiss trigger`, dengan alasan dan kondisi pembuka kembali.
-- Case Resolution membuat proposal materiality rule atau falsifier. Proposal tidak pernah mengubah Playbook sampai user menerimanya di Research Audit.
+- Hari ini menunjukkan perubahan baru, pembanding, alasan material, dan tindakan riset.
+- Kasus memisahkan ringkasan, konfirmasi pasar, dampak bisnis, dan tinjauan agar informasi tidak menumpuk.
+- Sebab akibat menjadi ruang utama untuk membandingkan penyebab dan menelusuri jalur sampai indikator bisnis.
+- Setiap hubungan memiliki eksposur, indikator yang dicari, penjelasan lain, jeda, dan kondisi pembatal.
+- Pertanyaan yang belum jelas harus ditentukan fokusnya sebelum rencana analisis dibuat.
+- Setiap kasus berakhir pada satu tindakan riset: lanjutkan riset, pantau indikator, atau abaikan pemicu.
+- Koreksi pengguna disimpan sebagai hipotesis terbuka. Koreksi tidak langsung mengubah angka atau hasil analisis.
+- Pelajaran dari kasus menjadi usulan aturan. Aturan baru dipakai setelah disetujui pengguna.
+- Navigasi utama hanya berisi Hari ini, Kasus, Sebab akibat, dan Asisten.
 
 ## Pemeriksaan
 
@@ -39,14 +37,14 @@ pnpm test:e2e
 pnpm build
 ```
 
-Unit test memeriksa kalkulator, citation gate, language gate, mandate re-planning, Business Impact Test, competing hypotheses, human insight loop, dan watchlist scoping. Playwright memeriksa tutorial, lifecycle case, Playbook trace, Case Resolution, transparansi formula, komentar koreksi, falsification contract, Copilot kontekstual, Graphite Aubergine theme, breakpoint, serta WCAG A/AA otomatis.
+Pengujian unit memeriksa kalkulator, sumber, batas bahasa, penyusunan rencana, dampak bisnis, hipotesis, koreksi pengguna, dan cakupan daftar pantau. Playwright memeriksa tur, alur kasus, transparansi rumus, peta sebab akibat, asisten, tema, ukuran layar, serta WCAG A dan AA.
 
 ## Interface
 
-- `MarketDataProvider`: company list, daily series, broker evidence, ownership, dan event perusahaan.
-- `NewsProvider`: Sectors news/filing serta fixture komoditas, makro, kebijakan, dan cuaca.
+- `MarketDataProvider`: daftar emiten, data harian, bukti broker, kepemilikan, dan peristiwa perusahaan.
+- `NewsProvider`: berita dan keterbukaan Sectors serta data simulasi komoditas, makro, kebijakan, dan cuaca.
 - `AgentEngine`: `analyzeCompany`, `mapEventImpact`, `buildCausalGraph`, dan `answerFollowUp`.
-- `MemoryStore`: profil, research mandate, case status, Case Resolution, Playbook, catatan user, preferensi penyajian, dan reset.
-- Route handler: `POST /api/analyze`, `POST /api/impact`, dan `POST /api/chat`.
+- `MemoryStore`: profil, pertanyaan riset, status kasus, hasil kasus, aturan, catatan pengguna, preferensi penyajian, dan atur ulang.
+- Jalur API: `POST /api/analyze`, `POST /api/impact`, dan `POST /api/chat`.
 
-Data produksi dapat dipasang kemudian dengan mengganti provider fixture. Kalkulator, gate, tipe output, dan komponen UI tidak perlu membaca bentuk endpoint mentah.
+Data produksi dapat dipasang kemudian dengan mengganti penyedia data simulasi. Kalkulator, batas keamanan, tipe keluaran, dan antarmuka tidak perlu membaca bentuk data mentah.

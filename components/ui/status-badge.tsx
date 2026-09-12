@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, CircleDot, HelpCircle, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { uiLabel } from "@/lib/ui-labels";
 
 function toneFor(status: string) {
   const normalized = status.toLowerCase();
@@ -23,7 +24,7 @@ export function StatusBadge({ status, className }: { status: string; className?:
       className,
     )}>
       <Icon aria-hidden="true" className="size-3.5 shrink-0" />
-      <span className="truncate">{status}</span>
+      <span className="truncate">{uiLabel(status)}</span>
     </span>
   );
 }

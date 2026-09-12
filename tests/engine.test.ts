@@ -80,7 +80,7 @@ describe("Catalyst agent engine", () => {
   it("compares several hypotheses against one business observable", () => {
     const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
-    expect(graph?.targetObservable).toBe("Realized pricing");
+    expect(graph?.targetObservable).toBe("Realisasi harga");
     expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
     expect(graph?.competingHypotheses.map((item) => item.rank)).toEqual([1, 2, 3]);
     expect(graph?.competingHypotheses.every((item) =>
@@ -95,9 +95,9 @@ describe("Catalyst agent engine", () => {
   it("organizes company analysis as a hypothesis-driven Research Case", () => {
     const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
-    expect(researchCase?.caseId).toMatch(/^CASE-ANTM-/);
+    expect(researchCase?.caseId).toMatch(/^KASUS-ANTM-/);
     expect(researchCase?.trigger.title).toBeTruthy();
-    expect(researchCase?.mandate).toContain("Investigasi perubahan ANTM");
+    expect(researchCase?.mandate).toContain("Periksa perubahan ANTM");
     expect(researchCase?.lifecycle.map((step) => step.key)).toEqual(["mandate", "decompose", "source-plan", "evidence", "review"]);
     expect(researchCase?.sourcePlan.length).toBeGreaterThan(2);
     expect(researchCase?.unresolvedQuestions.length).toBeGreaterThan(3);
@@ -192,7 +192,7 @@ describe("Catalyst agent engine", () => {
     const after = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(answer.hypotheses.some((item) => item.id === "insight-test" && item.outcome === "open")).toBe(true);
-    expect(answer.preferenceNote).toContain("catatan user");
+    expect(answer.preferenceNote).toContain("catatan pengguna");
     expect(after?.evidenceState).toBe(before?.evidenceState);
     expect(after?.pillars.flatMap((pillar) => pillar.metrics)).toEqual(
       before?.pillars.flatMap((pillar) => pillar.metrics),
