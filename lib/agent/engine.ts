@@ -26,6 +26,10 @@ import type {
   UserInsight,
   UserProfile,
 } from "@/lib/types";
+import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
+import { parseMandateWithLlm, type MandatePlan } from "@/lib/agent/llm/mandate";
+import { agentMode } from "@/lib/agent/mode";
+import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 
 const percent = (value: number, digits = 1) =>
   new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
@@ -145,13 +149,28 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   return rules;
 }
 
-function createResearchPlan(
+async function llmMandatePlan(symbol: SymbolCode, mandate: string): Promise<MandatePlan | null> {
+  if (agentMode() !== "llm") return null;
+  const key = cacheKeyFor(["mandate", symbol, mandate]);
+  const cached = await getCached<MandatePlan>(key);
+  if (cached) return cached;
+  try {
+    const plan = await parseMandateWithLlm({ symbol, mandate });
+    await setCached(key, plan);
+    return plan;
+  } catch {
+    return null;
+  }
+}
+
+async function createResearchPlan(
   symbol: SymbolCode,
   mandate: string,
   pillars: PillarResult[],
   context?: AnalysisContext,
 ) {
-  const focus = mandateFocus(mandate, symbol);
+  const llmPlan = await llmMandatePlan(symbol, mandate);
+  const focus = llmPlan?.focus ?? mandateFocus(mandate, symbol);
   const focusLabel = impactLabels[focus].toLowerCase();
   const trustedSource = context?.playbook?.trustedSources[0] ?? "Sectors company data dan filing";
   const falsifier = context?.playbook?.falsifiers.find((item) => item.toUpperCase().includes(symbol))
@@ -159,13 +178,13 @@ function createResearchPlan(
   return {
     mandate,
     focus,
-    rationale: `Mandate mengutamakan ${focusLabel}; planner menata ulang pertanyaan, sumber, dan observable tanpa mengubah data dasar.`,
-    hypothesisTree: [
+    rationale: llmPlan?.rationale ?? `Mandate mengutamakan ${focusLabel}; planner menata ulang pertanyaan, sumber, dan observable tanpa mengubah data dasar.`,
+    hypothesisTree: llmPlan?.hypothesisTree ?? [
       { id: `${symbol}-plan-primary`, claim: `Trigger mengubah ${focusLabel} ${symbol}.`, test: `Cari perubahan pada ${impactObservables[focus].toLowerCase()}.`, state: "primary" as const },
       { id: `${symbol}-plan-support`, claim: "Arus, volume, dan momentum bergerak setelah trigger.", test: pillars.map((pillar) => pillar.label).join(" → "), state: "supporting" as const },
       { id: `${symbol}-plan-challenge`, claim: "Penjelasan alternatif lebih kuat daripada trigger utama.", test: falsifier, state: "challenge" as const },
     ],
-    observables: [
+    observables: llmPlan?.observables ?? [
       { dimension: focus, metric: impactObservables[focus], expectedChange: `Bergerak konsisten dengan arah trigger pada ${symbol}.`, window: focus === "valuation" ? "1-3 bulan" : "1-10 sesi" },
       ...(focus === "volume" ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: "1-10 sesi" }]),
     ],
@@ -198,7 +217,7 @@ function createBusinessImpact(
   }));
 }
 
-function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
+async function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): Promise<AnalysisCase | null> {
   const company = fixtureMarketDataProvider.getCompany(symbol);
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
@@ -374,7 +393,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const defaultMandate = `Investigasi perubahan ${symbol}: uji apakah trigger, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya.`;
   const mandate = context?.mandate?.trim() || defaultMandate;
   const appliedRules = compilePlaybook(symbol, context);
-  const researchPlan = createResearchPlan(symbol, mandate, ordered, context);
+  const researchPlan = await createResearchPlan(symbol, mandate, ordered, context);
   const businessImpactCitations = uniqueCitations([
     ...fixture.financialContext.flatMap((item) => item.citations),
     ...sources,
@@ -487,11 +506,11 @@ function preferenceNote(request: ChatRequest, symbol: SymbolCode | undefined, in
   return `Urutan dimulai dari ${first}; profil ${profile.name} memilih kedalaman ${profile.config.depth}.${comparables ? ` Preferred comparables: ${comparables}.` : ""}${explicitRules}${mandate} Fakta dan ambang tidak berubah.${collaboration}`;
 }
 
-function answerFollowUp(request: ChatRequest): ChatAnswer {
+async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const guarded = safeLanguage(request.question);
   const symbols = findSymbols(request.question);
   const primary = symbols[0] ?? request.contextSymbol;
-  const analysis = primary ? buildAnalysis(primary, request.profile) : null;
+  const analysis = primary ? await buildAnalysis(primary, request.profile) : null;
   const insights = relevantInsights(request.userInsights, primary);
   const openInsightTraces = insightTraces(insights);
   const personalizedNote = () => preferenceNote(request, primary, insights.length);
@@ -505,8 +524,8 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
 
   const question = request.question.toLowerCase();
   if ((question.includes("banding") || question.includes("versus")) && symbols.length >= 2) {
-    const first = buildAnalysis(symbols[0], request.profile);
-    const second = buildAnalysis(symbols[1], request.profile);
+    const first = await buildAnalysis(symbols[0], request.profile);
+    const second = await buildAnalysis(symbols[1], request.profile);
     if (first && second) {
       const firstPillar = first.pillars.find((pillar) => pillar.key === "concentration")!;
       const secondPillar = second.pillars.find((pillar) => pillar.key === "concentration")!;
@@ -545,12 +564,38 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
   return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari rekaman Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
 }
 
-function buildCausalGraph(
+
+async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: import("@/lib/types").ImpactLink): Promise<import("@/lib/types").ImpactLink> {
+  if (agentMode() !== "llm") return fallback;
+  const key = cacheKeyFor(["exposure", symbol, event.id]);
+  const cached = await getCached<{ path: string; direction: import("@/lib/types").ImpactDirection; relevanceBand: "high" | "medium" | "low"; rationale: string }>(key);
+  const segments = (await import("@/lib/data/fixtures")).revenueSegments[symbol] ?? [];
+  const resolve = async () => {
+    if (cached) return cached;
+    const assessment = await assessExposureWithLlm({
+      symbol,
+      eventTitle: event.title,
+      eventSummary: event.summary,
+      eventTags: event.citations.map((c) => c.label),
+      segments: (segments as Array<{ segment: string; share: number }>).map((s) => ({ segment: s.segment, share: s.share ?? 0 })),
+    });
+    await setCached(key, assessment);
+    return assessment;
+  };
+  try {
+    const assessment = await resolve();
+    return { ...fallback, path: assessment.path, direction: assessment.direction, relevance: RELEVANCE_BAND_SCORE[assessment.relevanceBand], rationale: assessment.rationale };
+  } catch {
+    return fallback;
+  }
+}
+
+async function buildCausalGraph(
   symbol: SymbolCode,
   profile: UserProfile,
   options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext },
-): CausalGraph | null {
-  const analysis = buildAnalysis(symbol, profile, options.context);
+): Promise<CausalGraph | null> {
+  const analysis = await buildAnalysis(symbol, profile, options.context);
   if (!analysis || (options.scope === "watchlist" && !profile.watchlist.includes(symbol))) return null;
   const linked = fixtureNewsProvider.listEvents().flatMap((event) => {
     const link = event.impactLinks.find((item) => item.symbol === symbol);
@@ -591,24 +636,25 @@ function buildCausalGraph(
   const edges: CausalGraph["edges"] = [];
 
   for (const { event, link } of visible) {
+    const resolvedLink = await llmExposure(event, symbol, link);
     const sourceId = `source-${event.id}`;
     const mechanismId = `mechanism-${event.id}-${symbol}`;
-    const mechanismLabel = link.path.split(/→|->/)[1]?.trim() ?? "Jalur eksposur";
+    const mechanismLabel = resolvedLink.path.split(/→|->/)[1]?.trim() ?? "Jalur eksposur";
     nodes.push({
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,
       basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
       counterEvidence: "Nilai ini berasal dari rekaman Sectors API. Kejadian, waktu, dan cakupan masih perlu diverifikasi pada sumber aslinya.", citations: event.citations,
     });
     nodes.push({
-      id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${link.path}. ${link.rationale}`,
-      sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
+      id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}`,
+      sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,
       basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event),
-      counterEvidence: link.rationale.includes("belum") || link.rationale.includes("harus") ? link.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: link.citations,
+      counterEvidence: resolvedLink.rationale.includes("belum") || resolvedLink.rationale.includes("harus") ? resolvedLink.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: resolvedLink.citations,
     });
     edges.push(
-      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevance ${link.relevance}/100, sumber dan waktu tersedia; belum merupakan bukti kausal.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau trigger perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila observable perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Exposure path tertulis dan relevance ${link.relevance}/100; isolasi faktor lain belum lengkap.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: link.citations },
+      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: resolvedLink.direction, relevance: resolvedLink.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: resolvedLink.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevance ${resolvedLink.relevance}/100, sumber dan waktu tersedia; belum merupakan bukti kausal.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: resolvedLink.direction, direction: resolvedLink.direction, relevance: resolvedLink.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${resolvedLink.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau trigger perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila observable perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Exposure path tertulis dan relevance ${resolvedLink.relevance}/100; isolasi faktor lain belum lengkap.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: resolvedLink.citations },
     );
   }
 
@@ -662,7 +708,7 @@ function buildCausalGraph(
 }
 
 export const agentEngine: AgentEngine = {
-  analyzeCompany: (symbol, profile, context) => buildAnalysis(symbol.toUpperCase() as SymbolCode, profile, context),
+  analyzeCompany: async (symbol, profile, context) => buildAnalysis(symbol.toUpperCase() as SymbolCode, profile, context),
   mapEventImpact: (eventId, profile, scope) => {
     const event = fixtureNewsProvider.getEvent(eventId);
     if (!event) return null;
@@ -672,7 +718,7 @@ export const agentEngine: AgentEngine = {
     return { ...event, impactLinks };
   },
   answerFollowUp,
-  buildCausalGraph: (symbol, profile, options) => buildCausalGraph(symbol.toUpperCase() as SymbolCode, profile, options),
+  buildCausalGraph: async (symbol, profile, options) => buildCausalGraph(symbol.toUpperCase() as SymbolCode, profile, options),
 };
 
 export const defaultProfile = demoProfiles[0];
