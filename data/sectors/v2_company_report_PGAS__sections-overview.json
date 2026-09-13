@@ -1,0 +1,68 @@
+{
+ "symbol": "PGAS.JK",
+ "company_name": "PT Perusahaan Gas Negara Tbk",
+ "overview": {
+  "listing_board": "Main",
+  "industry": "Oil & Gas",
+  "sub_industry": "Oil & Gas Storage & Distribution",
+  "sector": "Energy",
+  "sub_sector": "Oil, Gas & Coal",
+  "market_cap": 36847092457920,
+  "market_cap_rank": 63,
+  "address": "Jl. KH. Zainul Arifin No. 20 Jakarta 11140",
+  "employee_num": 3092.0,
+  "employee_num_rank": 174,
+  "listing_date": "2003-12-15",
+  "website": "www.pgn.co.id",
+  "phone": "021-6334838",
+  "email": "PGN.InvestorRelation@pertamina.com",
+  "last_close_price": 1520,
+  "latest_close_date": "2026-09-11",
+  "daily_close_change": 0.0033003300330033,
+  "all_time_price": {
+   "ytd_low": {
+    "2026-06-09": 1350
+   },
+   "52_w_low": {
+    "2026-06-09": 1350
+   },
+   "90_d_low": {
+    "2026-06-30": 1350
+   },
+   "ytd_high": {
+    "2026-03-03": 2520
+   },
+   "52_w_high": {
+    "2026-03-03": 2520
+   },
+   "90_d_high": {
+    "2026-06-15": 1615
+   },
+   "all_time_low": {
+    "2004-10-04": 215
+   },
+   "all_time_high": {
+    "2013-05-20": 6450
+   }
+  },
+  "esg_score": 23.52,
+  "tags": [
+   "esg-under-25"
+  ],
+  "indices": [
+   "IDXHIDIV20",
+   "SMINFRA18",
+   "LQ45",
+   "KOMPAS100",
+   "IDX30",
+   "IDXG30",
+   "IDXVESTA28",
+   "JII70",
+   "FTSE",
+   "IDXV30",
+   "SRIKEHATI",
+   "IDXBUMN20"
+  ],
+  "affiliates": null
+ }
+}

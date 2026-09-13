@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
-import { demoProfiles } from "@/lib/data/fixtures";
+import { demoProfiles, events } from "@/lib/data/fixtures";
 import { isCompleteCitation } from "@/lib/agent/gates";
 
 describe("Catalyst agent engine", () => {
@@ -21,7 +21,8 @@ describe("Catalyst agent engine", () => {
   });
 
   it("limits event impact to the active watchlist", () => {
-    const event = agentEngine.mapEventImpact("evt-nickel", demoProfiles[0], "watchlist");
+    const watched = events.find((item) => item.impactLinks.some((link) => demoProfiles[0].watchlist.includes(link.symbol)))!;
+    const event = agentEngine.mapEventImpact(watched.id, demoProfiles[0], "watchlist");
     expect(event).not.toBeNull();
     expect(event?.impactLinks.every((link) => demoProfiles[0].watchlist.includes(link.symbol))).toBe(true);
   });
@@ -65,7 +66,7 @@ describe("Catalyst agent engine", () => {
     expect(new Set(graph?.nodes.map((node) => node.kind))).toEqual(
       new Set(["source", "mechanism", "company", "observation"]),
     );
-    expect(graph?.nodes.some((node) => node.sourceType === "weather")).toBe(true);
+    expect(graph?.nodes.some((node) => node.sourceType === "sectors" || node.sourceType === "filing")).toBe(true);
     expect(graph?.edges.length).toBeGreaterThan(4);
     expect(graph?.edges.every((edge) =>
       edge.citations.length > 0 && edge.citations.every(isCompleteCitation),

@@ -1,0 +1,80 @@
+{
+ "results": [
+  {
+   "title": "Rd Adi Wardhana Sariaatmadja buys shares of Bukalapak.com",
+   "body": "Rd Adi Wardhana Sariaatmadja bought 635,000,000 shares of Bukalapak.com. This increases their holdings from 772,585,501 to 1,407,585,501 shares. The stated purpose of the transaction was investment.",
+   "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-6401-00.pdf-0.pdf",
+   "timestamp": "2026-09-08T16:15:50",
+   "sector": "technology",
+   "sub_sector": "software-it-services",
+   "tags": [
+    "investment"
+   ],
+   "symbol": "BUKA.JK",
+   "transaction_type": "buy",
+   "holder_type": "insider",
+   "holder_name": "Rd Adi Wardhana Sariaatmadja",
+   "holding_before": 772585501,
+   "holding_after": 1407585501,
+   "amount_transaction": 635000000,
+   "price": 124.0,
+   "transaction_value": 78740000000.0,
+   "price_transaction": [
+    {
+     "date": "2026-09-04",
+     "type": "buy",
+     "price": 124,
+     "amount_transacted": 635000000
+    }
+   ],
+   "share_percentage_before": 0.841,
+   "share_percentage_after": 1.533,
+   "share_percentage_transaction": 0.692,
+   "idx_investor_slug": null,
+   "idx_conglomerates_group_slug": null
+  },
+  {
+   "title": "Kreatif Media Karya buys shares of Bukalapak.com",
+   "body": "Kreatif Media Karya bought 803,287,800 shares of Bukalapak.com. This increases their holdings from 46,321,746,385 to 47,125,034,185 shares. The stated purpose of the transaction was for investment.",
+   "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-8071-00.pdf-0.pdf",
+   "timestamp": "2026-09-07T16:28:10",
+   "sector": "technology",
+   "sub_sector": "software-it-services",
+   "tags": [
+    "investment"
+   ],
+   "symbol": "BUKA.JK",
+   "transaction_type": "buy",
+   "holder_type": "insider",
+   "holder_name": "Kreatif Media Karya",
+   "holding_before": 46321746385,
+   "holding_after": 47125034185,
+   "amount_transaction": 803287800,
+   "price": 126.0,
+   "transaction_value": 101214262800.0,
+   "price_transaction": [
+    {
+     "date": "2026-09-04",
+     "type": "buy",
+     "price": 126,
+     "amount_transacted": 803287800
+    }
+   ],
+   "share_percentage_before": 44.9,
+   "share_percentage_after": 45.68,
+   "share_percentage_transaction": 0.78,
+   "idx_investor_slug": null,
+   "idx_conglomerates_group_slug": null
+  }
+ ],
+ "pagination": {
+  "total_count": 2,
+  "showing": 2,
+  "limit": 20,
+  "offset": 0,
+  "has_next": false,
+  "has_previous": false,
+  "next_offset": null,
+  "previous_offset": null
+ }
+}

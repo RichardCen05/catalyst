@@ -105,6 +105,9 @@ export interface BrokerEvidence {
   freeFloatShares: number;
   sharesOutstanding: number;
   referencePrice: number;
+  /** Window the broker summary itself covers; it is wider than the daily price window. */
+  windowStart?: string;
+  windowEnd?: string;
 }
 
 export interface CompanyAnalysisFixture {

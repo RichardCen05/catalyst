@@ -1,0 +1,63 @@
+{
+ "symbol": "TINS.JK",
+ "company_name": "PT Timah Tbk",
+ "overview": {
+  "listing_board": "Main",
+  "industry": "Metals & Minerals",
+  "sub_industry": "Diversified Metals & Minerals",
+  "sector": "Basic Materials",
+  "sub_sector": "Basic Materials",
+  "market_cap": 35302351371960,
+  "market_cap_rank": 65,
+  "address": "Head Office : Jl. Jenderal Sudirman 51, Opas Indah, Taman Sari, Kota Pangkalpinang, Kepulauan Bangka Belitung, 33129.       Representatif Office. Jl. Medan Merdeka Timur No. 15 Jakarta 10110 Indonesia",
+  "employee_num": 4057.0,
+  "employee_num_rank": 134,
+  "listing_date": "1995-10-19",
+  "website": "www.timah.com",
+  "phone": "021-2352 8000",
+  "email": "InvestorRelation@pttimah.co.id / corsec@pttimah.co.id",
+  "last_close_price": 4740,
+  "latest_close_date": "2026-09-11",
+  "daily_close_change": 0.0193548387096774,
+  "all_time_price": {
+   "ytd_low": {
+    "2026-06-04": 2650
+   },
+   "52_w_low": {
+    "2025-09-19": 1090
+   },
+   "90_d_low": {
+    "2026-07-01": 3220
+   },
+   "ytd_high": {
+    "2026-09-10": 4910
+   },
+   "52_w_high": {
+    "2026-09-10": 4910
+   },
+   "90_d_high": {
+    "2026-09-10": 4910
+   },
+   "all_time_low": {
+    "2001-11-13": 17
+   },
+   "all_time_high": {
+    "2026-09-10": 4910
+   }
+  },
+  "esg_score": 35.15,
+  "tags": [
+   "52-w-high",
+   "90-d-high",
+   "all-time-high",
+   "last-volume-above-10d-volume-average",
+   "top-90d-transaction-value",
+   "ytd-high"
+  ],
+  "indices": [
+   "KOMPAS100",
+   "JII70"
+  ],
+  "affiliates": null
+ }
+}

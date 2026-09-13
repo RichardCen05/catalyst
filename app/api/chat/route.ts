@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
       caseMandate: parsed.data.caseMandate,
     });
-    return NextResponse.json({ answer, mode: "fixture" });
+    return NextResponse.json({ answer, mode: "recorded" });
   } catch {
     return NextResponse.json({ error: "Body request tidak dapat dibaca" }, { status: 400 });
   }

@@ -1,4 +1,4 @@
-import { analysisFixtures, citations, demoProfiles } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, demoProfiles, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import {
@@ -62,7 +62,7 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
     },
     {
       id: `${symbol}-h2`,
-      hypothesis: "Aktivitas pasar menyimpang dari baseline 45 hari bursa.",
+      hypothesis: `Aktivitas pasar menyimpang dari baseline ${WINDOW_SESSIONS} hari bursa.`,
       query: "Daily volume dan median/MAD",
       verification: volume.summary,
       outcome: volume.status === "Insufficient Data" ? "open" : volume.status === "Normal" ? "challenged" : "supported",
@@ -79,10 +79,10 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
     {
       id: `${symbol}-h4`,
       hypothesis: "Peristiwa memiliki jalur dampak dan timing yang relevan.",
-      query: "Company news, filing, corporate action, macro fixture",
+      query: "Company news dan filing Sectors pada jendela rekaman",
       verification: relatedEvents.length
         ? `${relatedEvents.length} peristiwa terhubung; timing dan jalur dampak diperiksa.`
-        : "Tidak ada peristiwa terverifikasi dalam fixture.",
+        : "Tidak ada peristiwa terhubung pada jendela rekaman.",
       outcome: relatedEvents.length ? "supported" : "open",
       citations: uniqueCitations(relatedEvents.flatMap((event) => event.citations)),
     },
@@ -266,14 +266,14 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "HHI = Σsᵢ²; partisipan efektif = 1 / HHI; float terserap = Σ nilai akumulasi / (free-float shares × harga referensi)",
         substitution: `HHI = ${buyerValues.map((value) => `(${compact(value)}/${compact(buyerValues.reduce((sum, item) => sum + item, 0))})²`).join(" + ")}; float = ${compact(buyerValues.reduce((sum, item) => sum + item, 0))} / (${compact(brokerEvidence.freeFloatShares)} × ${compact(brokerEvidence.referencePrice)})`,
         result: `HHI ${concentration.hhi.toFixed(3)} · ${concentration.effectiveBuyers.toFixed(1)} partisipan efektif · ${percent(concentration.floatAbsorbed, 2)} float`,
-        notes: ["Share dihitung dari nilai sisi akumulasi pada jendela fixture.", "Origin broker diperiksa silang dengan foreign flow agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
+        notes: [`Share dihitung dari nilai beli broker teratas pada jendela broker summary ${brokerEvidence.windowStart ?? "?"}–${brokerEvidence.windowEnd ?? "?"}.`, `Foreign share dan float terserap membandingkan jendela itu dengan nilai transaksi ${series.length} sesi harian, jadi kedua jendela tidak identik.`, "Origin broker diperiksa silang dengan foreign flow agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
       },
     },
     {
       key: "volume", label: "Volume", status: volume.status,
       summary: volume.robustZ === null
         ? "Likuiditas atau baseline tidak cukup untuk mengklasifikasikan anomali."
-        : `Volume terakhir berada pada robust z ${volume.robustZ.toFixed(2)} terhadap baseline 45 hari bursa.`,
+        : `Volume terakhir berada pada robust z ${volume.robustZ.toFixed(2)} terhadap baseline ${baseline.length} hari bursa.`,
       protocol: {
         claim: "Aktivitas setelah trigger menyimpang secara material dari baseline volume yang robust.",
         supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos gate." : `Robust z ${volume.robustZ.toFixed(2)} dengan status ${volume.status}.`,
@@ -284,14 +284,14 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       metrics: [
         { label: "Robust z", value: volume.robustZ === null ? "Belum tersedia" : volume.robustZ.toFixed(2), citations: dailyCitations },
         { label: "Latest volume", value: compact(currentPoint.volume), citations: dailyCitations },
-        { label: "Baseline", value: "45 hari bursa", citations: dailyCitations },
+        { label: "Baseline", value: `${baseline.length} hari bursa`, citations: dailyCitations },
       ], citations: dailyCitations,
       calculation: {
         name: "Anomali volume robust",
-        formula: "robust z = 0,6745 × (Vₜ − median(V₄₅)) / MAD(V₄₅)",
+        formula: "robust z = 0,6745 × (Vₜ − median(V)) / MAD(V)",
         substitution: `0,6745 × (${compact(currentPoint.volume)} − ${compact(baselineMedian)}) / ${compact(baselineMad)}`,
         result: volume.robustZ === null ? "Insufficient Data" : `${volume.robustZ.toFixed(2)} · ${volume.status}`,
-        notes: ["Baseline memakai 44 observasi sebelum hari terbaru dalam fixture 45 hari bursa.", "Gate likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau baseline pendek menghasilkan Insufficient Data."],
+        notes: [`Baseline memakai ${baseline.length} observasi sebelum hari terbaru dalam jendela rekaman ${WINDOW_SESSIONS} hari bursa.`, "Gate likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau baseline pendek menghasilkan Insufficient Data."],
       },
     },
     {
@@ -300,7 +300,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       protocol: {
         claim: "Perubahan harga tidak cukup dijelaskan oleh IHSG atau pergerakan sektor pada jendela yang sama.",
         supportingEvidence: `Residual beta-adjusted ${percent(momentum.residual)}; return saham ${percent(stockReturn)} versus sektor ${percent(fixture.sectorReturn)}.`,
-        challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta fixture dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : `Status ${momentum.status} menunjukkan penjelasan pasar atau sektor masih relevan.`,
+        challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta hasil regresi jendela rekaman dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : `Status ${momentum.status} menunjukkan penjelasan pasar atau sektor masih relevan.`,
         insufficientWhen: "Close harian, IHSG, beta, atau pembanding sektor tidak tersedia untuk jendela yang sama.",
         nextQuestion: "Apakah residual tetap terlihat pada jendela alternatif tanpa bergantung pada satu hari ekstrem?",
       },
@@ -315,7 +315,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "residual₃ᴅ = return saham₃ᴅ − β × return IHSG₃ᴅ",
         substitution: `${percent(stockReturn)} − ${fixture.beta.toFixed(2)} × ${percent(marketReturn)}`,
         result: `${percent(momentum.residual)} · ${momentum.status}; pembanding sektor ${percent(fixture.sectorReturn)}`,
-        notes: ["Return dihitung dari close tiga hari bursa.", "Beta adalah input fixture dan tidak diestimasi ulang oleh chat.", "Status sektor membandingkan selisih return saham terhadap return sektor."],
+        notes: ["Return dihitung dari close tiga hari bursa.", "Beta dihitung dari kovarians return harian terhadap IHSG pada jendela rekaman dan tidak diestimasi ulang oleh chat.", "Status sektor membandingkan selisih return saham terhadap return sektor."],
       },
     },
     {
@@ -326,7 +326,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       protocol: {
         claim: "Trigger mendahului perubahan dan memiliki jalur eksposur perusahaan yang dapat diuji.",
         supportingEvidence: primaryEvent ? `${relatedEvents.length} input terhubung; jalur utama ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "belum lengkap"}.` : "Belum ada input terhubung.",
-        challengingEvidence: primaryEvent ? "Timing dan jalur eksposur belum membuktikan kausalitas tanpa observable operasional berikutnya." : "Tidak ada trigger terverifikasi dalam fixture.",
+        challengingEvidence: primaryEvent ? "Timing dan jalur eksposur belum membuktikan kausalitas tanpa observable operasional berikutnya." : "Tidak ada trigger terhubung pada jendela rekaman.",
         insufficientWhen: "Sumber, waktu publikasi, exposure perusahaan, atau expected observable tidak dapat diperiksa.",
         nextQuestion: "Observable operasional atau keuangan apa yang harus muncul, dan kapan, bila jalur ini benar?",
       },
@@ -357,7 +357,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     ? "Empat pilar memberi bukti yang saling menguatkan pada jendela pengamatan."
     : evidenceState === "Mixed Evidence"
       ? "Bukti lintas pilar tidak seluruhnya searah; konflik ditampilkan tanpa dipaksa menjadi satu skor."
-      : "Fixture belum cukup untuk menyimpulkan hubungan lintas pilar.";
+      : "Rekaman belum cukup untuk menyimpulkan hubungan lintas pilar.";
   assertSafeOutput(thesis);
   const hypotheses = createTrace(symbol, pillars, relatedEvents);
   const sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
@@ -395,7 +395,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     userNotes: [],
     unresolvedQuestions: [
       ...ordered.map((pillar) => pillar.protocol.nextQuestion),
-      "Apakah ada perubahan material pada exposure perusahaan yang belum tercakup fixture?",
+      "Apakah ada perubahan material pada exposure perusahaan yang belum tercakup jendela rekaman?",
     ],
     nextResearchActions: [
       "Periksa expected observable terhadap filing atau financial input berikutnya.",
@@ -419,7 +419,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     missingEvidence: [
       "Data intraday dan antrean order tidak tersedia.",
       "Transaksi pihak terafiliasi belum diidentifikasi.",
-      "Fixture tidak memuat detail kontrak atau hedging perusahaan.",
+      "Rekaman tidak memuat detail kontrak atau hedging perusahaan.",
     ],
     priceSeries: series,
     financialContext: fixture.financialContext,
@@ -433,15 +433,25 @@ function findSymbols(question: string): SymbolCode[] {
   return symbols.filter((symbol) => new RegExp(`\\b${symbol}\\b`).test(upper));
 }
 
+const questionCategories: Array<[string[], MarketEvent["category"]]> = [
+  [["nikel", "batu bara", "komoditas", "emas", "timah"], "commodity"],
+  [["rupiah", "kurs", "dolar"], "currency"],
+  [["suku bunga", "bi rate", "inflasi"], "rates"],
+  [["kebijakan", "regulasi", "pemerintah", "pajak"], "policy"],
+];
+
 function eventFromQuestion(question: string): MarketEvent | undefined {
   const value = question.toLowerCase();
-  if (value.includes("nikel")) return fixtureNewsProvider.getEvent("evt-nickel");
-  if (value.includes("rupiah")) return fixtureNewsProvider.getEvent("evt-rupiah");
-  if (value.includes("suku bunga")) return fixtureNewsProvider.getEvent("evt-rate");
-  if (value.includes("gas")) return fixtureNewsProvider.getEvent("evt-gas");
-  if (value.includes("batu bara")) return fixtureNewsProvider.getEvent("evt-coal");
-  if (value.includes("cuaca") || value.includes("hujan")) return fixtureNewsProvider.getEvent("evt-consumer");
-  return undefined;
+  const events = fixtureNewsProvider.listEvents();
+  const category = questionCategories.find(([terms]) => terms.some((term) => value.includes(term)))?.[1];
+  if (category) {
+    const match = events.find((event) => event.category === category);
+    if (match) return match;
+  }
+  const words = value.split(/[^a-z0-9]+/).filter((word) => word.length > 4);
+  return words.length
+    ? events.find((event) => words.some((word) => event.title.toLowerCase().includes(word)))
+    : undefined;
 }
 
 function relevantInsights(insights: UserInsight[] | undefined, symbol?: SymbolCode): UserInsight[] {
@@ -507,7 +517,7 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
     const scoped = selected.impactLinks.filter((link) => request.profile.watchlist.includes(link.symbol));
     const text = scoped.length
       ? scoped.map((link) => `${link.symbol}: ${link.direction}. ${link.path}.`).join(" ")
-      : "Peristiwa tersebut tidak memiliki jalur dampak ke watchlist aktif pada fixture ini.";
+      : "Peristiwa tersebut tidak memiliki jalur dampak ke watchlist aktif pada rekaman ini.";
     return { text, refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
@@ -525,7 +535,7 @@ function answerFollowUp(request: ChatRequest): ChatAnswer {
     };
   }
 
-  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari fixture Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
+  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari rekaman Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
 }
 
 function buildCausalGraph(
@@ -581,7 +591,7 @@ function buildCausalGraph(
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
       sourceType: event.sourceType, direction: link.direction, relevance: link.relevance,
       basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
-      counterEvidence: "Nilai ini berasal dari fixture. Kejadian, waktu, dan cakupan produksi masih perlu diverifikasi pada sumber langsung.", citations: event.citations,
+      counterEvidence: "Nilai ini berasal dari rekaman Sectors API. Kejadian, waktu, dan cakupan masih perlu diverifikasi pada sumber aslinya.", citations: event.citations,
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${link.path}. ${link.rationale}`,

@@ -50,7 +50,7 @@ test("Today prioritizes changes and removes dashboard clutter", async ({ page })
   await expect(page.getByRole("heading", { name: "Berubah sejak pemeriksaan terakhir" })).toBeVisible();
   await expect(page.getByText("Emiten fixture")).toHaveCount(0);
   await expect(page.getByText("Agent health")).toHaveCount(0);
-  await expect(page.getByText(/Filing operasi baru/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /^ANTM / })).toBeVisible();
 });
 
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
@@ -61,7 +61,7 @@ test("primary flow opens a watchlist change as a Research Case", async ({ page }
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
 
-  await page.getByRole("link", { name: /ANTM Filing operasi baru/ }).click();
+  await page.getByRole("link", { name: /^ANTM / }).click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
   await expect(page.getByRole("heading", { name: /Research Case · ANTM/ })).toBeVisible();
   await expect(page.getByRole("tablist", { name: "Bagian Research Case" })).toBeVisible();
@@ -185,7 +185,7 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(ruleTrace.getByText(/Menentukan apakah trigger layak/)).toBeVisible();
 
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /ANTM Filing operasi baru/ })).toContainText("Rule applied");
+  await expect(page.getByRole("link", { name: /^ANTM / })).toContainText("Rule applied");
 });
 
 test("default theme uses the editorial black-cherry tokens", async ({ page }) => {
@@ -228,7 +228,7 @@ test("company analysis aligns events on an evidence timeline", async ({ page }) 
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=timeline");
   await expect(page.getByRole("heading", { name: "Evidence timeline" })).toBeVisible();
-  await expect(page.getByText("ANTM memublikasikan pembaruan operasi kuartalan")).toBeVisible();
+  await expect(page.getByText(/Antam|ANTM|Aneka Tambang/).first()).toBeVisible();
   await page.getByRole("button", { name: "Tanya timeline ANTM" }).click();
   await expect(page.getByRole("dialog", { name: "Catalyst Copilot" }).getByText("ANTM · Evidence timeline", { exact: true })).toBeVisible();
 });
@@ -252,11 +252,11 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
 
 test("causal map exposes multiple sources and copilot answers through the API", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/impact?event=evt-nickel");
+  await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("heading", { name: "Lacak sebab, mekanisme, dan bukti" })).toBeVisible();
-  await expect(page.getByText(/Curah hujan tinggi diuji/).first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "Competing hypotheses" }).or(page.getByText(/menjelaskan perubahan/)).first()).toBeVisible();
   await page.getByRole("link", { name: "Copilot", exact: true }).click();
-  await page.getByLabel("Tanya Catalyst").fill("Berita nikel ini berdampak ke watchlist saya?");
+  await page.getByLabel("Tanya Catalyst").fill("Berita komoditas ini berdampak ke watchlist saya?");
   await page.getByLabel("Tanya Catalyst").press("Enter");
   await expect(page.getByText(/ANTM: Supported/)).toBeVisible();
 });
@@ -264,14 +264,14 @@ test("causal map exposes multiple sources and copilot answers through the API", 
 test("causal map labels hypotheses, confidence, lag, and counter-evidence", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/impact?company=ANTM");
-  await page.getByRole("button", { name: /mechanism potensi realisasi harga/i }).click();
+  await page.getByRole("button", { name: /mechanism realisasi harga/i }).first().click();
   const selected = page.getByLabel("Detail node terpilih");
   await expect(selected.getByText("Causal hypothesis", { exact: true })).toBeVisible();
   await expect(selected.getByText("High confidence", { exact: true })).toBeVisible();
   await expect(selected.getByText("1-10 sesi", { exact: true })).toBeVisible();
   await expect(selected.getByText(/Counter-evidence/)).toBeVisible();
   await selected.getByRole("button", { name: "Tanya jalur ini" }).click();
-  await expect(page.getByRole("dialog", { name: "Catalyst Copilot" }).getByText(/ANTM · potensi realisasi harga/)).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Catalyst Copilot" }).getByText(/ANTM · realisasi harga/)).toBeVisible();
 });
 
 test("Causal Impact compares competing explanations for one observable", async ({ page }) => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { POST as analyze } from "@/app/api/analyze/route";
 import { POST as chat } from "@/app/api/chat/route";
 import { POST as impact } from "@/app/api/impact/route";
-import { demoProfiles } from "@/lib/data/fixtures";
+import { demoProfiles, events } from "@/lib/data/fixtures";
 
 const request = (path: string, body: unknown) => new Request(`http://localhost${path}`, {
   method: "POST",
@@ -25,10 +25,12 @@ describe("public route handlers", () => {
   });
 
   it("filters impact links at the API boundary", async () => {
-    const response = await impact(request("/api/impact", { eventId: "evt-nickel", profile: demoProfiles[0], scope: "watchlist" }));
+    const watched = events.find((item) => item.impactLinks.some((link) => demoProfiles[0].watchlist.includes(link.symbol)))!;
+    const response = await impact(request("/api/impact", { eventId: watched.id, profile: demoProfiles[0], scope: "watchlist" }));
     const body = await response.json();
     expect(response.status).toBe(200);
-    expect(body.event.impactLinks.map((link: { symbol: string }) => link.symbol)).toEqual(["ANTM"]);
+    expect(body.event.impactLinks.length).toBeGreaterThan(0);
+    expect(body.event.impactLinks.every((link: { symbol: string }) => (demoProfiles[0].watchlist as string[]).includes(link.symbol))).toBe(true);
   });
 
   it("refuses an advisory prompt without echoing its transaction term", async () => {

@@ -32,7 +32,7 @@ export function AgentTrace({ traces }: { traces: HypothesisTrace[] }) {
           <div className="mt-5 flex gap-3 border-t border-border pt-4">
             <IconInspect className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
             <div className="min-w-0">
-              <p className="meta text-muted-foreground">Fixture query</p>
+              <p className="meta text-muted-foreground">Query rekaman</p>
               <p className="mt-1.5 font-mono text-[11.5px] leading-[1.7]">{trace.query}</p>
             </div>
           </div>

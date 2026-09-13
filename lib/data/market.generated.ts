@@ -1,0 +1,5910 @@
+// GENERATED FILE — do not edit by hand.
+// Written by scripts/build_market_data.py from the recorded Sectors API responses
+// in data/sectors/. Every value below is either a raw field from those recordings or
+// an aggregate of them; re-run the script to refresh it.
+
+import type { BrokerEvidence, EvidenceState, ImpactDirection, MarketEvent, PricePoint, Sector, SymbolCode } from "@/lib/types";
+
+export const DATA_AS_OF = "2026-09-11T16:15:00+07:00";
+export const WINDOW_DATES = [
+  "2026-08-03",
+  "2026-08-04",
+  "2026-08-05",
+  "2026-08-06",
+  "2026-08-07",
+  "2026-08-10",
+  "2026-08-11",
+  "2026-08-12",
+  "2026-08-13",
+  "2026-08-14",
+  "2026-08-18",
+  "2026-08-19",
+  "2026-08-20",
+  "2026-08-21",
+  "2026-08-24",
+  "2026-08-26",
+  "2026-08-27",
+  "2026-08-28",
+  "2026-08-31",
+  "2026-09-01",
+  "2026-09-02",
+  "2026-09-03",
+  "2026-09-04",
+  "2026-09-07",
+  "2026-09-08",
+  "2026-09-09",
+  "2026-09-10",
+  "2026-09-11"
+] as const;
+
+export interface RawCompany {
+  symbol: SymbolCode;
+  name: string;
+  sector: Sector;
+  subsector: string;
+  price: number;
+  changePct: number;
+  marketCap: number;
+  analyzed: boolean;
+  evidenceState: EvidenceState;
+  summary: string;
+}
+
+export interface RawEvent {
+  id: string;
+  title: string;
+  summary: string;
+  category: MarketEvent["category"];
+  sourceType: MarketEvent["sourceType"];
+  publishedAt: string;
+  sector: Sector | "Market";
+  source: string | null;
+  tags: string[];
+  impactLinks: Array<{ symbol: SymbolCode; direction: ImpactDirection; relevance: number; path: string; rationale: string }>;
+}
+
+export const rawCompanies: RawCompany[] = [
+  {
+    "symbol": "ANTM",
+    "name": "Aneka Tambang Tbk.",
+    "sector": "Basic Materials",
+    "subsector": "Basic Materials",
+    "price": 3270,
+    "changePct": 0.0,
+    "marketCap": 78.6,
+    "analyzed": true,
+    "evidenceState": "Corroborated",
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "INCO",
+    "name": "Vale Indonesia Tbk",
+    "sector": "Basic Materials",
+    "subsector": "Basic Materials",
+    "price": 4830,
+    "changePct": 0.21,
+    "marketCap": 50.9,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 4.830 pada 2026-09-11; volume terakhir 1.68× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "TINS",
+    "name": "PT Timah Tbk",
+    "sector": "Basic Materials",
+    "subsector": "Basic Materials",
+    "price": 4740,
+    "changePct": 1.94,
+    "marketCap": 35.3,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 4.740 pada 2026-09-11; volume terakhir 1.23× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "BBCA",
+    "name": "PT Bank Central Asia Tbk.",
+    "sector": "Financials",
+    "subsector": "Banks",
+    "price": 6325,
+    "changePct": -1.56,
+    "marketCap": 771.9,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 6.325 pada 2026-09-11; volume terakhir 1.87× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "BBRI",
+    "name": "PT Bank Rakyat Indonesia (Persero) Tbk",
+    "sector": "Financials",
+    "subsector": "Banks",
+    "price": 3270,
+    "changePct": -1.51,
+    "marketCap": 490.6,
+    "analyzed": true,
+    "evidenceState": "Corroborated",
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.37× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "BMRI",
+    "name": "PT Bank Mandiri (Persero) Tbk",
+    "sector": "Financials",
+    "subsector": "Banks",
+    "price": 4360,
+    "changePct": -0.23,
+    "marketCap": 402.9,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 4.360 pada 2026-09-11; volume terakhir 1.09× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "TLKM",
+    "name": "PT Telkom Indonesia (Persero) Tbk",
+    "sector": "Infrastructure",
+    "subsector": "Telecommunication",
+    "price": 2600,
+    "changePct": -1.14,
+    "marketCap": 257.6,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "JSMR",
+    "name": "PT Jasa Marga Tbk",
+    "sector": "Infrastructure",
+    "subsector": "Transportation Infrastructure",
+    "price": 2950,
+    "changePct": -1.34,
+    "marketCap": 21.4,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 2.950 pada 2026-09-11; volume terakhir 0.72× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "EXCL",
+    "name": "PT XLSMART Telecom Sejahtera Tbk",
+    "sector": "Infrastructure",
+    "subsector": "Telecommunication",
+    "price": 2630,
+    "changePct": -2.59,
+    "marketCap": 47.9,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 2.630 pada 2026-09-11; volume terakhir 1.27× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "GOTO",
+    "name": "PT GoTo Gojek Tokopedia Tbk",
+    "sector": "Technology",
+    "subsector": "Software & IT Services",
+    "price": 50,
+    "changePct": 0.0,
+    "marketCap": 57.0,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 50 pada 2026-09-11; volume terakhir 0.19× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "BUKA",
+    "name": "PT Bukalapak.com Tbk",
+    "sector": "Technology",
+    "subsector": "Software & IT Services",
+    "price": 107,
+    "changePct": -1.83,
+    "marketCap": 11.0,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 107 pada 2026-09-11; volume terakhir 0.77× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "EMTK",
+    "name": "Elang Mahkota Teknologi Tbk",
+    "sector": "Technology",
+    "subsector": "Software & IT Services",
+    "price": 500,
+    "changePct": 0.0,
+    "marketCap": 30.7,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 500 pada 2026-09-11; volume terakhir 1.20× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "PGAS",
+    "name": "PT Perusahaan Gas Negara Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 1520,
+    "changePct": 0.33,
+    "marketCap": 36.8,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 1.520 pada 2026-09-11; volume terakhir 0.90× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "ADRO",
+    "name": "Alamtri Resources Indonesia Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 2640,
+    "changePct": -1.12,
+    "marketCap": 76.0,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "PTBA",
+    "name": "Bukit Asam Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 3100,
+    "changePct": 0.0,
+    "marketCap": 35.7,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 3.100 pada 2026-09-11; volume terakhir 3.54× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "ICBP",
+    "name": "Indofood CBP Sukses Makmur Tbk",
+    "sector": "Consumer",
+    "subsector": "Food & Beverage",
+    "price": 7125,
+    "changePct": -0.7,
+    "marketCap": 83.1,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 7.125 pada 2026-09-11; volume terakhir 0.42× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "MYOR",
+    "name": "Mayora Indah Tbk",
+    "sector": "Consumer",
+    "subsector": "Food & Beverage",
+    "price": 1515,
+    "changePct": -0.98,
+    "marketCap": 33.9,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 1.515 pada 2026-09-11; volume terakhir 1.99× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "AMRT",
+    "name": "PT Sumber Alfaria Trijaya Tbk.",
+    "sector": "Consumer",
+    "subsector": "Food & Staples Retailing",
+    "price": 1255,
+    "changePct": -3.46,
+    "marketCap": 52.1,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 1.255 pada 2026-09-11; volume terakhir 0.82× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  }
+];
+
+export const priceSeries: Record<string, PricePoint[]> = {
+  "ANTM": [
+    {
+      "date": "2026-08-03",
+      "close": 2870,
+      "ihsg": 6234,
+      "volume": 46158100
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2890,
+      "ihsg": 6320,
+      "volume": 70023600
+    },
+    {
+      "date": "2026-08-05",
+      "close": 3070,
+      "ihsg": 6351,
+      "volume": 187572000
+    },
+    {
+      "date": "2026-08-06",
+      "close": 3080,
+      "ihsg": 6344,
+      "volume": 172099500
+    },
+    {
+      "date": "2026-08-07",
+      "close": 3160,
+      "ihsg": 6410,
+      "volume": 108524600
+    },
+    {
+      "date": "2026-08-10",
+      "close": 3140,
+      "ihsg": 6365,
+      "volume": 107393800
+    },
+    {
+      "date": "2026-08-11",
+      "close": 3090,
+      "ihsg": 6268,
+      "volume": 110426400
+    },
+    {
+      "date": "2026-08-12",
+      "close": 3090,
+      "ihsg": 6374,
+      "volume": 57409700
+    },
+    {
+      "date": "2026-08-13",
+      "close": 3000,
+      "ihsg": 6302,
+      "volume": 86077700
+    },
+    {
+      "date": "2026-08-14",
+      "close": 3070,
+      "ihsg": 6402,
+      "volume": 83223900
+    },
+    {
+      "date": "2026-08-18",
+      "close": 3100,
+      "ihsg": 6450,
+      "volume": 90263100
+    },
+    {
+      "date": "2026-08-19",
+      "close": 3030,
+      "ihsg": 6394,
+      "volume": 93004300
+    },
+    {
+      "date": "2026-08-20",
+      "close": 3140,
+      "ihsg": 6502,
+      "volume": 141884600
+    },
+    {
+      "date": "2026-08-21",
+      "close": 3170,
+      "ihsg": 6526,
+      "volume": 114077500
+    },
+    {
+      "date": "2026-08-24",
+      "close": 3190,
+      "ihsg": 6502,
+      "volume": 114351200
+    },
+    {
+      "date": "2026-08-26",
+      "close": 3160,
+      "ihsg": 6406,
+      "volume": 125424800
+    },
+    {
+      "date": "2026-08-27",
+      "close": 3180,
+      "ihsg": 6522,
+      "volume": 71295100
+    },
+    {
+      "date": "2026-08-28",
+      "close": 3160,
+      "ihsg": 6518,
+      "volume": 62500400
+    },
+    {
+      "date": "2026-08-31",
+      "close": 3100,
+      "ihsg": 6525,
+      "volume": 88604100
+    },
+    {
+      "date": "2026-09-01",
+      "close": 3080,
+      "ihsg": 6600,
+      "volume": 87778200
+    },
+    {
+      "date": "2026-09-02",
+      "close": 3030,
+      "ihsg": 6596,
+      "volume": 99650500
+    },
+    {
+      "date": "2026-09-03",
+      "close": 3150,
+      "ihsg": 6668,
+      "volume": 136685600
+    },
+    {
+      "date": "2026-09-04",
+      "close": 3120,
+      "ihsg": 6636,
+      "volume": 83943400
+    },
+    {
+      "date": "2026-09-07",
+      "close": 3080,
+      "ihsg": 6620,
+      "volume": 72342200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3080,
+      "ihsg": 6686,
+      "volume": 96926900
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3200,
+      "ihsg": 6678,
+      "volume": 205956800
+    },
+    {
+      "date": "2026-09-10",
+      "close": 3270,
+      "ihsg": 6589,
+      "volume": 255111300
+    },
+    {
+      "date": "2026-09-11",
+      "close": 3270,
+      "ihsg": 6541,
+      "volume": 135708200
+    }
+  ],
+  "INCO": [
+    {
+      "date": "2026-08-03",
+      "close": 5200,
+      "ihsg": 6234,
+      "volume": 10413200
+    },
+    {
+      "date": "2026-08-04",
+      "close": 5500,
+      "ihsg": 6320,
+      "volume": 15610600
+    },
+    {
+      "date": "2026-08-05",
+      "close": 5425,
+      "ihsg": 6351,
+      "volume": 14375900
+    },
+    {
+      "date": "2026-08-06",
+      "close": 5450,
+      "ihsg": 6344,
+      "volume": 11906100
+    },
+    {
+      "date": "2026-08-07",
+      "close": 5400,
+      "ihsg": 6410,
+      "volume": 10034800
+    },
+    {
+      "date": "2026-08-10",
+      "close": 5375,
+      "ihsg": 6365,
+      "volume": 8312200
+    },
+    {
+      "date": "2026-08-11",
+      "close": 5250,
+      "ihsg": 6268,
+      "volume": 12177500
+    },
+    {
+      "date": "2026-08-12",
+      "close": 5275,
+      "ihsg": 6374,
+      "volume": 6177900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 5000,
+      "ihsg": 6302,
+      "volume": 11001400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 5225,
+      "ihsg": 6402,
+      "volume": 13555800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 5250,
+      "ihsg": 6450,
+      "volume": 4830900
+    },
+    {
+      "date": "2026-08-19",
+      "close": 5075,
+      "ihsg": 6394,
+      "volume": 10367400
+    },
+    {
+      "date": "2026-08-20",
+      "close": 5250,
+      "ihsg": 6502,
+      "volume": 12527000
+    },
+    {
+      "date": "2026-08-21",
+      "close": 5200,
+      "ihsg": 6526,
+      "volume": 9881100
+    },
+    {
+      "date": "2026-08-24",
+      "close": 5275,
+      "ihsg": 6502,
+      "volume": 9759400
+    },
+    {
+      "date": "2026-08-26",
+      "close": 5200,
+      "ihsg": 6406,
+      "volume": 15526000
+    },
+    {
+      "date": "2026-08-27",
+      "close": 5300,
+      "ihsg": 6522,
+      "volume": 4128900
+    },
+    {
+      "date": "2026-08-28",
+      "close": 5225,
+      "ihsg": 6518,
+      "volume": 6132000
+    },
+    {
+      "date": "2026-08-31",
+      "close": 5250,
+      "ihsg": 6525,
+      "volume": 4992400
+    },
+    {
+      "date": "2026-09-01",
+      "close": 5050,
+      "ihsg": 6600,
+      "volume": 15195100
+    },
+    {
+      "date": "2026-09-02",
+      "close": 4820,
+      "ihsg": 6596,
+      "volume": 36733300
+    },
+    {
+      "date": "2026-09-03",
+      "close": 4950,
+      "ihsg": 6668,
+      "volume": 13681700
+    },
+    {
+      "date": "2026-09-04",
+      "close": 4960,
+      "ihsg": 6636,
+      "volume": 8636800
+    },
+    {
+      "date": "2026-09-07",
+      "close": 4860,
+      "ihsg": 6620,
+      "volume": 13840300
+    },
+    {
+      "date": "2026-09-08",
+      "close": 4900,
+      "ihsg": 6686,
+      "volume": 14380900
+    },
+    {
+      "date": "2026-09-09",
+      "close": 4900,
+      "ihsg": 6678,
+      "volume": 19011200
+    },
+    {
+      "date": "2026-09-10",
+      "close": 4820,
+      "ihsg": 6589,
+      "volume": 19964900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 4830,
+      "ihsg": 6541,
+      "volume": 19973900
+    }
+  ],
+  "TINS": [
+    {
+      "date": "2026-08-03",
+      "close": 3750,
+      "ihsg": 6234,
+      "volume": 51389000
+    },
+    {
+      "date": "2026-08-04",
+      "close": 3820,
+      "ihsg": 6320,
+      "volume": 64537000
+    },
+    {
+      "date": "2026-08-05",
+      "close": 3880,
+      "ihsg": 6351,
+      "volume": 74756700
+    },
+    {
+      "date": "2026-08-06",
+      "close": 3800,
+      "ihsg": 6344,
+      "volume": 62218800
+    },
+    {
+      "date": "2026-08-07",
+      "close": 3860,
+      "ihsg": 6410,
+      "volume": 68559300
+    },
+    {
+      "date": "2026-08-10",
+      "close": 3850,
+      "ihsg": 6365,
+      "volume": 44764500
+    },
+    {
+      "date": "2026-08-11",
+      "close": 3770,
+      "ihsg": 6268,
+      "volume": 43391800
+    },
+    {
+      "date": "2026-08-12",
+      "close": 3840,
+      "ihsg": 6374,
+      "volume": 43406200
+    },
+    {
+      "date": "2026-08-13",
+      "close": 3720,
+      "ihsg": 6302,
+      "volume": 39778400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 3890,
+      "ihsg": 6402,
+      "volume": 134195200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 3900,
+      "ihsg": 6450,
+      "volume": 39461900
+    },
+    {
+      "date": "2026-08-19",
+      "close": 4050,
+      "ihsg": 6394,
+      "volume": 105563700
+    },
+    {
+      "date": "2026-08-20",
+      "close": 3990,
+      "ihsg": 6502,
+      "volume": 55152900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 4030,
+      "ihsg": 6526,
+      "volume": 23066900
+    },
+    {
+      "date": "2026-08-24",
+      "close": 4130,
+      "ihsg": 6502,
+      "volume": 63092700
+    },
+    {
+      "date": "2026-08-26",
+      "close": 4020,
+      "ihsg": 6406,
+      "volume": 42607700
+    },
+    {
+      "date": "2026-08-27",
+      "close": 4080,
+      "ihsg": 6522,
+      "volume": 34089000
+    },
+    {
+      "date": "2026-08-28",
+      "close": 4030,
+      "ihsg": 6518,
+      "volume": 33513500
+    },
+    {
+      "date": "2026-08-31",
+      "close": 4040,
+      "ihsg": 6525,
+      "volume": 24337100
+    },
+    {
+      "date": "2026-09-01",
+      "close": 4090,
+      "ihsg": 6600,
+      "volume": 36482300
+    },
+    {
+      "date": "2026-09-02",
+      "close": 4010,
+      "ihsg": 6596,
+      "volume": 42118400
+    },
+    {
+      "date": "2026-09-03",
+      "close": 4090,
+      "ihsg": 6668,
+      "volume": 37002300
+    },
+    {
+      "date": "2026-09-04",
+      "close": 4420,
+      "ihsg": 6636,
+      "volume": 101765000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 4480,
+      "ihsg": 6620,
+      "volume": 56797200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 4400,
+      "ihsg": 6686,
+      "volume": 36920400
+    },
+    {
+      "date": "2026-09-09",
+      "close": 4600,
+      "ihsg": 6678,
+      "volume": 59499900
+    },
+    {
+      "date": "2026-09-10",
+      "close": 4650,
+      "ihsg": 6589,
+      "volume": 86214100
+    },
+    {
+      "date": "2026-09-11",
+      "close": 4740,
+      "ihsg": 6541,
+      "volume": 55059000
+    }
+  ],
+  "BBCA": [
+    {
+      "date": "2026-08-03",
+      "close": 6300,
+      "ihsg": 6234,
+      "volume": 68143700
+    },
+    {
+      "date": "2026-08-04",
+      "close": 6500,
+      "ihsg": 6320,
+      "volume": 138953100
+    },
+    {
+      "date": "2026-08-05",
+      "close": 6450,
+      "ihsg": 6351,
+      "volume": 101666100
+    },
+    {
+      "date": "2026-08-06",
+      "close": 6350,
+      "ihsg": 6344,
+      "volume": 80734000
+    },
+    {
+      "date": "2026-08-07",
+      "close": 6375,
+      "ihsg": 6410,
+      "volume": 111930800
+    },
+    {
+      "date": "2026-08-10",
+      "close": 6375,
+      "ihsg": 6365,
+      "volume": 88666100
+    },
+    {
+      "date": "2026-08-11",
+      "close": 6300,
+      "ihsg": 6268,
+      "volume": 112490800
+    },
+    {
+      "date": "2026-08-12",
+      "close": 6350,
+      "ihsg": 6374,
+      "volume": 87177100
+    },
+    {
+      "date": "2026-08-13",
+      "close": 6375,
+      "ihsg": 6302,
+      "volume": 83208000
+    },
+    {
+      "date": "2026-08-14",
+      "close": 6350,
+      "ihsg": 6402,
+      "volume": 56953500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 6300,
+      "ihsg": 6450,
+      "volume": 114945500
+    },
+    {
+      "date": "2026-08-19",
+      "close": 6300,
+      "ihsg": 6394,
+      "volume": 68105000
+    },
+    {
+      "date": "2026-08-20",
+      "close": 6400,
+      "ihsg": 6502,
+      "volume": 67749800
+    },
+    {
+      "date": "2026-08-21",
+      "close": 6450,
+      "ihsg": 6526,
+      "volume": 100684300
+    },
+    {
+      "date": "2026-08-24",
+      "close": 6400,
+      "ihsg": 6502,
+      "volume": 81295600
+    },
+    {
+      "date": "2026-08-26",
+      "close": 6350,
+      "ihsg": 6406,
+      "volume": 86115900
+    },
+    {
+      "date": "2026-08-27",
+      "close": 6400,
+      "ihsg": 6522,
+      "volume": 60556000
+    },
+    {
+      "date": "2026-08-28",
+      "close": 6475,
+      "ihsg": 6518,
+      "volume": 156445200
+    },
+    {
+      "date": "2026-08-31",
+      "close": 6475,
+      "ihsg": 6525,
+      "volume": 230904500
+    },
+    {
+      "date": "2026-09-01",
+      "close": 6600,
+      "ihsg": 6600,
+      "volume": 117969900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 6675,
+      "ihsg": 6596,
+      "volume": 108537400
+    },
+    {
+      "date": "2026-09-03",
+      "close": 6775,
+      "ihsg": 6668,
+      "volume": 112329900
+    },
+    {
+      "date": "2026-09-04",
+      "close": 6700,
+      "ihsg": 6636,
+      "volume": 93923500
+    },
+    {
+      "date": "2026-09-07",
+      "close": 6625,
+      "ihsg": 6620,
+      "volume": 65118000
+    },
+    {
+      "date": "2026-09-08",
+      "close": 6675,
+      "ihsg": 6686,
+      "volume": 108127600
+    },
+    {
+      "date": "2026-09-09",
+      "close": 6525,
+      "ihsg": 6678,
+      "volume": 193375100
+    },
+    {
+      "date": "2026-09-10",
+      "close": 6425,
+      "ihsg": 6589,
+      "volume": 196819200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 6325,
+      "ihsg": 6541,
+      "volume": 187922700
+    }
+  ],
+  "BBRI": [
+    {
+      "date": "2026-08-03",
+      "close": 3020,
+      "ihsg": 6234,
+      "volume": 119721600
+    },
+    {
+      "date": "2026-08-04",
+      "close": 3060,
+      "ihsg": 6320,
+      "volume": 191121700
+    },
+    {
+      "date": "2026-08-05",
+      "close": 3020,
+      "ihsg": 6351,
+      "volume": 111460100
+    },
+    {
+      "date": "2026-08-06",
+      "close": 3040,
+      "ihsg": 6344,
+      "volume": 117685400
+    },
+    {
+      "date": "2026-08-07",
+      "close": 3130,
+      "ihsg": 6410,
+      "volume": 349136300
+    },
+    {
+      "date": "2026-08-10",
+      "close": 3090,
+      "ihsg": 6365,
+      "volume": 232230700
+    },
+    {
+      "date": "2026-08-11",
+      "close": 3090,
+      "ihsg": 6268,
+      "volume": 179274900
+    },
+    {
+      "date": "2026-08-12",
+      "close": 3130,
+      "ihsg": 6374,
+      "volume": 158307500
+    },
+    {
+      "date": "2026-08-13",
+      "close": 3110,
+      "ihsg": 6302,
+      "volume": 165084600
+    },
+    {
+      "date": "2026-08-14",
+      "close": 3120,
+      "ihsg": 6402,
+      "volume": 118492200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 3080,
+      "ihsg": 6450,
+      "volume": 153801000
+    },
+    {
+      "date": "2026-08-19",
+      "close": 3080,
+      "ihsg": 6394,
+      "volume": 101112000
+    },
+    {
+      "date": "2026-08-20",
+      "close": 3140,
+      "ihsg": 6502,
+      "volume": 156120300
+    },
+    {
+      "date": "2026-08-21",
+      "close": 3230,
+      "ihsg": 6526,
+      "volume": 349663900
+    },
+    {
+      "date": "2026-08-24",
+      "close": 3180,
+      "ihsg": 6502,
+      "volume": 151200300
+    },
+    {
+      "date": "2026-08-26",
+      "close": 3130,
+      "ihsg": 6406,
+      "volume": 159003300
+    },
+    {
+      "date": "2026-08-27",
+      "close": 3150,
+      "ihsg": 6522,
+      "volume": 164832300
+    },
+    {
+      "date": "2026-08-28",
+      "close": 3190,
+      "ihsg": 6518,
+      "volume": 135419900
+    },
+    {
+      "date": "2026-08-31",
+      "close": 3250,
+      "ihsg": 6525,
+      "volume": 353834000
+    },
+    {
+      "date": "2026-09-01",
+      "close": 3380,
+      "ihsg": 6600,
+      "volume": 393505600
+    },
+    {
+      "date": "2026-09-02",
+      "close": 3390,
+      "ihsg": 6596,
+      "volume": 213369000
+    },
+    {
+      "date": "2026-09-03",
+      "close": 3410,
+      "ihsg": 6668,
+      "volume": 244707500
+    },
+    {
+      "date": "2026-09-04",
+      "close": 3390,
+      "ihsg": 6636,
+      "volume": 152173900
+    },
+    {
+      "date": "2026-09-07",
+      "close": 3370,
+      "ihsg": 6620,
+      "volume": 140651200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3410,
+      "ihsg": 6686,
+      "volume": 148330400
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3420,
+      "ihsg": 6678,
+      "volume": 156865000
+    },
+    {
+      "date": "2026-09-10",
+      "close": 3320,
+      "ihsg": 6589,
+      "volume": 194894800
+    },
+    {
+      "date": "2026-09-11",
+      "close": 3270,
+      "ihsg": 6541,
+      "volume": 217303600
+    }
+  ],
+  "BMRI": [
+    {
+      "date": "2026-08-03",
+      "close": 4170,
+      "ihsg": 6234,
+      "volume": 76254300
+    },
+    {
+      "date": "2026-08-04",
+      "close": 4260,
+      "ihsg": 6320,
+      "volume": 121374800
+    },
+    {
+      "date": "2026-08-05",
+      "close": 4220,
+      "ihsg": 6351,
+      "volume": 122781400
+    },
+    {
+      "date": "2026-08-06",
+      "close": 4200,
+      "ihsg": 6344,
+      "volume": 95744300
+    },
+    {
+      "date": "2026-08-07",
+      "close": 4240,
+      "ihsg": 6410,
+      "volume": 110106100
+    },
+    {
+      "date": "2026-08-10",
+      "close": 4180,
+      "ihsg": 6365,
+      "volume": 148614700
+    },
+    {
+      "date": "2026-08-11",
+      "close": 4120,
+      "ihsg": 6268,
+      "volume": 148404100
+    },
+    {
+      "date": "2026-08-12",
+      "close": 4130,
+      "ihsg": 6374,
+      "volume": 153658300
+    },
+    {
+      "date": "2026-08-13",
+      "close": 4130,
+      "ihsg": 6302,
+      "volume": 108708200
+    },
+    {
+      "date": "2026-08-14",
+      "close": 4170,
+      "ihsg": 6402,
+      "volume": 75934800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 4150,
+      "ihsg": 6450,
+      "volume": 116514200
+    },
+    {
+      "date": "2026-08-19",
+      "close": 4140,
+      "ihsg": 6394,
+      "volume": 79287200
+    },
+    {
+      "date": "2026-08-20",
+      "close": 4150,
+      "ihsg": 6502,
+      "volume": 74796300
+    },
+    {
+      "date": "2026-08-21",
+      "close": 4220,
+      "ihsg": 6526,
+      "volume": 142906200
+    },
+    {
+      "date": "2026-08-24",
+      "close": 4200,
+      "ihsg": 6502,
+      "volume": 86046100
+    },
+    {
+      "date": "2026-08-26",
+      "close": 4160,
+      "ihsg": 6406,
+      "volume": 156162500
+    },
+    {
+      "date": "2026-08-27",
+      "close": 4210,
+      "ihsg": 6522,
+      "volume": 66036800
+    },
+    {
+      "date": "2026-08-28",
+      "close": 4250,
+      "ihsg": 6518,
+      "volume": 111542000
+    },
+    {
+      "date": "2026-08-31",
+      "close": 4230,
+      "ihsg": 6525,
+      "volume": 231356300
+    },
+    {
+      "date": "2026-09-01",
+      "close": 4320,
+      "ihsg": 6600,
+      "volume": 191597900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 4360,
+      "ihsg": 6596,
+      "volume": 140357100
+    },
+    {
+      "date": "2026-09-03",
+      "close": 4460,
+      "ihsg": 6668,
+      "volume": 234997200
+    },
+    {
+      "date": "2026-09-04",
+      "close": 4420,
+      "ihsg": 6636,
+      "volume": 95373200
+    },
+    {
+      "date": "2026-09-07",
+      "close": 4390,
+      "ihsg": 6620,
+      "volume": 94899700
+    },
+    {
+      "date": "2026-09-08",
+      "close": 4430,
+      "ihsg": 6686,
+      "volume": 91930900
+    },
+    {
+      "date": "2026-09-09",
+      "close": 4390,
+      "ihsg": 6678,
+      "volume": 125622500
+    },
+    {
+      "date": "2026-09-10",
+      "close": 4370,
+      "ihsg": 6589,
+      "volume": 132956900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 4360,
+      "ihsg": 6541,
+      "volume": 126557800
+    }
+  ],
+  "TLKM": [
+    {
+      "date": "2026-08-03",
+      "close": 2740,
+      "ihsg": 6234,
+      "volume": 112278700
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2790,
+      "ihsg": 6320,
+      "volume": 90753600
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2710,
+      "ihsg": 6351,
+      "volume": 109494500
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2650,
+      "ihsg": 6344,
+      "volume": 138223900
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2710,
+      "ihsg": 6410,
+      "volume": 66412400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2620,
+      "ihsg": 6365,
+      "volume": 93974000
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2610,
+      "ihsg": 6268,
+      "volume": 84124100
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2590,
+      "ihsg": 6374,
+      "volume": 120373100
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2590,
+      "ihsg": 6302,
+      "volume": 76115000
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2620,
+      "ihsg": 6402,
+      "volume": 80799200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2600,
+      "ihsg": 6450,
+      "volume": 80089000
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2600,
+      "ihsg": 6394,
+      "volume": 45580300
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2610,
+      "ihsg": 6502,
+      "volume": 86747700
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2610,
+      "ihsg": 6526,
+      "volume": 72276500
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2620,
+      "ihsg": 6502,
+      "volume": 46321100
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2600,
+      "ihsg": 6406,
+      "volume": 82579200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2610,
+      "ihsg": 6522,
+      "volume": 115845900
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2570,
+      "ihsg": 6518,
+      "volume": 78958600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2600,
+      "ihsg": 6525,
+      "volume": 204591800
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2610,
+      "ihsg": 6600,
+      "volume": 82430900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2590,
+      "ihsg": 6596,
+      "volume": 105899600
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2600,
+      "ihsg": 6668,
+      "volume": 76991100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2610,
+      "ihsg": 6636,
+      "volume": 84953700
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2610,
+      "ihsg": 6620,
+      "volume": 42030200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 2650,
+      "ihsg": 6686,
+      "volume": 173160300
+    },
+    {
+      "date": "2026-09-09",
+      "close": 2660,
+      "ihsg": 6678,
+      "volume": 119056300
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2630,
+      "ihsg": 6589,
+      "volume": 87447500
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2600,
+      "ihsg": 6541,
+      "volume": 88455300
+    }
+  ],
+  "JSMR": [
+    {
+      "date": "2026-08-03",
+      "close": 2770,
+      "ihsg": 6234,
+      "volume": 4380700
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2760,
+      "ihsg": 6320,
+      "volume": 1022100
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2800,
+      "ihsg": 6351,
+      "volume": 3511500
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2750,
+      "ihsg": 6344,
+      "volume": 2581900
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2790,
+      "ihsg": 6410,
+      "volume": 1889000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2770,
+      "ihsg": 6365,
+      "volume": 1940800
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2740,
+      "ihsg": 6268,
+      "volume": 3589400
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2760,
+      "ihsg": 6374,
+      "volume": 1785800
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2740,
+      "ihsg": 6302,
+      "volume": 2496200
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2730,
+      "ihsg": 6402,
+      "volume": 500100
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2760,
+      "ihsg": 6450,
+      "volume": 1694300
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2770,
+      "ihsg": 6394,
+      "volume": 3266000
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2790,
+      "ihsg": 6502,
+      "volume": 1664900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2790,
+      "ihsg": 6526,
+      "volume": 2036200
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2760,
+      "ihsg": 6502,
+      "volume": 2658000
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2740,
+      "ihsg": 6406,
+      "volume": 1938400
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2810,
+      "ihsg": 6522,
+      "volume": 2577700
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2830,
+      "ihsg": 6518,
+      "volume": 3018200
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2960,
+      "ihsg": 6525,
+      "volume": 8253900
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2970,
+      "ihsg": 6600,
+      "volume": 4812900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2970,
+      "ihsg": 6596,
+      "volume": 3396800
+    },
+    {
+      "date": "2026-09-03",
+      "close": 3040,
+      "ihsg": 6668,
+      "volume": 3400200
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2990,
+      "ihsg": 6636,
+      "volume": 3606300
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2960,
+      "ihsg": 6620,
+      "volume": 1584000
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3010,
+      "ihsg": 6686,
+      "volume": 1335500
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3010,
+      "ihsg": 6678,
+      "volume": 1836300
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2990,
+      "ihsg": 6589,
+      "volume": 1606200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2950,
+      "ihsg": 6541,
+      "volume": 1789500
+    }
+  ],
+  "EXCL": [
+    {
+      "date": "2026-08-03",
+      "close": 2530,
+      "ihsg": 6234,
+      "volume": 8010900
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2510,
+      "ihsg": 6320,
+      "volume": 1918700
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2560,
+      "ihsg": 6351,
+      "volume": 4775600
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2500,
+      "ihsg": 6344,
+      "volume": 6373600
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2550,
+      "ihsg": 6410,
+      "volume": 4237400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2500,
+      "ihsg": 6365,
+      "volume": 3968100
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2410,
+      "ihsg": 6268,
+      "volume": 8128800
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2560,
+      "ihsg": 6374,
+      "volume": 26942600
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2630,
+      "ihsg": 6302,
+      "volume": 13349800
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2800,
+      "ihsg": 6402,
+      "volume": 19243500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2910,
+      "ihsg": 6450,
+      "volume": 10371800
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2860,
+      "ihsg": 6394,
+      "volume": 10094800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2830,
+      "ihsg": 6502,
+      "volume": 5310100
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2840,
+      "ihsg": 6526,
+      "volume": 3456700
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2700,
+      "ihsg": 6502,
+      "volume": 10104100
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2700,
+      "ihsg": 6406,
+      "volume": 5159000
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2770,
+      "ihsg": 6522,
+      "volume": 4733500
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2770,
+      "ihsg": 6518,
+      "volume": 5397800
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2820,
+      "ihsg": 6525,
+      "volume": 9277600
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2770,
+      "ihsg": 6600,
+      "volume": 4177500
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2710,
+      "ihsg": 6596,
+      "volume": 4987800
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2740,
+      "ihsg": 6668,
+      "volume": 4344100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2710,
+      "ihsg": 6636,
+      "volume": 6732000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2710,
+      "ihsg": 6620,
+      "volume": 1682300
+    },
+    {
+      "date": "2026-09-08",
+      "close": 2740,
+      "ihsg": 6686,
+      "volume": 3136500
+    },
+    {
+      "date": "2026-09-09",
+      "close": 2730,
+      "ihsg": 6678,
+      "volume": 6836800
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2700,
+      "ihsg": 6589,
+      "volume": 9761700
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2630,
+      "ihsg": 6541,
+      "volume": 6844300
+    }
+  ],
+  "GOTO": [
+    {
+      "date": "2026-08-03",
+      "close": 50,
+      "ihsg": 6234,
+      "volume": 46756100
+    },
+    {
+      "date": "2026-08-04",
+      "close": 50,
+      "ihsg": 6320,
+      "volume": 46203700
+    },
+    {
+      "date": "2026-08-05",
+      "close": 50,
+      "ihsg": 6351,
+      "volume": 123652900
+    },
+    {
+      "date": "2026-08-06",
+      "close": 50,
+      "ihsg": 6344,
+      "volume": 35469600
+    },
+    {
+      "date": "2026-08-07",
+      "close": 50,
+      "ihsg": 6410,
+      "volume": 46708900
+    },
+    {
+      "date": "2026-08-10",
+      "close": 50,
+      "ihsg": 6365,
+      "volume": 47265600
+    },
+    {
+      "date": "2026-08-11",
+      "close": 50,
+      "ihsg": 6268,
+      "volume": 19202500
+    },
+    {
+      "date": "2026-08-12",
+      "close": 50,
+      "ihsg": 6374,
+      "volume": 22086800
+    },
+    {
+      "date": "2026-08-13",
+      "close": 50,
+      "ihsg": 6302,
+      "volume": 19638700
+    },
+    {
+      "date": "2026-08-14",
+      "close": 50,
+      "ihsg": 6402,
+      "volume": 9945800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 50,
+      "ihsg": 6450,
+      "volume": 37192200
+    },
+    {
+      "date": "2026-08-19",
+      "close": 50,
+      "ihsg": 6394,
+      "volume": 10585100
+    },
+    {
+      "date": "2026-08-20",
+      "close": 50,
+      "ihsg": 6502,
+      "volume": 10633300
+    },
+    {
+      "date": "2026-08-21",
+      "close": 50,
+      "ihsg": 6526,
+      "volume": 9191000
+    },
+    {
+      "date": "2026-08-24",
+      "close": 50,
+      "ihsg": 6502,
+      "volume": 7613300
+    },
+    {
+      "date": "2026-08-26",
+      "close": 50,
+      "ihsg": 6406,
+      "volume": 4339200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 50,
+      "ihsg": 6522,
+      "volume": 15706300
+    },
+    {
+      "date": "2026-08-28",
+      "close": 50,
+      "ihsg": 6518,
+      "volume": 15212100
+    },
+    {
+      "date": "2026-08-31",
+      "close": 50,
+      "ihsg": 6525,
+      "volume": 38022700
+    },
+    {
+      "date": "2026-09-01",
+      "close": 50,
+      "ihsg": 6600,
+      "volume": 6719800
+    },
+    {
+      "date": "2026-09-02",
+      "close": 50,
+      "ihsg": 6596,
+      "volume": 6195700
+    },
+    {
+      "date": "2026-09-03",
+      "close": 50,
+      "ihsg": 6668,
+      "volume": 8362700
+    },
+    {
+      "date": "2026-09-04",
+      "close": 50,
+      "ihsg": 6636,
+      "volume": 9459600
+    },
+    {
+      "date": "2026-09-07",
+      "close": 50,
+      "ihsg": 6620,
+      "volume": 33487700
+    },
+    {
+      "date": "2026-09-08",
+      "close": 50,
+      "ihsg": 6686,
+      "volume": 9295200
+    },
+    {
+      "date": "2026-09-09",
+      "close": 50,
+      "ihsg": 6678,
+      "volume": 16866200
+    },
+    {
+      "date": "2026-09-10",
+      "close": 50,
+      "ihsg": 6589,
+      "volume": 13698200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 50,
+      "ihsg": 6541,
+      "volume": 3016900
+    }
+  ],
+  "BUKA": [
+    {
+      "date": "2026-08-03",
+      "close": 118,
+      "ihsg": 6234,
+      "volume": 95160900
+    },
+    {
+      "date": "2026-08-04",
+      "close": 120,
+      "ihsg": 6320,
+      "volume": 49917400
+    },
+    {
+      "date": "2026-08-05",
+      "close": 120,
+      "ihsg": 6351,
+      "volume": 219226100
+    },
+    {
+      "date": "2026-08-06",
+      "close": 118,
+      "ihsg": 6344,
+      "volume": 147682500
+    },
+    {
+      "date": "2026-08-07",
+      "close": 118,
+      "ihsg": 6410,
+      "volume": 57365400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 117,
+      "ihsg": 6365,
+      "volume": 44875400
+    },
+    {
+      "date": "2026-08-11",
+      "close": 118,
+      "ihsg": 6268,
+      "volume": 109452900
+    },
+    {
+      "date": "2026-08-12",
+      "close": 118,
+      "ihsg": 6374,
+      "volume": 83259300
+    },
+    {
+      "date": "2026-08-13",
+      "close": 112,
+      "ihsg": 6302,
+      "volume": 218155800
+    },
+    {
+      "date": "2026-08-14",
+      "close": 115,
+      "ihsg": 6402,
+      "volume": 61442100
+    },
+    {
+      "date": "2026-08-18",
+      "close": 115,
+      "ihsg": 6450,
+      "volume": 54168500
+    },
+    {
+      "date": "2026-08-19",
+      "close": 115,
+      "ihsg": 6394,
+      "volume": 225152500
+    },
+    {
+      "date": "2026-08-20",
+      "close": 116,
+      "ihsg": 6502,
+      "volume": 181926000
+    },
+    {
+      "date": "2026-08-21",
+      "close": 114,
+      "ihsg": 6526,
+      "volume": 171081000
+    },
+    {
+      "date": "2026-08-24",
+      "close": 113,
+      "ihsg": 6502,
+      "volume": 143979000
+    },
+    {
+      "date": "2026-08-26",
+      "close": 107,
+      "ihsg": 6406,
+      "volume": 97757200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 108,
+      "ihsg": 6522,
+      "volume": 98697200
+    },
+    {
+      "date": "2026-08-28",
+      "close": 105,
+      "ihsg": 6518,
+      "volume": 115363600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 105,
+      "ihsg": 6525,
+      "volume": 1883828500
+    },
+    {
+      "date": "2026-09-01",
+      "close": 113,
+      "ihsg": 6600,
+      "volume": 370491200
+    },
+    {
+      "date": "2026-09-02",
+      "close": 112,
+      "ihsg": 6596,
+      "volume": 61961200
+    },
+    {
+      "date": "2026-09-03",
+      "close": 114,
+      "ihsg": 6668,
+      "volume": 159782900
+    },
+    {
+      "date": "2026-09-04",
+      "close": 115,
+      "ihsg": 6636,
+      "volume": 70638700
+    },
+    {
+      "date": "2026-09-07",
+      "close": 113,
+      "ihsg": 6620,
+      "volume": 60366200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 114,
+      "ihsg": 6686,
+      "volume": 72375300
+    },
+    {
+      "date": "2026-09-09",
+      "close": 114,
+      "ihsg": 6678,
+      "volume": 217779500
+    },
+    {
+      "date": "2026-09-10",
+      "close": 109,
+      "ihsg": 6589,
+      "volume": 131772300
+    },
+    {
+      "date": "2026-09-11",
+      "close": 107,
+      "ihsg": 6541,
+      "volume": 84072700
+    }
+  ],
+  "EMTK": [
+    {
+      "date": "2026-08-03",
+      "close": 520,
+      "ihsg": 6234,
+      "volume": 47286000
+    },
+    {
+      "date": "2026-08-04",
+      "close": 530,
+      "ihsg": 6320,
+      "volume": 60098100
+    },
+    {
+      "date": "2026-08-05",
+      "close": 530,
+      "ihsg": 6351,
+      "volume": 40154800
+    },
+    {
+      "date": "2026-08-06",
+      "close": 530,
+      "ihsg": 6344,
+      "volume": 62962600
+    },
+    {
+      "date": "2026-08-07",
+      "close": 530,
+      "ihsg": 6410,
+      "volume": 44167700
+    },
+    {
+      "date": "2026-08-10",
+      "close": 515,
+      "ihsg": 6365,
+      "volume": 75023600
+    },
+    {
+      "date": "2026-08-11",
+      "close": 505,
+      "ihsg": 6268,
+      "volume": 43027300
+    },
+    {
+      "date": "2026-08-12",
+      "close": 510,
+      "ihsg": 6374,
+      "volume": 24974500
+    },
+    {
+      "date": "2026-08-13",
+      "close": 500,
+      "ihsg": 6302,
+      "volume": 35640900
+    },
+    {
+      "date": "2026-08-14",
+      "close": 505,
+      "ihsg": 6402,
+      "volume": 40820200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 520,
+      "ihsg": 6450,
+      "volume": 21840400
+    },
+    {
+      "date": "2026-08-19",
+      "close": 525,
+      "ihsg": 6394,
+      "volume": 68442100
+    },
+    {
+      "date": "2026-08-20",
+      "close": 550,
+      "ihsg": 6502,
+      "volume": 82409400
+    },
+    {
+      "date": "2026-08-21",
+      "close": 540,
+      "ihsg": 6526,
+      "volume": 47671000
+    },
+    {
+      "date": "2026-08-24",
+      "close": 525,
+      "ihsg": 6502,
+      "volume": 31003900
+    },
+    {
+      "date": "2026-08-26",
+      "close": 500,
+      "ihsg": 6406,
+      "volume": 61787200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 510,
+      "ihsg": 6522,
+      "volume": 39160700
+    },
+    {
+      "date": "2026-08-28",
+      "close": 515,
+      "ihsg": 6518,
+      "volume": 33662700
+    },
+    {
+      "date": "2026-08-31",
+      "close": 515,
+      "ihsg": 6525,
+      "volume": 49869400
+    },
+    {
+      "date": "2026-09-01",
+      "close": 535,
+      "ihsg": 6600,
+      "volume": 52530400
+    },
+    {
+      "date": "2026-09-02",
+      "close": 520,
+      "ihsg": 6596,
+      "volume": 50870200
+    },
+    {
+      "date": "2026-09-03",
+      "close": 535,
+      "ihsg": 6668,
+      "volume": 47833500
+    },
+    {
+      "date": "2026-09-04",
+      "close": 515,
+      "ihsg": 6636,
+      "volume": 34794900
+    },
+    {
+      "date": "2026-09-07",
+      "close": 510,
+      "ihsg": 6620,
+      "volume": 43367600
+    },
+    {
+      "date": "2026-09-08",
+      "close": 520,
+      "ihsg": 6686,
+      "volume": 26460300
+    },
+    {
+      "date": "2026-09-09",
+      "close": 515,
+      "ihsg": 6678,
+      "volume": 31399400
+    },
+    {
+      "date": "2026-09-10",
+      "close": 500,
+      "ihsg": 6589,
+      "volume": 27456800
+    },
+    {
+      "date": "2026-09-11",
+      "close": 500,
+      "ihsg": 6541,
+      "volume": 52096800
+    }
+  ],
+  "PGAS": [
+    {
+      "date": "2026-08-03",
+      "close": 1510,
+      "ihsg": 6234,
+      "volume": 15393200
+    },
+    {
+      "date": "2026-08-04",
+      "close": 1515,
+      "ihsg": 6320,
+      "volume": 28199400
+    },
+    {
+      "date": "2026-08-05",
+      "close": 1505,
+      "ihsg": 6351,
+      "volume": 17831200
+    },
+    {
+      "date": "2026-08-06",
+      "close": 1505,
+      "ihsg": 6344,
+      "volume": 28221800
+    },
+    {
+      "date": "2026-08-07",
+      "close": 1510,
+      "ihsg": 6410,
+      "volume": 17980000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 1510,
+      "ihsg": 6365,
+      "volume": 20588100
+    },
+    {
+      "date": "2026-08-11",
+      "close": 1490,
+      "ihsg": 6268,
+      "volume": 29821300
+    },
+    {
+      "date": "2026-08-12",
+      "close": 1485,
+      "ihsg": 6374,
+      "volume": 26112600
+    },
+    {
+      "date": "2026-08-13",
+      "close": 1475,
+      "ihsg": 6302,
+      "volume": 25697600
+    },
+    {
+      "date": "2026-08-14",
+      "close": 1495,
+      "ihsg": 6402,
+      "volume": 17773500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 1515,
+      "ihsg": 6450,
+      "volume": 32365400
+    },
+    {
+      "date": "2026-08-19",
+      "close": 1505,
+      "ihsg": 6394,
+      "volume": 14895400
+    },
+    {
+      "date": "2026-08-20",
+      "close": 1525,
+      "ihsg": 6502,
+      "volume": 27450600
+    },
+    {
+      "date": "2026-08-21",
+      "close": 1520,
+      "ihsg": 6526,
+      "volume": 18956900
+    },
+    {
+      "date": "2026-08-24",
+      "close": 1540,
+      "ihsg": 6502,
+      "volume": 36377100
+    },
+    {
+      "date": "2026-08-26",
+      "close": 1520,
+      "ihsg": 6406,
+      "volume": 52147400
+    },
+    {
+      "date": "2026-08-27",
+      "close": 1535,
+      "ihsg": 6522,
+      "volume": 26339500
+    },
+    {
+      "date": "2026-08-28",
+      "close": 1510,
+      "ihsg": 6518,
+      "volume": 57344100
+    },
+    {
+      "date": "2026-08-31",
+      "close": 1530,
+      "ihsg": 6525,
+      "volume": 37894200
+    },
+    {
+      "date": "2026-09-01",
+      "close": 1555,
+      "ihsg": 6600,
+      "volume": 48408200
+    },
+    {
+      "date": "2026-09-02",
+      "close": 1535,
+      "ihsg": 6596,
+      "volume": 24552900
+    },
+    {
+      "date": "2026-09-03",
+      "close": 1540,
+      "ihsg": 6668,
+      "volume": 67582000
+    },
+    {
+      "date": "2026-09-04",
+      "close": 1520,
+      "ihsg": 6636,
+      "volume": 25218600
+    },
+    {
+      "date": "2026-09-07",
+      "close": 1520,
+      "ihsg": 6620,
+      "volume": 28201200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 1540,
+      "ihsg": 6686,
+      "volume": 29486400
+    },
+    {
+      "date": "2026-09-09",
+      "close": 1545,
+      "ihsg": 6678,
+      "volume": 21931600
+    },
+    {
+      "date": "2026-09-10",
+      "close": 1515,
+      "ihsg": 6589,
+      "volume": 40942100
+    },
+    {
+      "date": "2026-09-11",
+      "close": 1520,
+      "ihsg": 6541,
+      "volume": 24755500
+    }
+  ],
+  "ADRO": [
+    {
+      "date": "2026-08-03",
+      "close": 2470,
+      "ihsg": 6234,
+      "volume": 17816300
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2520,
+      "ihsg": 6320,
+      "volume": 34062000
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2550,
+      "ihsg": 6351,
+      "volume": 26513000
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2500,
+      "ihsg": 6344,
+      "volume": 18191200
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2540,
+      "ihsg": 6410,
+      "volume": 14412400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2530,
+      "ihsg": 6365,
+      "volume": 18267400
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2530,
+      "ihsg": 6268,
+      "volume": 22808600
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2520,
+      "ihsg": 6374,
+      "volume": 17523900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2470,
+      "ihsg": 6302,
+      "volume": 21270000
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2530,
+      "ihsg": 6402,
+      "volume": 18026800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2570,
+      "ihsg": 6450,
+      "volume": 37379600
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2560,
+      "ihsg": 6394,
+      "volume": 29007800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2560,
+      "ihsg": 6502,
+      "volume": 19575600
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2550,
+      "ihsg": 6526,
+      "volume": 15845700
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2630,
+      "ihsg": 6502,
+      "volume": 52533200
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2610,
+      "ihsg": 6406,
+      "volume": 50134700
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2700,
+      "ihsg": 6522,
+      "volume": 65458300
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2670,
+      "ihsg": 6518,
+      "volume": 33101900
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2840,
+      "ihsg": 6525,
+      "volume": 102100700
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2780,
+      "ihsg": 6600,
+      "volume": 60278400
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2650,
+      "ihsg": 6596,
+      "volume": 125290300
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2740,
+      "ihsg": 6668,
+      "volume": 77055100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2720,
+      "ihsg": 6636,
+      "volume": 40544500
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2700,
+      "ihsg": 6620,
+      "volume": 32017200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 2690,
+      "ihsg": 6686,
+      "volume": 34095200
+    },
+    {
+      "date": "2026-09-09",
+      "close": 2690,
+      "ihsg": 6678,
+      "volume": 68999600
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2670,
+      "ihsg": 6589,
+      "volume": 22343200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2640,
+      "ihsg": 6541,
+      "volume": 28561800
+    }
+  ],
+  "PTBA": [
+    {
+      "date": "2026-08-03",
+      "close": 2320,
+      "ihsg": 6234,
+      "volume": 14504100
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2360,
+      "ihsg": 6320,
+      "volume": 9082700
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2360,
+      "ihsg": 6351,
+      "volume": 13690100
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2350,
+      "ihsg": 6344,
+      "volume": 9337400
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2370,
+      "ihsg": 6410,
+      "volume": 9940400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2390,
+      "ihsg": 6365,
+      "volume": 10339700
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2350,
+      "ihsg": 6268,
+      "volume": 9427900
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2350,
+      "ihsg": 6374,
+      "volume": 10222900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2340,
+      "ihsg": 6302,
+      "volume": 5823800
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2360,
+      "ihsg": 6402,
+      "volume": 10351500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2370,
+      "ihsg": 6450,
+      "volume": 10452300
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2370,
+      "ihsg": 6394,
+      "volume": 9062800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2400,
+      "ihsg": 6502,
+      "volume": 7825700
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2400,
+      "ihsg": 6526,
+      "volume": 8314400
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2480,
+      "ihsg": 6502,
+      "volume": 33941000
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2420,
+      "ihsg": 6406,
+      "volume": 19885800
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2500,
+      "ihsg": 6522,
+      "volume": 23812700
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2530,
+      "ihsg": 6518,
+      "volume": 37465600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2560,
+      "ihsg": 6525,
+      "volume": 30232000
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2670,
+      "ihsg": 6600,
+      "volume": 115499100
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2720,
+      "ihsg": 6596,
+      "volume": 93828700
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2890,
+      "ihsg": 6668,
+      "volume": 109723500
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2880,
+      "ihsg": 6636,
+      "volume": 26032000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 3010,
+      "ihsg": 6620,
+      "volume": 92569800
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3000,
+      "ihsg": 6686,
+      "volume": 67132000
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3100,
+      "ihsg": 6678,
+      "volume": 104634100
+    },
+    {
+      "date": "2026-09-10",
+      "close": 3100,
+      "ihsg": 6589,
+      "volume": 81084900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 3100,
+      "ihsg": 6541,
+      "volume": 51290600
+    }
+  ],
+  "ICBP": [
+    {
+      "date": "2026-08-03",
+      "close": 7200,
+      "ihsg": 6234,
+      "volume": 6342500
+    },
+    {
+      "date": "2026-08-04",
+      "close": 7175,
+      "ihsg": 6320,
+      "volume": 3618500
+    },
+    {
+      "date": "2026-08-05",
+      "close": 7300,
+      "ihsg": 6351,
+      "volume": 5071600
+    },
+    {
+      "date": "2026-08-06",
+      "close": 7450,
+      "ihsg": 6344,
+      "volume": 6652200
+    },
+    {
+      "date": "2026-08-07",
+      "close": 7750,
+      "ihsg": 6410,
+      "volume": 10181700
+    },
+    {
+      "date": "2026-08-10",
+      "close": 7600,
+      "ihsg": 6365,
+      "volume": 6810700
+    },
+    {
+      "date": "2026-08-11",
+      "close": 7575,
+      "ihsg": 6268,
+      "volume": 2946500
+    },
+    {
+      "date": "2026-08-12",
+      "close": 7550,
+      "ihsg": 6374,
+      "volume": 2882200
+    },
+    {
+      "date": "2026-08-13",
+      "close": 7550,
+      "ihsg": 6302,
+      "volume": 3348500
+    },
+    {
+      "date": "2026-08-14",
+      "close": 7600,
+      "ihsg": 6402,
+      "volume": 3782100
+    },
+    {
+      "date": "2026-08-18",
+      "close": 7625,
+      "ihsg": 6450,
+      "volume": 3579400
+    },
+    {
+      "date": "2026-08-19",
+      "close": 7675,
+      "ihsg": 6394,
+      "volume": 2160100
+    },
+    {
+      "date": "2026-08-20",
+      "close": 7700,
+      "ihsg": 6502,
+      "volume": 3523100
+    },
+    {
+      "date": "2026-08-21",
+      "close": 7625,
+      "ihsg": 6526,
+      "volume": 2480400
+    },
+    {
+      "date": "2026-08-24",
+      "close": 7750,
+      "ihsg": 6502,
+      "volume": 3562400
+    },
+    {
+      "date": "2026-08-26",
+      "close": 7850,
+      "ihsg": 6406,
+      "volume": 10588000
+    },
+    {
+      "date": "2026-08-27",
+      "close": 7950,
+      "ihsg": 6522,
+      "volume": 7535100
+    },
+    {
+      "date": "2026-08-28",
+      "close": 7950,
+      "ihsg": 6518,
+      "volume": 3700600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 7600,
+      "ihsg": 6525,
+      "volume": 11298400
+    },
+    {
+      "date": "2026-09-01",
+      "close": 7375,
+      "ihsg": 6600,
+      "volume": 8792900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 7375,
+      "ihsg": 6596,
+      "volume": 7088900
+    },
+    {
+      "date": "2026-09-03",
+      "close": 7375,
+      "ihsg": 6668,
+      "volume": 5230500
+    },
+    {
+      "date": "2026-09-04",
+      "close": 7275,
+      "ihsg": 6636,
+      "volume": 6086500
+    },
+    {
+      "date": "2026-09-07",
+      "close": 7250,
+      "ihsg": 6620,
+      "volume": 6982400
+    },
+    {
+      "date": "2026-09-08",
+      "close": 7200,
+      "ihsg": 6686,
+      "volume": 10089400
+    },
+    {
+      "date": "2026-09-09",
+      "close": 7200,
+      "ihsg": 6678,
+      "volume": 7180200
+    },
+    {
+      "date": "2026-09-10",
+      "close": 7175,
+      "ihsg": 6589,
+      "volume": 3613500
+    },
+    {
+      "date": "2026-09-11",
+      "close": 7125,
+      "ihsg": 6541,
+      "volume": 2205300
+    }
+  ],
+  "MYOR": [
+    {
+      "date": "2026-08-03",
+      "close": 1660,
+      "ihsg": 6234,
+      "volume": 9756600
+    },
+    {
+      "date": "2026-08-04",
+      "close": 1685,
+      "ihsg": 6320,
+      "volume": 6070500
+    },
+    {
+      "date": "2026-08-05",
+      "close": 1675,
+      "ihsg": 6351,
+      "volume": 19334500
+    },
+    {
+      "date": "2026-08-06",
+      "close": 1675,
+      "ihsg": 6344,
+      "volume": 8115700
+    },
+    {
+      "date": "2026-08-07",
+      "close": 1695,
+      "ihsg": 6410,
+      "volume": 5053700
+    },
+    {
+      "date": "2026-08-10",
+      "close": 1710,
+      "ihsg": 6365,
+      "volume": 12615100
+    },
+    {
+      "date": "2026-08-11",
+      "close": 1680,
+      "ihsg": 6268,
+      "volume": 11039800
+    },
+    {
+      "date": "2026-08-12",
+      "close": 1665,
+      "ihsg": 6374,
+      "volume": 10215600
+    },
+    {
+      "date": "2026-08-13",
+      "close": 1665,
+      "ihsg": 6302,
+      "volume": 3246600
+    },
+    {
+      "date": "2026-08-14",
+      "close": 1675,
+      "ihsg": 6402,
+      "volume": 3286200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 1675,
+      "ihsg": 6450,
+      "volume": 6831100
+    },
+    {
+      "date": "2026-08-19",
+      "close": 1650,
+      "ihsg": 6394,
+      "volume": 8964000
+    },
+    {
+      "date": "2026-08-20",
+      "close": 1685,
+      "ihsg": 6502,
+      "volume": 2214800
+    },
+    {
+      "date": "2026-08-21",
+      "close": 1675,
+      "ihsg": 6526,
+      "volume": 7559800
+    },
+    {
+      "date": "2026-08-24",
+      "close": 1620,
+      "ihsg": 6502,
+      "volume": 22326700
+    },
+    {
+      "date": "2026-08-26",
+      "close": 1600,
+      "ihsg": 6406,
+      "volume": 11782900
+    },
+    {
+      "date": "2026-08-27",
+      "close": 1600,
+      "ihsg": 6522,
+      "volume": 11512000
+    },
+    {
+      "date": "2026-08-28",
+      "close": 1590,
+      "ihsg": 6518,
+      "volume": 24193500
+    },
+    {
+      "date": "2026-08-31",
+      "close": 1550,
+      "ihsg": 6525,
+      "volume": 36463100
+    },
+    {
+      "date": "2026-09-01",
+      "close": 1565,
+      "ihsg": 6600,
+      "volume": 32716000
+    },
+    {
+      "date": "2026-09-02",
+      "close": 1555,
+      "ihsg": 6596,
+      "volume": 22632500
+    },
+    {
+      "date": "2026-09-03",
+      "close": 1575,
+      "ihsg": 6668,
+      "volume": 20653900
+    },
+    {
+      "date": "2026-09-04",
+      "close": 1560,
+      "ihsg": 6636,
+      "volume": 26832800
+    },
+    {
+      "date": "2026-09-07",
+      "close": 1530,
+      "ihsg": 6620,
+      "volume": 23091800
+    },
+    {
+      "date": "2026-09-08",
+      "close": 1540,
+      "ihsg": 6686,
+      "volume": 25355500
+    },
+    {
+      "date": "2026-09-09",
+      "close": 1525,
+      "ihsg": 6678,
+      "volume": 15151000
+    },
+    {
+      "date": "2026-09-10",
+      "close": 1530,
+      "ihsg": 6589,
+      "volume": 17569100
+    },
+    {
+      "date": "2026-09-11",
+      "close": 1515,
+      "ihsg": 6541,
+      "volume": 23467100
+    }
+  ],
+  "AMRT": [
+    {
+      "date": "2026-08-03",
+      "close": 1325,
+      "ihsg": 6234,
+      "volume": 43707600
+    },
+    {
+      "date": "2026-08-04",
+      "close": 1325,
+      "ihsg": 6320,
+      "volume": 38218300
+    },
+    {
+      "date": "2026-08-05",
+      "close": 1425,
+      "ihsg": 6351,
+      "volume": 68734700
+    },
+    {
+      "date": "2026-08-06",
+      "close": 1400,
+      "ihsg": 6344,
+      "volume": 36788000
+    },
+    {
+      "date": "2026-08-07",
+      "close": 1420,
+      "ihsg": 6410,
+      "volume": 19096000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 1385,
+      "ihsg": 6365,
+      "volume": 37440400
+    },
+    {
+      "date": "2026-08-11",
+      "close": 1395,
+      "ihsg": 6268,
+      "volume": 50177000
+    },
+    {
+      "date": "2026-08-12",
+      "close": 1390,
+      "ihsg": 6374,
+      "volume": 30175500
+    },
+    {
+      "date": "2026-08-13",
+      "close": 1350,
+      "ihsg": 6302,
+      "volume": 35838400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 1370,
+      "ihsg": 6402,
+      "volume": 22066000
+    },
+    {
+      "date": "2026-08-18",
+      "close": 1400,
+      "ihsg": 6450,
+      "volume": 40228000
+    },
+    {
+      "date": "2026-08-19",
+      "close": 1355,
+      "ihsg": 6394,
+      "volume": 36791800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 1375,
+      "ihsg": 6502,
+      "volume": 18249900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 1440,
+      "ihsg": 6526,
+      "volume": 43120200
+    },
+    {
+      "date": "2026-08-24",
+      "close": 1415,
+      "ihsg": 6502,
+      "volume": 27292400
+    },
+    {
+      "date": "2026-08-26",
+      "close": 1380,
+      "ihsg": 6406,
+      "volume": 29307200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 1375,
+      "ihsg": 6522,
+      "volume": 20056500
+    },
+    {
+      "date": "2026-08-28",
+      "close": 1340,
+      "ihsg": 6518,
+      "volume": 48088200
+    },
+    {
+      "date": "2026-08-31",
+      "close": 1335,
+      "ihsg": 6525,
+      "volume": 72131700
+    },
+    {
+      "date": "2026-09-01",
+      "close": 1340,
+      "ihsg": 6600,
+      "volume": 28779900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 1305,
+      "ihsg": 6596,
+      "volume": 36147700
+    },
+    {
+      "date": "2026-09-03",
+      "close": 1325,
+      "ihsg": 6668,
+      "volume": 32300100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 1310,
+      "ihsg": 6636,
+      "volume": 30783000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 1315,
+      "ihsg": 6620,
+      "volume": 18085300
+    },
+    {
+      "date": "2026-09-08",
+      "close": 1310,
+      "ihsg": 6686,
+      "volume": 19926100
+    },
+    {
+      "date": "2026-09-09",
+      "close": 1310,
+      "ihsg": 6678,
+      "volume": 40247100
+    },
+    {
+      "date": "2026-09-10",
+      "close": 1300,
+      "ihsg": 6589,
+      "volume": 23188500
+    },
+    {
+      "date": "2026-09-11",
+      "close": 1255,
+      "ihsg": 6541,
+      "volume": 29331500
+    }
+  ]
+};
+
+export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: string; windowEnd: string }> = {
+  "ANTM": {
+    "buyers": [
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 2886424188000
+      },
+      {
+        "code": "AK",
+        "origin": "foreign",
+        "value": 2585686056000
+      },
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 1652874687000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 837202001000
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 725096559000
+      },
+      {
+        "code": "DX",
+        "origin": "local",
+        "value": 586545015000
+      },
+      {
+        "code": "DR",
+        "origin": "foreign",
+        "value": 391349562000
+      },
+      {
+        "code": "CP",
+        "origin": "foreign",
+        "value": 318694191000
+      },
+      {
+        "code": "KK",
+        "origin": "foreign",
+        "value": 284928039000
+      },
+      {
+        "code": "GR",
+        "origin": "local",
+        "value": 229044992000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 949677786000
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 615977769000
+      },
+      {
+        "code": "LG",
+        "origin": "local",
+        "value": 613119937000
+      },
+      {
+        "code": "OD",
+        "origin": "local",
+        "value": 482217161000
+      },
+      {
+        "code": "AZ",
+        "origin": "local",
+        "value": 463372499000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 394478600000
+      },
+      {
+        "code": "RX",
+        "origin": "foreign",
+        "value": 290739254000
+      },
+      {
+        "code": "AI",
+        "origin": "foreign",
+        "value": 216839467000
+      },
+      {
+        "code": "DH",
+        "origin": "local",
+        "value": 129654529000
+      },
+      {
+        "code": "AF",
+        "origin": "local",
+        "value": 87277587000
+      }
+    ],
+    "netForeign": 299990321000,
+    "totalMarketValue": 9705181059000,
+    "freeFloatShares": 8410767653.749999,
+    "sharesOutstanding": 24030764725.0,
+    "referencePrice": 3270,
+    "windowStart": "2026-06-15",
+    "windowEnd": "2026-09-13"
+  },
+  "BBCA": {
+    "buyers": [
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 11625066207500
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 6021413449000
+      },
+      {
+        "code": "DX",
+        "origin": "local",
+        "value": 3581007184500
+      },
+      {
+        "code": "RX",
+        "origin": "foreign",
+        "value": 2740245458500
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 2564911724000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 1832332177500
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 1606710927500
+      },
+      {
+        "code": "AZ",
+        "origin": "local",
+        "value": 646453079000
+      },
+      {
+        "code": "DR",
+        "origin": "foreign",
+        "value": 639686133000
+      },
+      {
+        "code": "IF",
+        "origin": "local",
+        "value": 450365181000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "AK",
+        "origin": "foreign",
+        "value": 14503228880000
+      },
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 8056345626500
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 8044379798500
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 3451150195500
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 3067367733500
+      },
+      {
+        "code": "SQ",
+        "origin": "local",
+        "value": 2851671950500
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 1744660735500
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 1143624792000
+      },
+      {
+        "code": "MG",
+        "origin": "local",
+        "value": 856681264500
+      },
+      {
+        "code": "AI",
+        "origin": "foreign",
+        "value": 460270844500
+      }
+    ],
+    "netForeign": 1289788970000,
+    "totalMarketValue": 19894607862500,
+    "freeFloatShares": 54482123342.79,
+    "sharesOutstanding": 122042299500.0,
+    "referencePrice": 6325,
+    "windowStart": "2026-06-07",
+    "windowEnd": "2026-09-05"
+  },
+  "BBRI": {
+    "buyers": [
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 6824489161000
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 3730051038000
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 3446313328000
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 3166780511000
+      },
+      {
+        "code": "SQ",
+        "origin": "local",
+        "value": 1828594136000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 1260999390000
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 1258240912000
+      },
+      {
+        "code": "RX",
+        "origin": "foreign",
+        "value": 1190592802000
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 1008530641000
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 312139557000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 7070507531000
+      },
+      {
+        "code": "DX",
+        "origin": "local",
+        "value": 2600094426000
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 2263553648000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 1728996068000
+      },
+      {
+        "code": "CP",
+        "origin": "foreign",
+        "value": 723230496000
+      },
+      {
+        "code": "TP",
+        "origin": "foreign",
+        "value": 525146035000
+      },
+      {
+        "code": "XA",
+        "origin": "foreign",
+        "value": 409010916000
+      },
+      {
+        "code": "YB",
+        "origin": "local",
+        "value": 111198504000
+      },
+      {
+        "code": "HP",
+        "origin": "local",
+        "value": 103613885000
+      },
+      {
+        "code": "AT",
+        "origin": "local",
+        "value": 97963509000
+      }
+    ],
+    "netForeign": 1559521131000,
+    "totalMarketValue": 17145763058000,
+    "freeFloatShares": 70160299258.0812,
+    "sharesOutstanding": 150043411587.0,
+    "referencePrice": 3270,
+    "windowStart": "2026-06-07",
+    "windowEnd": "2026-09-05"
+  },
+  "TLKM": {
+    "buyers": [
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 2607839688000
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 1977104460000
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 849719953000
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 539042768000
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 461245789000
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 409034792000
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 332347489000
+      },
+      {
+        "code": "OD",
+        "origin": "local",
+        "value": 257621101000
+      },
+      {
+        "code": "LG",
+        "origin": "local",
+        "value": 184301971000
+      },
+      {
+        "code": "SH",
+        "origin": "local",
+        "value": 72408565000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "AK",
+        "origin": "foreign",
+        "value": 3934228133000
+      },
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 3137180383000
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 2206522575000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 1128200479000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 686932448000
+      },
+      {
+        "code": "TP",
+        "origin": "foreign",
+        "value": 260836175000
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 214990229000
+      },
+      {
+        "code": "SS",
+        "origin": "local",
+        "value": 113209619000
+      },
+      {
+        "code": "BQ",
+        "origin": "foreign",
+        "value": 110882566000
+      },
+      {
+        "code": "IU",
+        "origin": "local",
+        "value": 20167085000
+      }
+    ],
+    "netForeign": -481094325000,
+    "totalMarketValue": 6961866415000,
+    "freeFloatShares": 41259413213.9,
+    "sharesOutstanding": 99062216600.0,
+    "referencePrice": 2600,
+    "windowStart": "2026-06-07",
+    "windowEnd": "2026-09-05"
+  },
+  "GOTO": {
+    "buyers": [
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 79996865000
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 54600970000
+      },
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 38133630000
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 26751385000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 18100870000
+      },
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 14500345000
+      },
+      {
+        "code": "AK",
+        "origin": "foreign",
+        "value": 9463220000
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 7779310000
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 5985635000
+      },
+      {
+        "code": "SQ",
+        "origin": "local",
+        "value": 5222455000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "YB",
+        "origin": "local",
+        "value": 74050610000
+      },
+      {
+        "code": "MG",
+        "origin": "local",
+        "value": 59486525000
+      },
+      {
+        "code": "OD",
+        "origin": "local",
+        "value": 29369475000
+      },
+      {
+        "code": "CP",
+        "origin": "foreign",
+        "value": 14713060000
+      },
+      {
+        "code": "RB",
+        "origin": "local",
+        "value": 14537930000
+      },
+      {
+        "code": "MU",
+        "origin": "local",
+        "value": 11224955000
+      },
+      {
+        "code": "AZ",
+        "origin": "local",
+        "value": 9862095000
+      },
+      {
+        "code": "PI",
+        "origin": "local",
+        "value": 9860465000
+      },
+      {
+        "code": "IU",
+        "origin": "local",
+        "value": 8535815000
+      },
+      {
+        "code": "HD",
+        "origin": "foreign",
+        "value": 7733095000
+      }
+    ],
+    "netForeign": 5198490000,
+    "totalMarketValue": 33626390000,
+    "freeFloatShares": 921811314567.204,
+    "sharesOutstanding": 1140573267220.0,
+    "referencePrice": 50,
+    "windowStart": "2026-06-15",
+    "windowEnd": "2026-09-13"
+  },
+  "PGAS": {
+    "buyers": [
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 240288178500
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 231097938000
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 134368622000
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 87427995500
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 87397785000
+      },
+      {
+        "code": "GR",
+        "origin": "local",
+        "value": 82040763000
+      },
+      {
+        "code": "LG",
+        "origin": "local",
+        "value": 55110462500
+      },
+      {
+        "code": "KK",
+        "origin": "foreign",
+        "value": 55064240500
+      },
+      {
+        "code": "DH",
+        "origin": "local",
+        "value": 52323613500
+      },
+      {
+        "code": "EP",
+        "origin": "local",
+        "value": 48637934000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 232294098000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 200066265000
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 181305021000
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 140822210000
+      },
+      {
+        "code": "RX",
+        "origin": "foreign",
+        "value": 108218245000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 56840300500
+      },
+      {
+        "code": "AI",
+        "origin": "foreign",
+        "value": 41003899000
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 26951885500
+      },
+      {
+        "code": "DX",
+        "origin": "local",
+        "value": 25981301500
+      },
+      {
+        "code": "AO",
+        "origin": "local",
+        "value": 13709617500
+      }
+    ],
+    "netForeign": -106177979000,
+    "totalMarketValue": 1280798000000,
+    "freeFloatShares": 10431363391.82076,
+    "sharesOutstanding": 24241508196.0,
+    "referencePrice": 1520,
+    "windowStart": "2026-06-15",
+    "windowEnd": "2026-09-13"
+  }
+};
+
+export const financialRows: Record<string, Array<{ label: string; value: string; period: string; interpretation: string }>> = {
+  "ANTM": [
+    {
+      "label": "Revenue",
+      "value": "Rp33,4T",
+      "period": "2026-06-30",
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+    },
+    {
+      "label": "Operating margin",
+      "value": "11,8%",
+      "period": "2026-06-30",
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+    },
+    {
+      "label": "Operating cash flow",
+      "value": "Rp2,4T",
+      "period": "2026-06-30",
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+    },
+    {
+      "label": "Total debt / equity",
+      "value": "15,1%",
+      "period": "2026-06-30",
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "13,9%",
+      "period": "2026-06-30",
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+    }
+  ],
+  "BBCA": [
+    {
+      "label": "Net interest income",
+      "value": "Rp21,4T",
+      "period": "2026-06-30",
+      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis."
+    },
+    {
+      "label": "CASA ratio",
+      "value": "84,8%",
+      "period": "2026-06-30",
+      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan."
+    },
+    {
+      "label": "Gross loan",
+      "value": "Rp1.012,7T",
+      "period": "2026-06-30",
+      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin."
+    },
+    {
+      "label": "Allowance / gross loan",
+      "value": "3,0%",
+      "period": "2026-06-30",
+      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "0,9%",
+      "period": "2026-06-30",
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+    }
+  ],
+  "BBRI": [
+    {
+      "label": "Net interest income",
+      "value": "Rp40,2T",
+      "period": "2026-03-31",
+      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis."
+    },
+    {
+      "label": "CASA ratio",
+      "value": "68,1%",
+      "period": "2026-03-31",
+      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan."
+    },
+    {
+      "label": "Gross loan",
+      "value": "Rp1.497,3T",
+      "period": "2026-03-31",
+      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin."
+    },
+    {
+      "label": "Allowance / gross loan",
+      "value": "5,4%",
+      "period": "2026-03-31",
+      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "-2,1%",
+      "period": "2026-03-31",
+      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan."
+    }
+  ],
+  "TLKM": [
+    {
+      "label": "Revenue",
+      "value": "Rp38,7T",
+      "period": "2026-06-30",
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+    },
+    {
+      "label": "Operating margin",
+      "value": "28,7%",
+      "period": "2026-06-30",
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+    },
+    {
+      "label": "Operating cash flow",
+      "value": "Rp17,6T",
+      "period": "2026-06-30",
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+    },
+    {
+      "label": "Total debt / equity",
+      "value": "42,2%",
+      "period": "2026-06-30",
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "4,0%",
+      "period": "2026-06-30",
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+    }
+  ],
+  "GOTO": [
+    {
+      "label": "Revenue",
+      "value": "Rp5,7T",
+      "period": "2026-06-30",
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+    },
+    {
+      "label": "Operating margin",
+      "value": "6,4%",
+      "period": "2026-06-30",
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+    },
+    {
+      "label": "Operating cash flow",
+      "value": "Rp662,5M",
+      "period": "2026-06-30",
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+    },
+    {
+      "label": "Total debt / equity",
+      "value": "17,9%",
+      "period": "2026-06-30",
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "5,8%",
+      "period": "2026-06-30",
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+    }
+  ],
+  "PGAS": [
+    {
+      "label": "Revenue",
+      "value": "Rp15,8T",
+      "period": "2026-03-31",
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+    },
+    {
+      "label": "Operating margin",
+      "value": "12,8%",
+      "period": "2026-03-31",
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+    },
+    {
+      "label": "Operating cash flow",
+      "value": "Rp1,5T",
+      "period": "2026-03-31",
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+    },
+    {
+      "label": "Total debt / equity",
+      "value": "19,6%",
+      "period": "2026-03-31",
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "-10,3%",
+      "period": "2026-03-31",
+      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan."
+    }
+  ]
+};
+
+export const sectorReturns: Record<string, number> = {
+  "Infrastructure": -0.022054,
+  "Basic Materials": 0.041557,
+  "Technology": -0.018821,
+  "Energy": -0.00472,
+  "Consumer": -0.021312,
+  "Financials": -0.040221
+};
+
+export const betas: Record<string, number> = {
+  "ANTM": 0.95,
+  "INCO": 1.48,
+  "TINS": 0.46,
+  "BBCA": 0.74,
+  "BBRI": 0.95,
+  "BMRI": 0.71,
+  "TLKM": 0.52,
+  "JSMR": 0.72,
+  "EXCL": 1.43,
+  "GOTO": 0.0,
+  "BUKA": 1.55,
+  "EMTK": 1.79,
+  "PGAS": 0.66,
+  "ADRO": 0.77,
+  "PTBA": 0.81,
+  "ICBP": 0.13,
+  "MYOR": 0.65,
+  "AMRT": 1.08
+};
+
+export const rawEvents: RawEvent[] = [
+  {
+    "id": "news-k-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
+    "title": "Bank Mandiri Issues USD750 Million Perpetual Bond to Strengthen Capital",
+    "summary": "PT Bank Mandiri (Persero) Tbk. issued a USD750 million perpetual bond on September 10, 2026, as Additional Tier 1 capital to strengthen its capital structure. The bond carries an initial distribution rate of 7.35% per year and was offered…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T21:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bonds, Bullish, Capital & Funding, Debt Issuance, Politics & Regulation pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/perkuat-modal-bank-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
+    "tags": [
+      "Bonds",
+      "Bullish",
+      "Capital & Funding",
+      "Debt Issuance",
+      "Politics & Regulation"
+    ]
+  },
+  {
+    "id": "news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
+    "title": "BAKN DPR RI Urges Government to Prepare Backup Plan for PT Kereta Cepat Indonesia China Debt Transfer as September 15 Deadline Looms",
+    "summary": "The State Financial Accountability Agency (BAKN) of the House of Representatives has urged the government to prepare a contingency plan for the debt transfer of PT Kereta Cepat Indonesia China, operator of the Whoosh high-speed rail, as…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:40:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PTBA",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Capital & Funding, Government Policy, Risk & Compliance pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68721/pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
+    "tags": [
+      "Bearish",
+      "Capital & Funding",
+      "Government Policy",
+      "Risk & Compliance"
+    ]
+  },
+  {
+    "id": "news-si-blok-madura-murah-raja-raup-laba-us15-54-juta",
+    "title": "PT Rukun Raharja Tbk (RAJA) posts 102% net profit surge to US$15.54 million in H1-2026 on bargain purchase gain from Madura Block acquisition",
+    "summary": "PT Rukun Raharja Tbk (RAJA) reported a 102% year-on-year increase in net profit to US$15.54 million for the first half of 2026, driven primarily by a bargain purchase gain from the acquisition of SMSD Development, which includes a 20%…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T09:20:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Supported",
+        "relevance": 82,
+        "path": "Ekspektasi analis → asumsi valuasi → multiple",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Debt Issuance, Financial Metrics, Mergers & Acquisitions pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68694/akuisisi-blok-madura-murah-raja-raup-laba-us15-54-juta",
+    "tags": [
+      "Bullish",
+      "Capital & Funding",
+      "Debt Issuance",
+      "Financial Metrics",
+      "Mergers & Acquisitions"
+    ]
+  },
+  {
+    "id": "news-rampungkan-penerbitan-perpetual-bond-usd750-juta",
+    "title": "Bank Mandiri Completes USD 750 Million Perpetual Bond Issuance at 7.35%",
+    "summary": "PT Bank Mandiri Tbk completed the issuance of a USD 750 million Additional Tier 1 perpetual bond with an initial distribution rate of 7.35% on 10 September 2026. The bond was offered to investors outside the United States under Regulation…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T22:37:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Bonds, Capital & Funding, Debt Issuance, Financial Metrics, Foreign Investment pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/bank-mandiri-rampungkan-penerbitan-perpetual-bond-usd750-juta",
+    "tags": [
+      "Bearish",
+      "Bonds",
+      "Capital & Funding",
+      "Debt Issuance",
+      "Financial Metrics",
+      "Foreign Investment"
+    ]
+  },
+  {
+    "id": "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
+    "title": "Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion",
+    "summary": "PT Aneka Tambang Tbk, Antam, reported first‑half 2026 revenue of Rp 62.71 trillion and net profit of Rp 6.91 trillion, with gold sales generating Rp 50.39 trillion, representing the majority of its earnings. Gold volume reached about 18.1…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T18:30:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Financial Metrics, Production & Operations pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://finance.detik.com/bursa-dan-valas/d-8657400/emas-sumbang-mayoritas-pendapatan-antam-total-penjualan-tembus-rp-50-t",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Financial Metrics",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-s-lampaui-target-laba-bersih-melonjak-805-persen",
+    "title": "PT Timah Revises 2026 Budget After First-Half Net Profit Jumps 805% and Exceeds Full-Year Targets",
+    "summary": "PT Timah (Persero) Tbk announced it will revise its 2026 work plan and budget (RKAP) after first-half 2026 results far surpassed full-year targets. Revenue reached Rp10.4 trillion, up 147% year-on-year, achieving 67% of the full-year…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T18:01:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "TINS",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Dividend Announcement, Financial Metrics, Shareholders General Meeting pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/kinerja-timah-tins-lampaui-target-laba-bersih-melonjak-805-persen",
+    "tags": [
+      "Bullish",
+      "Dividend Announcement",
+      "Financial Metrics",
+      "Shareholders General Meeting"
+    ]
+  },
+  {
+    "id": "news-di-katalis-tins-pede-kinerja-akhir-2026-berkilau",
+    "title": "PT Timah Tbk expects Perpres No.79/2026 to boost performance and net income through 2026",
+    "summary": "PT Timah Tbk says the implementation of Presidential Regulation No.79/2026 on tin land governance will act as a catalyst for its performance through the end of 2026. The company highlighted that its first‑half 2026 production of 12,232 t…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T17:30:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "TINS",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Commodities, Export, Financial Metrics, Government Policy, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260910/192/2003143/perpres-792026-jadi-katalis-tins-pede-kinerja-akhir-2026-berkilau",
+    "tags": [
+      "Bullish",
+      "Commodities",
+      "Export",
+      "Financial Metrics",
+      "Government Policy",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
+    "title": "PT Vale Indonesia Tbk announces near‑term start of operations for its three mining projects, with Morowali ahead of schedule",
+    "summary": "PT Vale Indonesia Tbk is preparing to bring three mining projects in Morowali, Pomalaa and Sorowako into operation, with Morowali leading the timeline. Morowali’s Phase 1 has been running since 2025 and Phase 2 construction is on track for…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T17:16:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/inco-kejar-proyek-3-tambang-segera-beroperasi-morowali-lebih-dulu",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
+    "summary": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T17:10:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Partnerships & Agreements, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260910/192/2003124/vale-inco-kejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Partnerships & Agreements",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
+    "title": "Indonesian rupiah and IHSG pressured by surge in oil prices amid US-Iran tensions.",
+    "summary": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline…",
+    "category": "currency",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T17:10:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Adverse",
+        "relevance": 76,
+        "path": "Kurs → biaya input dan pendapatan valuta → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Currency & FX, Market Sentiment, Politics & Regulation pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68664/rupiah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
+    "tags": [
+      "Bearish",
+      "Commodities",
+      "Currency & FX",
+      "Market Sentiment",
+      "Politics & Regulation"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
+    "title": "Change in Morgan Stanley And Co International Plc's position in GoTo Gojek Tokopedia",
+    "summary": "Morgan Stanley And Co International Plc executed a transaction for 1,829,494,000 shares of GoTo Gojek Tokopedia. This increases their holdings from 80,476,862,884 to 82,306,356,884 shares. The stated purpose of the transaction was…",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-10T16:56:31+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-10092026-1930-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
+    "title": "PT Vale Indonesia Tbk does not promise dividend amid 2026‑27 expansion plans",
+    "summary": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T16:50:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Business Expansion, Capital & Funding, Dividend Announcement, Financial Metrics, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/121175/inco-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
+    "tags": [
+      "Bearish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Dividend Announcement",
+      "Financial Metrics",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
+    "title": "Emtek subsidiary PT Kreatif Media Karya acquires 803.28 million shares of PT Bukalapak.com Tbk, raising its stake to 45.68%",
+    "summary": "On Tuesday, 8 September, PT Kreatif Media Karya, an Emtek subsidiary, purchased 803.28 million shares of PT Bukalapak.com Tbk, increasing its ownership to 45.68%. The same filing shows Lo Kheng Hong buying 1 million shares of PT Intiland…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T15:40:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Supported",
+        "relevance": 40,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Ownership, Stock Buyback pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68636/anak-usaha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
+    "tags": [
+      "Bullish",
+      "Ownership",
+      "Stock Buyback"
+    ]
+  },
+  {
+    "id": "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026",
+    "title": "PT Timah Tbk prepares revised 2026 RKAP after 147% revenue jump and 805% profit surge",
+    "summary": "PT Timah Tbk announced that it is preparing a revised 2026 corporate work plan (RKAP) after the first‑half 2026 results far exceeded the original targets. Revenue reached Rp10.4 trillion, up 147% year‑on‑year, while net profit surged 805%…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T15:02:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "TINS",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Financial Metrics, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260910/192/2003075/laba-pendapatan-melonjak-timah-tins-siapkan-revisi-rkap-2026",
+    "tags": [
+      "Bullish",
+      "Capital & Funding",
+      "Financial Metrics",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
+    "title": "UBS Sekuritas Leads Net Buying of PT Aneka Tambang Tbk Shares, While JP Morgan Issues Bullish Outlook",
+    "summary": "UBS Sekuritas led the net‑buy activity for PT Aneka Tambang Tbk (ANTM) on 9 September 2026, purchasing shares at an average price of Rp3,159 and generating a net purchase value of over Rp95 billion, while CGS International Sekuritas…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T12:58:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Commodities, Institutional Investor pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/121148/ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Commodities",
+      "Institutional Investor"
+    ]
+  },
+  {
+    "id": "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
+    "title": "SSIA Maintains Rp400 Billion Profit Target; JSMR and BMAS Plan Corporate Actions",
+    "summary": "SSIA reaffirmed its 2026 net profit target of Rp400 billion while revising its revenue outlook to Rp7.20 trillion and allocating Rp2.20 trillion in capex, primarily for land acquisition and a Bali resort rebranding. JSMR disclosed a 2026…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T08:52:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "JSMR",
+        "direction": "Supported",
+        "relevance": 78,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Financial Metrics, Foreign Investment, Rights Issue pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://finance.detik.com/bursa-dan-valas/d-8656403/ssia-pertahankan-target-laba-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
+    "tags": [
+      "Bullish",
+      "Capital & Funding",
+      "Financial Metrics",
+      "Foreign Investment",
+      "Rights Issue"
+    ]
+  },
+  {
+    "id": "news-ncana-pembagian-dividen-interim-secara-kuartalan",
+    "title": "PT Bank Central Asia Tbk announces quarterly interim dividend plan for 2026",
+    "summary": "PT Bank Central Asia Tbk announced that it will pay interim dividends on a quarterly basis in 2026. The next interim dividend of Rp25 per share is scheduled for 16 September 2026, up from Rp20 per share paid in June 2026, with a further…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T21:29:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Credit, Dividend Announcement, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.antaranews.com/berita/5733832/bca-ungkap-rencana-pembagian-dividen-interim-secara-kuartalan",
+    "tags": [
+      "Bullish",
+      "Credit",
+      "Dividend Announcement",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
+    "title": "PT Bank Central Asia Tbk Reports Credit Growth to Rp1,036 Trillion and NPL Decline to 1.9% in First Half 2026",
+    "summary": "PT Bank Central Asia Tbk (BCA) disclosed in its 2026 public expose that credit expanded 8% year-on-year to Rp1,036 trillion as of June 2026, driven by productive credit growth of 11% to Rp802 trillion and corporate lending growth of 13.6%…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T20:30:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Credit, ESG, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68603/kredit-bbca-tembus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
+    "tags": [
+      "Bullish",
+      "Capital & Funding",
+      "Credit",
+      "ESG",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
+    "title": "Indonesian government allocates Rp11 trillion to Bank Rakyat Indonesia and Bank Syariah Indonesia for a program giving citizens Rp50,000 opening…",
+    "summary": "The Indonesian government announced a program to open bank accounts for up to 200 million citizens with an initial Rp50,000 balance, funded by an Rp11 trillion allocation from the state budget (APBN). The accounts will be provided through…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T19:10:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Government Policy, OJK, Sharia Economy pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/121071/wni-dapat-rekening-bank-rp50-000-dari-apbn-total-rp11-triliun",
+    "tags": [
+      "Bullish",
+      "Capital & Funding",
+      "Government Policy",
+      "OJK",
+      "Sharia Economy"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
+    "title": "Change in Morgan Stanley And Co International Plc's position in GoTo Gojek Tokopedia",
+    "summary": "Morgan Stanley And Co International Plc executed a transaction for 7,402,292,100 shares of GoTo Gojek Tokopedia. This decreases their holdings from 84,971,460,184 to 80,476,862,884 shares. The stated purpose of the transaction was…",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-09T18:40:37+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-09092026-8686-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "news-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
+    "title": "PT Jasa Marga Tbk reports net profit of Rp1.91 trillion for H1 2026 and outlines five new toll projects",
+    "summary": "PT Jasa Marga Tbk reported operating revenue of Rp10.31 trillion in the first half of 2026, with net profit attributable to the parent reaching Rp1.91 trillion, up 2.0% YoY. Revenue grew 7.6% YoY, driven by toll revenue of Rp9.5 trillion…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T16:35:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "JSMR",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/jasa-marga-jsmr-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
+    "title": "PT Jasa Marga Tbk Plans Rp 12 Trillion Capex for 2026 and Explores New Toll Road Investments",
+    "summary": "PT Jasa Marga Tbk is exploring potential investments in new toll roads and has allocated a capital expenditure budget of Rp 12 trillion for 2026. As of the first half of 2026, the company has realized Rp 4.4 trillion in capex for…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T13:49:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "JSMR",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Capital & Funding, Government Policy, Ministry, Portfolio pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://finance.detik.com/bursa-dan-valas/d-8655301/jasa-marga-jajaki-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Government Policy",
+      "Ministry",
+      "Portfolio"
+    ]
+  },
+  {
+    "id": "news-owo-minta-semua-wni-punya-rekening-siap-jalankan",
+    "title": "BSI Ready to Provide Bank Accounts for All Indonesian Citizens as Directed by President Prabowo",
+    "summary": "PT Bank Syariah Indonesia Tbk (BSI) has announced it is prepared to open bank accounts for all Indonesian citizens in line with President Prabowo Subianto’s directive, partnering with Bank Rakyat Indonesia to roll out the program. BSI, a…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-09T13:09:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Financial Metrics, Government Policy, Partnerships & Agreements, Sharia Economy pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/121012/bsi-soal-prabowo-minta-semua-wni-punya-rekening-siap-jalankan",
+    "tags": [
+      "Bullish",
+      "Financial Metrics",
+      "Government Policy",
+      "Partnerships & Agreements",
+      "Sharia Economy"
+    ]
+  },
+  {
+    "id": "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
+    "title": "Jumbo Capex by Telecom Emitters Brings Opportunities and Risks",
+    "summary": "Jumbo capex plans by Indonesian telecom issuers are set to reshape the sector, with PT Solusi Sinergi Digital Tbk (WIFI) earmarking Rp7 trillion for 2026 to expand fixed wireless access, fiber‑to‑home, and tower fiberization. PT Telkom…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-08T18:57:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Adverse",
+        "relevance": 78,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Asset Purchase, Bearish, Business Expansion, Capital & Funding pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260908/7/2002483/capex-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
+    "tags": [
+      "Asset Purchase",
+      "Bearish",
+      "Business Expansion",
+      "Capital & Funding"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
+    "title": "Yuliot, Ir buys shares of Bank Mandiri",
+    "summary": "This is Yuliot, Ir's 3rd insider purchase in the last 6 months, totaling an accumulation of 146,900 shares transacted at an average price of IDR 4,208. Yuliot, Ir's ownership in Bank Mandiri has decreased from 0.0% to 0.0% in this period.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-08T17:58:46+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-3898-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf",
+    "title": "Yuliot, Ir buys shares of Bank Mandiri",
+    "summary": "Yuliot, Ir bought 22,400 shares of Bank Mandiri. This increases their holdings from 143,200 to 165,600 shares. The stated purpose of the transaction was investment.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-08T17:53:21+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-7905-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-08092026-6401-00-pdf-0-pdf",
+    "title": "Rd Adi Wardhana Sariaatmadja buys shares of Bukalapak.com",
+    "summary": "Rd Adi Wardhana Sariaatmadja bought 635,000,000 shares of Bukalapak.com. This increases their holdings from 772,585,501 to 1,407,585,501 shares. The stated purpose of the transaction was investment.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-08T16:15:50+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-6401-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
+    "title": "PT Telkom Indonesia Tbk allocates additional 100 MHz spectrum to PT Telkomsel",
+    "summary": "PT Telkom Indonesia Tbk announced the allocation of an additional 100 MHz of spectrum to its subsidiary PT Telkomsel, expanding the latter’s 700 MHz and 2,600 MHz bands and raising its total portfolio to 265 MHz. The allocation was…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-08T15:30:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Digital Transformation, Financial Metrics, Subsidiaries pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/akselerasi-5g-telkom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Digital Transformation",
+      "Financial Metrics",
+      "Subsidiaries"
+    ]
+  },
+  {
+    "id": "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
+    "title": "Morgan Stanley And Co International Plc purchases 21.67 billion GOTO shares at 50% discount via negotiated market",
+    "summary": "Morgan Stanley And Co International Plc acquired 21.67 billion shares of PT GoTo Gojek Tokopedia Tbk through three negotiated market transactions on September 2, 2026, at Rp25 per share, a 50% discount to the regular market price of Rp50.…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-08T09:10:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Adverse",
+        "relevance": 88,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Global Index, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68500/morgan-stanley-borong-saham-goto-lagi-di-harga-diskon-50",
+    "tags": [
+      "Bearish",
+      "Global Index",
+      "Mergers & Acquisitions",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
+    "title": "Morgan Stanley & Co International Plc purchases additional PT GoTo Gojek Tokopedia Tbk shares worth Rp541.9 billion, raising its stake to 7.59%",
+    "summary": "Morgan Stanley & Co International Plc bought more shares of PT GoTo Gojek Tokopedia Tbk after the company was removed from the MSCI index. On 2 September 2026 the broker purchased about 21.67 billion GOTO shares at Rp25 per share, spending…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-08T08:10:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Foreign Investment, Institutional Investor, Ownership, Stock Buyback, Stock Split pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/120822/morgan-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
+    "tags": [
+      "Bullish",
+      "Foreign Investment",
+      "Institutional Investor",
+      "Ownership",
+      "Stock Buyback",
+      "Stock Split"
+    ]
+  },
+  {
+    "id": "news-ngi-pendapatan-batu-bara-target-diversifikasi-20",
+    "title": "PT Bukit Asam Tbk targets 20% non‑coal revenue share by 2030 and reports H1 2026 net profit of Rp4.06 trillion",
+    "summary": "PT Bukit Asam Tbk said it will increase the contribution of non‑coal and green‑energy revenue to 20% of total earnings by 2030, up from about 3% currently. The plan relies on securing 842 million tonnes of coal reserves for a 20‑year…",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T19:52:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PTBA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Financial Metrics, Government Policy, Partnerships & Agreements pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idnfinancials.com/id/news/68476/ptba-kurangi-pendapatan-batu-bara-target-diversifikasi-20",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Financial Metrics",
+      "Government Policy",
+      "Partnerships & Agreements"
+    ]
+  },
+  {
+    "id": "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun",
+    "title": "PT Bukit Asam Tbk reports 218% YoY net profit jump to Rp 2.65 trillion in H1 2026",
+    "summary": "PT Bukit Asam Tbk posted a net profit of Rp 2.65 trillion for the first half of 2026, a 218% year‑on‑year increase. Revenue rose 8% YoY to Rp 22.03 trillion, supported by a 10% rise in average selling price of coal and stronger export…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T19:31:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PTBA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Export, Financial Metrics, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://money.kompas.com/read/2026/09/07/193100826/harga-batu-bara-naik-laba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Export",
+      "Financial Metrics",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
+    "title": "Telkom Reports 3.9% Revenue Growth in H1 2026, Maintains Full-Year Guidance Amid TLKM 30 Transformation",
+    "summary": "Telkom reported consolidated revenue of Rp75.9 trillion for the first half of 2026, a 3.9% year-on-year increase, with normalized net profit rising 6.2% to Rp11.3 trillion. The company's mobile subsidiary Telkomsel posted 5.3% revenue…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T19:07:08+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Digital Transformation, Financial Metrics, Mergers & Acquisitions pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.cnnindonesia.com/ekonomi/20260907184255-625-1401152/optimis-sambut-semester-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Digital Transformation",
+      "Financial Metrics",
+      "Mergers & Acquisitions"
+    ]
+  },
+  {
+    "id": "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
+    "title": "BRI Danareksa Sekuritas analyst highlights expansion prospects and buy recommendations for PT Bumi Resources Tbk, PT Petrosea Tbk, PT United Tractors…",
+    "summary": "BRI Danareksa Sekuritas analyst Abida Massi Armand reviews the overseas mining expansion of PT Bumi Resources Tbk, PT Petrosea Tbk, PT United Tractors Tbk and PT Aneka Tambang Tbk. PT Bumi Resources Tbk, via its subsidiary Bumi Resources…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T18:54:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 72,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, Capital & Funding, Foreign Investment, Mergers & Acquisitions pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/cek-prospek-dan-rekomendasi-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Foreign Investment",
+      "Mergers & Acquisitions"
+    ]
+  },
+  {
+    "id": "news-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
+    "title": "Grup Emtek Strengthens Bukalapak Stake, Purchases 803 Million Shares at Above-Market Price",
+    "summary": "PT Kreatif Media Karya (KMK Online), a digital subsidiary of PT Elang Mahkota Teknologi Tbk (EMTK), has increased its stake in PT Bukalapak.com Tbk (BUKA) by purchasing 803,287,800 shares on 4 September 2026. The shares were bought at…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T17:06:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Domestic Investor, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/grup-emtek-pertebal-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
+    "tags": [
+      "Bullish",
+      "Domestic Investor",
+      "Mergers & Acquisitions",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
+    "title": "PT Kreatif Media Karya increases its stake in PT Bukalapak.com Tbk to 45.68%",
+    "summary": "PT Kreatif Media Karya, the controlling shareholder of PT Bukalapak.com Tbk, increased its ownership to 45.68% by buying additional shares. On 4 September 2026 it purchased 803,287,800 shares at Rp126 each, costing about Rp101.21 billion…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T16:43:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Supported",
+        "relevance": 82,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Domestic Investor, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      },
+      {
+        "symbol": "EMTK",
+        "direction": "Supported",
+        "relevance": 82,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Domestic Investor, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/pengendali-borong-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
+    "tags": [
+      "Bullish",
+      "Domestic Investor",
+      "Mergers & Acquisitions",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-07092026-8071-00-pdf-0-pdf",
+    "title": "Kreatif Media Karya buys shares of Bukalapak.com",
+    "summary": "Kreatif Media Karya bought 803,287,800 shares of Bukalapak.com. This increases their holdings from 46,321,746,385 to 47,125,034,185 shares. The stated purpose of the transaction was for investment.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-07T16:28:10+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-8071-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "news-un-bri-tegaskan-komitmen-jaga-shareholder-return",
+    "title": "PT Bank Rakyat Indonesia Tbk announces dividend payout ratio to fall to about 70% for FY 2026, reaffirming commitment to shareholder returns",
+    "summary": "PT Bank Rakyat Indonesia Tbk said its dividend payout ratio will be reduced to roughly 70% for the 2026 fiscal year while reaffirming its commitment to delivering optimal shareholder returns. The announcement was made by Finance & Strategy…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T15:32:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Capital & Funding, Dividend Announcement, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://keuangan.kontan.co.id/news/rasio-dividen-dikabarkan-turun-bri-tegaskan-komitmen-jaga-shareholder-return",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Dividend Announcement",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-ari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
+    "title": "MNC Sekuritas recommends AMRT, ELSA, SSMS and INDY as the IHSG targets the 6,705 level",
+    "summary": "The article reports that MNC Sekuritas recommends four stocks—AMRT, ELSA, SSMS and INDY—while the Jakarta Composite Index (IHSG) eyes the 6,705 resistance level on 7 September 2026. The IHSG closed at 6,636.47 on Friday, up 0.47% from the…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-07T07:38:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "AMRT",
+        "direction": "Supported",
+        "relevance": 72,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Foreign Investment, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260907/189/2001882/peluang-ihsg-incar-6705-hari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Foreign Investment",
+      "Market Sentiment"
+    ]
+  },
+  {
+    "id": "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
+    "title": "Oil Price Upside Threatens to Boost MEDC, ELSA, PGAS and TPIA Stock Prospects",
+    "summary": "The article analyzes how a potential rise in global oil prices, driven by Iran‑U.S. geopolitical tension, could affect the stock prospects of four Indonesian energy companies. PT Medco Energi Internasional Tbk is seen as the most…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-06T14:11:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PGAS",
+        "direction": "Supported",
+        "relevance": 72,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Commodities, Financial Metrics, Global Economy, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/harga-minyak-terancam-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Commodities",
+      "Financial Metrics",
+      "Global Economy",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
+    "title": "IHSG Still Has Opportunity to Strengthen on Monday (7/9), Here Are Analyst-Recommended Stocks",
+    "summary": "The article discusses the potential for the Indonesian Composite Index (IHSG) to strengthen on Monday, 7 September 2026, after a 0.47% decline to 6,636 on Friday, 4 September 2026, and a weekly gain of 1.82%. Analyst William Hartanto…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-06T14:00:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/ihsg-masih-berpeluang-menguat-pada-senin-79-ini-saham-rekomendasi-analis",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Market Sentiment"
+    ]
+  },
+  {
+    "id": "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
+    "title": "XLSMART Telecom Sejahtera Tbk raises 2026 capitalized capex guidance to Rp20 trillion from Rp15 trillion to fund 5G expansion and spectrum…",
+    "summary": "PT XLSMART Telecom Sejahtera Tbk increased its 2026 capitalized capital expenditure guidance to Rp20 trillion from Rp15 trillion, directing the additional investment toward network infrastructure strengthening, 5G service expansion, and…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-04T13:30:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "EXCL",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Artificial Intelligence, Award, Bullish, Business Expansion, Capital & Funding, Digital Transformation pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/xlsmart-excl-naikkan-capitalized-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
+    "tags": [
+      "Artificial Intelligence",
+      "Award",
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Digital Transformation"
+    ]
+  },
+  {
+    "id": "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
+    "title": "Energy Stock Rally Targets ADRO and BUMI",
+    "summary": "Energy stocks are rallying, with ADRO and BUMI among the companies targeted by the surge. The IDX Energy index rose 12.6% in the past month and gained 1.36% on 3 September 2026, outpacing the broader market. Analysts say the rally is…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-04T06:22:25+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Commodities, Financial Metrics, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/452777/reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
+    "tags": [
+      "Bullish",
+      "Commodities",
+      "Financial Metrics",
+      "Market Sentiment"
+    ]
+  },
+  {
+    "id": "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
+    "title": "ADRO Enters New Chapter with Aluminum Diversification as Coal Earnings Surge, but Risks Remain",
+    "summary": "PT Alamtri Resources Indonesia Tbk (ADRO) is advancing its diversification into aluminum through PT Kalimantan Aluminium Industry (KAI), which is entering ramp-up and expected to contribute revenue by late 2026. The company posted strong…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-03T13:34:29+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 82,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Financial Metrics, Risk & Compliance pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/452712/babak-baru-adro-dan-risiko-yang-perlu-dicermati-investor",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Financial Metrics",
+      "Risk & Compliance"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf",
+    "title": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund buys shares of Jasa Marga",
+    "summary": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund bought 3,258,700 shares of Jasa Marga. This increases their holdings from 362,426,800 to 365,685,500 shares. The stated purpose of the transaction was purchase of shares.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-02T19:25:26+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "JSMR",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-02092026-8460-00.pdf-0.pdf",
+    "tags": [
+      "investment"
+    ]
+  },
+  {
+    "id": "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi",
+    "title": "PT TBS Energi Utama Tbk’s EV Business Enters Monetisation Phase, Posting Positive Gross Profit and Adjusted EBITDA in H1 2026",
+    "summary": "PT TBS Energi Utama Tbk’s electric‑vehicle segment, operated through the Electrum joint venture with PT GoTo Gojek Tokopedia Tbk, entered a monetisation phase in the first half of 2026. Revenue rose 184% year‑on‑year to US$9.06 million,…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-02T11:32:44+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Financial Metrics, Joint Venture pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/452557/bisnis-ev-toba-masuk-fase-monetisasi",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Financial Metrics",
+      "Joint Venture"
+    ]
+  },
+  {
+    "id": "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
+    "title": "PGAS Loses Partial Arbitration Award, Ordered to Pay 9 LNG Cargoes to Gunvor",
+    "summary": "PT Perusahaan Gas Negara Tbk (PGAS) lost a partial arbitration award at the London Court of International Arbitration and must compensate Gunvor Singapore Pte Ltd with 9 LNG cargoes covering 2024 and 2025 deliveries. The partial award…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-02T08:30:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PGAS",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Financial Metrics, Market Sentiment, Partnerships & Agreements, Risk & Compliance pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/120211/kalah-arbitrase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
+    "tags": [
+      "Bearish",
+      "Commodities",
+      "Financial Metrics",
+      "Market Sentiment",
+      "Partnerships & Agreements",
+      "Risk & Compliance"
+    ]
+  },
+  {
+    "id": "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor",
+    "title": "PGAS Ordered to Pay Compensation to Gunvor Singapore After LCIA Arbitration Rejects Force Majeure Claim",
+    "summary": "Perusahaan Gas Negara (PGAS) must pay compensation to Gunvor Singapore following a partial award from the London Court of International Arbitration (LCIA) that rejected PGAS's force majeure declaration regarding LNG delivery obligations.…",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-02T06:39:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PGAS",
+        "direction": "Adverse",
+        "relevance": 88,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Export, Partnerships & Agreements, Risk & Compliance pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/pgas-beber-latar-pembayaran-kompensasi-gunvor",
+    "tags": [
+      "Bearish",
+      "Commodities",
+      "Export",
+      "Partnerships & Agreements",
+      "Risk & Compliance"
+    ]
+  },
+  {
+    "id": "news-masih-lesu-simak-prospeknya-di-semester-ii-2026",
+    "title": "Investment holding issuers report weak H1 2026 performance amid portfolio losses",
+    "summary": "The article reports that major Indonesian investment holding companies posted deteriorated results in the first semester of 2026 due to market volatility affecting their equity portfolios. PT Provident Investasi Bersama Tbk recorded a net…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-31T19:29:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "EMTK",
+        "direction": "Adverse",
+        "relevance": 72,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Asset Management, Bearish, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/kinerja-emiten-holding-investasi-masih-lesu-simak-prospeknya-di-semester-ii-2026",
+    "tags": [
+      "Asset Management",
+      "Bearish",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-am-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
+    "title": "BRI Danareksa Sekuritas recommends EXCL, INET and HRUM with bullish technical targets on 28 Aug 2026",
+    "summary": "BRI Danareksa Sekuritas issued a broker recommendation on 28 August 2026 for three Indonesian equities – EXCL, INET and HRUM – citing bullish technical setups. EXCL broke out above the 2,600 level and its MA20, pulled back to 2,639‑2,707…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-28T07:36:03+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "EXCL",
+        "direction": "Supported",
+        "relevance": 76,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Executive Changes, Foreign Investment, Shareholders General Meeting pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/451922/rekomendasi-saham-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Executive Changes",
+      "Foreign Investment",
+      "Shareholders General Meeting"
+    ]
+  },
+  {
+    "id": "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
+    "title": "BRI Danareksa Sekuritas recommends SMIL, MAPA and ICBP with new price targets",
+    "summary": "BRI Danareksa Sekuritas issued a broker recommendation for three stocks on Thursday, 27 August 2026. SMIL broke out of the 365‑390 consolidation area, stayed above the 20‑day moving average at 394, and the broker set near‑term and…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-27T07:59:26+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ICBP",
+        "direction": "Supported",
+        "relevance": 78,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/451770/rekomendasi-saham-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-bhimata-citra-abadi-ini-alasan-dibalik-divestasi",
+    "title": "Emtek sells 99.99% of PT Abhimata Citra Abadi, ending its subsidiary status",
+    "summary": "Emtek announced the sale of virtually all its shares in PT Abhimata Citra Abadi, removing the company from its consolidated financial statements. The transaction, effective 20 August 2026 and disclosed on 24 August 2026, transferred…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-26T10:18:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "EMTK",
+        "direction": "Adverse",
+        "relevance": 88,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Market Sentiment, Mergers & Acquisitions, Ownership, Subsidiaries pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/emtek-emtk-lepas-saham-abhimata-citra-abadi-ini-alasan-dibalik-divestasi",
+    "tags": [
+      "Bearish",
+      "Market Sentiment",
+      "Mergers & Acquisitions",
+      "Ownership",
+      "Subsidiaries"
+    ]
+  },
+  {
+    "id": "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing",
+    "title": "Elang Mahkota Teknologi Tbk expands AI use to improve efficiency and competitiveness",
+    "summary": "PT Elang Mahkota Teknologi Tbk (EMTK) said it is expanding artificial‑intelligence applications across its media and health services to enhance efficiency and competitiveness, citing the VidioGen platform that cuts production time and cost…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-25T14:09:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "EMTK",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Artificial Intelligence, Bearish, Business Expansion, Digital Transformation, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260825/192/1998727/elang-mahkota-emtk-andalkan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing",
+    "tags": [
+      "Artificial Intelligence",
+      "Bearish",
+      "Business Expansion",
+      "Digital Transformation",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini",
+    "title": "Indo Premier Sekuritas (IPOT) issues weekly stock recommendations for August 24‑28, 2026",
+    "summary": "Indo Premier Sekuritas (IPOT) released its weekly stock picks for the trading week of 24‑28 August 2026, anticipating a bullish technical momentum for the IHSG. The firm expects the index to stay above MA5‑MA100, with support at…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-24T08:34:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "EXCL",
+        "direction": "Supported",
+        "relevance": 78,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Market Sentiment, Sharia Economy pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/simak-rekomendasi-saham-pilihan-ipot-untuk-trading-pekan-ini",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Market Sentiment",
+      "Sharia Economy"
+    ]
+  },
+  {
+    "id": "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
+    "title": "BRI Danareksa raises earnings outlook for PT Indofood CBP Sukses Makmur Tbk, sees up to 40% upside",
+    "summary": "The article reports that BRI Danareksa Sekuritas upgraded its earnings estimates for PT Indofood CBP Sukses Makmur Tbk (ICBP), an issuer of the Salim Group. Revenue in the first half of 2026 grew 11.3% year‑on‑year, driven by a 20.7% rise…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-21T19:23:58+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "ICBP",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, Export, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/451175/dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Business Expansion",
+      "Export",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-channel-amrt-midi-hingga-mapi-masuk-radar-analis",
+    "title": "Retail Stocks Highlighted in Omnichannel Era as AMRT, MIDI and MAPI Gain Analyst Attention",
+    "summary": "The article examines analysts’ view that omnichannel strategies are a positive catalyst for Indonesian retail companies. Sucor Sekuritas analyst Christofer Kojongian cites PT Sumber Alfaria Trijaya Tbk, PT Midi Utama Indonesia Tbk, PT…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-19T14:05:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "AMRT",
+        "direction": "Supported",
+        "relevance": 54,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, Digital Transformation pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260819/189/1997398/adu-emiten-ritel-di-era-omnichannel-amrt-midi-hingga-mapi-masuk-radar-analis",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Business Expansion",
+      "Digital Transformation"
+    ]
+  },
+  {
+    "id": "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
+    "title": "PT Indofood CBP Sukses Makmur Tbk shares deemed cheap with target price of Rp 12,000",
+    "summary": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-14T06:52:56+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "ICBP",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Ekspektasi analis → asumsi valuasi → multiple",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Financial Metrics, Foreign Investment pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/450304/saham-emiten-anthoni-salim-lagi-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Financial Metrics",
+      "Foreign Investment"
+    ]
+  },
+  {
+    "id": "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli",
+    "title": "Analyst adds PT Sumber Alfaria Trijaya Tbk with target Rp1,595 as expansion and cost‑efficiency drive growth despite purchasing‑power pressure",
+    "summary": "The article evaluates PT Sumber Alfaria Trijaya Tbk's growth outlook amid efficiency initiatives and consumer purchasing‑power constraints. AMRT plans to open about 800 new domestic stores—over 50% outside Java—and a total of 1,080 stores…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-13T15:40:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "AMRT",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/menakar-prospek-sumber-alfaria-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Business Expansion",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-unaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
+    "title": "RANS Entertainment Indonesia Discloses IPO Proceeds Allocation, Emphasizing Debt Repayment",
+    "summary": "RANS Entertainment Indonesia Tbk announced how the Rp429.25 billion raised in its recent IPO will be allocated, with debt repayment being the first priority. Approximately Rp29.95 billion (6.98% of proceeds) will be used to settle existing…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-11T19:02:20+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "MYOR",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Artificial Intelligence, Asset Purchase, Bullish, Capital & Funding, Credit, Joint Venture pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.cnbcindonesia.com/market/20260811180008-17-758395/rans-ungkap-penggunaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
+    "tags": [
+      "Artificial Intelligence",
+      "Asset Purchase",
+      "Bullish",
+      "Capital & Funding",
+      "Credit",
+      "Joint Venture"
+    ]
+  },
+  {
+    "id": "news-naik-tipis-arus-kas-operasi-melejit-3158-persen",
+    "title": "PT Mayora Indah Tbk reports modest net profit rise and 315.8% surge in operating cash flow",
+    "summary": "PT Mayora Indah Tbk, the snack food and beverage issuer, posted H1‑2026 net profit of Rp1.70 trillion, a slight increase from Rp1.66 trillion a year earlier. Operating cash flow jumped 315.8% to Rp4.02 trillion, supported by cash receipts…",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-11T11:33:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "MYOR",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/laba-myor-naik-tipis-arus-kas-operasi-melejit-3158-persen",
+    "tags": [
+      "Bullish",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000",
+    "title": "Maybank Sekuritas maintains buy on PT Mayora Indah Tbk with target Rp 2,500, citing consumer‑sector safe‑haven benefits as rupiah weakens to Rp…",
+    "summary": "Maybank Sekuritas analyst Willy Goutama continues to recommend a buy on PT Mayora Indah Tbk, labeling it a consumer‑sector safe haven as the rupiah trades around Rp 18,000 per USD. He keeps the target price at Rp 2,500 per share, based on…",
+    "category": "currency",
+    "sourceType": "sectors",
+    "publishedAt": "2026-08-04T14:03:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "MYOR",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Kurs → biaya input dan pendapatan valuta → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Currency & FX, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/mayora-myor-disebut-bisa-jadi-safe-haven-sektor-konsumer-saat-rupiah-di-rp-18000",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Currency & FX",
+      "Financial Metrics"
+    ]
+  }
+];
+
+export const eventIdsBySymbol: Record<string, string[]> = {
+  "ANTM": [
+    "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
+    "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
+    "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri"
+  ],
+  "INCO": [
+    "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
+    "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis"
+  ],
+  "TINS": [
+    "news-s-lampaui-target-laba-bersih-melonjak-805-persen",
+    "news-di-katalis-tins-pede-kinerja-akhir-2026-berkilau",
+    "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
+  ],
+  "BBCA": [
+    "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
+    "news-ncana-pembagian-dividen-interim-secara-kuartalan",
+    "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9"
+  ],
+  "BBRI": [
+    "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
+    "news-owo-minta-semua-wni-punya-rekening-siap-jalankan",
+    "news-un-bri-tegaskan-komitmen-jaga-shareholder-return"
+  ],
+  "BMRI": [
+    "news-k-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
+    "news-si-blok-madura-murah-raja-raup-laba-us15-54-juta",
+    "news-rampungkan-penerbitan-perpetual-bond-usd750-juta",
+    "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
+    "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf"
+  ],
+  "TLKM": [
+    "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
+    "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
+    "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan"
+  ],
+  "JSMR": [
+    "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
+    "news-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
+    "news-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
+    "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf"
+  ],
+  "EXCL": [
+    "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
+    "news-am-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
+    "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini"
+  ],
+  "GOTO": [
+    "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
+    "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
+    "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
+    "news-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
+    "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi"
+  ],
+  "BUKA": [
+    "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
+    "filing-entstock-from-ksei-lk-08092026-6401-00-pdf-0-pdf",
+    "news-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
+    "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
+    "filing-entstock-from-ksei-lk-07092026-8071-00-pdf-0-pdf"
+  ],
+  "EMTK": [
+    "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
+    "news-masih-lesu-simak-prospeknya-di-semester-ii-2026",
+    "news-bhimata-citra-abadi-ini-alasan-dibalik-divestasi",
+    "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing"
+  ],
+  "PGAS": [
+    "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
+    "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
+    "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor"
+  ],
+  "ADRO": [
+    "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
+    "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
+    "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor"
+  ],
+  "PTBA": [
+    "news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
+    "news-ngi-pendapatan-batu-bara-target-diversifikasi-20",
+    "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun"
+  ],
+  "ICBP": [
+    "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
+    "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
+    "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000"
+  ],
+  "MYOR": [
+    "news-unaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
+    "news-naik-tipis-arus-kas-operasi-melejit-3158-persen",
+    "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000"
+  ],
+  "AMRT": [
+    "news-ari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
+    "news-channel-amrt-midi-hingga-mapi-masuk-radar-analis",
+    "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli"
+  ]
+};
+
+export const caseSymbols = [
+  "ANTM",
+  "BBCA",
+  "BBRI",
+  "TLKM",
+  "GOTO",
+  "PGAS"
+] as const;

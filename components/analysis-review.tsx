@@ -5,7 +5,7 @@ import { useCatalystStore } from "@/lib/store";
 import type { PillarKey, SymbolCode, UserInsight } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { IconGate, IconNote, IconVerified } from "@/components/ui/icons";
+import { IconCheck, IconGate, IconNote, IconVerified } from "@/components/ui/icons";
 
 const categoryLabels: Record<UserInsight["category"], string> = {
   "data-error": "Data terlihat keliru",
@@ -50,7 +50,7 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
       <PanelHeader title="Koreksi analisis ini" />
       <div className="p-4">
         <div className="flex gap-2 rounded-lg border border-primary/20 bg-primary/7 p-3 text-xs leading-5 text-muted-foreground">
-          <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+          <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
           <p>Catatan Anda menjadi hipotesis terbuka. Koreksi tidak mengubah angka, rumus, sumber, atau verdict sebelum diverifikasi.</p>
         </div>
         <form onSubmit={submit} className="mt-4 space-y-3">
@@ -64,7 +64,7 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
           <div id={`analysis-note-help-${symbol}`} className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground"><span>Maksimum 800 karakter · tersimpan lokal</span><span className="font-mono">{note.length}/800</span></div>
           {error ? <p id={`analysis-note-error-${symbol}`} role="alert" className="text-xs text-danger">{error}</p> : null}
           {sourceError ? <p id={`analysis-source-error-${symbol}`} role="alert" className="text-xs text-danger">{sourceError}</p> : null}
-          <div className="flex flex-wrap items-center gap-3"><Button type="submit" disabled={note.trim().length < 8 || Boolean(sourceError)}><MessageSquareWarning aria-hidden="true" className="size-4" />Kirim untuk verifikasi</Button>{saved ? <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive"><CheckCircle2 aria-hidden="true" className="size-4" />Tersimpan sebagai hipotesis terbuka</p> : null}</div>
+          <div className="flex flex-wrap items-center gap-3"><Button type="submit" disabled={note.trim().length < 8 || Boolean(sourceError)}><IconNote aria-hidden="true" className="size-4" />Kirim untuk verifikasi</Button>{saved ? <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive"><IconCheck aria-hidden="true" className="size-4" />Tersimpan sebagai hipotesis terbuka</p> : null}</div>
         </form>
 
         {symbolInsights.length ? (

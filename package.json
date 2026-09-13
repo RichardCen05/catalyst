@@ -23,6 +23,7 @@
     "@xyflow/react": "latest",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "lucide-react": "^1.45.0",
     "next": "latest",
     "next-themes": "latest",
     "react": "latest",

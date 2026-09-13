@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Bot, Clock3, FileText, MessageSquareWarning, Radio, ShieldQuestion } from "lucide-react";
 import { agentEngine } from "@/lib/agent/engine";
-import { citations as fixtureCitations, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { citations as fixtureCitations, companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode } from "@/lib/types";
 import { formatAsOf } from "@/lib/utils";
@@ -13,14 +13,19 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-const deltaBySymbol: Partial<Record<SymbolCode, { label: string; detail: string; tone: "new" | "conflict" | "watch" }>> = {
-  ANTM: { label: "Filing operasi baru", detail: "Volume penjualan menambah satu jalur yang perlu diuji terhadap arus dan harga.", tone: "new" },
-  BBCA: { label: "Konteks suku bunga diperbarui", detail: "Jalur biaya dana tetap mixed; partisipasi pasar tidak berubah status.", tone: "watch" },
-  BBRI: { label: "Konflik sumber masih terbuka", detail: "Origin broker asing tidak searah dengan foreign flow agregat.", tone: "conflict" },
-  TLKM: { label: "Evaluasi spektrum masuk", detail: "Kapasitas dan capex perlu dibaca bersama biaya lisensi yang belum tersedia.", tone: "new" },
-  PGAS: { label: "Kebijakan harga gas diperbarui", detail: "Jalur spread distribusi terhubung; formula harga masih kosong.", tone: "new" },
-  GOTO: { label: "Konsultasi biaya layanan", detail: "Risiko take rate terbuka dan belum searah dengan foreign flow.", tone: "watch" },
-};
+type Delta = { label: string; detail: string; tone: "new" | "conflict" | "watch" };
+
+function deltaFor(analysis: ReturnType<typeof agentEngine.analyzeCompany>): Delta {
+  if (!analysis) return { label: "Analisis diperbarui", detail: "", tone: "watch" };
+  if (analysis.contradictions.length) {
+    return { label: "Konflik sumber masih terbuka", detail: analysis.contradictions[0], tone: "conflict" };
+  }
+  const trigger = analysis.trigger;
+  const fresh = trigger.eventId
+    ? Date.parse(DATA_AS_OF) - Date.parse(events.find((event) => event.id === trigger.eventId)?.publishedAt ?? DATA_AS_OF) < 3 * 86_400_000
+    : false;
+  return { label: fresh ? trigger.title : "Analisis diperbarui", detail: fresh ? trigger.detail : analysis.thesis, tone: fresh ? "new" : "watch" };
+}
 
 const deltaIcon = { new: FileText, conflict: AlertTriangle, watch: ShieldQuestion } as const;
 
@@ -46,11 +51,13 @@ export default function DashboardPage() {
   const pending = insights.filter((item) => item.status === "pending");
   const citations = [...cases.flatMap((item) => item.sources), fixtureCitations.market];
 
+  const conflicts = cases.filter((item) => item.contradictions.length).length;
+  const asOfDate = new Date(DATA_AS_OF);
   const ledger = [
     { label: "Kasus terverifikasi", value: String(cases.length), detail: "dari watchlist aktif" },
     { label: "Peristiwa terkait", value: String(watchEvents.length), detail: "setelah filter profil" },
-    { label: "Emiten fixture", value: String(companies.length), detail: "enam sektor IDX" },
-    { label: "Data as of", value: "16:15", detail: "11 Sep 2026 WIB" },
+    { label: "Emiten terekam", value: String(companies.length), detail: `${new Set(companies.map((company) => company.sector)).size} sektor IDX` },
+    { label: "Data as of", value: asOfDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }), detail: `${asOfDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" })} WIB` },
   ];
 
   return (
@@ -59,7 +66,7 @@ export default function DashboardPage() {
 
       <section className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs" aria-label="Status pembaruan">
         <span className="inline-flex items-center gap-2 font-medium"><Radio aria-hidden="true" className="size-4 text-primary" />{cases.length} perubahan perlu dibaca</span>
-        <span className="text-muted-foreground"><strong className="font-mono text-danger">1</strong> konflik terbuka</span>
+        <span className="text-muted-foreground"><strong className="font-mono text-danger">{conflicts}</strong> konflik terbuka</span>
         <span className="text-muted-foreground"><strong className="font-mono text-attention-foreground">{pending.length}</strong> catatan menunggu</span>
         <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground"><Clock3 aria-hidden="true" className="size-3" />{formatAsOf(DATA_AS_OF)} WIB</span>
       </section>
@@ -69,7 +76,7 @@ export default function DashboardPage() {
           <PanelHeader eyebrow="Since last check" title="Berubah sejak pemeriksaan terakhir" action={<Link href="/cases" className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Semua case<ArrowRight aria-hidden="true" className="size-3.5" /></Link>} />
           <div className="divide-y divide-border">
             {cases.map((analysis) => {
-              const delta = deltaBySymbol[analysis.company.symbol] ?? { label: "Analisis diperbarui", detail: analysis.thesis, tone: "watch" as const };
+              const delta = deltaFor(analysis);
               const Icon = deltaIcon[delta.tone];
               const openNotes = pending.filter((item) => item.symbol === analysis.company.symbol).length;
               return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="group grid min-h-24 gap-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-center"><span className={`grid size-9 place-items-center rounded-lg ${delta.tone === "conflict" ? "bg-danger/10 text-danger" : delta.tone === "new" ? "bg-primary/10 text-primary" : "bg-attention/10 text-attention-foreground"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span><span className="text-sm font-medium">{delta.label}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><MessageSquareWarning aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{delta.detail}</p>{analysis.priority.ruleTrace[0] ? <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-primary">Rule applied · {analysis.priority.ruleTrace[0].kind}</p> : null}</div><StatusBadge status={analysis.evidenceState} /></Link>;
@@ -83,7 +90,7 @@ export default function DashboardPage() {
         </Panel>
       </div>
 
-      <section className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="ask-agent-title"><div><h2 id="ask-agent-title" className="font-semibold">Ada perubahan yang ingin diuji?</h2><p className="mt-1 text-sm text-muted-foreground">Copilot membaca fixture, sumber, dan catatan terbuka dalam konteks watchlist.</p></div><Link href="/copilot" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><Bot aria-hidden="true" className="size-4" />Tanya agent</Link></section>
+      <section className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="ask-agent-title"><div><h2 id="ask-agent-title" className="font-semibold">Ada perubahan yang ingin diuji?</h2><p className="mt-1 text-sm text-muted-foreground">Copilot membaca rekaman Sectors API, sumber, dan catatan terbuka dalam konteks watchlist.</p></div><Link href="/copilot" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><Bot aria-hidden="true" className="size-4" />Tanya agent</Link></section>
     </div>
   );
 }

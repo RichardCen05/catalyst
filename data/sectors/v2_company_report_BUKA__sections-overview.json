@@ -1,0 +1,64 @@
+{
+ "symbol": "BUKA.JK",
+ "company_name": "PT Bukalapak.com Tbk",
+ "overview": {
+  "listing_board": "New Economy",
+  "industry": "Online Applications & Services",
+  "sub_industry": "Online Applications & Services",
+  "sector": "Technology",
+  "sub_sector": "Software & IT Services",
+  "market_cap": 11038878712069,
+  "market_cap_rank": 155,
+  "address": "Treasury Tower Lantai 65, District 8 SCBD, Jl. Jendral Sudirman Kav. 52 - 53, Jakarta Selatan, DKI Jakarta 12190",
+  "employee_num": 989.0,
+  "employee_num_rank": 324,
+  "listing_date": "2021-08-06",
+  "website": "www.bukalapak.com",
+  "phone": "02150982008",
+  "email": "corsec@bukalapak.com",
+  "last_close_price": 107,
+  "latest_close_date": "2026-09-11",
+  "daily_close_change": -0.018348623853211,
+  "all_time_price": {
+   "ytd_low": {
+    "2026-07-09": 93
+   },
+   "52_w_low": {
+    "2026-07-09": 93
+   },
+   "90_d_low": {
+    "2026-07-09": 93
+   },
+   "ytd_high": {
+    "2026-04-17": 184
+   },
+   "52_w_high": {
+    "2025-10-01": 198
+   },
+   "90_d_high": {
+    "2026-08-05": 125
+   },
+   "all_time_low": {
+    "2026-07-09": 93
+   },
+   "all_time_high": {
+    "2021-08-09": 1325
+   }
+  },
+  "esg_score": 25.06,
+  "tags": [
+   "insider-1-month-buy",
+   "top-3-nipe-per-sectors",
+   "top-3-pe-per-sectors",
+   "top-90d-transaction-volume"
+  ],
+  "indices": [
+   "KOMPAS100",
+   "IDXESGL",
+   "IDXV30"
+  ],
+  "affiliates": [
+   "Emtek"
+  ]
+ }
+}

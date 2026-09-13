@@ -1,0 +1,63 @@
+{
+ "symbol": "MYOR.JK",
+ "company_name": "Mayora Indah Tbk",
+ "overview": {
+  "listing_board": "Main",
+  "industry": "Processed Foods",
+  "sub_industry": "Processed Foods",
+  "sector": "Consumer Non-Cyclicals",
+  "sub_sector": "Food & Beverage",
+  "market_cap": 33873430083375,
+  "market_cap_rank": 70,
+  "address": "Jl.Tomang Raya No. 21-23\r\nJakarta",
+  "employee_num": 6564.0,
+  "employee_num_rank": 92,
+  "listing_date": "1990-07-04",
+  "website": null,
+  "phone": "565-53-11/20/22; 566 30-37, 619-14-99",
+  "email": "Hermawan@mayora.co.id;yuni@mayora.co.id, yunimayora@yahoo.com",
+  "last_close_price": 1515,
+  "latest_close_date": "2026-09-11",
+  "daily_close_change": -0.00980392156862745,
+  "all_time_price": {
+   "ytd_low": {
+    "2026-09-11": 1495
+   },
+   "52_w_low": {
+    "2026-09-11": 1495
+   },
+   "90_d_low": {
+    "2026-09-11": 1495
+   },
+   "ytd_high": {
+    "2026-02-09": 2490
+   },
+   "52_w_high": {
+    "2026-02-09": 2490
+   },
+   "90_d_high": {
+    "2026-06-19": 1990
+   },
+   "all_time_low": {
+    "2001-11-13": 9
+   },
+   "all_time_high": {
+    "2018-07-31": 3240
+   }
+  },
+  "esg_score": 37.39,
+  "tags": [
+   "52-w-low",
+   "90-d-low",
+   "public-float-under-25",
+   "ytd-low"
+  ],
+  "indices": [
+   "KOMPAS100",
+   "IDXQ30",
+   "JII70",
+   "FTSE"
+  ],
+  "affiliates": null
+ }
+}

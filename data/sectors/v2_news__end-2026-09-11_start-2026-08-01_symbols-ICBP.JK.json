@@ -1,0 +1,786 @@
+{
+ "results": [
+  {
+   "title": "Stock Market Gains, Simas Syariah Unggulan Mutual Fund Posts 10.28% Return in August",
+   "body": "Sinarmas Asset Management’s Simas Syariah Unggulan fund posted a 10.28% month‑on‑month return in August 2026, far above the average reksadana saham return of 3.60% and the IHSG index gain of 4.64% in the same period. The fund’s outperformance was driven by basic materials and consumer non‑cyclical sector strength and its top holdings of Bank Jabar Banten Syariah (18.57%), Aneka Tambang (18%), Dharma Satya Nusantara (15.01%), Archi Indonesia (12.20%) and Japfa Comfeed Indonesia (11.49%). Batavia Prosperindo Asset Management’s Batavia Dana Saham Syariah fund delivered a 6.04% month‑on‑month return, supported by energy, basic materials and infrastructure exposure, with its largest positions in Aneka Tambang (6.47%), Alamtri Resources Indonesia (5.10%), Kalbe Farma (4.29%), Indofood CBP Sukses Makmur (4.11%) and Indofood Sukses Makmur (3.73%). Both managers outlined sector‑focused strategies for the next period, with Batavia planning to increase energy exposure and Sinarmas intending to use artificial intelligence to enhance asset allocation.",
+   "source": "https://investasi.kontan.co.id/news/pasar-saham-menguat-reksadana-ini-cetak-return-hingga-1028-pada-agustus",
+   "thumbnail": "https://foto.kontan.co.id/sSnr5t-ou08-fb_qR6p4sItBp2Q=/smart/2016/09/02/1326315287t.jpg",
+   "timestamp": "2026-09-04T13:24:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "food-beverage",
+    "transportation",
+    "oil-gas-coal",
+    "pharmaceuticals-health-care-research"
+   ],
+   "tags": [
+    "Sharia Economy",
+    "Asset Management",
+    "Artificial Intelligence",
+    "Bullish"
+   ],
+   "symbols": [
+    "ANTM.JK",
+    "DSNG.JK",
+    "ARCI.JK",
+    "JPFA.JK",
+    "BPTR.JK",
+    "ADRO.JK",
+    "KLBF.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Batavia Dana Saham Syariah posts a 6.04% return in August, highlighting data center infrastructure stocks",
+   "body": "The article reports that Batavia Dana Saham Syariah, a Sharia‑compliant equity fund managed by Batavia Prosperindo Asset Management, delivered a 6.04% month‑on‑month return in August 2026. This outperformed the average mutual‑fund equity return of 3.60% for the same period and was driven by the fund’s largest active weight in the infrastructure sector, particularly stocks linked to data‑center development. The portfolio’s top holdings included Aneka Tambang (6.47%), Alamtri Resources Indonesia (5.10%), Kalbe Farma (4.29%), Indofood CBP Sukses Makmur (4.11%) and Indofood Sukses Makmur (3.73%). The manager also indicated plans to increase exposure to the energy sector, citing an El‑Niño view as a catalyst for future adjustments.",
+   "source": "https://investasi.kontan.co.id/news/return-reksadana-batavia-604-di-agustus-saham-infrastruktur-data-center-dipilih",
+   "thumbnail": "https://foto.kontan.co.id/Y9o71_WfViPbr6MI0R3BsEJUw8w=/smart/2020/09/10/1728842055t.jpg",
+   "timestamp": "2026-09-03T22:23:00",
+   "sector": "transportation-logistic",
+   "sub_sector": [
+    "transportation",
+    "basic-materials",
+    "oil-gas-coal",
+    "pharmaceuticals-health-care-research",
+    "food-beverage"
+   ],
+   "tags": [
+    "Sharia Economy",
+    "Financial Metrics",
+    "Asset Management",
+    "Portfolio",
+    "Bullish"
+   ],
+   "symbols": [
+    "BPTR.JK",
+    "ANTM.JK",
+    "ADRO.JK",
+    "KLBF.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Stocks Likely to Gain in Early September Week",
+   "body": "The article provides a broker‑style outlook for Indonesian equities expected to perform well in the first week of September. It notes that the Jakarta Composite Index (IHSG) closed at 6,518, down 0.06%, with foreign investors recording a net sell of Rp482.24 billion, setting a cautious market backdrop. Kiwoom Securities Indonesia analyst Oktavianus Audi highlights PT Indika Energy Tbk (INDY) which rose 2.17% to 2,830 and could reach 2,960, and PT VKTR Teknologi Mobilitas Tbk (VKTR) which jumped 6.63% to 965 with a target of 1,140. MNC Securities analyst Herditya Wicaksana recommends PT Sumber Alfaria Trijaya Tbk (AMRT) at 1,340 aiming for 1,520, PT Indofood Sukses Makmur Tbk (INDF) at 7,300 targeting 7,650, and PT Perusahaan Perkebunan London Sumatra Indonesia Tbk (LSIP) at 1,465 with a projected 1,590. The outlook also references upcoming Indonesian inflation and PMI data, MSCI index rebalancing, and the U.S. Fed’s hawkish tone as broader factors influencing the market.",
+   "source": "https://www.cnnindonesia.com/ekonomi/20260831062956-92-1398088/intip-daftar-saham-berpeluang-cuan-di-pekan-awal-september",
+   "thumbnail": "https://akcdn.detik.net.id/visual/2017/03/13/56bec95d-4a39-4c06-9c94-770a0e72ea4d_169.jpg?w=280&q=90",
+   "timestamp": "2026-08-31T06:55:43",
+   "sector": "energy",
+   "sub_sector": [
+    "oil-gas-coal",
+    "automobiles-components",
+    "food-staples-retailing",
+    "food-beverage"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Foreign Investment",
+    "Inflation",
+    "Analyst Ratings",
+    "Bullish"
+   ],
+   "symbols": [
+    "INDY.JK",
+    "VKTR.JK",
+    "AMRT.JK",
+    "ICBP.JK",
+    "INDF.JK",
+    "LSIP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Rising Wheat Prices Pressure Margins of ICBP, INDF, MYOR and Other Consumer Goods Emitters",
+   "body": "The article reports that the sharp rise in global wheat prices to US$766 per bushel, a 52.5% year‑on‑year increase, is expected to weigh on the margins of Indonesian consumer‑goods issuers. Analysts at Mirae Asset note that ICBP (a subsidiary of INDF), INDF (parent of ICBP) and MYOR have seen quarterly gross‑profit‑margin (GPM) declines of 4.8, 4.3 and 2.2 percentage points respectively in 2022, and project that a 5% rise in flour prices could cut 2026 GPM by 0.5‑0.6 points and net profit by up to 3.6% for these firms. Kiwoom highlights that ROTI, ICBP, STTP, INDF and MYOR are the most exposed, with wheat accounting for 15% of ICBP’s COGS, 10% of MYOR’s and 9% of INDF’s, while each company holds roughly three months of wheat inventory. The report maintains a neutral recommendation for the consumer sector, while giving MYOR a buy‑trade target of Rp 1,720‑1,750, noting that margin pressure may intensify from Q4‑2026 to Q1‑2027.",
+   "source": "https://investasi.kontan.co.id/news/kenaikan-harga-gandum-membayangi-kinerja-emiten-konsumer",
+   "thumbnail": "https://foto.kontan.co.id/-iHtVYqEjI1jfGqEWScHTTQUXq8=/smart/2024/08/27/1173032566t.jpg",
+   "timestamp": "2026-08-30T15:37:00",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-beverage"
+   ],
+   "tags": [
+    "Commodities",
+    "Financial Metrics",
+    "Analyst Ratings",
+    "Bearish"
+   ],
+   "symbols": [
+    "ICBP.JK",
+    "INDF.JK",
+    "MYOR.JK",
+    "ROTI.JK",
+    "STTP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 1,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Daily stock recommendation roundup for 28 August 2026",
+   "body": "The article provides a summary of stock recommendations for 28 August 2026. The Jakarta Composite Index (IHSG) closed at 6,521, up 1.81%, after reaching an intraday low of 6,376, with a trading volume of 36.76 billion shares and a transaction value of Rp13.69 trillion. Industrial, non‑primary consumer, and health sectors led the market, posting gains of 3.94%, 3.79% and 3.75% respectively, while buying pressure dominated the trade flow. Recommended stocks include EXCL, INET, HRUM, KETR, PSAB, TOBA, DMAS, BIPI, KOTA, BUMI, SLIS, DEWA, ENRG, ICBP, PTRO, ISAT, AADI, ADMR, ARCI, BBRI, BBNI, BMRI, INDY, CUAN, MBMA, PANI, EMTK, ERAA, BKSL and LSIP.",
+   "source": "https://www.bloombergtechnoz.com/detail-news/119753/rangkuman-rekomendasi-saham-hari-ini-28-agustus-2026",
+   "thumbnail": "https://images.bloombergtechnoz.com/data/2026/05/image-20260522183644.jpeg",
+   "timestamp": "2026-08-28T08:40:00",
+   "sector": "infrastructures",
+   "sub_sector": [
+    "telecommunication",
+    "oil-gas-coal",
+    "basic-materials",
+    "properties-real-estate",
+    "consumer-services",
+    "retailing",
+    "food-beverage",
+    "banks",
+    "software-it-services"
+   ],
+   "tags": [
+    "Analyst Ratings"
+   ],
+   "symbols": [
+    "EXCL.JK",
+    "INET.JK",
+    "HRUM.JK",
+    "KETR.JK",
+    "PSAB.JK",
+    "TOBA.JK",
+    "DMAS.JK",
+    "BIPI.JK",
+    "KOTA.JK",
+    "BUMI.JK",
+    "SLIS.JK",
+    "DEWA.JK",
+    "ENRG.JK",
+    "ICBP.JK",
+    "PTRO.JK",
+    "ISAT.JK",
+    "AADI.JK",
+    "ADMR.JK",
+    "ARCI.JK",
+    "BBRI.JK",
+    "BBNI.JK",
+    "BMRI.JK",
+    "INDY.JK",
+    "CUAN.JK",
+    "MBMA.JK",
+    "PANI.JK",
+    "EMTK.JK",
+    "ERAA.JK",
+    "BKSL.JK",
+    "LSIP.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG projected to stay in correction range ahead of the weekend",
+   "body": "The article forecasts that Indonesia's Composite Index (IHSG) will remain weak on Friday, staying within a correction phase. MNC Sekuritas analyst Herditya Wicaksana expects the index to trade between support levels 6,290‑6,394 and target up to 6,666, recommending the stocks DEWA, ENRG, ICBP and PTRO. Binaartha Sekuritas analyst Ivan Rosanova sees potential for further gains after the index broke minor resistance at 6,508, projecting support at 6,435‑6,080 and resistance up to 6,916, and recommends ADMR, ANTM, BMRI and BUMI. The IHSG closed at 6,521 on Thursday, up 116.06 points (1.81%) with trading volume of Rp13.51 trillion across 35.54 billion shares, where 553 stocks rose, 96 fell and 138 were unchanged.",
+   "source": "https://www.cnnindonesia.com/ekonomi/20260828063719-92-1397191/ihsg-diperkirakan-tertekan-jelang-akhir-pekan",
+   "thumbnail": "https://akcdn.detik.net.id/visual/2024/04/19/ilustrasi-ihsg-saham_169.jpeg?w=280&q=90",
+   "timestamp": "2026-08-28T07:42:17",
+   "sector": "energy",
+   "sub_sector": [
+    "oil-gas-coal",
+    "food-beverage",
+    "basic-materials",
+    "banks"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Analyst Ratings"
+   ],
+   "symbols": [
+    "DEWA.JK",
+    "ENRG.JK",
+    "ICBP.JK",
+    "PTRO.JK",
+    "ADMR.JK",
+    "ANTM.JK",
+    "BMRI.JK",
+    "BUMI.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG forecast to trade sideways with MNC Sekuritas recommending DEWA, ENRG, ICBP, and PTRO for Friday trading",
+   "body": "The article predicts the Jakarta Composite Index (IHSG) will move sideways between 6,450 and 6,580 ahead of the Jackson Hole Fed Chairman speech. Phintraco Sekuritas notes the index closed at 6,521.7, up 1.81%, above its MA5 and with a positive MACD histogram, while Stochastic RSI is declining. MNC Sekuritas projects a correction range of 6,290‑6,394 and a potential upside test of 6,666, and it recommends the stocks DEWA, ENRG, ICBP, and PTRO for trading on Friday. The market reacted positively after the DPR resolved the asset‑seizure law debate, with all sectors gaining, led by industrial up 3.95%, while the rupiah weakened 0.11% to 17,744 per USD.",
+   "source": "https://investor.id/market/451847/prediksi-ihsg-dan-rekomendasi-saham-jumat-28-agustus-2026",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/02/1770652393-2000x1333.webp",
+   "timestamp": "2026-08-27T18:36:11",
+   "sector": "energy",
+   "sub_sector": [
+    "oil-gas-coal",
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Currency & FX",
+    "Politics & Regulation",
+    "Market Sentiment"
+   ],
+   "symbols": [
+    "DEWA.JK",
+    "ENRG.JK",
+    "ICBP.JK",
+    "PTRO.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "BRI Danareksa Sekuritas recommends SMIL, MAPA and ICBP with new price targets",
+   "body": "BRI Danareksa Sekuritas issued a broker recommendation for three stocks on Thursday, 27 August 2026. SMIL broke out of the 365‑390 consolidation area, stayed above the 20‑day moving average at 394, and the broker set near‑term and longer‑term targets of 414 and 429 rupiah respectively, noting semester‑I 2026 profit of Rp 60.08 billion and EPS of Rp 6.87. MAPA remained above its 630‑655 breakout zone, tested resistance at 690 and could advance toward 709 rupiah with support at 655, supported by a 15.1% YoY increase in net revenue to Rp 10.1 trillion. ICBP broke out above 7,750 rupiah with strong volume and a bullish MACD, targeting 7,950‑8,164 rupiah as revenue grew 11.3% YoY, prompting a revised target price of Rp 10,600.",
+   "source": "https://investor.id/market/451770/rekomendasi-saham-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/04/1744720264-5760x3840.webp",
+   "timestamp": "2026-08-27T07:59:26",
+   "sector": "industrials",
+   "sub_sector": [
+    "industrial-goods",
+    "retailing",
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Bullish"
+   ],
+   "symbols": [
+    "SMIL.JK",
+    "MAPA.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 1,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Foreign investors net bought ten Indonesian stocks as the IDX Composite fell 1.48%",
+   "body": "The article reports that despite the IDX Composite (IHSG) dropping 1.48% to 6,405.69 points on 26 August 2026, foreign investors recorded a net purchase of about Rp 1.37 trillion in Indonesian equities. The ten stocks with the largest foreign net buys were PT Bank Central Asia Tbk, BMRI, EXCL, MDKA, DSSA, ICBP, PSAB, BRMS, ADRO and ASII. Foreign net buying amounts ranged from Rp 1.41 trillion for DSSA down to Rp 15.8 billion for ASII, with PT Bank Central Asia Tbk receiving Rp 80.82 billion. The market saw 583 stocks decline, total volume of 41.53 billion shares and transaction value of Rp 17.97 trillion, while sector indices fell between 0.73% and 4.15%.",
+   "source": "https://money.kompas.com/read/2026/08/27/070700026/10-saham-yang-diborong-asing-saat-ihsg-anjlok-1-48-persen",
+   "thumbnail": "https://asset.kompas.com/crops/acvKHBP2FQMcX_7PRoiBb_YSkEg=/0x0:4992x3328/230x152/data/photo/2026/04/28/69f0259428060.jpg",
+   "timestamp": "2026-08-27T07:07:00",
+   "sector": "financials",
+   "sub_sector": [
+    "banks",
+    "telecommunication",
+    "basic-materials",
+    "oil-gas-coal",
+    "food-beverage",
+    "multi-sector-holdings"
+   ],
+   "tags": [
+    "Foreign Investment",
+    "Market Sentiment",
+    "Bullish"
+   ],
+   "symbols": [
+    "BBCA.JK",
+    "BMRI.JK",
+    "EXCL.JK",
+    "MDKA.JK",
+    "DSSA.JK",
+    "ICBP.JK",
+    "PSAB.JK",
+    "BRMS.JK",
+    "ADRO.JK",
+    "ASII.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Foreign investors net bought Rp 1.37 trillion on Wednesday, PT Dian Swastatika Sentosa Tbk topping the list as the IHSG dropped 1.48%",
+   "body": "Foreign investors recorded a net purchase of Rp 1.37 trillion in Indonesian equities on 26 August 2026 despite the IHSG falling sharply. The IHSG closed down 1.48% (95.86 points) at 6,405.68, with 583 stocks declining, 118 rising, and total turnover of 41.53 billion shares worth Rp 17.97 trillion. The ten stocks with the largest foreign net buys were PT Dian Swastatika Sentosa Tbk (Rp 1.41 trillion), PT Bank Mandiri Tbk (Rp 257.32 billion), PT XL SMART Telecom Sejahtera Tbk (Rp 246.55 billion), PT Merdeka Copper Gold Tbk (Rp 119.15 billion), PT Bank Central Asia Tbk (Rp 80.82 billion), PT Indofood CBP Sukses Makmur Tbk (Rp 30.2 billion), PT J Resources Asia Pasifik Tbk (Rp 24.74 billion), PT Bumi Resources Minerals Tbk (Rp 23.55 billion), PT Alamtri Resources Indonesia Tbk (Rp 17.9 billion) and PT Astra International Tbk (Rp 15.8 billion). The foreign net buying underscores strong demand for these issuers even as overall market sentiment remained bearish.",
+   "source": "https://investasi.kontan.co.id/news/asing-net-buy-jumbo-rp-137-triliun-saat-ihsg-ambruk-cek-saham-yang-banyak-diborong",
+   "thumbnail": "https://foto.kontan.co.id/ed3gViUZoGEWsch2nD_5bKPcueU=/smart/2026/07/16/1914883473t.jpg",
+   "timestamp": "2026-08-26T20:04:00",
+   "sector": "energy",
+   "sub_sector": [
+    "oil-gas-coal",
+    "banks",
+    "telecommunication",
+    "basic-materials",
+    "food-beverage",
+    "multi-sector-holdings"
+   ],
+   "tags": [
+    "Foreign Investment",
+    "Market Sentiment",
+    "Bullish"
+   ],
+   "symbols": [
+    "DSSA.JK",
+    "BMRI.JK",
+    "EXCL.JK",
+    "MDKA.JK",
+    "BBCA.JK",
+    "ICBP.JK",
+    "PSAB.JK",
+    "BUMI.JK",
+    "ADRO.JK",
+    "ASII.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 1,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Indonesia's Composite Index Opens in Red Zone as Brokers Cite Economic Data and Global Sentiment",
+   "body": "The Jakarta Composite Index (IHSG) opened lower on Wednesday, slipping 68.92 points (1.06%) to 6,432 amid early‑session trading, with 2.53 billion shares exchanged for a total value of Rp1.21 trillion. Brokers attributed the decline to investors awaiting the Indonesia Balance of Payments release, U.S. economic data, and the upcoming Jackson Hole speech, while also noting potential headwinds from a planned demonstration on August 27. Despite the bearish tone, BRI Danareksa highlighted HRUM, PADI and SRTG as picks; Phintraco recommended ICBP, TINS, BRMS, ADRO, PTBA and AADI; CGS pointed to AADI, ADRO, DSNG, HRTA, BRMS and EMAS; and Panin suggested TPIA, ICBP and AKRA. The analysts projected the index could trade between 6,380‑6,600 depending on whether support at 6,380‑6,440 holds or resistance near 6,560‑6,625 is tested.",
+   "source": "https://www.bloombergtechnoz.com/detail-news/119479/ihsg-awali-perdagangan-di-zona-merah-ini-penyebabnya",
+   "thumbnail": "https://images.bloombergtechnoz.com/data/2026/01/image-20260129131222.jpeg",
+   "timestamp": "2026-08-26T09:25:00",
+   "sector": "energy",
+   "sub_sector": [
+    "oil-gas-coal",
+    "investment-service",
+    "holding-investment-companies",
+    "food-beverage",
+    "basic-materials",
+    "apparel-luxury-goods"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Global Economy",
+    "Analyst Ratings"
+   ],
+   "symbols": [
+    "HRUM.JK",
+    "PADI.JK",
+    "SRTG.JK",
+    "ICBP.JK",
+    "TINS.JK",
+    "BRMS.JK",
+    "ADRO.JK",
+    "PTBA.JK",
+    "AADI.JK",
+    "DSNG.JK",
+    "HRTA.JK",
+    "EMAS.JK",
+    "TPIA.JK",
+    "AKRA.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "BRI Danareksa raises earnings outlook for PT Indofood CBP Sukses Makmur Tbk, sees up to 40% upside",
+   "body": "The article reports that BRI Danareksa Sekuritas upgraded its earnings estimates for PT Indofood CBP Sukses Makmur Tbk (ICBP), an issuer of the Salim Group. Revenue in the first half of 2026 grew 11.3% year‑on‑year, driven by a 20.7% rise in overseas instant‑noodle sales and a 7% increase domestically, with foreign sales accounting for 28% of total. The analysts lifted their 2026‑27 earnings forecasts by 6.2% and introduced a new target price that implies a potential 40% share price appreciation. Management continues to project a conservative 5‑7% revenue growth for 2026, while a new Bogor plant adds 1.5 billion noodle‑pack capacity, though average selling‑price growth is expected to remain limited.",
+   "source": "https://investor.id/market/451175/dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/08/1755319104-640x426.webp",
+   "timestamp": "2026-08-21T19:23:58",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Business Expansion",
+    "Export",
+    "Bullish"
+   ],
+   "symbols": [
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG Projected to Rise Today",
+   "body": "The article forecasts that Indonesia's composite stock index (IHSG) could move higher on Thursday, 20 August, based on technical analysis. MNC Sekuritas analyst Herditya Wicaksana outlines a best‑case scenario targeting the 6,512‑6,544 area with support at 6,296 and 6,201, and a worst‑case correction to 6,056‑6,230, recommending the stocks ASII, ENRG, ICBP and MEDC. Binaartha Sekuritas analyst Ivan Rosanova sees upside to the Fibonacci resistance at 6,545 if the index stays above 6,267 and the 20‑day SMA, while a break below could signal a downtrend, and he recommends DEWA, KLBF, MBMA and MEDC. The index closed at 6,394 on 19 August, down 55.70 points (‑0.86 %), with trading volume of Rp 14.28 trillion across 36.01 billion shares, of which 238 stocks rose, 363 fell and 188 were unchanged.",
+   "source": "https://www.cnnindonesia.com/ekonomi/20260820060431-92-1394234/ihsg-diramal-bangkit-hari-ini",
+   "thumbnail": "https://akcdn.detik.net.id/visual/2026/05/19/dpr-sidak-ke-bursa-efek-1779170162777_169.jpeg?w=280&q=90",
+   "timestamp": "2026-08-20T07:01:25",
+   "sector": "industrials",
+   "sub_sector": [
+    "multi-sector-holdings",
+    "oil-gas-coal",
+    "food-beverage",
+    "pharmaceuticals-health-care-research",
+    "basic-materials"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Analyst Ratings"
+   ],
+   "symbols": [
+    "ASII.JK",
+    "ENRG.JK",
+    "ICBP.JK",
+    "MEDC.JK",
+    "DEWA.JK",
+    "KLBF.JK",
+    "MBMA.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "OCBC Sekuritas recommends seven undervalued MSCI‑index stocks, including BBCA, with profit potentials up to 61%",
+   "body": "OCBC Sekuritas issued a broker report recommending seven Indonesian MSCI‑index blue‑chip stocks as undervalued opportunities. The report lists PT Bank Central Asia Tbk (BBCA), PT Bank Mandiri Tbk (BMRI), PT Bank Negara Indonesia Tbk (BBNI), PT Astra International Tbk (ASII), PT Indofood CBP Sukses Makmur Tbk (ICBP), PT Sumber Alfaria Trijaya Tbk (AMRT) and PT Mitra Adiperkasa Tbk (MAPI) as buy picks. Target prices are set at Rp8,500 for BBCA, Rp5,500 for BMRI, Rp4,800 for BBNI, Rp7,000 for ASII, Rp10,000 for ICBP, Rp2,200 for AMRT and Rp1,800 for MAPI, implying potential returns of 34%, 32%, 34%, 47%, 30%, 61% and 20% respectively. OCBC also forecasts the IDX Composite (IHSG) to reach 7,800 by end‑2026 supported by a 10% earnings‑growth outlook for listed issuers.",
+   "source": "https://investor.id/market/450883/tujuh-saham-msci-murah-potensi-cuan-maksimal-61-bbca-termasuk",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/04/1776829572-3000x2000.webp",
+   "timestamp": "2026-08-19T15:09:28",
+   "sector": "financials",
+   "sub_sector": [
+    "banks",
+    "multi-sector-holdings",
+    "food-beverage",
+    "food-staples-retailing",
+    "retailing"
+   ],
+   "tags": [
+    "Undervalued",
+    "Analyst Ratings",
+    "Global Index",
+    "Bullish"
+   ],
+   "symbols": [
+    "BBCA.JK",
+    "BMRI.JK",
+    "BBNI.JK",
+    "ASII.JK",
+    "ICBP.JK",
+    "AMRT.JK",
+    "MAPI.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Popular News Roundup Highlights Sharp Drop in Antam Gold Prices, Indika Energy Valuation, RANS Shareholder Changes, and Indofood CBP Stock Decline",
+   "body": "The article reports that the spot price of PT Antam Tbk (ANTM) gold bullion fell sharply to Rp 36,000 per gram on Friday 14 August 2026, with the buy‑back price also declining. PT Indika Energy Tbk (INDY) disclosed a price‑to‑book value of 0.62× and higher revenue than the US$956.81 million recorded in the first half of 2025, while its subsidiaries PT Indika Logistic & Support Services and PT Interport Mandiri Utama established two new subsidiaries, PT Tujuh Rasa Daya and PT Tujuh Raya Dewi. PT Rans Entertainmen Indonesia Tbk (RANS) listed Haji Isam as holding 176,470,500 shares (1.40 %) as of 31 July 2026, with Kaesang Pangarep no longer appearing among shareholders above 1 %. PT Indofood CBP Sukses Makmur Tbk (ICBP) saw a net foreign sell of Rp 599.21 million on 13 August 2026 and trades at a PBV of 1.67×, below its three‑year PBV standard deviation of 1.99×.",
+   "source": "https://investor.id/market/450465/berita-populer-harga-emas-perhiasan-solid-hingga-emas-antam-antm-jatuh-parah",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/07/1783029917-1536x1024.webp",
+   "timestamp": "2026-08-15T05:54:25",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "oil-gas-coal",
+    "media-entertainment",
+    "food-beverage"
+   ],
+   "tags": [
+    "Commodities",
+    "Financial Metrics",
+    "Ownership",
+    "Market Sentiment",
+    "Foreign Investment",
+    "Neutral"
+   ],
+   "symbols": [
+    "ANTM.JK",
+    "INDY.JK",
+    "RANS.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 2,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 1,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "PT Indofood CBP Sukses Makmur Tbk shares deemed cheap with target price of Rp 12,000",
+   "body": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a small net sell of IDR 599.21 million on 13 August. The stock rose 13.53% over the past month, trades at Rp 7,550, down nearly 21% year‑to‑date, and shows a price‑to‑book ratio of 1.67× (below the –1 SD level of 1.99×) and a price‑earnings ratio of 11.91× (around the –1 SD level of 11.32×). Mandiri Sekuritas maintains a buy recommendation with a target price of Rp 12,000, implying roughly 60% upside.",
+   "source": "https://investor.id/market/450304/saham-emiten-anthoni-salim-lagi-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/07/1752894733-960x638.webp",
+   "timestamp": "2026-08-14T06:52:56",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Foreign Investment",
+    "Bullish"
+   ],
+   "symbols": [
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Potential upside for PT Indofood CBP Sukses Makmur Tbk instant‑noodle stock",
+   "body": "The article discusses the potential profit upside of PT Indofood CBP Sukses Makmur Tbk despite first‑half 2026 net‑profit pressure from foreign‑exchange losses. ICBP is described as the “emiten Grup Salim,” benefiting from its dominant instant‑noodle business, solid revenue growth and aggressive product innovation. Revenue rose 11.3% year‑on‑year to Rp41.86 trillion, EBIT increased 8% to Rp9.15 trillion, and core net profit grew 0.7% to Rp5.40 trillion, showing underlying operational strength. Because the profit dip is largely driven by non‑cash foreign‑exchange effects, the analyst considers the stock still attractive for investors.",
+   "source": "https://investor.id/market/450062/potensi-cuan-saham-raja-mi-instan",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/04/1743575748-782x481.webp",
+   "timestamp": "2026-08-12T14:44:11",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Currency & FX",
+    "Business Expansion",
+    "Bullish"
+   ],
+   "symbols": [
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Retail investors eye AMRT, HRUM, and ICBP as IHSG poised for limited upside",
+   "body": "Analyst Herditya expects the Jakarta Composite Index (IHSG) to trade within a narrow range of 6,246 to 6,275 on Wednesday, citing the upcoming MSCI index review and U.S. inflation data. He recommends three stocks for retail investors: PT Sumber Alfaria Trijaya Tbk with a target price of IDR 1,440‑1,590, PT Harum Energy Tbk with a target of IDR 910‑970, and PT Indofood CBP Sukses Makmur Tbk with a target of IDR 7,800‑8,200. The IHSG had closed down 1.53% at 6,267,880 the previous day, while domestic retail sales contraction narrowed to 3.0% year‑on‑year in June. Geopolitical tension between the United States and Iran and global inflation concerns are noted as broader market influences.",
+   "source": "https://money.kompas.com/read/2026/08/12/060700426/ihsg-bakal-bangkit-investor-ritel-cermati-saham-amrt-hrum-dan-icbp",
+   "thumbnail": "https://asset.kompas.com/crops/d0BrlRJ-e8vIjSkVR_RLmq7gYOE=/532x667:4532x3333/230x152/data/photo/2026/05/14/6a04f88890cc1.jpg",
+   "timestamp": "2026-08-12T06:07:00",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-staples-retailing",
+    "oil-gas-coal",
+    "food-beverage"
+   ],
+   "tags": [
+    "Domestic Investor",
+    "Analyst Ratings",
+    "Market Sentiment",
+    "Global Economy",
+    "Bullish"
+   ],
+   "symbols": [
+    "AMRT.JK",
+    "HRUM.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG Projected to Rebound on 12 August; Analysts Highlight AMRT, HRUM, ICBP, MEDC, ESSA, and WIRG as Buy Targets",
+   "body": "The article forecasts a technical rebound for the Indonesia Composite Index (IHSG) on Wednesday, 12 August, after a 1.53% decline to 6,267.88 points on Tuesday. Analysts from MNC Sekuritas and BRI Danareksa Sekuritas cite support levels around 6,200‑6,240 and resistance near 6,300‑6,385, with additional support at 6,246 and resistance at 6,275. They recommend buying AMRT at Rp 1,440‑1,590, HRUM at Rp 910‑970, ICBP at Rp 7,800‑8,200, MEDC at Rp 1,370‑1,400, ESSA at Rp 715‑740, and WIRG at Rp 68‑72 per share. The outlook is framed by global factors such as US‑Iran tensions, oil prices, and the upcoming MSCI review, which could influence foreign inflows.",
+   "source": "https://investasi.kontan.co.id/news/ihsg-diproyeksi-rebound-pada-rabu-128-berikut-saham-saham-yang-bisa-ditimbang",
+   "thumbnail": "https://foto.kontan.co.id/WRWObEh3hlsX8LtzSL9LrWWXRJA=/smart/2026/05/04/650229050t.jpg",
+   "timestamp": "2026-08-11T18:26:00",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-staples-retailing",
+    "oil-gas-coal",
+    "food-beverage",
+    "basic-materials",
+    "software-it-services"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Market Sentiment",
+    "Global Economy",
+    "Foreign Investment",
+    "Bullish"
+   ],
+   "symbols": [
+    "AMRT.JK",
+    "HRUM.JK",
+    "ICBP.JK",
+    "MEDC.JK",
+    "ESSA.JK",
+    "WIRG.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG predicted to test 6,180‑6,200 support with MNC Sekuritas recommending AMRT, EMAS, HRUM and ICBP for Wednesday trading",
+   "body": "The article forecasts that Indonesia’s composite index (IHSG) will test the 6,180‑6,200 support level on Wednesday, citing its recent close at 6,267.8, down 1.53% on Tuesday. Phintraco Sekuritas notes the index is below its MA10 but above MA20, while MNC Sekuritas projects a potential rise to 6,440‑6,544 with a correction risk to 5,890‑6,192. MNC Sekuritas recommends trading the stocks AMRT, EMAS, HRUM and ICBP on Wednesday. The outlook is set against a weakening Rupiah at 17,861 per USD (‑0.59%), declining retail sales (‑3% YoY in June) and a 33.3% YoY increase in July car sales to 81,115 units.",
+   "source": "https://investor.id/market/449950/prediksi-ihsg-dan-rekomendasi-saham-rabu-12-agustus-2026",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/02/1770652393-2000x1333.webp",
+   "timestamp": "2026-08-11T17:55:19",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-staples-retailing",
+    "basic-materials",
+    "oil-gas-coal",
+    "food-beverage"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Currency & FX"
+   ],
+   "symbols": [
+    "AMRT.JK",
+    "EMAS.JK",
+    "HRUM.JK",
+    "ICBP.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  }
+ ],
+ "pagination": {
+  "total_count": 46,
+  "showing": 20,
+  "limit": 20,
+  "offset": 0,
+  "has_next": true,
+  "has_previous": false,
+  "next_offset": 20,
+  "previous_offset": null
+ }
+}

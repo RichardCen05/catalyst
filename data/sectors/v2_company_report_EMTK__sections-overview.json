@@ -1,0 +1,69 @@
+{
+ "symbol": "EMTK.JK",
+ "company_name": "Elang Mahkota Teknologi Tbk",
+ "overview": {
+  "listing_board": "Main",
+  "industry": "Online Applications & Services",
+  "sub_industry": "Online Applications & Services",
+  "sector": "Technology",
+  "sub_sector": "Software & IT Services",
+  "market_cap": 30713225741500,
+  "market_cap_rank": 73,
+  "address": "SCTV Tower, Lantai 18, Senayan City\r\nJl. Asia Afrika Lot 19\r\nJakarta 10270",
+  "employee_num": 9303.0,
+  "employee_num_rank": 73,
+  "listing_date": "2010-01-12",
+  "website": "www.emtek.co.id",
+  "phone": "021-7278 2066",
+  "email": "corsec@emtek.co.id",
+  "last_close_price": 500,
+  "latest_close_date": "2026-09-11",
+  "daily_close_change": 0.0,
+  "all_time_price": {
+   "ytd_low": {
+    "2026-07-01": 476
+   },
+   "52_w_low": {
+    "2026-07-01": 476
+   },
+   "90_d_low": {
+    "2026-07-01": 476
+   },
+   "ytd_high": {
+    "2026-01-07": 1210
+   },
+   "52_w_high": {
+    "2025-10-02": 1700
+   },
+   "90_d_high": {
+    "2026-06-15": 615
+   },
+   "all_time_low": {
+    "2010-03-02": 48
+   },
+   "all_time_high": {
+    "2022-04-27": 3070
+   }
+  },
+  "esg_score": 13.34,
+  "tags": [
+   "esg-under-25",
+   "last-volume-above-10d-volume-average",
+   "top-20-institution-buying"
+  ],
+  "indices": [
+   "LQ45",
+   "KOMPAS100",
+   "IDXESGL",
+   "IDX30",
+   "IDXVESTA28",
+   "FTSE",
+   "IDXV30",
+   "SRIKEHATI"
+  ],
+  "affiliates": [
+   "Salim",
+   "Emtek"
+  ]
+ }
+}

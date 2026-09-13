@@ -8,3 +8,8 @@ test-results/
 *-review.png
 .DS_Store
 .vercel
+
+# Secrets — never commit. .env.example is the only env file that may be tracked.
+.env
+.env.*
+!.env.example

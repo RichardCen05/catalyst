@@ -21,7 +21,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const [input, setInput] = useState(() => copilotContext?.question ?? "");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: "intro", role: "assistant", text: `Saya membaca fixture dengan urutan ${profile.config.pillarOrder.join(" → ")}. Tanyakan ticker, perbandingan, dampak berita/cuaca/kebijakan, atau data yang masih kosong.` },
+    { id: "intro", role: "assistant", text: `Saya membaca rekaman Sectors API dengan urutan ${profile.config.pillarOrder.join(" → ")}. Tanyakan ticker, perbandingan, dampak berita/filing/kebijakan, atau data yang masih kosong.` },
   ]);
   const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
   const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];
@@ -46,22 +46,22 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   return (
     <div role={dismissible ? "dialog" : undefined} aria-label={dismissible ? "Catalyst Copilot" : undefined} className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><Bot aria-hidden="true" className="size-5" /></div>
+        <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
         <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Catalyst Copilot</p><p className="truncate font-mono text-[11px] text-muted-foreground">Simulasi agent · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
-        {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup copilot"><X aria-hidden="true" className="size-4" /></Button> : null}
+        {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup copilot"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
       </div>
-      <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
-      {copilotContext ? <div className="flex items-center gap-2 border-b border-border bg-primary/8 px-4 py-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Konteks</span><span className="min-w-0 flex-1 truncate text-xs font-medium">{copilotContext.label}</span><button type="button" onClick={clearCopilotContext} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Hapus konteks"><X aria-hidden="true" className="size-3.5" /></button></div> : null}
+      <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><IconGate aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
+      {copilotContext ? <div className="flex items-center gap-2 border-b border-border bg-primary/8 px-4 py-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Konteks</span><span className="min-w-0 flex-1 truncate text-xs font-medium">{copilotContext.label}</span><button type="button" onClick={clearCopilotContext} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3.5" /></button></div> : null}
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.map((message) => <div key={message.id} className={message.role === "user" ? "ml-7" : "mr-2"}>
-          <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <UserRound aria-hidden="true" className="size-3" /> : <Bot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Agent"}</div>
+          <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <IconUser aria-hidden="true" className="size-3" /> : <IconCopilot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Agent"}</div>
           <div className={`rounded-xl border p-3 text-sm leading-6 ${message.role === "user" ? "border-primary/25 bg-primary/10" : "border-border bg-background"}`}>
             <p>{message.text}</p>
-            {message.answer ? <details className="mt-3 border-t border-border pt-2"><summary className="flex min-h-8 cursor-pointer items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">Periksa jawaban<ChevronDown aria-hidden="true" className="size-3" /></summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">Catatan user hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-3"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
+            {message.answer ? <details className="mt-3 border-t border-border pt-2"><summary className="flex min-h-8 cursor-pointer items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3" /></summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">Catatan user hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-3"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
           </div>
-        ))}
+        </div>)}
         {loading ? (
-          <p className="meta flex gap-1.5 text-muted-foreground" aria-label="Agent sedang memeriksa fixture">
+          <p className="meta flex gap-1.5 text-muted-foreground" aria-label="Agent sedang memeriksa rekaman">
             <span className="animate-pulse">Plan</span><span aria-hidden="true">→</span>
             <span className="animate-pulse [animation-delay:120ms]">Query</span><span aria-hidden="true">→</span>
             <span className="animate-pulse [animation-delay:240ms]">Verify</span>

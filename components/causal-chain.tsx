@@ -45,6 +45,7 @@ const kindLabels: Record<CausalNode["kind"], string> = {
   mechanism: "Mekanisme",
   company: "Emiten",
   observation: "Observasi",
+  "business-impact": "Dampak bisnis",
 };
 
 function ChainNode({ data }: NodeProps<ChainFlowNode>) {
