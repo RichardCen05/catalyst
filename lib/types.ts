@@ -21,6 +21,7 @@ export type EvidenceState = "Corroborated" | "Mixed Evidence" | "Insufficient Ev
 export type ImpactDirection = "Supported" | "Adverse" | "Mixed" | "Unrelated" | "Unverified";
 export type ResearchCaseStatus = "open" | "closed";
 export type BusinessImpactDimension = "volume" | "pricing" | "margin" | "cash-flow" | "balance-sheet" | "valuation";
+export type ResearchDispositionKind = "escalate" | "monitor" | "dismiss";
 
 export interface HypothesisProtocol {
   claim: string;
@@ -179,6 +180,7 @@ export interface BusinessImpactResult {
 
 export interface CaseResolution {
   outcome: "supported" | "challenged" | "open";
+  disposition?: ResearchDispositionKind;
   finalHypothesis: string;
   falsifiedBy: string;
   wrongAssumption: string;
@@ -188,6 +190,7 @@ export interface CaseResolution {
 
 export interface AnalysisContext {
   mandate?: string;
+  clarificationChoice?: string;
   playbook?: InvestorResearchPlaybook;
   userInsights?: UserInsight[];
   resolution?: CaseResolution;
@@ -200,6 +203,12 @@ export interface ResearchCase {
     title: string;
     detail: string;
     eventId?: string;
+  };
+  materialChange: {
+    whatChanged: string;
+    baseline: string;
+    whyMaterial: string;
+    rule: string;
   };
   mandate: string;
   priority: {
@@ -216,6 +225,19 @@ export interface ResearchCase {
   nextResearchActions: string[];
   sourcePlan: string[];
   clarificationGate: string;
+  clarification: {
+    required: boolean;
+    reason: string;
+    selectedOptionId?: string;
+    options: Array<{
+      id: string;
+      label: string;
+      question: string;
+      focus: BusinessImpactDimension;
+      sourceConsequence: string;
+      observable: string;
+    }>;
+  };
   lifecycle: Array<{
     key: "mandate" | "decompose" | "source-plan" | "evidence" | "review";
     label: string;
@@ -223,6 +245,19 @@ export interface ResearchCase {
   }>;
   researchPlan: ResearchPlan;
   businessImpact: BusinessImpactResult[];
+  evidenceLayers: Array<{
+    key: "market-confirmation" | "business-transmission";
+    label: string;
+    purpose: string;
+    pillarKeys: PillarKey[];
+  }>;
+  researchDisposition: {
+    kind: ResearchDispositionKind;
+    label: string;
+    reason: string;
+    monitorObservable: string;
+    reopenWhen: string;
+  };
   appliedRules: AppliedPlaybookRule[];
   resolution?: CaseResolution;
   primaryCausalPath: string;
@@ -247,6 +282,17 @@ export interface InvestorResearchPlaybook {
   thesisAssumptions: string[];
   trustedSources: string[];
   falsifiers: string[];
+}
+
+export interface RuleProposal {
+  id: string;
+  symbol: SymbolCode;
+  kind: "materiality" | "falsifier";
+  rule: string;
+  evidence: string;
+  sourceResolutionAt: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
 }
 
 export interface ImpactLink {
