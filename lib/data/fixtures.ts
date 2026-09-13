@@ -10,6 +10,7 @@ import {
   sectorReturns,
   subsectorContext,
   subsectorReturns,
+  revenueSegments,
   WINDOW_DATES,
 } from "@/lib/data/market.generated";
 import { locate } from "@/lib/agent/citations";
@@ -147,3 +148,4 @@ export const demoProfiles: UserProfile[] = [
     preferredSectors: ["Technology", "Consumer", "Energy"], preferredEventTypes: ["policy", "currency", "rates"], hasOnboarded: true,
   },
 ];
+export { revenueSegments };
