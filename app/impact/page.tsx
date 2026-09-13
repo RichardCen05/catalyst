@@ -15,8 +15,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { IconBranch, IconEmpty, IconFilter, IconSliders, IconWatch } from "@/components/ui/icons";
 import { cn, formatAsOf } from "@/lib/utils";
 
-const sourceLabels: Record<MarketEvent["sourceType"] | "all", string> = {
-  all: "Semua sumber",
+const SOURCE_TYPE_LABELS: Record<MarketEvent["sourceType"], string> = {
   sectors: "Sectors news",
   filing: "Filing",
   macro: "Makro",
@@ -27,7 +26,7 @@ const sourceLabels: Record<MarketEvent["sourceType"] | "all", string> = {
 
 const selectClass = "h-11 w-full cursor-pointer appearance-none rounded-[6px] border border-border bg-surface pl-10 pr-3 text-[13px] outline-none transition-colors focus:border-foreground/40 focus:ring-2 focus:ring-ring/25";
 
-function filterSource(graph: CausalGraph, sourceType: keyof typeof sourceLabels): CausalGraph {
+function filterSource(graph: CausalGraph, sourceType: MarketEvent["sourceType"] | "all"): CausalGraph {
   if (sourceType === "all") return graph;
   const sourceIds = new Set(graph.nodes.filter((node) => node.kind === "source" && node.sourceType === sourceType).map((node) => node.id));
   const mechanismIds = new Set(graph.edges.filter((edge) => sourceIds.has(edge.from)).map((edge) => edge.to));
@@ -56,7 +55,11 @@ function ImpactContent() {
   const [scope, setScope] = useState<"watchlist" | "market">("watchlist");
   const [symbol, setSymbol] = useState<SymbolCode>(requestedSymbol ?? profile.watchlist.find((item) => companies.some((company) => company.symbol === item && company.analyzed)) ?? "ANTM");
   const [minimum, setMinimum] = useState(70);
-  const [sourceType, setSourceType] = useState<keyof typeof sourceLabels>("all");
+  const [sourceType, setSourceType] = useState<MarketEvent["sourceType"] | "all">("all");
+  const sourceLabels = useMemo(() => {
+    const present = Array.from(new Set(events.map((event) => event.sourceType)));
+    return { all: "Semua sumber", ...Object.fromEntries(present.map((type) => [type, SOURCE_TYPE_LABELS[type]])) } as Record<MarketEvent["sourceType"] | "all", string>;
+  }, []);
   const availableCompanies = useMemo(() => companies.filter((company) => company.analyzed && (scope === "market" || profile.watchlist.includes(company.symbol))), [profile.watchlist, scope]);
   const activeSymbol = availableCompanies.some((company) => company.symbol === symbol) ? symbol : availableCompanies[0]?.symbol ?? symbol;
   const baseGraph = useMemo(() => agentEngine.buildCausalGraph(activeSymbol, profile, { scope, minRelevance: minimum, context: { mandate: caseMandates[activeSymbol], playbook, resolution: caseResolutions[activeSymbol] } }), [activeSymbol, caseMandates, caseResolutions, minimum, playbook, profile, scope]);

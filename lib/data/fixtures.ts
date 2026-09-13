@@ -8,8 +8,11 @@ import {
   rawCompanies,
   rawEvents,
   sectorReturns,
+  subsectorContext,
+  subsectorReturns,
   WINDOW_DATES,
 } from "@/lib/data/market.generated";
+import { locate } from "@/lib/agent/citations";
 import type {
   Citation,
   Company,
@@ -61,16 +64,22 @@ export const citations = {
   news: (eventId: string) => {
     const event = eventById.get(eventId);
     const filing = event ? event.sourceType === "filing" : eventId.startsWith("filing-");
-    return cite(
+    const commodity = event ? event.sourceType === "commodity" : eventId.startsWith("commodity-");
+    const endpoint = commodity ? "/v2/mining/commodities/" : filing ? "/v2/filings/" : "/v2/news/";
+    const field = commodity ? "name, date, price_usd_per_ton" : filing ? "title, timestamp, symbol, holder_type" : "title, timestamp, symbols, tags, dimension";
+    const docsUrl = commodity ? "https://docs.sectors.app/api-references/v2/others/mining/commodities-price-data" : filing ? SECTORS_FILINGS_DOCS : SECTORS_NEWS_DOCS;
+    const base = cite(
       `news-${eventId}`,
-      filing ? "/v2/filings/" : "/v2/news/",
-      filing ? "title, timestamp, symbol, holder_type" : "title, timestamp, symbols, tags, dimension",
+      endpoint,
+      field,
       event ? event.title : "Peristiwa tidak ditemukan pada rekaman",
       PROVIDER,
-      event?.source ?? (filing ? SECTORS_FILINGS_DOCS : SECTORS_NEWS_DOCS),
+      event?.source ?? docsUrl,
       event?.source ? "Buka sumber asli" : "Buka dokumentasi endpoint",
       event?.source ? "provider" : "direct",
     );
+    if (!event?.body) return base;
+    return { ...base, span: locate(eventId, event.body, event.summary.replace(/…$/, "")) };
   },
   financial: (symbol: string) => cite(`financial-${symbol}`, `/v2/financials/quarterly/${symbol}/?n_quarters=4`, "date, revenue, earnings, financials_sector_metrics", `${symbol} quarterly financials`, PROVIDER, SECTORS_FINANCIAL_DOCS),
   external: (eventId: string) => citations.news(eventId),
@@ -86,6 +95,7 @@ export const events: MarketEvent[] = rawEvents.map((event) => ({
   id: event.id,
   title: event.title,
   summary: event.summary,
+  body: event.body,
   category: event.category,
   sourceType: event.sourceType,
   publishedAt: event.publishedAt,
@@ -102,15 +112,19 @@ const financialContext = (symbol: SymbolCode): FinancialInput[] =>
   (financialRows[symbol] ?? []).map((row) => ({ ...row, citations: [citations.financial(symbol)] }));
 
 export const analysisFixtures: Record<string, CompanyAnalysisFixture> = Object.fromEntries(
-  Object.keys(brokerEvidence).map((symbol) => [symbol, {
-    symbol: symbol as SymbolCode,
-    priceSeries: priceSeries[symbol],
-    broker: brokerEvidence[symbol],
-    sectorReturn: sectorReturns[companies.find((company) => company.symbol === symbol)!.sector],
-    beta: betas[symbol],
-    catalystEventIds: eventIdsBySymbol[symbol] ?? [],
-    financialContext: financialContext(symbol as SymbolCode),
-  }]),
+  Object.keys(brokerEvidence).map((symbol) => {
+    const company = companies.find((item) => item.symbol === symbol)!;
+    return [symbol, {
+      symbol: symbol as SymbolCode,
+      priceSeries: priceSeries[symbol],
+      broker: brokerEvidence[symbol],
+      sectorReturn: subsectorReturns[company.subsector] ?? sectorReturns[company.sector],
+      subsectorContext: subsectorContext[company.subsector],
+      beta: betas[symbol],
+      catalystEventIds: eventIdsBySymbol[symbol] ?? [],
+      financialContext: financialContext(symbol as SymbolCode),
+    }];
+  }),
 );
 
 const analyzed = companies.filter((company) => company.analyzed).map((company) => company.symbol);

@@ -1,0 +1,12 @@
+.next
+node_modules
+test-results
+playwright-report
+.vitest
+.env
+.env.*
+!.env.example
+.git
+.claude
+research
+docs

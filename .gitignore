@@ -4,6 +4,7 @@ node_modules/
 .playwright-cli/
 playwright-report/
 test-results/
+.vitest/
 *.tsbuildinfo
 *-review.png
 .DS_Store

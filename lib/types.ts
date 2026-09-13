@@ -40,6 +40,15 @@ export interface Citation {
   url?: string;
   urlLabel?: string;
   access?: "direct" | "provider" | "documentation";
+  /** Sentence-level location of the cited claim inside a source's body text, when one was attempted. */
+  span?: SourceSpan;
+}
+
+export interface SourceSpan {
+  documentId: string;
+  start: number;
+  end: number;
+  match: "exact" | "approximate" | "not_found";
 }
 
 export interface MetricValue {
@@ -108,6 +117,8 @@ export interface BrokerEvidence {
   /** Window the broker summary itself covers; it is wider than the daily price window. */
   windowStart?: string;
   windowEnd?: string;
+  /** Monthly local/foreign ownership split from shareholders-composition, when recorded for this symbol. */
+  ownershipSeries?: Array<{ date: string; foreignPct: number; localPct: number }>;
 }
 
 export interface CompanyAnalysisFixture {
@@ -115,6 +126,8 @@ export interface CompanyAnalysisFixture {
   priceSeries: PricePoint[];
   broker: BrokerEvidence;
   sectorReturn: number;
+  /** Real subsector_report statistics (P/E only; the endpoint has no return field), when recorded for this subsector. */
+  subsectorContext?: { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number };
   beta: number;
   catalystEventIds: string[];
   financialContext: FinancialInput[];
@@ -249,6 +262,8 @@ export interface MarketEvent {
   id: string;
   title: string;
   summary: string;
+  /** Full source text (news/filing body), when the recording carried one. Used to locate citation spans. */
+  body: string | null;
   category: "company" | "commodity" | "rates" | "currency" | "policy" | "weather";
   sourceType: "sectors" | "filing" | "macro" | "commodity" | "weather" | "policy";
   publishedAt: string;

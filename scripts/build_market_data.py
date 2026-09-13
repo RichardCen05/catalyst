@@ -12,7 +12,7 @@ category and direction vocabularies.
 import json
 import math
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -140,6 +140,72 @@ for sector in set(sector_of.values()):
     weight = sum(market_cap_of[s] for s in peers)
     sector_returns[sector] = round(sum(three_day_return(s) * market_cap_of[s] for s in peers) / weight, 6)
 
+# subsector_returns groups the same 18-emiten return data by the exact Sectors
+# sub_sector label (e.g. "Banks", "Oil, Gas & Coal") instead of the six broad
+# buckets above, so momentum compares a symbol against its real peers rather
+# than an unrelated sector-mate. There is no return field in the recorded
+# subsector_report; that endpoint only carries P/E statistics, so it cannot
+# replace this number — see subsector_context below for what it does add.
+subsector_of = {s: overview[s]["overview"]["sub_sector"] for s in SYMBOLS}
+subsector_returns = {}
+for subsector in set(subsector_of.values()):
+    peers = [s for s in SYMBOLS if subsector_of[s] == subsector]
+    weight = sum(market_cap_of[s] for s in peers)
+    subsector_returns[subsector] = round(sum(three_day_return(s) * market_cap_of[s] for s in peers) / weight, 6)
+
+SUBSECTOR_REPORT_FILES = {
+    "Banks": "v2_subsector_report_banks__sections-statistics.json",
+    "Oil, Gas & Coal": "v2_subsector_report_oil-gas-coal__sections-statistics.json",
+    "Telecommunication": "v2_subsector_report_telecommunication__sections-statistics.json",
+}
+subsector_context = {}
+for subsector, filename in SUBSECTOR_REPORT_FILES.items():
+    if not (RAW / filename).exists():
+        continue
+    stats = load(filename)["statistics"]
+    subsector_context[subsector] = {
+        "totalCompanies": stats["total_companies"],
+        "medianPe": round(stats["filtered_median_pe"], 2),
+        "weightedAvgPe": round(stats["filtered_weighted_avg_pe"], 2),
+        "sampleCompanies": len([s for s in SYMBOLS if subsector_of[s] == subsector]),
+    }
+
+# --------------------------------------------------------------------------- shareholders
+def foreign_ownership_series(symbol):
+    filename = f"v2_company_shareholders-composition_{symbol}.json"
+    if not (RAW / filename).exists():
+        return None
+    payload = load(filename)
+    points = sorted(payload["data"], key=lambda r: r["date"])
+    series_out = []
+    for row in points:
+        shares = row.get("shares_number")
+        if not shares:
+            continue
+        series_out.append({
+            "date": row["date"],
+            "foreignPct": round(row["total_f"] / shares, 4),
+            "localPct": round(row["total_l"] / shares, 4),
+        })
+    return series_out or None
+
+
+# --------------------------------------------------------------------------- segments
+def top_revenue_segments(symbol):
+    filename = f"v2_company_get-segments_{symbol}.json"
+    if not (RAW / filename).exists():
+        return None
+    payload = load(filename)
+    rows_in = [r for r in payload.get("revenue_breakdown", []) if r.get("target") == "Total Revenue" and r.get("value")]
+    total = sum(r["value"] for r in rows_in)
+    if not total:
+        return None
+    top = sorted(rows_in, key=lambda r: r["value"], reverse=True)[:3]
+    return [{"segment": r["source"], "share": round(r["value"] / total, 4)} for r in top]
+
+
+revenue_segments = {s: top_revenue_segments(s) for s in SYMBOLS if top_revenue_segments(s)}
+
 # --------------------------------------------------------------------------- events
 def category_of(tags):
     for name, members in CATEGORY_TAGS:
@@ -189,7 +255,11 @@ def add_event(event_id, item, symbols_in_universe, source_type):
         spread = len([x for x in (item.get("symbols") or [item.get("symbol")]) if x])
         relevance = 95 if source_type == "filing" else max(40, 88 - (spread - 1) * 6)
         relevance = min(97, relevance + (2 if dimension in ("financials", "future") else 0))
-        path = CATEGORY_PATH.get(category) or DIMENSION_PATH.get(dimension) or DIMENSION_PATH["technical"]
+        segment = (revenue_segments.get(symbol) or [None])[0]
+        if category == "commodity" and segment:
+            path = f"{segment['segment']} ({pct(segment['share'], 0)} pendapatan {symbol}) → realisasi harga → margin"
+        else:
+            path = CATEGORY_PATH.get(category) or DIMENSION_PATH.get(dimension) or DIMENSION_PATH["technical"]
         rationale = (
             f"Sectors menandai peristiwa ini {', '.join(sorted(tags)) or 'tanpa tag'} pada dimensi {dimension}. "
             "Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
@@ -200,6 +270,7 @@ def add_event(event_id, item, symbols_in_universe, source_type):
         "id": event_id,
         "title": summarise(item["title"], 150),
         "summary": summarise(item.get("body") or item["title"]),
+        "body": re.sub(r"\s+", " ", (item.get("body") or "").strip()) or None,
         "category": category,
         "sourceType": "filing" if source_type == "filing" else "sectors",
         "publishedAt": jakarta(item["timestamp"]),
@@ -251,6 +322,87 @@ for symbol in SYMBOLS:
         add_event("filing-" + re.sub(r"[^a-z0-9]+", "-", item["source"].lower())[-48:].strip("-"),
                   item, universe, "filing")
 
+# --------------------------------------------------------------------------- corporate actions
+def add_corporate_action_events(symbol, asof_date):
+    filename = f"v2_company_corporate-actions_{symbol}.json"
+    if not (RAW / filename).exists():
+        return
+    actions = load(filename)["corporate_actions"]
+    dividends = [d for d in (actions.get("dividend") or []) if d.get("ex_date")]
+    if not dividends:
+        return
+    nearest = min(dividends, key=lambda d: abs((date.fromisoformat(d["ex_date"]) - asof_date).days))
+    if abs((date.fromisoformat(nearest["ex_date"]) - asof_date).days) > 270:
+        return
+    amount = nearest["dividend_amount"]
+    event_id = f"filing-corporate-action-dividend-{symbol.lower()}"
+    events[event_id] = {
+        "id": event_id,
+        "title": f"{symbol} dividen tunai Rp{amount:,.2f} per saham".replace(",", "."),
+        "summary": f"Ex-date {nearest['ex_date']}, pembayaran {nearest['payment_date']}. Jadwal distribusi tunai, bukan sinyal arah harga.",
+        "body": None,
+        "category": "company",
+        "sourceType": "filing",
+        "publishedAt": jakarta(nearest["ex_date"] + "T09:00:00"),
+        "sector": sector_of[symbol],
+        "impactLinks": [{
+            "symbol": symbol, "direction": "Mixed", "relevance": 92,
+            "path": DIMENSION_PATH["dividend"],
+            "rationale": f"Sectors corporate-actions API mencatat dividen ex-date {nearest['ex_date']}, dibayar {nearest['payment_date']}. Fakta jadwal distribusi, bukan sinyal arah harga.",
+        }],
+        "source": None,
+        "tags": ["Dividend"],
+    }
+
+
+for symbol in ["ADRO", "BBCA", "BBRI", "TLKM"]:
+    add_corporate_action_events(symbol, date.fromisoformat(DATES[-1]))
+
+# --------------------------------------------------------------------------- commodity prices
+COMMODITY_EXPOSURE = {"Coal": ["ADRO", "PTBA"], "Gold": ["ANTM"]}
+
+
+def add_commodity_event(name):
+    points = sorted((r for r in load(f"v2_mining_commodities_{name}_price__end_year-2025_start_year-2023.json")),
+                     key=lambda r: r["date"])
+    if len(points) < 2:
+        return
+    latest, previous = points[-1], points[-2]
+    change = latest["price_usd_per_ton"] / previous["price_usd_per_ton"] - 1
+    direction = "Supported" if change > 0.005 else "Adverse" if change < -0.005 else "Mixed"
+    symbols = [s for s in COMMODITY_EXPOSURE[name] if s in SYMBOLS]
+    event_id = f"commodity-{name.lower()}-{latest['date']}"
+    links = []
+    for symbol in symbols:
+        segment = (revenue_segments.get(symbol) or [None])[0]
+        path = (f"{segment['segment']} ({pct(segment['share'], 0)} pendapatan {symbol}) → realisasi harga → margin"
+                if segment else CATEGORY_PATH["commodity"])
+        links.append({
+            "symbol": symbol, "direction": direction, "relevance": 80, "path": path,
+            "rationale": (f"Sectors mining-commodities API mencatat harga {name} (field price_usd_per_ton) "
+                          f"berubah {pct(change)} dari {previous['date']} ke {latest['date']}. "
+                          "Data bulanan, rekaman terbaru mendahului jendela harian Ags-Sep 2026 aplikasi ini."),
+        })
+    if not links:
+        return
+    events[event_id] = {
+        "id": event_id,
+        "title": f"Harga {name} acuan {latest['date']}: USD{latest['price_usd_per_ton']}",
+        "summary": f"Harga referensi {name} (price_usd_per_ton) bergerak {pct(change)} dari {previous['date']} ke {latest['date']}, rekaman Sectors mining-commodities.",
+        "body": None,
+        "category": "commodity",
+        "sourceType": "commodity",
+        "publishedAt": jakarta(latest["date"] + "T00:00:00"),
+        "sector": sector_from_subsector("basic-materials" if name != "Gold" else "basic-materials"),
+        "impactLinks": links,
+        "source": None,
+        "tags": ["Commodities"],
+    }
+
+
+for commodity in COMMODITY_EXPOSURE:
+    add_commodity_event(commodity)
+
 event_list = sorted(events.values(), key=lambda e: e["publishedAt"], reverse=True)
 events_by_symbol = {s: [e["id"] for e in event_list if any(l["symbol"] == s for l in e["impactLinks"])]
                     for s in SYMBOLS}
@@ -280,6 +432,9 @@ for symbol in CASES:
         "windowStart": top["start"],
         "windowEnd": top["end"],
     }
+    ownership_series = foreign_ownership_series(symbol)
+    if ownership_series:
+        broker_evidence[symbol]["ownershipSeries"] = ownership_series
 
 # --------------------------------------------------------------------------- financials
 def financial_rows(symbol):
@@ -398,6 +553,7 @@ export interface RawEvent {{
   id: string;
   title: string;
   summary: string;
+  body: string | null;
   category: MarketEvent["category"];
   sourceType: MarketEvent["sourceType"];
   publishedAt: string;
@@ -416,6 +572,12 @@ export const brokerEvidence: Record<string, BrokerEvidence & {{ windowStart: str
 export const financialRows: Record<string, Array<{{ label: string; value: string; period: string; interpretation: string }}>> = {ts(financials)};
 
 export const sectorReturns: Record<string, number> = {ts(sector_returns)};
+
+export const subsectorReturns: Record<string, number> = {ts(subsector_returns)};
+
+export const subsectorContext: Record<string, {{ totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }}> = {ts(subsector_context)};
+
+export const revenueSegments: Record<string, Array<{{ segment: string; share: number }}>> = {ts(revenue_segments)};
 
 export const betas: Record<string, number> = {ts({s: beta_of(s) for s in SYMBOLS})};
 

@@ -54,6 +54,7 @@ export interface RawEvent {
   id: string;
   title: string;
   summary: string;
+  body: string | null;
   category: MarketEvent["category"];
   sourceType: MarketEvent["sourceType"];
   publishedAt: string;
@@ -74,7 +75,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 78.6,
     "analyzed": true,
     "evidenceState": "Corroborated",
-    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "INCO",
@@ -110,7 +111,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 771.9,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 6.325 pada 2026-09-11; volume terakhir 1.87× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.325 pada 2026-09-11; volume terakhir 1.87× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBRI",
@@ -122,7 +123,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 490.6,
     "analyzed": true,
     "evidenceState": "Corroborated",
-    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.37× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.37× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BMRI",
@@ -146,7 +147,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 257.6,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "JSMR",
@@ -230,7 +231,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 76.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PTBA",
@@ -242,7 +243,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 35.7,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 3.100 pada 2026-09-11; volume terakhir 3.54× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.100 pada 2026-09-11; volume terakhir 3.54× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ICBP",
@@ -3570,7 +3571,49 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "sharesOutstanding": 122042299500.0,
     "referencePrice": 6325,
     "windowStart": "2026-06-07",
-    "windowEnd": "2026-09-05"
+    "windowEnd": "2026-09-05",
+    "ownershipSeries": [
+      {
+        "date": "2026-01-30",
+        "foreignPct": 0.3212,
+        "localPct": 0.1043
+      },
+      {
+        "date": "2026-02-27",
+        "foreignPct": 0.3147,
+        "localPct": 0.1108
+      },
+      {
+        "date": "2026-03-31",
+        "foreignPct": 0.3095,
+        "localPct": 0.116
+      },
+      {
+        "date": "2026-04-30",
+        "foreignPct": 0.303,
+        "localPct": 0.1225
+      },
+      {
+        "date": "2026-05-29",
+        "foreignPct": 0.2994,
+        "localPct": 0.1261
+      },
+      {
+        "date": "2026-06-30",
+        "foreignPct": 0.2932,
+        "localPct": 0.1323
+      },
+      {
+        "date": "2026-07-31",
+        "foreignPct": 0.2931,
+        "localPct": 0.1324
+      },
+      {
+        "date": "2026-08-31",
+        "foreignPct": 0.2946,
+        "localPct": 0.1309
+      }
+    ]
   },
   "BBRI": {
     "buyers": [
@@ -3683,7 +3726,49 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "sharesOutstanding": 150043411587.0,
     "referencePrice": 3270,
     "windowStart": "2026-06-07",
-    "windowEnd": "2026-09-05"
+    "windowEnd": "2026-09-05",
+    "ownershipSeries": [
+      {
+        "date": "2026-01-30",
+        "foreignPct": 0.2906,
+        "localPct": 0.1774
+      },
+      {
+        "date": "2026-02-27",
+        "foreignPct": 0.2932,
+        "localPct": 0.1749
+      },
+      {
+        "date": "2026-03-31",
+        "foreignPct": 0.2879,
+        "localPct": 0.1802
+      },
+      {
+        "date": "2026-04-30",
+        "foreignPct": 0.2758,
+        "localPct": 0.1923
+      },
+      {
+        "date": "2026-05-29",
+        "foreignPct": 0.2744,
+        "localPct": 0.1936
+      },
+      {
+        "date": "2026-06-30",
+        "foreignPct": 0.2635,
+        "localPct": 0.2045
+      },
+      {
+        "date": "2026-07-31",
+        "foreignPct": 0.2595,
+        "localPct": 0.2085
+      },
+      {
+        "date": "2026-08-31",
+        "foreignPct": 0.2624,
+        "localPct": 0.2057
+      }
+    ]
   },
   "TLKM": {
     "buyers": [
@@ -3796,7 +3881,49 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "sharesOutstanding": 99062216600.0,
     "referencePrice": 2600,
     "windowStart": "2026-06-07",
-    "windowEnd": "2026-09-05"
+    "windowEnd": "2026-09-05",
+    "ownershipSeries": [
+      {
+        "date": "2026-01-30",
+        "foreignPct": 0.39,
+        "localPct": 0.0886
+      },
+      {
+        "date": "2026-02-27",
+        "foreignPct": 0.3893,
+        "localPct": 0.0893
+      },
+      {
+        "date": "2026-03-31",
+        "foreignPct": 0.39,
+        "localPct": 0.0886
+      },
+      {
+        "date": "2026-04-30",
+        "foreignPct": 0.3898,
+        "localPct": 0.0888
+      },
+      {
+        "date": "2026-05-29",
+        "foreignPct": 0.3895,
+        "localPct": 0.0891
+      },
+      {
+        "date": "2026-06-30",
+        "foreignPct": 0.3855,
+        "localPct": 0.0931
+      },
+      {
+        "date": "2026-07-31",
+        "foreignPct": 0.3841,
+        "localPct": 0.0945
+      },
+      {
+        "date": "2026-08-31",
+        "foreignPct": 0.3823,
+        "localPct": 0.0962
+      }
+    ]
   },
   "GOTO": {
     "buyers": [
@@ -4222,12 +4349,103 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Infrastructure": -0.022054,
-  "Basic Materials": 0.041557,
   "Technology": -0.018821,
   "Energy": -0.00472,
+  "Infrastructure": -0.022054,
   "Consumer": -0.021312,
+  "Basic Materials": 0.041557,
   "Financials": -0.040221
+};
+
+export const subsectorReturns: Record<string, number> = {
+  "Transportation Infrastructure": -0.019934,
+  "Food & Staples Retailing": -0.041985,
+  "Basic Materials": 0.041557,
+  "Food & Beverage": -0.012101,
+  "Banks": -0.040221,
+  "Software & IT Services": -0.018821,
+  "Telecommunication": -0.022203,
+  "Oil, Gas & Coal": -0.00472
+};
+
+export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
+  "Banks": {
+    "totalCompanies": 48,
+    "medianPe": 10.26,
+    "weightedAvgPe": 20.14,
+    "sampleCompanies": 3
+  },
+  "Oil, Gas & Coal": {
+    "totalCompanies": 89,
+    "medianPe": 11.67,
+    "weightedAvgPe": 39.3,
+    "sampleCompanies": 3
+  },
+  "Telecommunication": {
+    "totalCompanies": 22,
+    "medianPe": 16.56,
+    "weightedAvgPe": 147.23,
+    "sampleCompanies": 2
+  }
+};
+
+export const revenueSegments: Record<string, Array<{ segment: string; share: number }>> = {
+  "BBCA": [
+    {
+      "segment": "Net Interest Income",
+      "share": 0.7638
+    },
+    {
+      "segment": "Non Interest Income",
+      "share": 0.2349
+    },
+    {
+      "segment": "Net Premium Income",
+      "share": 0.0013
+    }
+  ],
+  "BBRI": [
+    {
+      "segment": "Net Interest Income",
+      "share": 0.8301
+    },
+    {
+      "segment": "Non Interest Income",
+      "share": 0.1628
+    },
+    {
+      "segment": "Net Premium Income",
+      "share": 0.0072
+    }
+  ],
+  "TLKM": [
+    {
+      "segment": "Data, internet and information technology services revenues",
+      "share": 0.6291
+    },
+    {
+      "segment": "IndiHome revenues",
+      "share": 0.1751
+    },
+    {
+      "segment": "Interconnection revenues",
+      "share": 0.0613
+    }
+  ],
+  "ADRO": [
+    {
+      "segment": "Sales of Coal",
+      "share": 0.5542
+    },
+    {
+      "segment": "Mining services",
+      "share": 0.4083
+    },
+    {
+      "segment": "Others",
+      "share": 0.0375
+    }
+  ]
 };
 
 export const betas: Record<string, number> = {
@@ -4256,6 +4474,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-k-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
     "title": "Bank Mandiri Issues USD750 Million Perpetual Bond to Strengthen Capital",
     "summary": "PT Bank Mandiri (Persero) Tbk. issued a USD750 million perpetual bond on September 10, 2026, as Additional Tier 1 capital to strengthen its capital structure. The bond carries an initial distribution rate of 7.35% per year and was offered…",
+    "body": "PT Bank Mandiri (Persero) Tbk. issued a USD750 million perpetual bond on September 10, 2026, as Additional Tier 1 capital to strengthen its capital structure. The bond carries an initial distribution rate of 7.35% per year and was offered to investors outside the United States under Regulation S, with listing on the Singapore Exchange. Proceeds will be used to reinforce the bank's capital position in accordance with OJK Regulation No. 11/POJK.03/2016. The issuance, arranged by HSBC, J.P. Morgan Securities, Mandiri Securities, and Standard Chartered Bank, falls below the 20% equity threshold and does not constitute a material transaction under OJK Regulation No. 17/POJK.04/2020.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-11T21:00:00+07:00",
@@ -4282,6 +4501,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
     "title": "BAKN DPR RI Urges Government to Prepare Backup Plan for PT Kereta Cepat Indonesia China Debt Transfer as September 15 Deadline Looms",
     "summary": "The State Financial Accountability Agency (BAKN) of the House of Representatives has urged the government to prepare a contingency plan for the debt transfer of PT Kereta Cepat Indonesia China, operator of the Whoosh high-speed rail, as…",
+    "body": "The State Financial Accountability Agency (BAKN) of the House of Representatives has urged the government to prepare a contingency plan for the debt transfer of PT Kereta Cepat Indonesia China, operator of the Whoosh high-speed rail, as the September 15 settlement target appears unlikely to be met. Chairman Andreas Eddy Susetyo warned that ongoing due diligence may not conclude in time, potentially burdening PT Kereta Api Indonesia financially. Finance Minister Purbaya Yudhi Sadewa previously disclosed the restructured debt carries an annual installment of approximately Rp1 trillion with a tenor of up to 80 years. Separately, BAKN pressed Danantara, as shareholder of PT Kereta Api Indonesia and PT Bukit Asam, to strengthen supervision following recurring Supreme Audit Agency findings at state-owned enterprises.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-11T16:40:00+07:00",
@@ -4307,6 +4527,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-si-blok-madura-murah-raja-raup-laba-us15-54-juta",
     "title": "PT Rukun Raharja Tbk (RAJA) posts 102% net profit surge to US$15.54 million in H1-2026 on bargain purchase gain from Madura Block acquisition",
     "summary": "PT Rukun Raharja Tbk (RAJA) reported a 102% year-on-year increase in net profit to US$15.54 million for the first half of 2026, driven primarily by a bargain purchase gain from the acquisition of SMSD Development, which includes a 20%…",
+    "body": "PT Rukun Raharja Tbk (RAJA) reported a 102% year-on-year increase in net profit to US$15.54 million for the first half of 2026, driven primarily by a bargain purchase gain from the acquisition of SMSD Development, which includes a 20% stake in Husky-CNOOC Madura Limited (HCML). Revenue rose 2% to US$25.65 million supported by stable lifting at the Jabung Block and higher oil prices, while adjusted EBITDA grew 38% to US$21.28 million. The acquisition was financed through bond issuance and a Bank Mandiri loan, pushing total assets to US$231.8 million and liabilities to US$166.8 million, with the debt-to-equity ratio rising to 2.42 times but remaining below covenant limits of 5 times for bonds and 4 times for Raharja Energi Madura. Net profit margin reached 66.61% and return on equity hit 47.8%.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-11T09:20:00+07:00",
@@ -4333,6 +4554,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-rampungkan-penerbitan-perpetual-bond-usd750-juta",
     "title": "Bank Mandiri Completes USD 750 Million Perpetual Bond Issuance at 7.35%",
     "summary": "PT Bank Mandiri Tbk completed the issuance of a USD 750 million Additional Tier 1 perpetual bond with an initial distribution rate of 7.35% on 10 September 2026. The bond was offered to investors outside the United States under Regulation…",
+    "body": "PT Bank Mandiri Tbk completed the issuance of a USD 750 million Additional Tier 1 perpetual bond with an initial distribution rate of 7.35% on 10 September 2026. The bond was offered to investors outside the United States under Regulation S and listed on the Singapore Stock Exchange, with HSBC, J.P. Morgan Securities, Mandiri Securities, and Standard Chartered Bank acting as joint lead managers. Proceeds will strengthen the bank's capital structure and the issuance is not classified as a material transaction as it represents less than 20% of equity based on the 30 June 2026 audited financial statements. As of that date, the bank's consolidated Tier 1 capital stood at Rp249.16 trillion, Tier 2 capital at Rp17.08 trillion, and total capital at Rp266.25 trillion, all lower than the same period in 2025.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T22:37:00+07:00",
@@ -4360,6 +4582,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
     "title": "Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion",
     "summary": "PT Aneka Tambang Tbk, Antam, reported first‑half 2026 revenue of Rp 62.71 trillion and net profit of Rp 6.91 trillion, with gold sales generating Rp 50.39 trillion, representing the majority of its earnings. Gold volume reached about 18.1…",
+    "body": "PT Aneka Tambang Tbk, Antam, reported first‑half 2026 revenue of Rp 62.71 trillion and net profit of Rp 6.91 trillion, with gold sales generating Rp 50.39 trillion, representing the majority of its earnings. Gold volume reached about 18.1 tonnes, while nickel production was 7.78 million wet metric tons and sales 6.77 million wmt. The company also highlighted its bauxite value‑chain integration, operating the Chemical Grade Alumina facility through PT Indonesia Chemical Alumina (300 k t/yr) and holding a 40 % stake in Smelter Grade Alumina Mempawah (1 M t/yr). Antam is advancing a precious‑metal manufacturing plant in Gresik with a planned capacity of 30 tonnes per year, now in pre‑construction. As of H1‑2026, total assets stood at Rp 61.27 trillion, equity at Rp 38.53 trillion and cash and equivalents at Rp 9.23 trillion.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T18:30:00+07:00",
@@ -4386,6 +4609,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-s-lampaui-target-laba-bersih-melonjak-805-persen",
     "title": "PT Timah Revises 2026 Budget After First-Half Net Profit Jumps 805% and Exceeds Full-Year Targets",
     "summary": "PT Timah (Persero) Tbk announced it will revise its 2026 work plan and budget (RKAP) after first-half 2026 results far surpassed full-year targets. Revenue reached Rp10.4 trillion, up 147% year-on-year, achieving 67% of the full-year…",
+    "body": "PT Timah (Persero) Tbk announced it will revise its 2026 work plan and budget (RKAP) after first-half 2026 results far surpassed full-year targets. Revenue reached Rp10.4 trillion, up 147% year-on-year, achieving 67% of the full-year target of Rp15.35 trillion. Net profit surged 805% to Rp2.7 trillion, exceeding the full-year target of Rp1.6 trillion, while EBITDA of Rp3.9 trillion also surpassed the full-year target of Rp2.9 trillion. Total assets rose 21% to Rp16.4 trillion, driven by cash growth to Rp4 trillion, and liabilities increased 13% to Rp5.9 trillion due to dividend obligations from the June 12, 2026 shareholder meeting, which were paid in July 2026.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T18:01:00+07:00",
@@ -4411,6 +4635,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-di-katalis-tins-pede-kinerja-akhir-2026-berkilau",
     "title": "PT Timah Tbk expects Perpres No.79/2026 to boost performance and net income through 2026",
     "summary": "PT Timah Tbk says the implementation of Presidential Regulation No.79/2026 on tin land governance will act as a catalyst for its performance through the end of 2026. The company highlighted that its first‑half 2026 production of 12,232 t…",
+    "body": "PT Timah Tbk says the implementation of Presidential Regulation No.79/2026 on tin land governance will act as a catalyst for its performance through the end of 2026. The company highlighted that its first‑half 2026 production of 12,232 t of tin ore and 10,865 t of refined tin, together with a 52 % rise in average tin price to US$49,794/ton, already pushed revenue and net‑profit targets above the original 2026 RKAP of Rp15.4 trillion and Rp1.6 trillion. Consequently, PT Timah Tbk has proposed higher 2026 targets, expecting continued price strength as LME tin prices are up 38.13 % year‑on‑year and export sales, which account for 97 % of total, remain dominated by Asia (75 %) with China contributing 35 % of shipments. Management expects the regulatory improvements in upstream‑to‑downstream governance to further boost productivity and net income in the second half of 2026.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T17:30:00+07:00",
@@ -4438,6 +4663,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
     "title": "PT Vale Indonesia Tbk announces near‑term start of operations for its three mining projects, with Morowali ahead of schedule",
     "summary": "PT Vale Indonesia Tbk is preparing to bring three mining projects in Morowali, Pomalaa and Sorowako into operation, with Morowali leading the timeline. Morowali’s Phase 1 has been running since 2025 and Phase 2 construction is on track for…",
+    "body": "PT Vale Indonesia Tbk is preparing to bring three mining projects in Morowali, Pomalaa and Sorowako into operation, with Morowali leading the timeline. Morowali’s Phase 1 has been running since 2025 and Phase 2 construction is on track for mechanical completion by the end of 2026 and ramp‑up in early 2027, targeting 60‑66 k tons of Mixed Hydroxide Precipitate (MHP). The Pomalaa project is in commissioning and ready to feed ore for an initial 120 k‑ton MHP capacity, while Sorowako’s mining is progressing with stockpiled limonite and early‑stage HPAL works, including a 60‑km slurry pipeline and jetty construction. An HPAL autoclave is expected to arrive by the end of September or early October, supporting the upcoming production ramp‑up.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T17:16:00+07:00",
@@ -4463,6 +4689,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
     "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
     "summary": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed…",
+    "body": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed hydroxide precipitate (MHP), which contains about 15,000 tons of cobalt, and mechanical completion is now expected by September-October 2026. Mining operations are already 83% complete and HPAL construction 86% complete, with the first ore sale recorded on 28 February 2026. Vale also targets 67,645 tons of nickel matte production for 2026 and a limonite output of 300,000 tons per month (about 9,677 tons per day) as part of the broader output plan. The project is being developed in partnership with Zhejiang Huayou Cobalt Co., Ltd and Ford Motor Co, which support the downstream battery and automotive supply chain.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T17:10:00+07:00",
@@ -4489,6 +4716,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
     "title": "Indonesian rupiah and IHSG pressured by surge in oil prices amid US-Iran tensions.",
     "summary": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline…",
+    "body": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline marked the IHSG's lowest level in a week and made it the worst-performing emerging market index in Asia Pacific, with all sectoral indices down, led by energy (-2.06%) and transportation (-1.80%). Trading value reached Rp21.58 trillion with 51 billion shares exchanged, with PT Dian Swastatika Sentosa Tbk, PT Bank Central Asia Tbk, and PT Petrindo Jaya Kreasi Tbk among the most actively traded stocks. Most Asian emerging market currencies weakened against the dollar, though the Malaysian ringgit and Chinese yuan edged higher.",
     "category": "currency",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T17:10:00+07:00",
@@ -4515,6 +4743,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
     "title": "Change in Morgan Stanley And Co International Plc's position in GoTo Gojek Tokopedia",
     "summary": "Morgan Stanley And Co International Plc executed a transaction for 1,829,494,000 shares of GoTo Gojek Tokopedia. This increases their holdings from 80,476,862,884 to 82,306,356,884 shares. The stated purpose of the transaction was…",
+    "body": "Morgan Stanley And Co International Plc executed a transaction for 1,829,494,000 shares of GoTo Gojek Tokopedia. This increases their holdings from 80,476,862,884 to 82,306,356,884 shares. The stated purpose of the transaction was investment.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-10T16:56:31+07:00",
@@ -4537,6 +4766,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
     "title": "PT Vale Indonesia Tbk does not promise dividend amid 2026‑27 expansion plans",
     "summary": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026…",
+    "body": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026 and full‑scale production of 120,000 tonnes of mixed hydroxide precipitate (MHP) in 2027, while also advancing the Bahodopi HPAL project and other growth initiatives. Management reiterated a cash‑cost goal of below US$10,000 per tonne and intends to keep new loan drawdowns low to preserve liquidity, noting that any dividend would only be considered if sufficient space remains after funding the capex. The dividend outlook therefore remains an aspiration, pending evaluation of nickel prices, financing efficiency and capital‑expenditure needs.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T16:50:00+07:00",
@@ -4564,6 +4794,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
     "title": "Emtek subsidiary PT Kreatif Media Karya acquires 803.28 million shares of PT Bukalapak.com Tbk, raising its stake to 45.68%",
     "summary": "On Tuesday, 8 September, PT Kreatif Media Karya, an Emtek subsidiary, purchased 803.28 million shares of PT Bukalapak.com Tbk, increasing its ownership to 45.68%. The same filing shows Lo Kheng Hong buying 1 million shares of PT Intiland…",
+    "body": "On Tuesday, 8 September, PT Kreatif Media Karya, an Emtek subsidiary, purchased 803.28 million shares of PT Bukalapak.com Tbk, increasing its ownership to 45.68%. The same filing shows Lo Kheng Hong buying 1 million shares of PT Intiland Development Tbk, lifting his holding to 7.51%, and Edwin Soeryadjaya acquiring 600 thousand shares of PT Saratoga Investama Sedaya Tbk, maintaining a 35.9% stake. Buyback actions were noted for PT Prodia Widyahusada Tbk (781,700 shares, 5.63% ownership), PT United Tractors Tbk (1.01 million shares, 7.77% ownership) and PT Arwana Citramulia Tbk (200,000 shares, 5.16% ownership). Additionally, CGS International Securities Singapore Pte Ltd sold 126 million shares of PT Wilton Makmur Indonesia Tbk, reducing its stake to 18.77%, while PT Bahana Nusantara Indojaya and PT Nusantara Makmur Lestari sold 2.55 million shares of PT Indokripto Koin Semesta Tbk (remaining 19.62%) and 205 thousand shares of PT Nusantara Sawit Sejahtera Tbk (remaining 9.46%) respectively.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T15:40:00+07:00",
@@ -4588,6 +4819,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026",
     "title": "PT Timah Tbk prepares revised 2026 RKAP after 147% revenue jump and 805% profit surge",
     "summary": "PT Timah Tbk announced that it is preparing a revised 2026 corporate work plan (RKAP) after the first‑half 2026 results far exceeded the original targets. Revenue reached Rp10.4 trillion, up 147% year‑on‑year, while net profit surged 805%…",
+    "body": "PT Timah Tbk announced that it is preparing a revised 2026 corporate work plan (RKAP) after the first‑half 2026 results far exceeded the original targets. Revenue reached Rp10.4 trillion, up 147% year‑on‑year, while net profit surged 805% to Rp2.7 trillion and EBITDA climbed 363% to Rp3.9 trillion, surpassing the full‑year RKAP EBITDA target. Total assets grew 21% to Rp16.4 trillion, cash rose to about Rp4 trillion and equity increased to Rp10.5 trillion, while cash cost is projected to rise to US$23,000‑24,000 per metric ton by year‑end. The company allocated roughly Rp446 billion for 2026 capex, with half earmarked for production and exploration and the remainder for non‑recurring investments.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T15:02:00+07:00",
@@ -4613,6 +4845,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
     "title": "UBS Sekuritas Leads Net Buying of PT Aneka Tambang Tbk Shares, While JP Morgan Issues Bullish Outlook",
     "summary": "UBS Sekuritas led the net‑buy activity for PT Aneka Tambang Tbk (ANTM) on 9 September 2026, purchasing shares at an average price of Rp3,159 and generating a net purchase value of over Rp95 billion, while CGS International Sekuritas…",
+    "body": "UBS Sekuritas led the net‑buy activity for PT Aneka Tambang Tbk (ANTM) on 9 September 2026, purchasing shares at an average price of Rp3,159 and generating a net purchase value of over Rp95 billion, while CGS International Sekuritas followed with a net buy of more than Rp75 billion at an average price of Rp3,170. The heavy buying helped lift ANTM’s share price 3.91 % to Rp3,200 at the close on 9 September and a further 4 % to Rp3,330 by midday on 10 September. The activity coincided with a rebound in global spot gold to US$4,424 per troy ounce and a bullish note from JP Morgan’s Asia Pacific Equity Research, which expects an earnings upgrade for ANTM based on favorable nickel market dynamics and its strong gold‑refining business.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T12:58:00+07:00",
@@ -4638,6 +4871,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
     "title": "SSIA Maintains Rp400 Billion Profit Target; JSMR and BMAS Plan Corporate Actions",
     "summary": "SSIA reaffirmed its 2026 net profit target of Rp400 billion while revising its revenue outlook to Rp7.20 trillion and allocating Rp2.20 trillion in capex, primarily for land acquisition and a Bali resort rebranding. JSMR disclosed a 2026…",
+    "body": "SSIA reaffirmed its 2026 net profit target of Rp400 billion while revising its revenue outlook to Rp7.20 trillion and allocating Rp2.20 trillion in capex, primarily for land acquisition and a Bali resort rebranding. JSMR disclosed a 2026 capex budget of Rp12 trillion, with Rp4.40 trillion already spent, and projected that about 62 km of toll roads, including sections of the Jogja‑Bawen and Patimban Access projects, will be operational by the end of 2026 or early 2027. BMAS announced a rights issue (PMHMETD IV) at Rp350 per share, aiming to raise roughly Rp1.01 trillion, representing 13.70 % of its capital, with the offering scheduled for 27 Nov‑3 Dec 2026 and Kasikorn Vision Financial Company Pte Ltd intending to exercise all its rights. The corporate actions are presented amid a broader market backdrop of a 0.12 % decline in the IHSG and foreign net selling of Rp621.40 billion.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-10T08:52:00+07:00",
@@ -4664,6 +4898,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ncana-pembagian-dividen-interim-secara-kuartalan",
     "title": "PT Bank Central Asia Tbk announces quarterly interim dividend plan for 2026",
     "summary": "PT Bank Central Asia Tbk announced that it will pay interim dividends on a quarterly basis in 2026. The next interim dividend of Rp25 per share is scheduled for 16 September 2026, up from Rp20 per share paid in June 2026, with a further…",
+    "body": "PT Bank Central Asia Tbk announced that it will pay interim dividends on a quarterly basis in 2026. The next interim dividend of Rp25 per share is scheduled for 16 September 2026, up from Rp20 per share paid in June 2026, with a further interim dividend planned for December 2026. The company reported a dividend payout ratio of 72% for the most recent period, up from 68%, and total profit of Rp29.5 trillion for the first half of 2026, including its subsidiaries. Credit grew 8% year‑on‑year to Rp1,036 trillion and CASA rose 10.2% year‑on‑year to Rp1,082 trillion, supporting the dividend policy.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T21:29:00+07:00",
@@ -4689,6 +4924,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
     "title": "PT Bank Central Asia Tbk Reports Credit Growth to Rp1,036 Trillion and NPL Decline to 1.9% in First Half 2026",
     "summary": "PT Bank Central Asia Tbk (BCA) disclosed in its 2026 public expose that credit expanded 8% year-on-year to Rp1,036 trillion as of June 2026, driven by productive credit growth of 11% to Rp802 trillion and corporate lending growth of 13.6%…",
+    "body": "PT Bank Central Asia Tbk (BCA) disclosed in its 2026 public expose that credit expanded 8% year-on-year to Rp1,036 trillion as of June 2026, driven by productive credit growth of 11% to Rp802 trillion and corporate lending growth of 13.6% to Rp513.4 trillion. Asset quality improved with the non-performing loan ratio falling to 1.9% from 2.2% a year earlier and the loan-at-risk ratio easing to 4.9% from 5.7%. Third-party funds rose 7.9% to Rp1,284 trillion, supported by a current account savings account (CASA) ratio of 85.2%. The bank and its subsidiaries recorded a net profit of Rp29.5 trillion for the first half of 2026, while green financing grew 19% to Rp123 trillion. Meanwhile, BBCA shares have declined 18.69% year-to-date to Rp6,525.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T20:30:00+07:00",
@@ -4715,6 +4951,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
     "title": "Indonesian government allocates Rp11 trillion to Bank Rakyat Indonesia and Bank Syariah Indonesia for a program giving citizens Rp50,000 opening…",
     "summary": "The Indonesian government announced a program to open bank accounts for up to 200 million citizens with an initial Rp50,000 balance, funded by an Rp11 trillion allocation from the state budget (APBN). The accounts will be provided through…",
+    "body": "The Indonesian government announced a program to open bank accounts for up to 200 million citizens with an initial Rp50,000 balance, funded by an Rp11 trillion allocation from the state budget (APBN). The accounts will be provided through the two state‑owned banks, Bank Rakyat Indonesia and Bank Syariah Indonesia. Implementation will be coordinated with Bank Indonesia, the Financial Services Authority and the civil registration agency to enable automatic account creation, and the funding may be drawn from the 2026 or 2027 APBN. The rollout will be phased, and the initial balance will be withdrawable by account holders.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T19:10:00+07:00",
@@ -4741,6 +4978,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
     "title": "Change in Morgan Stanley And Co International Plc's position in GoTo Gojek Tokopedia",
     "summary": "Morgan Stanley And Co International Plc executed a transaction for 7,402,292,100 shares of GoTo Gojek Tokopedia. This decreases their holdings from 84,971,460,184 to 80,476,862,884 shares. The stated purpose of the transaction was…",
+    "body": "Morgan Stanley And Co International Plc executed a transaction for 7,402,292,100 shares of GoTo Gojek Tokopedia. This decreases their holdings from 84,971,460,184 to 80,476,862,884 shares. The stated purpose of the transaction was investment.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-09T18:40:37+07:00",
@@ -4763,6 +5001,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
     "title": "PT Jasa Marga Tbk reports net profit of Rp1.91 trillion for H1 2026 and outlines five new toll projects",
     "summary": "PT Jasa Marga Tbk reported operating revenue of Rp10.31 trillion in the first half of 2026, with net profit attributable to the parent reaching Rp1.91 trillion, up 2.0% YoY. Revenue grew 7.6% YoY, driven by toll revenue of Rp9.5 trillion…",
+    "body": "PT Jasa Marga Tbk reported operating revenue of Rp10.31 trillion in the first half of 2026, with net profit attributable to the parent reaching Rp1.91 trillion, up 2.0% YoY. Revenue grew 7.6% YoY, driven by toll revenue of Rp9.5 trillion (up 6.8%) and other business revenue of Rp798.2 billion (up 17.6%); EBITDA rose 8.1% to Rp6.99 trillion, maintaining a margin of 67.8%. The company now manages 36 concessions covering 1,736 km, operating about 1,294 km, roughly 42% of Indonesia’s toll network. It also announced progress on five new toll projects, including Jakarta‑Cikampek Selatan II (Setu to Sadang), a 14‑km Patimban access road slated for 2028, and the Jogja‑Bawen corridor with section 1 targeting SLO by end‑September 2026 and section 6 already test‑operational this year.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T16:35:00+07:00",
@@ -4787,6 +5026,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
     "title": "PT Jasa Marga Tbk Plans Rp 12 Trillion Capex for 2026 and Explores New Toll Road Investments",
     "summary": "PT Jasa Marga Tbk is exploring potential investments in new toll roads and has allocated a capital expenditure budget of Rp 12 trillion for 2026. As of the first half of 2026, the company has realized Rp 4.4 trillion in capex for…",
+    "body": "PT Jasa Marga Tbk is exploring potential investments in new toll roads and has allocated a capital expenditure budget of Rp 12 trillion for 2026. As of the first half of 2026, the company has realized Rp 4.4 trillion in capex for operations, maintenance, and toll road construction. The state-owned enterprise is open to both greenfield and brownfield toll projects, with investment decisions based on traffic prospects, connectivity, feasibility, and financial capacity. Additionally, Jasa Marga is participating in a streamlining initiative led by the Ministry of State-Owned Enterprises and the Danantara sovereign wealth fund to optimize its portfolio.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T13:49:00+07:00",
@@ -4814,6 +5054,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-owo-minta-semua-wni-punya-rekening-siap-jalankan",
     "title": "BSI Ready to Provide Bank Accounts for All Indonesian Citizens as Directed by President Prabowo",
     "summary": "PT Bank Syariah Indonesia Tbk (BSI) has announced it is prepared to open bank accounts for all Indonesian citizens in line with President Prabowo Subianto’s directive, partnering with Bank Rakyat Indonesia to roll out the program. BSI, a…",
+    "body": "PT Bank Syariah Indonesia Tbk (BSI) has announced it is prepared to open bank accounts for all Indonesian citizens in line with President Prabowo Subianto’s directive, partnering with Bank Rakyat Indonesia to roll out the program. BSI, a national Islamic bank, reported a net profit of Rp4.16 trillion in the first half of 2026, up 11% year‑over‑year, and third‑party funds of Rp393 trillion, up 22%. The bank’s customer base reached 24.3 million as of June 2026, following a 9.84‑million increase since its 2021 merger. The government will fund each new account with Rp50,000, with no fees, and the accounts will also serve as a channel for social assistance disbursements.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-09T13:09:00+07:00",
@@ -4840,6 +5081,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
     "title": "Jumbo Capex by Telecom Emitters Brings Opportunities and Risks",
     "summary": "Jumbo capex plans by Indonesian telecom issuers are set to reshape the sector, with PT Solusi Sinergi Digital Tbk (WIFI) earmarking Rp7 trillion for 2026 to expand fixed wireless access, fiber‑to‑home, and tower fiberization. PT Telkom…",
+    "body": "Jumbo capex plans by Indonesian telecom issuers are set to reshape the sector, with PT Solusi Sinergi Digital Tbk (WIFI) earmarking Rp7 trillion for 2026 to expand fixed wireless access, fiber‑to‑home, and tower fiberization. PT Telkom Indonesia Tbk (TLKM) has already spent Rp10.8 trillion in the first half of 2026, representing 14.2% of revenue, allocating 94% of capex to core B2C and B2B infrastructure and targeting a 17-19% capex‑to‑revenue ratio. PT Sarana Menara Nusantara Tbk (TOWR) plans Rp2.69 trillion for 2026, split between Rp2.01 trillion capex, Rp47 billion acquisitions, and Rp625 billion ground leases. The article highlights that while TLKM’s mature business model offers defensive growth, WIFI’s aggressive expansion carries higher execution risk and could pressure free cash flow if subscriber targets are not met, with PT Integrasi Jaringan Ekosistem (IJE) noted as a WIFI subsidiary.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-08T18:57:00+07:00",
@@ -4865,6 +5107,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
     "title": "Yuliot, Ir buys shares of Bank Mandiri",
     "summary": "This is Yuliot, Ir's 3rd insider purchase in the last 6 months, totaling an accumulation of 146,900 shares transacted at an average price of IDR 4,208. Yuliot, Ir's ownership in Bank Mandiri has decreased from 0.0% to 0.0% in this period.",
+    "body": "This is Yuliot, Ir's 3rd insider purchase in the last 6 months, totaling an accumulation of 146,900 shares transacted at an average price of IDR 4,208. Yuliot, Ir's ownership in Bank Mandiri has decreased from 0.0% to 0.0% in this period.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-08T17:58:46+07:00",
@@ -4887,6 +5130,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf",
     "title": "Yuliot, Ir buys shares of Bank Mandiri",
     "summary": "Yuliot, Ir bought 22,400 shares of Bank Mandiri. This increases their holdings from 143,200 to 165,600 shares. The stated purpose of the transaction was investment.",
+    "body": "Yuliot, Ir bought 22,400 shares of Bank Mandiri. This increases their holdings from 143,200 to 165,600 shares. The stated purpose of the transaction was investment.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-08T17:53:21+07:00",
@@ -4909,6 +5153,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-08092026-6401-00-pdf-0-pdf",
     "title": "Rd Adi Wardhana Sariaatmadja buys shares of Bukalapak.com",
     "summary": "Rd Adi Wardhana Sariaatmadja bought 635,000,000 shares of Bukalapak.com. This increases their holdings from 772,585,501 to 1,407,585,501 shares. The stated purpose of the transaction was investment.",
+    "body": "Rd Adi Wardhana Sariaatmadja bought 635,000,000 shares of Bukalapak.com. This increases their holdings from 772,585,501 to 1,407,585,501 shares. The stated purpose of the transaction was investment.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-08T16:15:50+07:00",
@@ -4931,6 +5176,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
     "title": "PT Telkom Indonesia Tbk allocates additional 100 MHz spectrum to PT Telkomsel",
     "summary": "PT Telkom Indonesia Tbk announced the allocation of an additional 100 MHz of spectrum to its subsidiary PT Telkomsel, expanding the latter’s 700 MHz and 2,600 MHz bands and raising its total portfolio to 265 MHz. The allocation was…",
+    "body": "PT Telkom Indonesia Tbk announced the allocation of an additional 100 MHz of spectrum to its subsidiary PT Telkomsel, expanding the latter’s 700 MHz and 2,600 MHz bands and raising its total portfolio to 265 MHz. The allocation was disclosed at the Public Expose Live 2026 TelkomGroup on 7 September 2026 to support Telkomsel’s 5G network development. In the first half of 2026 Telkomsel reported revenue of Rp28.0 trillion, up 5.3% YoY, EBITDA up 10.3%, net profit up 24.9%, and mobile ARPU of Rp46 thousand, up 11.6% YoY. The company said the new spectrum will be deployed gradually in line with market demand while maintaining investment discipline and long‑term value creation.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-08T15:30:00+07:00",
@@ -4957,6 +5203,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
     "title": "Morgan Stanley And Co International Plc purchases 21.67 billion GOTO shares at 50% discount via negotiated market",
     "summary": "Morgan Stanley And Co International Plc acquired 21.67 billion shares of PT GoTo Gojek Tokopedia Tbk through three negotiated market transactions on September 2, 2026, at Rp25 per share, a 50% discount to the regular market price of Rp50.…",
+    "body": "Morgan Stanley And Co International Plc acquired 21.67 billion shares of PT GoTo Gojek Tokopedia Tbk through three negotiated market transactions on September 2, 2026, at Rp25 per share, a 50% discount to the regular market price of Rp50. The total outlay reached Rp541.97 billion, raising Morgan Stanley's ownership in GOTO to 7.59% from 5.71% at the end of August 2026. Morgan Stanley stated the purchases were not intended to maintain control over GOTO. The accumulation occurred just before GOTO's removal from the Morgan Stanley Capital International (MSCI) global index on August 31, 2026, after MSCI determined the stock no longer met liquidity criteria and had stagnated at Rp50 for over three months.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-08T09:10:00+07:00",
@@ -4982,6 +5229,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
     "title": "Morgan Stanley & Co International Plc purchases additional PT GoTo Gojek Tokopedia Tbk shares worth Rp541.9 billion, raising its stake to 7.59%",
     "summary": "Morgan Stanley & Co International Plc bought more shares of PT GoTo Gojek Tokopedia Tbk after the company was removed from the MSCI index. On 2 September 2026 the broker purchased about 21.67 billion GOTO shares at Rp25 per share, spending…",
+    "body": "Morgan Stanley & Co International Plc bought more shares of PT GoTo Gojek Tokopedia Tbk after the company was removed from the MSCI index. On 2 September 2026 the broker purchased about 21.67 billion GOTO shares at Rp25 per share, spending roughly Rp541.98 billion and increasing its total holding to 87.48 billion shares, or 7.59% of the float, following an earlier purchase of 3.8 billion shares at Rp23 per share for about Rp87.3 billion at the end of August 2026. PT GoTo Gojek Tokopedia Tbk reported net profit of Rp607 billion and revenue of Rp10.99 trillion for the first half of 2026, with revenue contributions of Rp3.2 trillion (+16.5%) from delivery services, Rp3.15 trillion (+14.9%) from services compensation, Rp2.71 trillion (+65%) from loan services, Rp551 billion (+32.3%) from Tokopedia e‑commerce service fees, Rp254 billion (+8%) from advertising, and Rp1.13 trillion (+46.5%) from other sources. The company is also considering a reverse stock split and a share buyback of up to Rp3.5 trillion, while analysts note that the removal of the price‑floor rule could ease passive‑fund pressure on the stock.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-08T08:10:00+07:00",
@@ -5009,6 +5257,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ngi-pendapatan-batu-bara-target-diversifikasi-20",
     "title": "PT Bukit Asam Tbk targets 20% non‑coal revenue share by 2030 and reports H1 2026 net profit of Rp4.06 trillion",
     "summary": "PT Bukit Asam Tbk said it will increase the contribution of non‑coal and green‑energy revenue to 20% of total earnings by 2030, up from about 3% currently. The plan relies on securing 842 million tonnes of coal reserves for a 20‑year…",
+    "body": "PT Bukit Asam Tbk said it will increase the contribution of non‑coal and green‑energy revenue to 20% of total earnings by 2030, up from about 3% currently. The plan relies on securing 842 million tonnes of coal reserves for a 20‑year supply and on constructing gasification projects for dimethyl ether (DME) and synthetic natural gas (SNG) with physical completion targeted for 2027. DME will be off‑taken by Pertamina Patra Niaga for LPG substitution and SNG will be supplied to PGN for industrial gas, both under the National Strategic Projects coordinated by Danantara, while PTBA will also expand its 1.2 MWp solar portfolio through cooperation with Pertamina NRE and participation in PLN’s RUPTL auction. The company reported H1 2026 revenue of Rp22.03 trillion and net profit of Rp4.06 trillion, a 4.2‑times year‑on‑year rise.",
     "category": "policy",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T19:52:00+07:00",
@@ -5035,6 +5284,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun",
     "title": "PT Bukit Asam Tbk reports 218% YoY net profit jump to Rp 2.65 trillion in H1 2026",
     "summary": "PT Bukit Asam Tbk posted a net profit of Rp 2.65 trillion for the first half of 2026, a 218% year‑on‑year increase. Revenue rose 8% YoY to Rp 22.03 trillion, supported by a 10% rise in average selling price of coal and stronger export…",
+    "body": "PT Bukit Asam Tbk posted a net profit of Rp 2.65 trillion for the first half of 2026, a 218% year‑on‑year increase. Revenue rose 8% YoY to Rp 22.03 trillion, supported by a 10% rise in average selling price of coal and stronger export sales. Coal production reached 19.45 million tons and sales totaled 21.1 million tons, with exports of 10.33 million tons (up 5%) to Vietnam, Bangladesh, Cambodia, India and Thailand, while domestic sales accounted for about 51% of volume. The company aims to hit its target of roughly 50 million tons of production and sales by year‑end 2026, buoyed by global coal price gains reflected in the Newcastle Index (+25% YoY) and ICI‑3 (+15% YoY).",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T19:31:00+07:00",
@@ -5062,6 +5312,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
     "title": "Telkom Reports 3.9% Revenue Growth in H1 2026, Maintains Full-Year Guidance Amid TLKM 30 Transformation",
     "summary": "Telkom reported consolidated revenue of Rp75.9 trillion for the first half of 2026, a 3.9% year-on-year increase, with normalized net profit rising 6.2% to Rp11.3 trillion. The company's mobile subsidiary Telkomsel posted 5.3% revenue…",
+    "body": "Telkom reported consolidated revenue of Rp75.9 trillion for the first half of 2026, a 3.9% year-on-year increase, with normalized net profit rising 6.2% to Rp11.3 trillion. The company's mobile subsidiary Telkomsel posted 5.3% revenue growth to Rp28.0 trillion and a 24.9% jump in net profit, driven by an 11.6% rise in mobile ARPU to Rp46 thousand. Telkom is advancing its TLKM 30 transformation, delayering into five segments and preparing a second-stage spin-off of infrastructure unit InfraNexia in the third quarter, while its data center subsidiary NeutraDC grew revenue 11% to Rp867 billion with 49.9 MW capacity. The group also plans to acquire 100% of Digiserve to bolster its B2B ICT capabilities. Management maintained full-year guidance of 1-3% normalized revenue growth and an EBITDA margin above 50%, noting the second-quarter margin had already exceeded that threshold.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T19:07:08+07:00",
@@ -5088,6 +5339,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
     "title": "BRI Danareksa Sekuritas analyst highlights expansion prospects and buy recommendations for PT Bumi Resources Tbk, PT Petrosea Tbk, PT United Tractors…",
     "summary": "BRI Danareksa Sekuritas analyst Abida Massi Armand reviews the overseas mining expansion of PT Bumi Resources Tbk, PT Petrosea Tbk, PT United Tractors Tbk and PT Aneka Tambang Tbk. PT Bumi Resources Tbk, via its subsidiary Bumi Resources…",
+    "body": "BRI Danareksa Sekuritas analyst Abida Massi Armand reviews the overseas mining expansion of PT Bumi Resources Tbk, PT Petrosea Tbk, PT United Tractors Tbk and PT Aneka Tambang Tbk. PT Bumi Resources Tbk, via its subsidiary Bumi Resources Australia Pty Ltd, completed the acquisition of 100% of Loyal Metals Ltd for Rp 1,004,742,244,136.50 (AUD 79,069,731.75); PT Petrosea Tbk finalized a binding offer for Tolu Minerals Limited, issuing convertible notes worth AUS $23.75 million; PT United Tractors Tbk is exploring mineral asset acquisitions in Australia; and PT Aneka Tambang Tbk is targeting gold production in the Middle East. The analyst recommends buying PT Aneka Tambang Tbk with a target price of Rp 4,900 and PT United Tractors Tbk with a target price of Rp 30,600, noting strong free cash flow and diversification benefits. He cautions that integration risks, possible overpaying and regulatory hurdles may delay profit contributions for two to three years after the deals.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T18:54:00+07:00",
@@ -5115,6 +5367,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
     "title": "Grup Emtek Strengthens Bukalapak Stake, Purchases 803 Million Shares at Above-Market Price",
     "summary": "PT Kreatif Media Karya (KMK Online), a digital subsidiary of PT Elang Mahkota Teknologi Tbk (EMTK), has increased its stake in PT Bukalapak.com Tbk (BUKA) by purchasing 803,287,800 shares on 4 September 2026. The shares were bought at…",
+    "body": "PT Kreatif Media Karya (KMK Online), a digital subsidiary of PT Elang Mahkota Teknologi Tbk (EMTK), has increased its stake in PT Bukalapak.com Tbk (BUKA) by purchasing 803,287,800 shares on 4 September 2026. The shares were bought at Rp126 each, totaling Rp101,214 million, which is above BUKA's closing price of Rp113 per share on the same day. The acquisition raised KMK Online's ownership of BUKA to 45.68% from 44.90%, strengthening its control over the e‑commerce platform.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T17:06:00+07:00",
@@ -5140,6 +5393,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
     "title": "PT Kreatif Media Karya increases its stake in PT Bukalapak.com Tbk to 45.68%",
     "summary": "PT Kreatif Media Karya, the controlling shareholder of PT Bukalapak.com Tbk, increased its ownership to 45.68% by buying additional shares. On 4 September 2026 it purchased 803,287,800 shares at Rp126 each, costing about Rp101.21 billion…",
+    "body": "PT Kreatif Media Karya, the controlling shareholder of PT Bukalapak.com Tbk, increased its ownership to 45.68% by buying additional shares. On 4 September 2026 it purchased 803,287,800 shares at Rp126 each, costing about Rp101.21 billion and raising its holding to 47,125,034,185 shares out of 46,321,746,385 total shares. The filing also shows that PT Elang Mahkota and PT Bukalapak each hold over 10% of PT Bukalapak.com Tbk’s shares, with 10,821,706,040 (10.48%) and 11,333,437,507 (10.986%) shares respectively. Following the transaction, PT Bukalapak.com Tbk’s shares closed at 113 on 7 September, down 1.74% (‑2 points), and the stock carries a special notation I.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T16:43:00+07:00",
@@ -5172,6 +5426,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-07092026-8071-00-pdf-0-pdf",
     "title": "Kreatif Media Karya buys shares of Bukalapak.com",
     "summary": "Kreatif Media Karya bought 803,287,800 shares of Bukalapak.com. This increases their holdings from 46,321,746,385 to 47,125,034,185 shares. The stated purpose of the transaction was for investment.",
+    "body": "Kreatif Media Karya bought 803,287,800 shares of Bukalapak.com. This increases their holdings from 46,321,746,385 to 47,125,034,185 shares. The stated purpose of the transaction was for investment.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-07T16:28:10+07:00",
@@ -5194,6 +5449,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-un-bri-tegaskan-komitmen-jaga-shareholder-return",
     "title": "PT Bank Rakyat Indonesia Tbk announces dividend payout ratio to fall to about 70% for FY 2026, reaffirming commitment to shareholder returns",
     "summary": "PT Bank Rakyat Indonesia Tbk said its dividend payout ratio will be reduced to roughly 70% for the 2026 fiscal year while reaffirming its commitment to delivering optimal shareholder returns. The announcement was made by Finance & Strategy…",
+    "body": "PT Bank Rakyat Indonesia Tbk said its dividend payout ratio will be reduced to roughly 70% for the 2026 fiscal year while reaffirming its commitment to delivering optimal shareholder returns. The announcement was made by Finance & Strategy Director Achmad Royadi, who noted that the payout policy will balance fundamentals, capital needs and long‑term growth, with a long‑term target range of 50‑60%. The bank reported consolidated net profit of Rp 31.2 trillion for the first half of 2026, up 17.5% YoY, alongside credit growth of 16.2% YoY, an NPL ratio improving to 2.9% and a capital adequacy ratio of 21.5%, above its 20% target. The lower payout follows a 92% ratio in 2025 and reflects PT Bank Rakyat Indonesia Tbk’s strong fundamentals that allow it to balance shareholder returns with capital reinforcement for future expansion.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T15:32:00+07:00",
@@ -5220,6 +5476,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
     "title": "MNC Sekuritas recommends AMRT, ELSA, SSMS and INDY as the IHSG targets the 6,705 level",
     "summary": "The article reports that MNC Sekuritas recommends four stocks—AMRT, ELSA, SSMS and INDY—while the Jakarta Composite Index (IHSG) eyes the 6,705 resistance level on 7 September 2026. The IHSG closed at 6,636.47 on Friday, up 0.47% from the…",
+    "body": "The article reports that MNC Sekuritas recommends four stocks—AMRT, ELSA, SSMS and INDY—while the Jakarta Composite Index (IHSG) eyes the 6,705 resistance level on 7 September 2026. The IHSG closed at 6,636.47 on Friday, up 0.47% from the prior session and 1.82% (118.35 points) for the week, supported by a net foreign inflow of Rp2.30 trillion and a 35.9% rise in average daily volume to 48.99 billion shares. AMRT fell 1.13% to Rp1,310, ELSA slipped 2.01% to Rp730, SSMS rose 0.42% to Rp1,185, and INDY traded at Rp2,790 with a near‑term correction zone of Rp2,470–Rp2,640 and resistance at its 200‑day moving average (MA200). The market‑wide capitalisation rose 1.47% to Rp11,599 trillion, average daily transaction value increased 25.75% to Rp19.22 trillion, and transaction frequency climbed 10.93% to 2.39 million, underscoring the broader buying pressure behind the index’s potential breakout.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-07T07:38:00+07:00",
@@ -5245,6 +5502,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
     "title": "Oil Price Upside Threatens to Boost MEDC, ELSA, PGAS and TPIA Stock Prospects",
     "summary": "The article analyzes how a potential rise in global oil prices, driven by Iran‑U.S. geopolitical tension, could affect the stock prospects of four Indonesian energy companies. PT Medco Energi Internasional Tbk is seen as the most…",
+    "body": "The article analyzes how a potential rise in global oil prices, driven by Iran‑U.S. geopolitical tension, could affect the stock prospects of four Indonesian energy companies. PT Medco Energi Internasional Tbk is seen as the most positively impacted, with its upstream exposure, a projected production of 145 mboepd and a target price of Rp1,900 per share. PT Elnusa Tbk may benefit indirectly from higher upstream activity, supported by a Rp1.3 trillion contract backlog and a projected 12% YoY net‑profit growth, with a target price of Rp845; PT Perusahaan Gas Negara Tbk is considered relatively defensive, backed by stable gas‑distribution volumes of 880 BBTUD and a target price of Rp1,615; while PT Chandra Asri Pacific Tbk faces mixed effects, with petrochemical spread expectations of US$350‑US$400 per ton, an additional US$120 million EBITDA from infrastructure assets, and a target price of Rp3,000. The analysts caution that if oil prices normalize to US$70‑US$80 per barrel, MEDC’s earnings would be most vulnerable, whereas ELSA and PGAS would remain comparatively defensive.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-06T14:11:00+07:00",
@@ -5272,6 +5530,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
     "title": "IHSG Still Has Opportunity to Strengthen on Monday (7/9), Here Are Analyst-Recommended Stocks",
     "summary": "The article discusses the potential for the Indonesian Composite Index (IHSG) to strengthen on Monday, 7 September 2026, after a 0.47% decline to 6,636 on Friday, 4 September 2026, and a weekly gain of 1.82%. Analyst William Hartanto…",
+    "body": "The article discusses the potential for the Indonesian Composite Index (IHSG) to strengthen on Monday, 7 September 2026, after a 0.47% decline to 6,636 on Friday, 4 September 2026, and a weekly gain of 1.82%. Analyst William Hartanto projects the index to trade between 6,612 and 6,704 on Monday, citing a gap at 6,704 formed on 13 May 2026 and the index remaining above the 5‑period moving average as evidence of a strong uptrend. He recommends buying PT Alamtri Resources Indonesia Tbk (ADRO) with a target price of Rp 2,800–Rp 2,820 per share and PT Baramulti Suksessarana Tbk (BSSR) with a target price of Rp 5,000 per share.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-06T14:00:00+07:00",
@@ -5296,6 +5555,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
     "title": "XLSMART Telecom Sejahtera Tbk raises 2026 capitalized capex guidance to Rp20 trillion from Rp15 trillion to fund 5G expansion and spectrum…",
     "summary": "PT XLSMART Telecom Sejahtera Tbk increased its 2026 capitalized capital expenditure guidance to Rp20 trillion from Rp15 trillion, directing the additional investment toward network infrastructure strengthening, 5G service expansion, and…",
+    "body": "PT XLSMART Telecom Sejahtera Tbk increased its 2026 capitalized capital expenditure guidance to Rp20 trillion from Rp15 trillion, directing the additional investment toward network infrastructure strengthening, 5G service expansion, and optimization of 700 MHz and 2.6 GHz spectrum utilization. As of the first half of 2026, the company's 5G services covered more than 50 cities with approximately 15,000 base stations reaching 23% of the national population, and its network earned four Ookla awards including Best Mobile Network and Best 5G Network. The company is also collaborating with Google to offer Gemini AI Plus and Cloud Storage to customers, while emphasizing that digital infrastructure development requires ecosystem collaboration among government, operators, technology firms, and device manufacturers. In the second half of 2026, XLSMART will prioritize customer experience enhancement, spectrum optimization, 5G network and ecosystem expansion, and digital service strengthening.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-04T13:30:00+07:00",
@@ -5323,6 +5583,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
     "title": "Energy Stock Rally Targets ADRO and BUMI",
     "summary": "Energy stocks are rallying, with ADRO and BUMI among the companies targeted by the surge. The IDX Energy index rose 12.6% in the past month and gained 1.36% on 3 September 2026, outpacing the broader market. Analysts say the rally is…",
+    "body": "Energy stocks are rallying, with ADRO and BUMI among the companies targeted by the surge. The IDX Energy index rose 12.6% in the past month and gained 1.36% on 3 September 2026, outpacing the broader market. Analysts say the rally is driven by improving earnings prospects, stronger valuations, and investor funds returning to commodity stocks with solid fundamentals, rather than commodity price euphoria alone, and they expect the energy sector to remain a support for the IHSG until the end of 2026. The next phase will focus on stock picking, favoring companies with low production costs, healthy balance sheets, strong cash flows, large reserves, and the ability to maintain production volumes.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-04T06:22:25+07:00",
@@ -5332,7 +5593,7 @@ export const rawEvents: RawEvent[] = [
         "symbol": "ADRO",
         "direction": "Supported",
         "relevance": 84,
-        "path": "Harga komoditas → realisasi harga → margin",
+        "path": "Sales of Coal (55% pendapatan ADRO) → realisasi harga → margin",
         "rationale": "Sectors menandai peristiwa ini Bullish, Commodities, Financial Metrics, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
@@ -5348,6 +5609,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
     "title": "ADRO Enters New Chapter with Aluminum Diversification as Coal Earnings Surge, but Risks Remain",
     "summary": "PT Alamtri Resources Indonesia Tbk (ADRO) is advancing its diversification into aluminum through PT Kalimantan Aluminium Industry (KAI), which is entering ramp-up and expected to contribute revenue by late 2026. The company posted strong…",
+    "body": "PT Alamtri Resources Indonesia Tbk (ADRO) is advancing its diversification into aluminum through PT Kalimantan Aluminium Industry (KAI), which is entering ramp-up and expected to contribute revenue by late 2026. The company posted strong first-half 2026 results, with revenue rising 16.5% year-on-year to US$999 million, EBITDA jumping 56.8% to US$491 million, and net profit surging 76.9% to US$309 million. Second-quarter net profit climbed 41.5% quarter-on-quarter to US$181 million, while EBITDA margin expanded to 55.8% from 41.6%. However, analysts flag risks including domestic market obligation pressure on pricing, a 35-40% quarterly jump in domestic diesel costs, policy uncertainty from PT Danantara Sumberdaya Indonesia and a single-gate export scheme, and execution risk for the nascent aluminum business.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-03T13:34:29+07:00",
@@ -5357,7 +5619,7 @@ export const rawEvents: RawEvent[] = [
         "symbol": "ADRO",
         "direction": "Supported",
         "relevance": 82,
-        "path": "Harga komoditas → realisasi harga → margin",
+        "path": "Sales of Coal (55% pendapatan ADRO) → realisasi harga → margin",
         "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Financial Metrics, Risk & Compliance pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
@@ -5374,6 +5636,7 @@ export const rawEvents: RawEvent[] = [
     "id": "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf",
     "title": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund buys shares of Jasa Marga",
     "summary": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund bought 3,258,700 shares of Jasa Marga. This increases their holdings from 362,426,800 to 365,685,500 shares. The stated purpose of the transaction was purchase of shares.",
+    "body": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund bought 3,258,700 shares of Jasa Marga. This increases their holdings from 362,426,800 to 365,685,500 shares. The stated purpose of the transaction was purchase of shares.",
     "category": "company",
     "sourceType": "filing",
     "publishedAt": "2026-09-02T19:25:26+07:00",
@@ -5396,6 +5659,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi",
     "title": "PT TBS Energi Utama Tbk’s EV Business Enters Monetisation Phase, Posting Positive Gross Profit and Adjusted EBITDA in H1 2026",
     "summary": "PT TBS Energi Utama Tbk’s electric‑vehicle segment, operated through the Electrum joint venture with PT GoTo Gojek Tokopedia Tbk, entered a monetisation phase in the first half of 2026. Revenue rose 184% year‑on‑year to US$9.06 million,…",
+    "body": "PT TBS Energi Utama Tbk’s electric‑vehicle segment, operated through the Electrum joint venture with PT GoTo Gojek Tokopedia Tbk, entered a monetisation phase in the first half of 2026. Revenue rose 184% year‑on‑year to US$9.06 million, gross profit turned positive at US$0.39 million (from a US$0.45 million loss) and adjusted EBITDA became positive at about US$0.5 million. The ecosystem now covers roughly 13,883 two‑wheel EVs (up 172%) and 550 battery‑swapping stations (up 72%), supporting over 1.7 million monthly swaps and more than 135 million km traveled, and Kiwoom Sekuritas analyst Abdul Azis said the profit shift signals healthier unit economics and a focus on utilisation to drive recurring revenue.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-02T11:32:44+07:00",
@@ -5421,6 +5685,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
     "title": "PGAS Loses Partial Arbitration Award, Ordered to Pay 9 LNG Cargoes to Gunvor",
     "summary": "PT Perusahaan Gas Negara Tbk (PGAS) lost a partial arbitration award at the London Court of International Arbitration and must compensate Gunvor Singapore Pte Ltd with 9 LNG cargoes covering 2024 and 2025 deliveries. The partial award…",
+    "body": "PT Perusahaan Gas Negara Tbk (PGAS) lost a partial arbitration award at the London Court of International Arbitration and must compensate Gunvor Singapore Pte Ltd with 9 LNG cargoes covering 2024 and 2025 deliveries. The partial award addresses Gunvor's claim for 4-8 cargoes in 2024 and 1-4 cargoes in 2025, while remaining claims for 2025 through 2027 are still pending. Gunvor reportedly claimed US$130.4 million (approximately Rp2.18 trillion) in the dispute, while PGAS provisioned US$72.02 million (approximately Rp1.2 trillion) in its December 2025 financial statements. The dispute stems from a 2022 master sales agreement for 8 cargoes annually through 2027, which PGAS declared force majeure on in November 2023. PGAS shares have fallen 18.59% year-to-date to Rp1,555.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-02T08:30:00+07:00",
@@ -5448,6 +5713,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor",
     "title": "PGAS Ordered to Pay Compensation to Gunvor Singapore After LCIA Arbitration Rejects Force Majeure Claim",
     "summary": "Perusahaan Gas Negara (PGAS) must pay compensation to Gunvor Singapore following a partial award from the London Court of International Arbitration (LCIA) that rejected PGAS's force majeure declaration regarding LNG delivery obligations.…",
+    "body": "Perusahaan Gas Negara (PGAS) must pay compensation to Gunvor Singapore following a partial award from the London Court of International Arbitration (LCIA) that rejected PGAS's force majeure declaration regarding LNG delivery obligations. The tribunal's decision covers nine LNG cargoes spanning cargoes 4-8 of 2024 and cargoes 1-4 of 2025, while reserving jurisdiction over remaining claims for 2025 through 2027 cargoes. Gunvor had previously claimed USD 130.4 million in the dispute arising from a master LNG sales and purchase agreement dated June 23, 2022, under which PGAS committed to deliver eight cargoes from January 2024 through December 2027. PGAS is currently conducting a comprehensive review with legal counsel Mayer Brown and relevant institutions to determine the impact and next steps. The award requires Gunvor to seek execution through the Central Jakarta District Court before enforcement.",
     "category": "commodity",
     "sourceType": "sectors",
     "publishedAt": "2026-09-02T06:39:00+07:00",
@@ -5474,6 +5740,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-masih-lesu-simak-prospeknya-di-semester-ii-2026",
     "title": "Investment holding issuers report weak H1 2026 performance amid portfolio losses",
     "summary": "The article reports that major Indonesian investment holding companies posted deteriorated results in the first semester of 2026 due to market volatility affecting their equity portfolios. PT Provident Investasi Bersama Tbk recorded a net…",
+    "body": "The article reports that major Indonesian investment holding companies posted deteriorated results in the first semester of 2026 due to market volatility affecting their equity portfolios. PT Provident Investasi Bersama Tbk recorded a net investment loss of IDR 670.61 billion and a net loss attributable to owners of IDR 881.69 billion, reversing a profit of IDR 587.36 billion a year earlier. PT Elang Mahkota Teknologi Tbk posted a net investment loss of IDR 2.28 trillion and a net loss of IDR 289.69 billion, compared with profits of IDR 1.31 trillion and IDR 4.25 trillion respectively in the same period of 2025. PT Saratoga Investama Sedaya Tbk saw net investment losses rise to IDR 4.83 trillion and a net loss of IDR 3.87 trillion, while PT Astra International Tbk reported a fair‑value loss on other investments of IDR 837 billion and an additional IDR 259 billion loss on group equity investments. The firms said they will maintain long‑term investment strategies and aim for a turnaround in semester II 2026.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-31T19:29:00+07:00",
@@ -5495,9 +5762,33 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
+    "id": "filing-corporate-action-dividend-bbca",
+    "title": "BBCA dividen tunai Rp25.00 per saham",
+    "summary": "Ex-date 2026-08-31, pembayaran 2026-09-16. Jadwal distribusi tunai, bukan sinyal arah harga.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-08-31T09:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Mixed",
+        "relevance": 92,
+        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+        "rationale": "Sectors corporate-actions API mencatat dividen ex-date 2026-08-31, dibayar 2026-09-16. Fakta jadwal distribusi, bukan sinyal arah harga."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Dividend"
+    ]
+  },
+  {
     "id": "news-am-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
     "title": "BRI Danareksa Sekuritas recommends EXCL, INET and HRUM with bullish technical targets on 28 Aug 2026",
     "summary": "BRI Danareksa Sekuritas issued a broker recommendation on 28 August 2026 for three Indonesian equities – EXCL, INET and HRUM – citing bullish technical setups. EXCL broke out above the 2,600 level and its MA20, pulled back to 2,639‑2,707…",
+    "body": "BRI Danareksa Sekuritas issued a broker recommendation on 28 August 2026 for three Indonesian equities – EXCL, INET and HRUM – citing bullish technical setups. EXCL broke out above the 2,600 level and its MA20, pulled back to 2,639‑2,707 and now targets 2,840‑2,910, while announcing the resignation of commissioner Vivek Sood. INET reversed lower, broke its neckline at 240 and surged to a breakout at 338 on high volume, setting a target range of 358‑370 and noting foreign investor buying of Rp 23.9 billion in the regular market. HRUM rebounded above its MA20 after a breakout at 895, with near‑term targets of 935 and 975, support at 895‑863, and announced an extraordinary shareholders’ meeting on 18 September 2026 at the Deutsche Bank Building in Jakarta.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-28T07:36:03+07:00",
@@ -5524,6 +5815,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
     "title": "BRI Danareksa Sekuritas recommends SMIL, MAPA and ICBP with new price targets",
     "summary": "BRI Danareksa Sekuritas issued a broker recommendation for three stocks on Thursday, 27 August 2026. SMIL broke out of the 365‑390 consolidation area, stayed above the 20‑day moving average at 394, and the broker set near‑term and…",
+    "body": "BRI Danareksa Sekuritas issued a broker recommendation for three stocks on Thursday, 27 August 2026. SMIL broke out of the 365‑390 consolidation area, stayed above the 20‑day moving average at 394, and the broker set near‑term and longer‑term targets of 414 and 429 rupiah respectively, noting semester‑I 2026 profit of Rp 60.08 billion and EPS of Rp 6.87. MAPA remained above its 630‑655 breakout zone, tested resistance at 690 and could advance toward 709 rupiah with support at 655, supported by a 15.1% YoY increase in net revenue to Rp 10.1 trillion. ICBP broke out above 7,750 rupiah with strong volume and a bullish MACD, targeting 7,950‑8,164 rupiah as revenue grew 11.3% YoY, prompting a revised target price of Rp 10,600.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-27T07:59:26+07:00",
@@ -5548,6 +5840,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-bhimata-citra-abadi-ini-alasan-dibalik-divestasi",
     "title": "Emtek sells 99.99% of PT Abhimata Citra Abadi, ending its subsidiary status",
     "summary": "Emtek announced the sale of virtually all its shares in PT Abhimata Citra Abadi, removing the company from its consolidated financial statements. The transaction, effective 20 August 2026 and disclosed on 24 August 2026, transferred…",
+    "body": "Emtek announced the sale of virtually all its shares in PT Abhimata Citra Abadi, removing the company from its consolidated financial statements. The transaction, effective 20 August 2026 and disclosed on 24 August 2026, transferred 100,090 shares representing 99.99% of ACA’s paid‑up capital, valued at Rp 10,009 billion, to former director Yuslinda Nasution. Emtek said the divestment is part of a strategic portfolio optimisation and will not have material negative impact on its operations or financial condition. Following the announcement, EMTK shares fell 1.9% to Rp 515.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-26T10:18:00+07:00",
@@ -5574,6 +5867,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing",
     "title": "Elang Mahkota Teknologi Tbk expands AI use to improve efficiency and competitiveness",
     "summary": "PT Elang Mahkota Teknologi Tbk (EMTK) said it is expanding artificial‑intelligence applications across its media and health services to enhance efficiency and competitiveness, citing the VidioGen platform that cuts production time and cost…",
+    "body": "PT Elang Mahkota Teknologi Tbk (EMTK) said it is expanding artificial‑intelligence applications across its media and health services to enhance efficiency and competitiveness, citing the VidioGen platform that cuts production time and cost by about 30%. For the first half of 2026 the company reported net revenue of Rp10.81 trillion, up 22.74% YoY, but posted a loss attributable to its parent owners of Rp320.60 billion after a profit of Rp4.22 trillion in the same period a year earlier.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-25T14:09:00+07:00",
@@ -5600,6 +5894,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini",
     "title": "Indo Premier Sekuritas (IPOT) issues weekly stock recommendations for August 24‑28, 2026",
     "summary": "Indo Premier Sekuritas (IPOT) released its weekly stock picks for the trading week of 24‑28 August 2026, anticipating a bullish technical momentum for the IHSG. The firm expects the index to stay above MA5‑MA100, with support at…",
+    "body": "Indo Premier Sekuritas (IPOT) released its weekly stock picks for the trading week of 24‑28 August 2026, anticipating a bullish technical momentum for the IHSG. The firm expects the index to stay above MA5‑MA100, with support at 6,429‑6,475 and a target range of 6,628‑6,666, while credit growth of 13.0% YoY in July supports domestic sentiment. IPOT recommends buying EXCL (entry Rp 2,840, target Rp 3,150, stop‑loss Rp 2,690), DSNG (entry Rp 1,440, target Rp 1,610, stop‑loss Rp 1,380), and BBNI on pull‑back (entry Rp 3,640‑3,700, target Rp 4,000, stop‑loss Rp 3,500) based on technical signals such as Doji candles, ADX above 20, EMA crossovers and a golden‑cross MACD. The broker also suggests the Premier ETF Gold Sharia Indonesia (XGLD) as a Sharia‑compliant gold exposure.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-24T08:34:00+07:00",
@@ -5625,6 +5920,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
     "title": "BRI Danareksa raises earnings outlook for PT Indofood CBP Sukses Makmur Tbk, sees up to 40% upside",
     "summary": "The article reports that BRI Danareksa Sekuritas upgraded its earnings estimates for PT Indofood CBP Sukses Makmur Tbk (ICBP), an issuer of the Salim Group. Revenue in the first half of 2026 grew 11.3% year‑on‑year, driven by a 20.7% rise…",
+    "body": "The article reports that BRI Danareksa Sekuritas upgraded its earnings estimates for PT Indofood CBP Sukses Makmur Tbk (ICBP), an issuer of the Salim Group. Revenue in the first half of 2026 grew 11.3% year‑on‑year, driven by a 20.7% rise in overseas instant‑noodle sales and a 7% increase domestically, with foreign sales accounting for 28% of total. The analysts lifted their 2026‑27 earnings forecasts by 6.2% and introduced a new target price that implies a potential 40% share price appreciation. Management continues to project a conservative 5‑7% revenue growth for 2026, while a new Bogor plant adds 1.5 billion noodle‑pack capacity, though average selling‑price growth is expected to remain limited.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-21T19:23:58+07:00",
@@ -5651,6 +5947,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-channel-amrt-midi-hingga-mapi-masuk-radar-analis",
     "title": "Retail Stocks Highlighted in Omnichannel Era as AMRT, MIDI and MAPI Gain Analyst Attention",
     "summary": "The article examines analysts’ view that omnichannel strategies are a positive catalyst for Indonesian retail companies. Sucor Sekuritas analyst Christofer Kojongian cites PT Sumber Alfaria Trijaya Tbk, PT Midi Utama Indonesia Tbk, PT…",
+    "body": "The article examines analysts’ view that omnichannel strategies are a positive catalyst for Indonesian retail companies. Sucor Sekuritas analyst Christofer Kojongian cites PT Sumber Alfaria Trijaya Tbk, PT Midi Utama Indonesia Tbk, PT Mitra Adiperkasa Tbk, PT MAP Aktif Adiperkasa Tbk, PT Aspirasi Hidup Indonesia Tbk and ERAA as having strong membership programs and recommends BUY for AMRT (target Rp1,800), MIDI (Rp410), ERAA (Rp450) and ERAL (Rp330) while assigning HOLD to MAPI (Rp1,400), MAPA (Rp670) and ACES (Rp350). Kiwoom Sekuritas research head Liza Camelia adds that MAPI, ACES and ERAA are well positioned to benefit from omnichannel due to cross‑brand data, home‑living integration and gadget distribution, respectively. Both analysts note that successful digital‑offline integration can improve same‑store sales growth, margins and profitability despite weak consumer purchasing power, with the article dated 19 August 2026.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-19T14:05:00+07:00",
@@ -5676,6 +5973,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
     "title": "PT Indofood CBP Sukses Makmur Tbk shares deemed cheap with target price of Rp 12,000",
     "summary": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a…",
+    "body": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a small net sell of IDR 599.21 million on 13 August. The stock rose 13.53% over the past month, trades at Rp 7,550, down nearly 21% year‑to‑date, and shows a price‑to‑book ratio of 1.67× (below the –1 SD level of 1.99×) and a price‑earnings ratio of 11.91× (around the –1 SD level of 11.32×). Mandiri Sekuritas maintains a buy recommendation with a target price of Rp 12,000, implying roughly 60% upside.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-14T06:52:56+07:00",
@@ -5701,6 +5999,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli",
     "title": "Analyst adds PT Sumber Alfaria Trijaya Tbk with target Rp1,595 as expansion and cost‑efficiency drive growth despite purchasing‑power pressure",
     "summary": "The article evaluates PT Sumber Alfaria Trijaya Tbk's growth outlook amid efficiency initiatives and consumer purchasing‑power constraints. AMRT plans to open about 800 new domestic stores—over 50% outside Java—and a total of 1,080 stores…",
+    "body": "The article evaluates PT Sumber Alfaria Trijaya Tbk's growth outlook amid efficiency initiatives and consumer purchasing‑power constraints. AMRT plans to open about 800 new domestic stores—over 50% outside Java—and a total of 1,080 stores including projects in the Philippines and Bangladesh, having opened 167 Alfamart and 42 Alfamidi outlets in the first half of 2026; same‑store sales growth and higher non‑food contribution are highlighted as catalysts. Consensus forecasts revenue growth of roughly 9% and net‑profit growth of about 10% by 2026 with a net margin near 2.7%, while BRI Danareksa projects annual revenue and profit increases of 6.49% and 7.5% respectively; a recent MSCI downgrade to Global Small Cap triggered short‑term foreign outflows but did not alter fundamentals. Mirae Asset analyst Nafan Aji Gusta issues an \"add\" recommendation with a target price of Rp1,595 per share.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-13T15:40:00+07:00",
@@ -5726,6 +6025,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-unaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
     "title": "RANS Entertainment Indonesia Discloses IPO Proceeds Allocation, Emphasizing Debt Repayment",
     "summary": "RANS Entertainment Indonesia Tbk announced how the Rp429.25 billion raised in its recent IPO will be allocated, with debt repayment being the first priority. Approximately Rp29.95 billion (6.98% of proceeds) will be used to settle existing…",
+    "body": "RANS Entertainment Indonesia Tbk announced how the Rp429.25 billion raised in its recent IPO will be allocated, with debt repayment being the first priority. Approximately Rp29.95 billion (6.98% of proceeds) will be used to settle existing credit facilities, while the remaining funds are earmarked for concerts (Rp161.5 billion, 37.61%), the acquisition of a 51 % stake in PT Rans Kosmetika Indonesia (Rp85 billion, 19.80%), development of the Cipungland entertainment park (Rp80 billion, 18.64%), an AI joint‑venture with PT Feedloop Global Teknologi (Rp35 billion, 8.15%) and working‑capital support for PT Rans Nikmat Sejahtera (Rp37.8 billion). The company also confirmed a strategic partnership with PT Mayora Indah Tbk to co‑develop intellectual‑property assets across live entertainment, music and family experiences. The disclosure aligns with the prospectus and was presented by President Director Nagita Slavina on 11 August 2026.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-11T19:02:20+07:00",
@@ -5753,6 +6053,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-naik-tipis-arus-kas-operasi-melejit-3158-persen",
     "title": "PT Mayora Indah Tbk reports modest net profit rise and 315.8% surge in operating cash flow",
     "summary": "PT Mayora Indah Tbk, the snack food and beverage issuer, posted H1‑2026 net profit of Rp1.70 trillion, a slight increase from Rp1.66 trillion a year earlier. Operating cash flow jumped 315.8% to Rp4.02 trillion, supported by cash receipts…",
+    "body": "PT Mayora Indah Tbk, the snack food and beverage issuer, posted H1‑2026 net profit of Rp1.70 trillion, a slight increase from Rp1.66 trillion a year earlier. Operating cash flow jumped 315.8% to Rp4.02 trillion, supported by cash receipts from customers of Rp19.78 trillion, up 5.3% YoY. The company’s gross profit rose to Rp4.61 trillion, cost of goods sold fell to Rp13.30 trillion, and cash and cash equivalents grew to Rp5.60 trillion despite a reduction in total assets. Shares traded around Rp1,710 intraday, reflecting a year‑to‑date decline of about 19.7%.",
     "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-08-11T11:33:00+07:00",
@@ -5776,6 +6077,7 @@ export const rawEvents: RawEvent[] = [
     "id": "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000",
     "title": "Maybank Sekuritas maintains buy on PT Mayora Indah Tbk with target Rp 2,500, citing consumer‑sector safe‑haven benefits as rupiah weakens to Rp…",
     "summary": "Maybank Sekuritas analyst Willy Goutama continues to recommend a buy on PT Mayora Indah Tbk, labeling it a consumer‑sector safe haven as the rupiah trades around Rp 18,000 per USD. He keeps the target price at Rp 2,500 per share, based on…",
+    "body": "Maybank Sekuritas analyst Willy Goutama continues to recommend a buy on PT Mayora Indah Tbk, labeling it a consumer‑sector safe haven as the rupiah trades around Rp 18,000 per USD. He keeps the target price at Rp 2,500 per share, based on a 2026 price‑to‑earnings multiple of 17.9× and projected 2026 revenue of Rp 41.65 trillion with net profit of Rp 3.13 trillion. Recent results show Q1 2026 core profit of Rp 1.5 trillion (+38% YoY, excluding a Rp 309 billion currency gain) and a gross margin of 25.7%, up 450 basis points year‑on‑year, while Q2 2026 core profit rose 24% YoY to Rp 603 billion with a 7% sales increase. The firm also notes Mayora’s shift to net‑cash status, an EPS compound annual growth rate of 15.4% for 2025‑2028, and an expected dividend yield of 3.3‑4.4%, while warning that slower sales growth could pose a risk.",
     "category": "currency",
     "sourceType": "sectors",
     "publishedAt": "2026-08-04T14:03:00+07:00",
@@ -5796,6 +6098,128 @@ export const rawEvents: RawEvent[] = [
       "Currency & FX",
       "Financial Metrics"
     ]
+  },
+  {
+    "id": "filing-corporate-action-dividend-tlkm",
+    "title": "TLKM dividen tunai Rp223.17 per saham",
+    "summary": "Ex-date 2026-06-18, pembayaran 2026-07-10. Jadwal distribusi tunai, bukan sinyal arah harga.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-06-18T09:00:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Mixed",
+        "relevance": 92,
+        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+        "rationale": "Sectors corporate-actions API mencatat dividen ex-date 2026-06-18, dibayar 2026-07-10. Fakta jadwal distribusi, bukan sinyal arah harga."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Dividend"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-dividend-bbri",
+    "title": "BBRI dividen tunai Rp209.00 per saham",
+    "summary": "Ex-date 2026-04-21, pembayaran 2026-05-08. Jadwal distribusi tunai, bukan sinyal arah harga.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-04-21T09:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Mixed",
+        "relevance": 92,
+        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+        "rationale": "Sectors corporate-actions API mencatat dividen ex-date 2026-04-21, dibayar 2026-05-08. Fakta jadwal distribusi, bukan sinyal arah harga."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Dividend"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-dividend-adro",
+    "title": "ADRO dividen tunai Rp145.14 per saham",
+    "summary": "Ex-date 2025-12-30, pembayaran 2026-01-15. Jadwal distribusi tunai, bukan sinyal arah harga.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2025-12-30T09:00:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Mixed",
+        "relevance": 92,
+        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+        "rationale": "Sectors corporate-actions API mencatat dividen ex-date 2025-12-30, dibayar 2026-01-15. Fakta jadwal distribusi, bukan sinyal arah harga."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Dividend"
+    ]
+  },
+  {
+    "id": "commodity-coal-2025-12-15",
+    "title": "Harga Coal acuan 2025-12-15: USD100.81",
+    "summary": "Harga referensi Coal (price_usd_per_ton) bergerak 2,6% dari 2025-12-01 ke 2025-12-15, rekaman Sectors mining-commodities.",
+    "body": null,
+    "category": "commodity",
+    "sourceType": "commodity",
+    "publishedAt": "2025-12-15T00:00:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Sales of Coal (55% pendapatan ADRO) → realisasi harga → margin",
+        "rationale": "Sectors mining-commodities API mencatat harga Coal (field price_usd_per_ton) berubah 2,6% dari 2025-12-01 ke 2025-12-15. Data bulanan, rekaman terbaru mendahului jendela harian Ags-Sep 2026 aplikasi ini."
+      },
+      {
+        "symbol": "PTBA",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors mining-commodities API mencatat harga Coal (field price_usd_per_ton) berubah 2,6% dari 2025-12-01 ke 2025-12-15. Data bulanan, rekaman terbaru mendahului jendela harian Ags-Sep 2026 aplikasi ini."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Commodities"
+    ]
+  },
+  {
+    "id": "commodity-gold-2025-12-01",
+    "title": "Harga Gold acuan 2025-12-01: USD4299.97",
+    "summary": "Harga referensi Gold (price_usd_per_ton) bergerak 5,3% dari 2025-11-01 ke 2025-12-01, rekaman Sectors mining-commodities.",
+    "body": null,
+    "category": "commodity",
+    "sourceType": "commodity",
+    "publishedAt": "2025-12-01T00:00:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors mining-commodities API mencatat harga Gold (field price_usd_per_ton) berubah 5,3% dari 2025-11-01 ke 2025-12-01. Data bulanan, rekaman terbaru mendahului jendela harian Ags-Sep 2026 aplikasi ini."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Commodities"
+    ]
   }
 ];
 
@@ -5803,7 +6227,8 @@ export const eventIdsBySymbol: Record<string, string[]> = {
   "ANTM": [
     "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
     "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
-    "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri"
+    "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
+    "commodity-gold-2025-12-01"
   ],
   "INCO": [
     "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
@@ -5818,12 +6243,14 @@ export const eventIdsBySymbol: Record<string, string[]> = {
   "BBCA": [
     "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
     "news-ncana-pembagian-dividen-interim-secara-kuartalan",
-    "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9"
+    "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
+    "filing-corporate-action-dividend-bbca"
   ],
   "BBRI": [
     "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
     "news-owo-minta-semua-wni-punya-rekening-siap-jalankan",
-    "news-un-bri-tegaskan-komitmen-jaga-shareholder-return"
+    "news-un-bri-tegaskan-komitmen-jaga-shareholder-return",
+    "filing-corporate-action-dividend-bbri"
   ],
   "BMRI": [
     "news-k-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
@@ -5835,7 +6262,8 @@ export const eventIdsBySymbol: Record<string, string[]> = {
   "TLKM": [
     "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
     "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
-    "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan"
+    "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
+    "filing-corporate-action-dividend-tlkm"
   ],
   "JSMR": [
     "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
@@ -5876,12 +6304,15 @@ export const eventIdsBySymbol: Record<string, string[]> = {
   "ADRO": [
     "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
     "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
-    "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor"
+    "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
+    "filing-corporate-action-dividend-adro",
+    "commodity-coal-2025-12-15"
   ],
   "PTBA": [
     "news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
     "news-ngi-pendapatan-batu-bara-target-diversifikasi-20",
-    "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun"
+    "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun",
+    "commodity-coal-2025-12-15"
   ],
   "ICBP": [
     "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",

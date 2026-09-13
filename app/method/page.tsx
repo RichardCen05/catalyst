@@ -1,13 +1,25 @@
+import { events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
 import { IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
 
+const CATALYST_SOURCE_LABELS: Record<string, string> = {
+  sectors: "Sectors news",
+  filing: "filing",
+  macro: "makro",
+  commodity: "komoditas",
+  weather: "cuaca BMKG",
+  policy: "kebijakan",
+};
+
+const catalystInputs = Array.from(new Set(events.map((event) => event.sourceType))).map((sourceType) => CATALYST_SOURCE_LABELS[sourceType] ?? sourceType);
+
 const pillars = [
   { name: "Konsentrasi", input: "Broker summary, registry, foreign flow, free float", formula: "Top share, HHI, effective participants, float absorbed", output: "Concentrated Flow, Broad Participation, Foreign Alignment, Source Conflict" },
-  { name: "Volume", input: "Daily volume dan baseline 45 hari bursa", formula: "Median dan MAD robust z-score, lalu liquidity gate", output: "Normal, Elevated, Extreme, Insufficient Data" },
+  { name: "Volume", input: `Daily volume dan baseline ${WINDOW_SESSIONS} hari bursa`, formula: "Median dan MAD robust z-score, lalu liquidity gate", output: "Normal, Elevated, Extreme, Insufficient Data" },
   { name: "Momentum", input: "Daily close, IHSG, beta, pembanding sektor", formula: "Return 3 hari dikurangi beta × return IHSG", output: "Market-aligned, Sector-led, Idiosyncratic, Mixed" },
-  { name: "Katalis", input: "Sectors news, filing, komoditas, BI-Rate/JISDOR, kebijakan, dan cuaca BMKG", formula: "Sumber ∩ eksposur ∩ timing ∩ jalur sebab-akibat yang dapat diuji", output: "Supported, Adverse, Mixed, Unrelated, Unverified" },
+  { name: "Katalis", input: catalystInputs.join(", "), formula: "Sumber ∩ eksposur ∩ timing ∩ jalur sebab-akibat yang dapat diuji", output: "Supported, Adverse, Mixed, Unrelated, Unverified" },
 ];
 
 const stages = [

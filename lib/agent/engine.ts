@@ -315,7 +315,14 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "residual₃ᴅ = return saham₃ᴅ − β × return IHSG₃ᴅ",
         substitution: `${percent(stockReturn)} − ${fixture.beta.toFixed(2)} × ${percent(marketReturn)}`,
         result: `${percent(momentum.residual)} · ${momentum.status}; pembanding sektor ${percent(fixture.sectorReturn)}`,
-        notes: ["Return dihitung dari close tiga hari bursa.", "Beta dihitung dari kovarians return harian terhadap IHSG pada jendela rekaman dan tidak diestimasi ulang oleh chat.", "Status sektor membandingkan selisih return saham terhadap return sektor."],
+        notes: [
+          "Return dihitung dari close tiga hari bursa.",
+          "Beta dihitung dari kovarians return harian terhadap IHSG pada jendela rekaman dan tidak diestimasi ulang oleh chat.",
+          "Pembanding sektor memakai rata-rata return tertimbang market cap dari emiten subsektor yang sama.",
+          ...(fixture.subsectorContext
+            ? [`Konteks subsektor (Sectors subsector_report): ${fixture.subsectorContext.totalCompanies} emiten terdaftar, median P/E ${fixture.subsectorContext.medianPe}; sampel Catalyst ${fixture.subsectorContext.sampleCompanies} emiten. Endpoint ini tidak menyediakan data return.`]
+            : []),
+        ],
       },
     },
     {

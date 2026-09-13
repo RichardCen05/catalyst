@@ -1,18 +1,25 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useCatalystStore } from "@/lib/store";
-import type { ChatAnswer } from "@/lib/types";
+import { companies, events } from "@/lib/data/fixtures";
+import type { ChatAnswer, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { IconCaretDown, IconClose, IconCopilot, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
 
-const prompts = [
-  "Kenapa ANTM masuk daftar hari ini?",
-  "Berita nikel ini berdampak ke watchlist saya?",
-  "Bandingkan konsentrasi BBCA dan BBRI.",
-  "Data apa yang belum diperiksa?",
-];
+function buildQuickPrompts(profile: UserProfile): string[] {
+  const watchlistSymbol = profile.watchlist.find((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed)) ?? companies.find((company) => company.analyzed)?.symbol;
+  const analyzedInWatchlist = companies.filter((company) => company.analyzed && profile.watchlist.includes(company.symbol));
+  const comparePair = analyzedInWatchlist.length >= 2 ? analyzedInWatchlist : companies.filter((company) => company.analyzed);
+  const topEvent = [...events].sort((a, b) => Math.max(...b.impactLinks.map((link) => link.relevance), 0) - Math.max(...a.impactLinks.map((link) => link.relevance), 0))[0];
+  const list: string[] = [];
+  if (watchlistSymbol) list.push(`Kenapa ${watchlistSymbol} masuk daftar hari ini?`);
+  if (topEvent) list.push(`${topEvent.title} ini berdampak ke watchlist saya?`);
+  if (comparePair.length >= 2) list.push(`Bandingkan konsentrasi ${comparePair[0].symbol} dan ${comparePair[1].symbol}.`);
+  list.push("Data apa yang belum diperiksa?");
+  return list;
+}
 
 interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
 
@@ -24,6 +31,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     { id: "intro", role: "assistant", text: `Saya membaca rekaman Sectors API dengan urutan ${profile.config.pillarOrder.join(" → ")}. Tanyakan ticker, perbandingan, dampak berita/filing/kebijakan, atau data yang masih kosong.` },
   ]);
   const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
+  const prompts = useMemo(() => buildQuickPrompts(profile), [profile]);
   const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];
 
   const submit = async (question: string) => {
