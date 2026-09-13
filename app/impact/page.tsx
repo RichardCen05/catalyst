@@ -2,6 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+// TODO(Task 11): move off direct agentEngine call; use /api/analyze or /api/causal-graph POST
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";

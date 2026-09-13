@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, BookOpenCheck, BriefcaseBusiness, ClipboardCheck, ExternalLink, Search, Trash2 } from "lucide-react";
+// TODO(Task 11): move off direct agentEngine call; use /api/analyze or /api/causal-graph POST
 import { agentEngine } from "@/lib/agent/engine";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";

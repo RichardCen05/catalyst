@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Bot, Clock3, FileText, MessageSquareWarning, Radio, ShieldQuestion } from "lucide-react";
-import { agentEngine } from "@/lib/agent/engine";
+
 import { citations as fixtureCitations, companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode } from "@/lib/types";
@@ -15,7 +16,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 
 type Delta = { label: string; detail: string; tone: "new" | "conflict" | "watch" };
 
-function deltaFor(analysis: ReturnType<typeof agentEngine.analyzeCompany>): Delta {
+function deltaFor(analysis: any): Delta {
   if (!analysis) return { label: "Analisis diperbarui", detail: "", tone: "watch" };
   if (analysis.contradictions.length) {
     return { label: "Konflik sumber masih terbuka", detail: analysis.contradictions[0], tone: "conflict" };
@@ -37,12 +38,20 @@ export default function DashboardPage() {
     - feedback.filter((item) => item.symbol === symbol && (item.action === "not-useful" || item.action === "show-less")).length * 10
     + playbook.knownExposures.filter((item) => item.toUpperCase().includes(symbol)).length * 20
     + playbook.falsifiers.filter((item) => item.toUpperCase().includes(symbol)).length * 15;
-  const cases = [...profile.watchlist]
-    .filter((symbol) => caseStatuses[symbol] !== "closed")
-    .sort((first, second) => rank(second) - rank(first))
-    .map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))
-    .filter((item) => item !== null)
-    .slice(0, 4);
+  const [cases, setCases] = useState<AnalysisCase[]>([]);
+  useEffect(() => {
+    const active = [...profile.watchlist].filter((s) => caseStatuses[s] !== "closed").sort((a,b) => rank(b) - rank(a)).slice(0,4);
+    (async () => {
+      const results = await Promise.all(active.map(async (symbol) => {
+        try {
+          const res = await fetch(`/api/analyze?symbol=${symbol}&profileId=${profile.id}`);
+          const body = await res.json();
+          return body.analysis ?? null;
+        } catch { return null; }
+      }));
+      setCases(results.filter(Boolean) as AnalysisCase[]);
+    })();
+  }, [profile.id, profile.watchlist, caseStatuses]);
   const watchEvents = events
     .map((event) => ({ ...event, impactLinks: event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)) }))
     .filter((event) => event.impactLinks.length > 0)

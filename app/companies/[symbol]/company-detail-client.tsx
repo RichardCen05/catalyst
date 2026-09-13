@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Bot, ChevronDown, ChevronRight, Clock3, GitBranch, HelpCircle, TableProperties } from "lucide-react";
+// TODO(Task 11): move off direct agentEngine call; use /api/analyze or /api/causal-graph POST
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
