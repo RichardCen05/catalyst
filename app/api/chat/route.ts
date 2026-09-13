@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const parsed = chatRequestSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Pertanyaan atau profil tidak valid", details: parsed.error.flatten() }, { status: 400 });
-    const answer = agentEngine.answerFollowUp({
+    const answer = await agentEngine.answerFollowUp({
       question: parsed.data.question,
       profile: parsed.data.profile as UserProfile,
       contextSymbol: parsed.data.contextSymbol as SymbolCode | undefined,

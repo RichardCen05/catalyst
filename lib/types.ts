@@ -416,10 +416,10 @@ export interface NewsProvider {
 }
 
 export interface AgentEngine {
-  analyzeCompany(symbol: string, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null;
+  analyzeCompany(symbol: string, profile: UserProfile, context?: AnalysisContext): Promise<AnalysisCase | null>;
   mapEventImpact(eventId: string, profile: UserProfile, scope: "watchlist" | "market"): MarketEvent | null;
-  answerFollowUp(request: ChatRequest): ChatAnswer;
-  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext }): CausalGraph | null;
+  answerFollowUp(request: ChatRequest): Promise<ChatAnswer>;
+  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext }): Promise<CausalGraph | null>;
 }
 
 export interface MemoryStore {

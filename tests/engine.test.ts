@@ -3,10 +3,10 @@ import { agentEngine } from "@/lib/agent/engine";
 import { demoProfiles, events } from "@/lib/data/fixtures";
 import { isCompleteCitation } from "@/lib/agent/gates";
 
-describe("Catalyst agent engine", () => {
-  it("personalizes explanation order without changing facts or verdict", () => {
-    const flow = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
-    const catalyst = agentEngine.analyzeCompany("ANTM", demoProfiles[1]);
+describe("Catalyst agent engine", async () => {
+  it("personalizes explanation order without changing facts or verdict", async () => {
+    const flow = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const catalyst = await agentEngine.analyzeCompany("ANTM", demoProfiles[1]);
 
     expect(flow).not.toBeNull();
     expect(catalyst).not.toBeNull();
@@ -20,23 +20,23 @@ describe("Catalyst agent engine", () => {
     );
   });
 
-  it("limits event impact to the active watchlist", () => {
+  it("limits event impact to the active watchlist", async () => {
     const watched = events.find((item) => item.impactLinks.some((link) => demoProfiles[0].watchlist.includes(link.symbol)))!;
     const event = agentEngine.mapEventImpact(watched.id, demoProfiles[0], "watchlist");
     expect(event).not.toBeNull();
     expect(event?.impactLinks.every((link) => demoProfiles[0].watchlist.includes(link.symbol))).toBe(true);
   });
 
-  it("fails closed for an unknown ticker", () => {
-    expect(agentEngine.analyzeCompany("XXXX", demoProfiles[0])).toBeNull();
-    const answer = agentEngine.answerFollowUp({ question: "Jelaskan XXXX", profile: demoProfiles[0] });
+  it("fails closed for an unknown ticker", async () => {
+    expect(await agentEngine.analyzeCompany("XXXX", demoProfiles[0])).toBeNull();
+    const answer = await agentEngine.answerFollowUp({ question: "Jelaskan XXXX", profile: demoProfiles[0] });
     expect(answer.intent).toBe("unknown");
     expect(answer.text).toContain("Belum ada bukti yang cukup");
   });
 
-  it("gives every six-company metric complete citation metadata", () => {
+  it("gives every six-company metric complete citation metadata", async () => {
     for (const symbol of ["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"] as const) {
-      const analysis = agentEngine.analyzeCompany(symbol, demoProfiles[0]);
+      const analysis = await agentEngine.analyzeCompany(symbol, demoProfiles[0]);
       expect(analysis).not.toBeNull();
       expect(analysis?.pillars.flatMap((pillar) => pillar.metrics).every((metric) =>
         metric.citations.length > 0 && metric.citations.every(isCompleteCitation),
@@ -44,7 +44,7 @@ describe("Catalyst agent engine", () => {
     }
   });
 
-  it("keeps all five chat intents free of transaction instructions", () => {
+  it("keeps all five chat intents free of transaction instructions", async () => {
     const questions = [
       "Kenapa ANTM masuk daftar hari ini?",
       "Berita nikel ini berdampak ke watchlist saya?",
@@ -54,13 +54,13 @@ describe("Catalyst agent engine", () => {
     ];
     const banned = /\b(beli|jual|entry|stop\s*loss|target\s*price|take\s*profit|cuan|bandar|manipulasi)\b/i;
     for (const question of questions) {
-      const answer = agentEngine.answerFollowUp({ question, profile: demoProfiles[0] });
+      const answer = await agentEngine.answerFollowUp({ question, profile: demoProfiles[0] });
       expect(answer.text).not.toMatch(banned);
     }
   });
 
-  it("builds a cited causal chain across source, mechanism, company, and observation", () => {
-    const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+  it("builds a cited causal chain across source, mechanism, company, and observation", async () => {
+    const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
     expect(graph).not.toBeNull();
     expect(new Set(graph?.nodes.map((node) => node.kind))).toEqual(
@@ -77,8 +77,8 @@ describe("Catalyst agent engine", () => {
     )).toBe(true);
   });
 
-  it("compares several hypotheses against one business observable", () => {
-    const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+  it("compares several hypotheses against one business observable", async () => {
+    const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
     expect(graph?.targetObservable).toBe("Realized pricing");
     expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
@@ -92,8 +92,8 @@ describe("Catalyst agent engine", () => {
     expect(graph?.edges.every((edge) => edge.businessImpactDimension && edge.businessImpactImplication)).toBe(true);
   });
 
-  it("organizes company analysis as a hypothesis-driven Research Case", () => {
-    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+  it("organizes company analysis as a hypothesis-driven Research Case", async () => {
+    const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(researchCase?.caseId).toMatch(/^CASE-ANTM-/);
     expect(researchCase?.trigger.title).toBeTruthy();
@@ -107,10 +107,10 @@ describe("Catalyst agent engine", () => {
     )).toBe(true);
   });
 
-  it("replans the visible investigation when the mandate changes", () => {
-    const baseline = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+  it("replans the visible investigation when the mandate changes", async () => {
+    const baseline = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
     const mandate = "Uji apakah pelemahan rupiah menekan margin dan cash flow ANTM.";
-    const replanned = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+    const replanned = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
       mandate,
       playbook: {
         preferredComparables: { ANTM: ["INCO"] },
@@ -133,9 +133,9 @@ describe("Catalyst agent engine", () => {
     ]);
   });
 
-  it("treats a user correction as an open hypothesis without changing analysis facts", () => {
-    const before = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
-    const answer = agentEngine.answerFollowUp({
+  it("treats a user correction as an open hypothesis without changing analysis facts", async () => {
+    const before = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const answer = await agentEngine.answerFollowUp({
       question: "Kenapa ANTM masuk daftar hari ini?",
       profile: demoProfiles[0],
       userInsights: [{
@@ -149,7 +149,7 @@ describe("Catalyst agent engine", () => {
         reviewHistory: [{ status: "pending", at: "2026-09-12T10:00:00.000Z" }],
       }],
     });
-    const after = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const after = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(answer.hypotheses.some((item) => item.id === "insight-test" && item.outcome === "open")).toBe(true);
     expect(answer.preferenceNote).toContain("catatan user");
