@@ -5,8 +5,6 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, BookOpenCheck, BriefcaseBusiness, ClipboardCheck, ExternalLink, Search, Trash2 } from "lucide-react";
-// TODO(Task 11): move off direct agentEngine call; use /api/analyze or /api/causal-graph POST
-// agentEngine removed; using server routes directly
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { CaseResolution, SymbolCode, AnalysisCase } from "@/lib/types";
@@ -53,8 +51,24 @@ function ResearchCasesContent() {
     const value = query.trim().toLowerCase();
     return companies.filter((company) => !value || `${company.symbol} ${company.name} ${company.sector}`.toLowerCase().includes(value));
   }, [query]);
-  const compared = selected.map((symbol) => // @ts-ignore
-    agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], playbook })).filter((item) => item !== null);
+  const [compared, setCompared] = useState<any[]>([]);
+  useEffect(() => {
+    if (selected.length === 0) { setCompared([]); return; }
+    (async () => {
+      const results = await Promise.all(selected.map(async (symbol) => {
+        try {
+          const res = await fetch(`/api/analyze`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbol, profileId: profile.id, mandate: caseMandates[symbol], playbook }),
+          });
+          const body = await res.json();
+          return body.analysis ?? null;
+        } catch { return null; }
+      }));
+      setCompared(results.filter(Boolean));
+    })();
+  }, [selected, profile.id, caseMandates, playbook]);
   const resolutions = Object.entries(caseResolutions).filter((entry): entry is [SymbolCode, CaseResolution] => Boolean(entry[1]));
 
   const toggleCompare = (symbol: SymbolCode) => setSelected((current) => current.includes(symbol)
