@@ -6,7 +6,7 @@ import { AlertTriangle, ArrowRight, Bot, Clock3, FileText, MessageSquareWarning,
 
 import { citations as fixtureCitations, companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
-import type { SymbolCode } from "@/lib/types";
+import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { formatAsOf } from "@/lib/utils";
 import { CitationDialog } from "@/components/citation-dialog";
 import { PageHeader } from "@/components/page-header";
