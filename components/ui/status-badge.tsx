@@ -1,5 +1,6 @@
 import { IconAttention, IconConflict, IconNeutral, IconUnknown, IconVerified } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { uiLabel } from "@/lib/ui-labels";
 
 function toneFor(status: string) {
   const normalized = status.toLowerCase();

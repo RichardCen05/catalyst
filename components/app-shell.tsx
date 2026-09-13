@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, Menu, Moon, Newspaper, Sun, X } from "lucide-react";
+import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
@@ -16,10 +16,10 @@ import type { SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Today", icon: BarChart3 },
-  { href: "/cases", label: "Research Cases", icon: BriefcaseBusiness },
-  { href: "/impact", label: "Impact", icon: Newspaper },
-  { href: "/copilot", label: "Copilot", icon: Bot },
+  { href: "/", label: "Hari ini", icon: BarChart3 },
+  { href: "/cases", label: "Kasus", icon: BriefcaseBusiness },
+  { href: "/impact", label: "Sebab akibat", icon: GitBranch },
+  { href: "/copilot", label: "Asisten", icon: Bot },
 ];
 
 const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").then((mod) => mod.OnboardingWizard), { ssr: false });
@@ -45,14 +45,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh bg-background">
       <a href="#main-content" className="skip-link">Lewati navigasi</a>
-      <div className="demo-banner relative z-50 flex h-9 items-center justify-center gap-2 border-b border-border bg-surface-raised px-3 text-center"><FlaskConical aria-hidden="true" className="size-3 text-attention" /><p className="meta truncate text-attention-foreground"><strong className="font-medium">Demo Mode</strong><span aria-hidden="true" className="mx-2 opacity-50">/</span><span className="sm:hidden">Data rekaman</span><span className="hidden sm:inline">Rekaman Sectors API 11 Sep 2026, bukan kondisi pasar terkini</span></p></div>
+      <div className="demo-banner relative z-50 flex h-9 items-center justify-center gap-2 border-b border-border bg-surface-raised px-3 text-center"><FlaskConical aria-hidden="true" className="size-3 text-attention" /><p className="meta truncate text-attention-foreground"><strong className="font-medium">Mode demo</strong><span aria-hidden="true" className="mx-2 opacity-50">/</span><span className="sm:hidden">Data simulasi</span><span className="hidden sm:inline">Data simulasi, bukan kondisi pasar terkini</span></p></div>
       <div className="grid min-h-[calc(100dvh-36px)] xl:grid-cols-[236px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-[calc(100dvh-36px)] flex-col border-r border-border bg-surface px-3 py-4 xl:flex">
-          <Link href="/" className="mb-6 flex min-h-12 items-center gap-3 rounded-[6px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="editorial block text-[17px] text-foreground">Catalyst</span><span className="meta block text-muted-foreground">Change investigator</span></div></Link>
+          <Link href="/" className="mb-6 flex min-h-12 items-center gap-3 rounded-[6px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="editorial block text-[17px] text-foreground">Catalyst</span><span className="meta block text-muted-foreground">Pemeriksa perubahan</span></div></Link>
           <CommandPalette />
           <nav aria-label="Navigasi utama" className="mt-5 space-y-0.5">{nav()}</nav>
           <div className="mt-auto border-t border-border pt-3">
-            <p className="editorial mb-3 px-2 text-[15px] italic text-muted-foreground">Trace the move. Trust the evidence.</p>
+            <p className="editorial mb-3 px-2 text-[15px] italic text-muted-foreground">Lacak perubahan. Periksa buktinya.</p>
             <SettingsDrawer />
           </div>
         </aside>
@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-1">
               <Button variant="ghost" size="icon" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Ganti tema"><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" /></Button>
               <SettingsDrawer compact />
-              <Link href="/copilot" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-surface px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Bot aria-hidden="true" className="size-4" /><span className="hidden sm:inline">Tanya agent</span><span className="sr-only sm:hidden">Buka copilot</span></Link>
+              <Link href="/copilot" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-surface px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Bot aria-hidden="true" className="size-4" /><span className="hidden sm:inline">Tanya asisten</span><span className="sr-only sm:hidden">Buka asisten</span></Link>
             </div>
           </header>
           <main id="main-content" tabIndex={-1} className="min-w-0 px-4 pb-24 pt-6 focus:outline-none sm:px-7 sm:pt-8 lg:px-9 lg:pt-10 xl:pb-10">{children}</main>
@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80 backdrop-blur-[2px]" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-6 flex items-center gap-3"><CatalystLogo /><span className="editorial text-[17px]">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-0.5">{nav(() => setMobileNav(false))}</nav><div className="mt-7"><CommandPalette /></div></aside></div> : null}
-      {!copilotPage && !caseSymbol && pathname !== "/" && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya agent</Button> : null}
+      {!copilotPage && !caseSymbol && pathname !== "/" && !pathname.startsWith("/impact") && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
       {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <OnboardingWizard />
       <GuidedTour />

@@ -2,7 +2,7 @@
 
 Catalyst adalah prototype **watchlist change investigator** untuk investor discretionary event-driven IDX dan Sectors Hackathon Track 01. Ia membantu ritual pemeriksaan 10–30 saham setelah perubahan material: apa yang berubah, penjelasan mana yang paling kuat, dampak bisnis apa yang harus terlihat, dan bukti apa yang dapat membatalkannya. Enam emiten memiliki Research Case lengkap (broker summary dan laporan keuangan terekam); dua belas emiten lain tersedia sebagai coverage snapshot harga.
 
-**Trace the move. Trust the evidence.**
+**Lacak perubahan. Periksa buktinya.**
 
 Semua data pada prototype berasal dari **rekaman Sectors API** yang diambil sekali pada 11 September 2026 dan disimpan di `data/sectors/`. Tidak ada panggilan pasar langsung saat runtime, tidak ada LLM, scraping, penjadwalan, login, database, atau eksekusi transaksi.
 
@@ -25,14 +25,15 @@ Buka `http://localhost:3000`, selesaikan setup dua langkah, lalu ikuti tur inter
 
 ## Model produk
 
-- `Research Case` memuat trigger, mandate, working thesis, priority, lifecycle, empat protokol uji, causal path, kontradiksi, counter-evidence, catatan user, source plan, dan unresolved questions.
-- Perubahan mandate menyusun ulang hypothesis tree, source plan, observable contract, clarification gate, dan Business Impact Test yang terlihat di UI.
-- Setiap protokol mengungkap klaim, bukti pendukung, bukti penyangkal, kondisi insufficient, pertanyaan berikutnya, formula, input, dan citation metadata.
-- `Investor Research Playbook` menyimpan preferred comparables, materiality rules, known exposure, thesis assumptions, trusted sources, dan falsifiers yang ditulis eksplisit oleh user.
-- Priority dan ranking menyebutkan Playbook rule yang diterapkan; rule tidak mengubah fakta, formula, atau verdict bukti.
-- `Impact` membandingkan beberapa hipotesis terhadap observable yang sama. Setiap causal edge memiliki exposure, expected observable, alternative explanation, lag, confidence basis, invalidation condition, serta implikasi volume, pricing, margin, cash flow, balance sheet, atau valuation.
-- `Case Resolution` menyimpan hipotesis akhir, bukti pembatal, asumsi yang salah, dan rule yang boleh digunakan ulang.
-- Navigasi utama hanya berisi Today, Research Cases, Impact, dan Copilot. Company universe serta Compare menyatu ke Case picker; correction queue serta resolution memory menyatu ke Research Audit.
+- Hari ini menunjukkan perubahan baru, pembanding, alasan material, dan tindakan riset.
+- Kasus memisahkan ringkasan, konfirmasi pasar, dampak bisnis, dan tinjauan agar informasi tidak menumpuk.
+- Sebab akibat menjadi ruang utama untuk membandingkan penyebab dan menelusuri jalur sampai indikator bisnis.
+- Setiap hubungan memiliki eksposur, indikator yang dicari, penjelasan lain, jeda, dan kondisi pembatal.
+- Pertanyaan yang belum jelas harus ditentukan fokusnya sebelum rencana analisis dibuat.
+- Setiap kasus berakhir pada satu tindakan riset: lanjutkan riset, pantau indikator, atau abaikan pemicu.
+- Koreksi pengguna disimpan sebagai hipotesis terbuka. Koreksi tidak langsung mengubah angka atau hasil analisis.
+- Pelajaran dari kasus menjadi usulan aturan. Aturan baru dipakai setelah disetujui pengguna.
+- Navigasi utama hanya berisi Hari ini, Kasus, Sebab akibat, dan Asisten.
 
 ## Pemeriksaan
 
@@ -44,14 +45,14 @@ pnpm test:e2e
 pnpm build
 ```
 
-Unit test memeriksa kalkulator, citation gate, language gate, mandate re-planning, Business Impact Test, competing hypotheses, human insight loop, dan watchlist scoping. Playwright memeriksa tutorial, lifecycle case, Playbook trace, Case Resolution, transparansi formula, komentar koreksi, falsification contract, Copilot kontekstual, Graphite Aubergine theme, breakpoint, serta WCAG A/AA otomatis.
+Pengujian unit memeriksa kalkulator, sumber, batas bahasa, penyusunan rencana, dampak bisnis, hipotesis, koreksi pengguna, dan cakupan daftar pantau. Playwright memeriksa tur, alur kasus, transparansi rumus, peta sebab akibat, asisten, tema, ukuran layar, serta WCAG A dan AA.
 
 ## Interface
 
-- `MarketDataProvider`: company list, daily series, broker evidence, ownership, dan event perusahaan.
-- `NewsProvider`: Sectors news/filing serta fixture komoditas, makro, kebijakan, dan cuaca.
+- `MarketDataProvider`: daftar emiten, data harian, bukti broker, kepemilikan, dan peristiwa perusahaan.
+- `NewsProvider`: berita dan keterbukaan Sectors serta data simulasi komoditas, makro, kebijakan, dan cuaca.
 - `AgentEngine`: `analyzeCompany`, `mapEventImpact`, `buildCausalGraph`, dan `answerFollowUp`.
-- `MemoryStore`: profil, research mandate, case status, Case Resolution, Playbook, catatan user, preferensi penyajian, dan reset.
-- Route handler: `POST /api/analyze`, `POST /api/impact`, dan `POST /api/chat`.
+- `MemoryStore`: profil, pertanyaan riset, status kasus, hasil kasus, aturan, catatan pengguna, preferensi penyajian, dan atur ulang.
+- Jalur API: `POST /api/analyze`, `POST /api/impact`, dan `POST /api/chat`.
 
 Data live dapat dipasang kemudian dengan mengganti provider rekaman. Kalkulator, gate, tipe output, dan komponen UI tidak perlu membaca bentuk endpoint mentah.
