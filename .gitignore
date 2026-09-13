@@ -10,6 +10,12 @@ test-results/
 .DS_Store
 .vercel
 
+# Session artifacts — clean tree
+.remember/
+.remember/logs/
+.remember/tmp/
+.remember/logs/autonomous/
+
 # Secrets — never commit. .env.example is the only env file that may be tracked.
 .env
 .env.*
