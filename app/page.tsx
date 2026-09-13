@@ -87,7 +87,7 @@ export default function DashboardPage() {
         </Panel>
       </div>
 
-      <section className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="ask-agent-title"><div><h2 id="ask-agent-title" className="font-semibold">Ada perubahan yang ingin diuji?</h2><p className="mt-1 text-sm text-muted-foreground">Asisten membaca data simulasi, sumber, dan catatan dalam konteks daftar pantauan.</p></div><Link href="/copilot" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><IconCopilot aria-hidden="true" className="size-4" />Tanya asisten</Link></section>
+      <section className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="ask-agent-title"><div><h2 id="ask-agent-title" className="font-semibold">Ada perubahan yang ingin diuji?</h2><p className="mt-1 text-sm text-muted-foreground">Asisten membaca rekaman 11 Sep 2026, sumber, dan catatan dalam konteks daftar pantauan.</p></div><Link href="/copilot" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><IconCopilot aria-hidden="true" className="size-4" />Tanya asisten</Link></section>
     </div>
   );
 }

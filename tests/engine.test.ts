@@ -67,7 +67,7 @@ describe("Catalyst agent engine", async () => {
       new Set(["source", "mechanism", "company", "business-impact"]),
     );
     expect(graph?.nodes.filter((node) => node.kind === "business-impact").every((node) => node.citations.length > 0)).toBe(true);
-    expect(graph?.nodes.some((node) => node.sourceType === "weather")).toBe(true);
+    expect(graph?.nodes.some((node) => node.sourceType === "sectors")).toBe(true);
     expect(graph?.edges.length).toBeGreaterThan(4);
     expect(graph?.edges.every((edge) =>
       edge.citations.length > 0 && edge.citations.every(isCompleteCitation),

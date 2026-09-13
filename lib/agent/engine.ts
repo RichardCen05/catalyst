@@ -28,6 +28,7 @@ import type {
   UserProfile,
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
+import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { parseMandateWithLlm, type MandatePlan } from "@/lib/agent/llm/mandate";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
@@ -87,7 +88,7 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
       query: "Berita emiten, keterbukaan, aksi korporasi, data makro",
       verification: relatedEvents.length
         ? `${relatedEvents.length} peristiwa terhubung. Waktu dan jalur dampak diperiksa.`
-        : "Tidak ada peristiwa terverifikasi dalam data simulasi.",
+        : "Tidak ada peristiwa terverifikasi dalam rekaman 11 Sep 2026.",
       outcome: relatedEvents.length ? "supported" : "open",
       citations: uniqueCitations(relatedEvents.flatMap((event) => event.citations)),
     },
@@ -368,7 +369,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "HHI = Σsᵢ²; partisipan efektif = 1 / HHI; saham publik terserap = Σ nilai akumulasi / (saham publik × harga referensi)",
         substitution: `HHI = ${buyerValues.map((value) => `(${compact(value)}/${compact(buyerValues.reduce((sum, item) => sum + item, 0))})²`).join(" + ")}; saham publik = ${compact(buyerValues.reduce((sum, item) => sum + item, 0))} / (${compact(brokerEvidence.freeFloatShares)} × ${compact(brokerEvidence.referencePrice)})`,
         result: `HHI ${concentration.hhi.toFixed(3)} · ${concentration.effectiveBuyers.toFixed(1)} partisipan efektif · ${percent(concentration.floatAbsorbed, 2)} saham publik`,
-        notes: ["Porsi dihitung dari nilai sisi akumulasi pada jendela simulasi.", "Asal broker diperiksa silang dengan arus asing agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
+        notes: ["Porsi dihitung dari nilai sisi akumulasi pada jendela rekaman.", "Asal broker diperiksa silang dengan arus asing agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
       },
     },
     {
@@ -393,7 +394,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "robust z = 0,6745 × (Vₜ − median(V₄₅)) / MAD(V₄₅)",
         substitution: `0,6745 × (${compact(currentPoint.volume)} − ${compact(baselineMedian)}) / ${compact(baselineMad)}`,
         result: volume.robustZ === null ? "Data belum cukup" : `${volume.robustZ.toFixed(2)} · ${volume.status === "Normal" ? "Normal" : volume.status === "Elevated" ? "Meningkat" : "Ekstrem"}`,
-        notes: ["Pembanding memakai 44 pengamatan sebelum hari terbaru dalam data simulasi 45 hari bursa.", "Batas likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau pembanding pendek menghasilkan data belum cukup."],
+        notes: ["Pembanding memakai 44 pengamatan sebelum hari terbaru dalam rekaman 45 hari bursa.", "Batas likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau pembanding pendek menghasilkan data belum cukup."],
       },
     },
     {
@@ -402,7 +403,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       protocol: {
         claim: "Perubahan harga tidak cukup dijelaskan oleh IHSG atau pergerakan sektor pada jendela yang sama.",
         supportingEvidence: `Residual setelah penyesuaian beta ${percent(momentum.residual)}; imbal hasil saham ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
-        challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta simulasi dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : "Penjelasan pasar atau sektor masih relevan.",
+        challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta rekaman dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : "Penjelasan pasar atau sektor masih relevan.",
         insufficientWhen: "Harga penutupan, IHSG, beta, atau pembanding sektor tidak tersedia untuk jendela yang sama.",
         nextQuestion: "Apakah residual tetap terlihat pada jendela alternatif tanpa bergantung pada satu hari ekstrem?",
       },
@@ -417,7 +418,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         formula: "residual₃ᴅ = return saham₃ᴅ − β × return IHSG₃ᴅ",
         substitution: `${percent(stockReturn)} − ${fixture.beta.toFixed(2)} × ${percent(marketReturn)}`,
         result: `${percent(momentum.residual)} · ${momentum.status === "Market-aligned" ? "Mengikuti pasar" : momentum.status === "Sector-led" ? "Dipengaruhi sektor" : momentum.status === "Idiosyncratic" ? "Khusus emiten" : "Bercampur"}; pembanding sektor ${percent(fixture.sectorReturn)}`,
-        notes: ["Imbal hasil dihitung dari harga penutupan tiga hari bursa.", "Beta adalah masukan simulasi dan tidak dihitung ulang oleh asisten.", "Status sektor membandingkan selisih imbal hasil saham terhadap sektor."],
+        notes: ["Imbal hasil dihitung dari harga penutupan tiga hari bursa.", "Beta dihitung dari data rekaman dan tidak dihitung ulang oleh asisten.", "Status sektor membandingkan selisih imbal hasil saham terhadap sektor."],
       },
     },
     {
@@ -428,7 +429,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       protocol: {
         claim: "Pemicu mendahului perubahan dan memiliki jalur eksposur emiten yang dapat diuji.",
         supportingEvidence: primaryEvent ? `${relatedEvents.length} masukan terhubung; jalur utama ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "belum lengkap"}.` : "Belum ada masukan terhubung.",
-        challengingEvidence: primaryEvent ? "Waktu dan jalur eksposur belum membuktikan sebab akibat tanpa indikator operasional berikutnya." : "Tidak ada pemicu terverifikasi dalam data simulasi.",
+        challengingEvidence: primaryEvent ? "Waktu dan jalur eksposur belum membuktikan sebab akibat tanpa indikator operasional berikutnya." : "Tidak ada pemicu terverifikasi dalam rekaman 11 Sep 2026.",
         insufficientWhen: "Sumber, waktu publikasi, eksposur emiten, atau indikator yang diharapkan tidak dapat diperiksa.",
         nextQuestion: "Indikator operasional atau keuangan apa yang harus muncul, dan kapan, bila jalur ini benar?",
       },
@@ -459,7 +460,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     ? "Konfirmasi pasar dan dampak bisnis memberi bukti yang saling menguatkan pada jendela pengamatan."
     : evidenceState === "Mixed Evidence"
       ? "Dua lapisan bukti tidak seluruhnya searah; konflik ditampilkan tanpa dipaksa menjadi satu skor."
-      : "Data simulasi belum cukup untuk menghubungkan perilaku pasar dengan dampak bisnis.";
+      : "Data rekaman 11 Sep 2026 belum cukup untuk menghubungkan perilaku pasar dengan dampak bisnis.";
   assertSafeOutput(thesis);
   const hypotheses = createTrace(symbol, pillars, relatedEvents);
   const sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
@@ -513,7 +514,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     userNotes: [],
     unresolvedQuestions: [
       ...ordered.map((pillar) => pillar.protocol.nextQuestion),
-      "Apakah ada perubahan penting pada eksposur emiten yang belum tercakup data simulasi?",
+      "Apakah ada perubahan penting pada eksposur emiten yang belum tercakup rekaman 11 Sep 2026?",
     ],
     nextResearchActions: [
       "Periksa indikator yang diharapkan pada keterbukaan atau data keuangan berikutnya.",
@@ -543,7 +544,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     missingEvidence: [
       "Data dalam hari perdagangan dan antrean pesanan tidak tersedia.",
       "Transaksi pihak terafiliasi belum diidentifikasi.",
-      "Data simulasi tidak memuat detail kontrak atau lindung nilai emiten.",
+      "Rekaman 11 Sep 2026 tidak memuat detail kontrak atau lindung nilai emiten.",
     ],
     priceSeries: series,
     financialContext: fixture.financialContext,
@@ -612,6 +613,28 @@ function preferenceNote(request: ChatRequest, symbol: SymbolCode | undefined, in
   return `Urutan dimulai dari ${pillarName}. Profil ${profile.name} memilih kedalaman ${depthName}.${comparables ? ` Pembanding pilihan: ${comparables}.` : ""}${explicitRules}${mandate} Fakta dan ambang tidak berubah.${collaboration}`;
 }
 
+const LLM_ANSWER_TIMEOUT_MS = 20_000;
+
+/**
+ * Tulis ulang jawaban deterministik dengan Gemini bila mode LLM aktif.
+ * Angka yang boleh muncul hanya yang sudah ada di teks deterministik —
+ * verifier menolak angka baru, timeout/gagal selalu jatuh ke teks asli.
+ * Penolakan saran transaksi tidak pernah ditulis ulang.
+ */
+async function rewriteWithLlm(question: string, deterministicText: string): Promise<string> {
+  if (agentMode() !== "llm") return deterministicText;
+  try {
+    const evidenceNumbers = [...new Set(deterministicText.match(/-?\d[\d.,]*%?/g) ?? [])];
+    const draft = await Promise.race([
+      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
+    ]);
+    return draft.text;
+  } catch {
+    return deterministicText;
+  }
+}
+
 async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const guarded = safeLanguage(request.question);
   const symbols = findSymbols(request.question);
@@ -639,7 +662,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
         const firstCatalyst = first.pillars.find((pillar) => pillar.key === "catalyst")!;
         const secondCatalyst = second.pillars.find((pillar) => pillar.key === "catalyst")!;
         return {
-          text: `${symbols[0]} menguji dampak ke ${firstImpact.label.toLowerCase()} dengan status katalis ${firstCatalyst.summary}. Tindakan risetnya ${first.researchDisposition.label.toLowerCase()}. ${symbols[1]} menguji dampak ke ${secondImpact.label.toLowerCase()} dengan status katalis ${secondCatalyst.summary}. Tindakan risetnya ${second.researchDisposition.label.toLowerCase()}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`,
+          text: await rewriteWithLlm(request.question, `${symbols[0]} menguji dampak ke ${firstImpact.label.toLowerCase()} dengan status katalis ${firstCatalyst.summary}. Tindakan risetnya ${first.researchDisposition.label.toLowerCase()}. ${symbols[1]} menguji dampak ke ${secondImpact.label.toLowerCase()} dengan status katalis ${secondCatalyst.summary}. Tindakan risetnya ${second.researchDisposition.label.toLowerCase()}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`),
           refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
           citations: uniqueCitations([...firstCatalyst.citations, ...secondCatalyst.citations, ...firstImpact.citations, ...secondImpact.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
         };
@@ -647,7 +670,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       const firstPillar = first.pillars.find((pillar) => pillar.key === "concentration")!;
       const secondPillar = second.pillars.find((pillar) => pillar.key === "concentration")!;
       return {
-        text: `${symbols[0]} memiliki ${firstPillar.summary} ${symbols[1]} memiliki ${secondPillar.summary} Konflik sumber tetap ditampilkan bila asal broker dan arus asing agregat berbeda.`,
+        text: await rewriteWithLlm(request.question, `${symbols[0]} memiliki ${firstPillar.summary} ${symbols[1]} memiliki ${secondPillar.summary} Konflik sumber tetap ditampilkan bila asal broker dan arus asing agregat berbeda.`),
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
         citations: uniqueCitations([...firstPillar.citations, ...secondPillar.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
       };
@@ -661,25 +684,25 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     const direction = (value: ImpactDirection) => value === "Supported" ? "Mendukung" : value === "Adverse" ? "Berlawanan" : value === "Mixed" ? "Bercampur" : value === "Unrelated" ? "Tidak terkait" : "Belum terverifikasi";
     const text = scoped.length
       ? scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")
-      : "Peristiwa tersebut tidak memiliki jalur dampak ke saham pantauan aktif pada data simulasi ini.";
-    return { text, refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
+      : "Peristiwa tersebut tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.";
+    return { text: await rewriteWithLlm(request.question, text), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
   if (question.includes("belum") || question.includes("data apa") || question.includes("tidak diperiksa")) {
     return {
-      text: analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.",
+      text: await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe."),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
   if (analysis && (question.includes("kenapa") || question.includes("daftar") || primary)) {
     return {
-      text: `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`,
+      text: await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
 
-  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari data simulasi Catalyst.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
+  return { text: "Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari rekaman Catalyst 11 Sep 2026.", refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
 }
 
 
@@ -762,7 +785,7 @@ async function buildCausalGraph(
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
       sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,
       basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
-      counterEvidence: "Nilai ini berasal dari data simulasi. Kejadian, waktu, dan cakupan produksi masih perlu diperiksa pada sumber langsung.", citations: event.citations,
+      counterEvidence: "Nilai ini berasal dari rekaman 11 Sep 2026. Kejadian, waktu, dan cakupan produksi masih perlu diperiksa pada sumber langsung.", citations: event.citations,
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}`,

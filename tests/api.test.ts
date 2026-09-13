@@ -29,7 +29,11 @@ describe("public route handlers", () => {
     const response = await impact(request("/api/impact", { eventId: watched.id, profile: demoProfiles[0], scope: "watchlist" }));
     const body = await response.json();
     expect(response.status).toBe(200);
-    expect(body.event.impactLinks.map((link: { symbol: string }) => link.symbol)).toEqual(["ANTM", "INCO", "TINS"]);
+    const expected = watched.impactLinks
+      .filter((link) => demoProfiles[0].watchlist.includes(link.symbol))
+      .sort((a, b) => b.relevance - a.relevance)
+      .map((link) => link.symbol);
+    expect(body.event.impactLinks.map((link: { symbol: string }) => link.symbol)).toEqual(expected);
   });
 
   it("refuses an advisory prompt without echoing its transaction term", async () => {

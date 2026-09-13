@@ -109,7 +109,7 @@ test("Hari ini memprioritaskan perubahan tanpa informasi berlebih", async ({ pag
   await expect(page.getByRole("heading", { name: "Perubahan yang perlu diperiksa" })).toBeVisible();
   await expect(page.getByText("Emiten fixture")).toHaveCount(0);
   await expect(page.getByText("Kesehatan asisten")).toHaveCount(0);
-  await expect(page.getByText(/Harga nikel acuan berbalik naik/).first()).toBeVisible();
+  await expect(page.getByText(/Kereta Cepat/).first()).toBeVisible();
   await expect(page.getByText("Pembanding", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Alasan", { exact: true }).first()).toBeVisible();
 });
@@ -319,13 +319,13 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
 test("causal map exposes multiple sources and copilot answers through the API", async ({ page }) => {
   await finishSetup(page);
   await resolveDefaultClarification(page);
-  await page.goto("/impact?company=ANTM&event=evt-nickel");
+  await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("region", { name: /Hipotesis untuk/ })).toBeVisible();
-  await expect(page.getByText(/Curah hujan tinggi diuji/).first()).toBeVisible();
+  await expect(page.getByText(/Rp 50 trillion/).first()).toBeVisible();
   await page.getByRole("link", { name: "Asisten", exact: true }).click();
-  await page.getByLabel("Tanya Catalyst").fill("Berita nikel ini berdampak ke daftar pantauan saya?");
+  await page.getByLabel("Tanya Catalyst").fill("Kenapa ANTM masuk daftar hari ini?");
   await page.getByLabel("Tanya Catalyst").press("Enter");
-  await expect(page.getByText(/ANTM: Mendukung/)).toBeVisible();
+  await expect(page.getByText(/ANTM masuk karena/).first()).toBeVisible();
 });
 
 test("causal map labels hypotheses, confidence, lag, and counter-evidence", async ({ page }) => {

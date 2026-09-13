@@ -54,7 +54,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     <div role={dismissible ? "dialog" : undefined} aria-label={dismissible ? "Asisten Catalyst" : undefined} className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
         <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
-        <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Asisten Catalyst</p><p className="truncate font-mono text-[11px] text-muted-foreground">Data simulasi · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
+        <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Asisten Catalyst</p><p className="truncate font-mono text-[11px] text-muted-foreground">Rekaman 11 Sep · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup asisten"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
       </div>
       <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><IconGate aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
