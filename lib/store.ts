@@ -202,6 +202,20 @@ export const useCatalystStore = create<CatalystState>()(
     {
       name: "catalyst:v1",
       version: 2,
+      migrate: (persisted) => {
+        if (!persisted || typeof persisted !== "object") return persisted as CatalystState;
+        const stored = persisted as Partial<CatalystState>;
+        return {
+          ...stored,
+          caseMandates: stored.caseMandates ?? {},
+          caseClarifications: stored.caseClarifications ?? {},
+          caseStatuses: stored.caseStatuses ?? {},
+          caseResolutions: stored.caseResolutions ?? {},
+          ruleProposals: stored.ruleProposals ?? [],
+          insights: stored.insights ?? [],
+          feedback: stored.feedback ?? [],
+        } as CatalystState;
+      },
       merge: (persisted, current) => {
         const stored = persisted as Partial<CatalystState>;
         return {

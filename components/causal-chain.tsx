@@ -19,7 +19,11 @@ import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { SourceText } from "@/components/source-text";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { IconCompanies, IconDocument, IconGauge, IconGraph, IconPolicy, IconSource, IconWeather } from "@/components/ui/icons";
 import { uiLabel } from "@/lib/ui-labels";
+
+const NODE_WIDTH = 210;
+const NODE_HEIGHT = 96;
 
 type ChainNodeData = { causal: CausalNode; onSelect: (id: string) => void };
 type ChainFlowNode = Node<ChainNodeData, "chain">;
@@ -45,7 +49,7 @@ const kindLabels: Record<CausalNode["kind"], string> = {
 
 function ChainNode({ data }: NodeProps<ChainFlowNode>) {
   const node = data.causal;
-  const Icon = node.kind === "company" ? Building2 : node.kind === "mechanism" ? Network : sourceIcons[node.sourceType ?? "market"];
+  const Icon = node.kind === "company" ? IconCompanies : node.kind === "mechanism" ? IconGraph : sourceIcons[node.sourceType ?? "market"];
   const terminal = node.kind === "observation" || node.kind === "business-impact";
   return (
     <div className={`w-[210px] rounded-xl border bg-surface shadow-panel ${node.kind === "company" ? "border-primary ring-2 ring-primary/15" : node.kind === "source" ? "border-attention/40" : "border-border"}`}>
@@ -93,14 +97,14 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       return {
         id: node.id,
         type: "chain" as const,
-        position: { x: position.x - NODE_WIDTH / 2, y: position.y - NODE_HEIGHT / 2 },
+        position: { x: x[kind] - NODE_WIDTH / 2, y: centeredY - NODE_HEIGHT / 2 },
         data: { causal: node, onSelect: (id) => { setSelectedId(id); setSelectedEdgeId(null); } },
         draggable: false,
         connectable: false,
         focusable: false,
         ariaLabel: `${uiLabel(node.kind)}: ${node.label}`,
       };
-    });
+    }));
     const flowEdges: Edge[] = graph.edges.map((edge) => ({
       id: edge.id,
       source: edge.from,

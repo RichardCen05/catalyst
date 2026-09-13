@@ -2,7 +2,7 @@ import { events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
-import { IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
+import { IconAttention, IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
 
 const CATALYST_SOURCE_LABELS: Record<string, string> = {
   sectors: "Sectors news",
@@ -35,20 +35,20 @@ export default function MethodPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Panel><PanelHeader eyebrow="Alur analisis" title="Enam tahap pemeriksaan" /><ol className="divide-y divide-border px-4">{["Batasi emiten yang diperiksa.", "Susun beberapa hipotesis.", "Pilih data yang diperlukan.", "Hitung metrik dari data.", "Periksa konflik dan kelengkapan sumber.", "Ringkas bukti, batas, dan tindakan riset."].map((item, index) => <li key={item} className="flex gap-3 py-3 text-sm leading-6"><span className="font-mono text-xs text-primary">{String(index + 1).padStart(2, "0")}</span><span>{item}</span></li>)}</ol></Panel>
         <div className="space-y-4">
-          <Panel><PanelHeader eyebrow="Kontrak data" title="Pemeriksaan sumber" /><div className="p-4"><div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/8 p-3"><Database aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-6">Setiap angka membawa penyedia, lokasi data, nama data, dan waktu sumber. Tautan simulasi tidak dianggap sebagai bukti peristiwa nyata.</p></div><pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] leading-5 text-muted-foreground"><code>{`{ penyedia, lokasi, data, waktu, tautan }`}</code></pre></div></Panel>
-          <Panel><PanelHeader eyebrow="Kolaborasi manusia" title="Belajar hanya setelah disetujui" /><div className="space-y-3 p-4">{["Koreksi Anda disimpan sebagai hipotesis terbuka", "Catatan dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau rumus", "Hasil kasus membuat usulan aturan", "Anda menerima atau menolak usulan"].map((item) => <div key={item} className="flex items-center gap-2 text-sm"><CheckCircle2 aria-hidden="true" className="size-4 text-positive" />{item}</div>)}</div></Panel>
+          <Panel><PanelHeader eyebrow="Kontrak data" title="Pemeriksaan sumber" /><div className="p-4"><div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/8 p-3"><IconSource aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-6">Setiap angka membawa penyedia, lokasi data, nama data, dan waktu sumber. Tautan simulasi tidak dianggap sebagai bukti peristiwa nyata.</p></div><pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] leading-5 text-muted-foreground"><code>{`{ penyedia, lokasi, data, waktu, tautan }`}</code></pre></div></Panel>
+          <Panel><PanelHeader eyebrow="Kolaborasi manusia" title="Belajar hanya setelah disetujui" /><div className="space-y-3 p-4">{["Koreksi Anda disimpan sebagai hipotesis terbuka", "Catatan dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau rumus", "Hasil kasus membuat usulan aturan", "Anda menerima atau menolak usulan"].map((item) => <div key={item} className="flex items-center gap-2 text-sm"><IconVerified aria-hidden="true" className="size-4 text-positive" />{item}</div>)}</div></Panel>
         </div>
       </div>
 
       <Panel className="mt-4">
         <PanelHeader eyebrow="Batas yang diketahui" title="Faktor yang belum diperiksa" />
         <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">{[
-          { icon: Braces, title: "Data statis", text: "Belum ada panggilan Sectors API, model bahasa, pengambilan web, atau jadwal otomatis." },
-          { icon: FileWarning, title: "Tanpa data intrahari", text: "Grafik memakai harga penutupan dan volume harian. Antrean transaksi tidak tersedia." },
-          { icon: Scale, title: "Tanpa motif", text: "Kode broker ditampilkan sebagai fakta transaksi, bukan atribusi niat." },
-          { icon: AlertTriangle, title: "Tanpa aksi", text: "Hasil berhenti pada bukti, konflik, dan informasi yang belum ada." },
+          { icon: IconCode, title: "Data statis", text: "Belum ada panggilan Sectors API, model bahasa, pengambilan web, atau jadwal otomatis." },
+          { icon: IconAttention, title: "Tanpa data intrahari", text: "Grafik memakai harga penutupan dan volume harian. Antrean transaksi tidak tersedia." },
+          { icon: IconScales, title: "Tanpa motif", text: "Kode broker ditampilkan sebagai fakta transaksi, bukan atribusi niat." },
+          { icon: IconAttention, title: "Tanpa aksi", text: "Hasil berhenti pada bukti, konflik, dan informasi yang belum ada." },
         ].map((item) => <article key={item.title} className="bg-surface p-4"><item.icon aria-hidden="true" className="size-5 text-attention" /><h3 className="mt-3 font-semibold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p></article>)}</div>
-        <div className="flex gap-3 border-t border-border bg-background p-4"><ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data bersifat simulasi dan bukan kondisi pasar terkini. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
+        <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data bersifat simulasi dan bukan kondisi pasar terkini. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
       </Panel>
     </div>
   );

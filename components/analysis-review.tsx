@@ -54,7 +54,7 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
       <PanelHeader title="Koreksi analisis ini" />
       <div className="p-4">
         <div className="flex gap-2 rounded-lg border border-primary/20 bg-primary/7 p-3 text-xs leading-5 text-muted-foreground">
-          <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+          <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
           <p>Catatan Anda menjadi hipotesis terbuka. Koreksi tidak mengubah angka, rumus, sumber, atau hasil bukti sebelum diperiksa.</p>
         </div>
         <form onSubmit={submit} className="mt-4 space-y-3">

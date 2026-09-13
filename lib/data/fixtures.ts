@@ -15,11 +15,16 @@ import {
 } from "@/lib/data/market.generated";
 import { locate } from "@/lib/agent/citations";
 import type {
+  BrokerEvidence,
   Citation,
   Company,
   CompanyAnalysisFixture,
   FinancialInput,
+  ImpactDirection,
+  ImpactLink,
   MarketEvent,
+  PricePoint,
+  Sector,
   SymbolCode,
   UserProfile,
 } from "@/lib/types";
@@ -80,6 +85,18 @@ export const citations = {
   },
 };
 
+function impact(
+  symbol: SymbolCode,
+  direction: ImpactDirection,
+  relevance: number,
+  path: string,
+  rationale: string,
+  eventId: string,
+  _verified?: boolean,
+): ImpactLink {
+  return { symbol, direction, relevance, path, rationale, citations: [citations.external(eventId)] };
+}
+
 type CompanySeed = [SymbolCode, string, Sector, string, number, number, number, boolean, Company["evidenceState"], string];
 
 const companySeeds: CompanySeed[] = [
@@ -113,7 +130,7 @@ export const events: MarketEvent[] = [
   {
     id: "evt-nickel",
     title: "Harga nikel acuan berbalik naik dalam data simulasi",
-    summary: "Perubahan harga komoditas diuji terhadap produsen nikel dan emiten dengan rantai pasok terkait.",
+    summary: "Perubahan harga komoditas diuji terhadap produsen nikel dan emiten dengan rantai pasok terkait.", body: "Perubahan harga komoditas diuji terhadap produsen nikel dan emiten dengan rantai pasok terkait. Data simulasi mencatat harga acuan nikel, volume perdagangan, dan respons emiten pada jendela yang sama.",
     category: "commodity", sourceType: "commodity", publishedAt: "2026-09-11T09:20:00+07:00", asOf: DATA_AS_OF, sector: "Basic Materials",
     impactLinks: [
       impact("ANTM", "Supported", 94, "Harga nikel → potensi realisasi harga → arus kas operasi", "Eksposur komoditas langsung dan gerak mendahului penutupan.", "evt-nickel", true),
@@ -124,7 +141,7 @@ export const events: MarketEvent[] = [
   {
     id: "evt-tin",
     title: "Harga timah acuan melemah setelah kenaikan persediaan",
-    summary: "Data simulasi komoditas menguji hubungan harga timah ke realisasi harga, volume penjualan, dan margin produsen.",
+    summary: "Data simulasi komoditas menguji hubungan harga timah ke realisasi harga, volume penjualan, dan margin produsen.", body: "Data simulasi komoditas menguji hubungan harga timah ke realisasi harga, volume penjualan, dan margin produsen. Data simulasi mencatat harga acuan timah dan persediaan pada jendela yang sama.",
     category: "commodity", sourceType: "commodity", publishedAt: "2026-09-10T15:40:00+07:00", asOf: DATA_AS_OF, sector: "Basic Materials",
     impactLinks: [
       impact("TINS", "Adverse", 93, "Harga timah → realisasi harga → margin", "Eksposur komoditas langsung. Jeda persediaan dan bauran kontrak masih perlu diperiksa.", "evt-tin", true),
@@ -132,7 +149,7 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-tin")],
   },
   {
-    id: "evt-rate", title: "Skenario suku bunga acuan dipertahankan", summary: "Data simulasi menguji biaya dana, pertumbuhan kredit, dan valuasi sektor bank.",
+    id: "evt-rate", title: "Skenario suku bunga acuan dipertahankan", summary: "Data simulasi menguji biaya dana, pertumbuhan kredit, dan valuasi sektor bank.", body: "Data simulasi menguji biaya dana, pertumbuhan kredit, dan valuasi sektor bank. Skenario simulasi mencatat suku bunga acuan dan respons margin bank pada periode yang sama.",
     category: "rates", sourceType: "macro", publishedAt: "2026-09-10T14:05:00+07:00", asOf: DATA_AS_OF, sector: "Financials",
     impactLinks: [
       impact("BBCA", "Mixed", 82, "Suku bunga → biaya dana dan imbal hasil aset → margin bunga", "Dampak pada margin dan permintaan kredit bergerak melalui jalur berbeda.", "evt-rate", true),
@@ -141,7 +158,7 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-rate")],
   },
   {
-    id: "evt-rupiah", title: "Rupiah melemah terhadap dolar pada skenario makro", summary: "Dampak dipetakan melalui bahan baku impor, pendapatan dolar, dan kewajiban valuta asing.",
+    id: "evt-rupiah", title: "Rupiah melemah terhadap dolar pada skenario makro", summary: "Dampak dipetakan melalui bahan baku impor, pendapatan dolar, dan kewajiban valuta asing.", body: "Dampak dipetakan melalui bahan baku impor, pendapatan dolar, dan kewajiban valuta asing. Data simulasi mencatat nilai tukar rupiah dan eksposur emiten pada jendela yang sama.",
     category: "currency", sourceType: "macro", publishedAt: "2026-09-10T10:30:00+07:00", asOf: DATA_AS_OF, sector: "Market",
     impactLinks: [
       impact("ICBP", "Adverse", 88, "Rupiah → bahan baku impor → biaya produksi", "Jalur biaya langsung; tingkat lindung nilai belum diperiksa.", "evt-rupiah", true),
@@ -150,12 +167,12 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-rupiah")],
   },
   {
-    id: "evt-antm-filing", title: "ANTM memublikasikan pembaruan operasi kuartalan", summary: "Keterbukaan simulasi mencatat pertumbuhan volume penjualan pada lini logam utama.",
+    id: "evt-antm-filing", title: "ANTM memublikasikan pembaruan operasi kuartalan", summary: "Keterbukaan simulasi mencatat pertumbuhan volume penjualan pada lini logam utama.", body: "Keterbukaan simulasi mencatat pertumbuhan volume penjualan pada lini logam utama. Dokumen simulasi merinci volume, realisasi harga, dan utilisasi aset kuartalan.",
     category: "company", sourceType: "filing", publishedAt: "2026-09-09T18:10:00+07:00", asOf: DATA_AS_OF, sector: "Basic Materials",
     impactLinks: [impact("ANTM", "Supported", 96, "Volume penjualan → pendapatan → utilisasi aset", "Peristiwa perusahaan spesifik dan dapat diuji terhadap volume pasar.", "evt-antm-filing")], citations: [citations.news("evt-antm-filing")],
   },
   {
-    id: "evt-bank-liquidity", title: "Likuiditas perbankan menjadi fokus laporan sektor", summary: "Berita sektor simulasi memuat pertumbuhan dana murah dan biaya dana.",
+    id: "evt-bank-liquidity", title: "Likuiditas perbankan menjadi fokus laporan sektor", summary: "Berita sektor simulasi memuat pertumbuhan dana murah dan biaya dana.", body: "Berita sektor simulasi memuat pertumbuhan dana murah dan biaya dana. Laporan simulasi mencatat dana pihak ketiga dan margin bunga bank pada periode yang sama.",
     category: "company", sourceType: "sectors", publishedAt: "2026-09-09T11:00:00+07:00", asOf: DATA_AS_OF, sector: "Financials",
     impactLinks: [
       impact("BBCA", "Supported", 86, "Dana murah → biaya dana → margin bunga", "Struktur pendanaan selaras dengan faktor margin.", "evt-bank-liquidity"),
@@ -163,7 +180,7 @@ export const events: MarketEvent[] = [
     ], citations: [citations.news("evt-bank-liquidity")],
   },
   {
-    id: "evt-spectrum", title: "Alokasi spektrum baru masuk tahap evaluasi", summary: "Data simulasi kebijakan menguji kapasitas jaringan, belanja modal, dan kualitas layanan.",
+    id: "evt-spectrum", title: "Alokasi spektrum baru masuk tahap evaluasi", summary: "Data simulasi kebijakan menguji kapasitas jaringan, belanja modal, dan kualitas layanan.", body: "Data simulasi kebijakan menguji kapasitas jaringan, belanja modal, dan kualitas layanan. Dokumen simulasi mencatat tahapan evaluasi dan kebutuhan belanja modal operator.",
     category: "policy", sourceType: "policy", publishedAt: "2026-09-08T16:40:00+07:00", asOf: DATA_AS_OF, sector: "Infrastructure",
     impactLinks: [
       impact("TLKM", "Mixed", 88, "Spektrum → kapasitas dan belanja modal → kualitas jaringan", "Kapasitas mendukung layanan. Biaya lisensi belum tersedia.", "evt-spectrum", true),
@@ -171,12 +188,12 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-spectrum")],
   },
   {
-    id: "evt-gas", title: "Penyesuaian kebijakan harga gas industri diuji", summary: "Data simulasi kebijakan memetakan volume distribusi, selisih harga, dan permintaan industri.",
+    id: "evt-gas", title: "Penyesuaian kebijakan harga gas industri diuji", summary: "Data simulasi kebijakan memetakan volume distribusi, selisih harga, dan permintaan industri.", body: "Data simulasi kebijakan memetakan volume distribusi, selisih harga, dan permintaan industri. Dokumen simulasi mencatat formula harga dan volume penyaluran pada periode yang sama.",
     category: "policy", sourceType: "policy", publishedAt: "2026-09-08T08:45:00+07:00", asOf: DATA_AS_OF, sector: "Energy",
     impactLinks: [impact("PGAS", "Supported", 92, "Harga gas → selisih distribusi → arus kas operasi", "Jalur langsung ada. Rincian formula harga belum tersedia.", "evt-gas", true)], citations: [citations.external("evt-gas")],
   },
   {
-    id: "evt-tech", title: "Aturan biaya layanan digital masuk konsultasi", summary: "Data simulasi regulasi menguji tingkat pendapatan, biaya kepatuhan, dan perilaku pedagang.",
+    id: "evt-tech", title: "Aturan biaya layanan digital masuk konsultasi", summary: "Data simulasi regulasi menguji tingkat pendapatan, biaya kepatuhan, dan perilaku pedagang.", body: "Data simulasi regulasi menguji tingkat pendapatan, biaya kepatuhan, dan perilaku pedagang. Dokumen simulasi mencatat usulan biaya layanan dan respons platform pada masa konsultasi.",
     category: "policy", sourceType: "policy", publishedAt: "2026-09-07T13:00:00+07:00", asOf: DATA_AS_OF, sector: "Technology",
     impactLinks: [
       impact("GOTO", "Adverse", 89, "Biaya layanan → tingkat pendapatan → margin kontribusi", "Risiko regulasi terhubung langsung ke monetisasi.", "evt-tech", true),
@@ -184,7 +201,7 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-tech")],
   },
   {
-    id: "evt-coal", title: "Harga batu bara melemah pada skenario komoditas", summary: "Data simulasi makro menilai realisasi harga, royalti, dan bauran volume produsen.",
+    id: "evt-coal", title: "Harga batu bara melemah pada skenario komoditas", summary: "Data simulasi makro menilai realisasi harga, royalti, dan bauran volume produsen.", body: "Data simulasi makro menilai realisasi harga, royalti, dan bauran volume produsen. Data simulasi mencatat harga acuan batu bara dan bauran kontrak domestik pada jendela yang sama.",
     category: "commodity", sourceType: "commodity", publishedAt: "2026-09-06T19:25:00+07:00", asOf: DATA_AS_OF, sector: "Energy",
     impactLinks: [
       impact("ADRO", "Adverse", 91, "Harga batu bara → realisasi harga → margin", "Eksposur harga langsung ada pada bisnis komoditas.", "evt-coal", true),
@@ -192,7 +209,7 @@ export const events: MarketEvent[] = [
     ], citations: [citations.external("evt-coal")],
   },
   {
-    id: "evt-consumer", title: "Curah hujan tinggi diuji pada koridor operasi dan distribusi", summary: "Data simulasi cuaca BMKG menguji gangguan logistik, kunjungan toko, distribusi produk, dan jam operasi tambang. Lokasi aset harus dipetakan sebelum hubungan dianggap kuat.",
+    id: "evt-consumer", title: "Curah hujan tinggi diuji pada koridor operasi dan distribusi", summary: "Data simulasi cuaca BMKG menguji gangguan logistik, kunjungan toko, distribusi produk, dan jam operasi tambang. Lokasi aset harus dipetakan sebelum hubungan dianggap kuat.", body: "Data simulasi cuaca BMKG menguji gangguan logistik, kunjungan toko, distribusi produk, dan jam operasi tambang. Lokasi aset harus dipetakan sebelum hubungan dianggap kuat. Data simulasi mencatat curah hujan dan wilayah terdampak pada periode yang sama.",
     category: "weather", sourceType: "weather", publishedAt: "2026-09-05T09:15:00+07:00", asOf: DATA_AS_OF, sector: "Market",
     impactLinks: [
       impact("AMRT", "Mixed", 81, "Curah hujan → akses gerai dan kunjungan → penjualan toko", "Jalur masuk akal, tetapi pencocokan gerai terhadap wilayah prakiraan belum lengkap.", "evt-consumer", true),

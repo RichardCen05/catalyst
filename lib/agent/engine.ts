@@ -220,7 +220,7 @@ async function llmMandatePlan(symbol: SymbolCode, mandate: string): Promise<Mand
   }
 }
 
-async function createResearchPlan(
+function createResearchPlan(
   symbol: SymbolCode,
   mandate: string,
   pillars: PillarResult[],

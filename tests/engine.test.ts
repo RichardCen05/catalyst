@@ -59,8 +59,8 @@ describe("Catalyst agent engine", async () => {
     }
   });
 
-  it("builds a cited causal chain that terminates in a business outcome", () => {
-    const graph = agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+  it("builds a cited causal chain that terminates in a business outcome", async () => {
+    const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
     expect(graph).not.toBeNull();
     expect(new Set(graph?.nodes.map((node) => node.kind))).toEqual(
@@ -108,8 +108,8 @@ describe("Catalyst agent engine", async () => {
     )).toBe(true);
   });
 
-  it("turns every detected change into an explicit contract and research disposition", () => {
-    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+  it("turns every detected change into an explicit contract and research disposition", async () => {
+    const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(researchCase?.materialChange.whatChanged).toContain("ANTM");
     expect(researchCase?.materialChange.baseline).toMatch(/45 hari|sektor/i);
@@ -121,15 +121,15 @@ describe("Catalyst agent engine", async () => {
     expect(researchCase?.researchDisposition.reopenWhen).toBeTruthy();
   });
 
-  it("blocks an ambiguous mandate until the user chooses a clarification branch", () => {
-    const ambiguous = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+  it("blocks an ambiguous mandate until the user chooses a clarification branch", async () => {
+    const ambiguous = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
       mandate: "Cari tahu apa yang terjadi pada ANTM.",
     });
     expect(ambiguous?.clarification.required).toBe(true);
     expect(ambiguous?.clarification.options).toHaveLength(2);
     expect(ambiguous?.lifecycle.find((item) => item.key === "decompose")?.state).toBe("blocked");
 
-    const resolved = agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+    const resolved = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
       mandate: "Cari tahu apa yang terjadi pada ANTM.",
       clarificationChoice: "pricing",
     });
@@ -138,8 +138,8 @@ describe("Catalyst agent engine", async () => {
     expect(resolved?.researchPlan.focus).toBe("pricing");
   });
 
-  it("organizes evidence into market confirmation and business transmission", () => {
-    const researchCase = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+  it("organizes evidence into market confirmation and business transmission", async () => {
+    const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(researchCase?.evidenceLayers).toEqual([
       expect.objectContaining({ key: "market-confirmation", pillarKeys: ["concentration", "volume", "momentum"] }),
@@ -148,8 +148,8 @@ describe("Catalyst agent engine", async () => {
     expect(demoProfiles[0].watchlist).toEqual(["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]);
   });
 
-  it("replans the visible investigation when the mandate changes", () => {
-    const baseline = agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+  it("replans the visible investigation when the mandate changes", async () => {
+    const baseline = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
     const mandate = "Uji apakah pelemahan rupiah menekan margin dan cash flow ANTM.";
     const replanned = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
       mandate,
