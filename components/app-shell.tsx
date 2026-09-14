@@ -3,12 +3,12 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
 import { Copilot } from "@/components/copilot";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   IconAgent,
   IconClose,
@@ -17,8 +17,6 @@ import {
   IconMethod,
   IconImpact,
   IconMenu,
-  IconMoon,
-  IconSun,
   IconToday,
 } from "@/components/ui/icons";
 import { useCatalystStore } from "@/lib/store";
@@ -37,13 +35,11 @@ const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { resolvedTheme, setTheme } = useTheme();
   const [mobileNav, setMobileNav] = useState(false);
   const copilotOpen = useCatalystStore((state) => state.copilotOpen);
   const copilotPage = pathname.startsWith("/copilot");
   const widePage = copilotPage || pathname.startsWith("/impact");
   const mobileNavItems = navItems.filter((item) => item.href !== "/method");
-  const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
   const nav = (onNavigate?: () => void) => navItems.map((item) => {
     const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -95,12 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav aria-label="Navigasi utama" className="mt-5 space-y-0.5">{nav()}</nav>
 
           <div className="mt-auto border-t border-border pt-4">
-            <p className="editorial mb-3 px-2 text-[15px] italic text-muted-foreground">Empat bukti untuk setiap gerak.</p>
-            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={toggleTheme}>
-              <IconSun className="size-4 dark:hidden" />
-              <IconMoon className="hidden size-4 dark:block" />
-              <span>Ganti tema</span>
-            </Button>
+            <p className="editorial mb-4 px-2 text-[15px] italic text-muted-foreground">Empat bukti untuk setiap gerak.</p>
+            <div className="flex items-center justify-between gap-3 px-2">
+              <span className="meta text-muted-foreground">Tampilan</span>
+              <ThemeToggle />
+            </div>
           </div>
         </aside>
 
@@ -112,10 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="editorial text-[16px] text-foreground">Catalyst</span>
             </Link>
             <div className="ml-auto flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Ganti tema">
-                <IconSun className="size-4 dark:hidden" />
-                <IconMoon className="hidden size-4 dark:block" />
-              </Button>
+              <ThemeToggle />
               <Link href="/copilot" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-surface px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <IconCopilot className="size-4" />
                 <span className="hidden sm:inline">Tanya agent</span>

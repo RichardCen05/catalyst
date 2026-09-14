@@ -8,3 +8,4 @@ test-results/
 *-review.png
 .DS_Store
 .vercel
+.claude/launch.json
