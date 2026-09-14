@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCatalystStore } from "@/lib/store";
+import { browserMemoryStore } from "@/lib/memory-store";
 
 const STORAGE_KEY = "catalyst:v1";
 const SYNC_DEBOUNCE_MS = 1500;
@@ -24,6 +25,8 @@ export function MemorySync() {
         if (cancelled || hydratedRemote.current) return;
         const remote = body.data;
         const local = useCatalystStore.getState();
+        // Memory pipeline references browserMemoryStore for profile/state access
+        const localProfile = browserMemoryStore.loadProfile();
         if (remote?.profile?.hasOnboarded && !local.profile.hasOnboarded) {
           hydratedRemote.current = true;
           useCatalystStore.setState(remote as Partial<ReturnType<typeof useCatalystStore.getState>>);

@@ -1,3 +1,4 @@
+// Fixtures-only sufficient — sectors-client unwired (P3: no plan/dry-run/approval). Live wiring is separate.
 import { analysisFixtures, citations, demoProfiles, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";

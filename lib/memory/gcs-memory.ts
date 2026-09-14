@@ -4,8 +4,7 @@
  * This does not implement the client-facing `MemoryStore` interface in
  * lib/types.ts — that interface is synchronous and reads/writes the zustand
  * store directly (`useCatalystStore.getState()`), which only exists in the
- * browser. A network-backed store cannot be synchronous. This module backs
- * `/api/memory` instead; the browser keeps writing to localStorage via
+ * browser. A network-backed store cannot be synchronous. The client-facing `browserMemoryStore` (`lib/memory-store.ts`) wraps the zustand store; this module backs `/api/memory` instead; the browser keeps writing to localStorage via
  * zustand `persist` as the optimistic cache (plan P4 point 4), and a small
  * client-side sync layer (components/memory-sync.tsx) calls this API.
  *
