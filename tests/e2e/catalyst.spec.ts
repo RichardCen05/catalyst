@@ -218,7 +218,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await expect(page.getByRole("heading", { name: "Volume", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toHaveCount(0);
 
-  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
+  await page.getByText(/Buka timeline \d+ hari/).click();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
 
   await caseTabs.getByRole("tab", { name: "Bisnis" }).click();
@@ -291,7 +291,7 @@ test("evidence opens Copilot with its company and pillar context", async ({ page
 test("company analysis aligns events on an evidence timeline", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=market");
-  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
+  await page.getByText(/Buka timeline \d+ hari/).click();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
   await expect(page.getByText("ANTM memublikasikan pembaruan operasi kuartalan")).toBeVisible();
   await page.getByRole("button", { name: "Tanya jejak ANTM" }).click();
@@ -310,7 +310,7 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
   await expect(audit.getByText("Rencana → Cari → Periksa → Ringkas")).toBeVisible();
   await audit.getByRole("button", { name: "Tutup audit" }).click();
   await page.getByRole("tab", { name: "Pasar" }).click();
-  await page.getByText("Buka timeline 45 hari", { exact: true }).click();
+  await page.getByText(/Buka timeline \d+ hari/).click();
   await page.getByRole("button", { name: /Perbesar grafik/ }).click();
   await expect(page.getByRole("dialog", { name: "ANTM dibanding IHSG" })).toBeVisible();
   await page.getByRole("button", { name: "Tutup grafik" }).click();

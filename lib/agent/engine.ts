@@ -40,6 +40,15 @@ const percent = (value: number, digits = 1) =>
 const compact = (value: number) =>
   new Intl.NumberFormat("id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 
+/** Window label derived from the recorded session count — never a literal. */
+export const windowLabel = () => `${WINDOW_SESSIONS} hari bursa`;
+const windowBaselineCount = () => Math.max(WINDOW_SESSIONS - 1, 1);
+
+/** Materiality floor comes from the user's playbook, defaulting to the recorded baseline. */
+export const DEFAULT_RELEVANCE_FLOOR = 85;
+export const relevanceFloorFor = (playbook?: { relevanceFloor?: number }) =>
+  typeof playbook?.relevanceFloor === "number" ? playbook.relevanceFloor : DEFAULT_RELEVANCE_FLOOR;
+
 function uniqueCitations(values: Citation[]): Citation[] {
   return [...new Map(values.map((citation) => [citation.id, citation])).values()];
 }
@@ -69,7 +78,7 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
     },
     {
       id: `${symbol}-h2`,
-      hypothesis: "Aktivitas pasar menyimpang dari pembanding 45 hari bursa.",
+      hypothesis: `Aktivitas pasar menyimpang dari pembanding ${windowLabel()}.`,
       query: "Volume harian dan median/MAD",
       verification: volume.summary,
       outcome: volume.status === "Insufficient Data" ? "open" : volume.status === "Normal" ? "challenged" : "supported",
@@ -114,22 +123,30 @@ const impactObservables: Record<BusinessImpactDimension, string> = {
   valuation: "Ekspektasi laba, arus kas, atau selisih valuasi pembanding",
 };
 
+/**
+ * Default focus is derived from the company's recorded sector — not a
+ * per-symbol table. Explicit mandate keywords always win over the default.
+ */
+function sectorDefaultFocus(symbol?: SymbolCode): BusinessImpactDimension {
+  const sector = symbol ? fixtureMarketDataProvider.getCompany(symbol)?.sector : undefined;
+  switch (sector) {
+    case "Basic Materials":
+    case "Energy":
+      return "pricing";
+    case "Financials":
+      return "margin";
+    case "Technology":
+    case "Infrastructure":
+      return "cash-flow";
+    case "Consumer":
+      return "volume";
+    default:
+      return "volume";
+  }
+}
+
 function mandateFocus(mandate: string, symbol?: SymbolCode): BusinessImpactDimension {
-  const value = mandate.toLowerCase();
-  if (value.includes("margin") || value.includes("spread") || value.includes("biaya")) return "margin";
-  if (value.includes("cash flow") || value.includes("arus kas")) return "cash-flow";
-  if (value.includes("balance") || value.includes("utang") || value.includes("likuiditas")) return "balance-sheet";
-  if (value.includes("valuasi") || value.includes("valuation") || value.includes("multiple")) return "valuation";
-  if (value.includes("harga") || value.includes("pricing") || value.includes("yield")) return "pricing";
-  const defaults: Partial<Record<SymbolCode, BusinessImpactDimension>> = {
-    ANTM: "pricing",
-    BBCA: "margin",
-    BBRI: "margin",
-    TLKM: "cash-flow",
-    PGAS: "margin",
-    GOTO: "cash-flow",
-  };
-  return defaults[symbol ?? "ANTM"] ?? "volume";
+  return explicitMandateFocus(mandate) ?? sectorDefaultFocus(symbol);
 }
 
 function explicitMandateFocus(mandate: string): BusinessImpactDimension | undefined {
@@ -143,22 +160,10 @@ function explicitMandateFocus(mandate: string): BusinessImpactDimension | undefi
   return undefined;
 }
 
-const clarificationFocus: Partial<Record<SymbolCode, [BusinessImpactDimension, BusinessImpactDimension]>> = {
-  ANTM: ["pricing", "volume"],
-  INCO: ["pricing", "margin"],
-  TINS: ["pricing", "volume"],
-  PGAS: ["margin", "volume"],
-  ADRO: ["pricing", "cash-flow"],
-  PTBA: ["pricing", "volume"],
-  BBCA: ["margin", "balance-sheet"],
-  BBRI: ["margin", "balance-sheet"],
-  TLKM: ["cash-flow", "volume"],
-  GOTO: ["cash-flow", "pricing"],
-};
-
 function createClarification(symbol: SymbolCode, mandate: string, choice?: string) {
   const inferred = explicitMandateFocus(mandate);
-  const [primary, secondary] = clarificationFocus[symbol] ?? [mandateFocus(mandate, symbol), "volume"];
+  const sectorDefault = sectorDefaultFocus(symbol);
+  const [primary, secondary] = [inferred ?? sectorDefault, "volume" as BusinessImpactDimension];
   const focusOptions = [inferred, primary, secondary]
     .filter((item): item is BusinessImpactDimension => Boolean(item))
     .filter((item, index, values) => values.indexOf(item) === index)
@@ -377,7 +382,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       key: "volume", label: "Volume", status: volume.status,
       summary: volume.robustZ === null
         ? "Likuiditas atau pembanding tidak cukup untuk mengelompokkan anomali."
-        : `Volume terakhir memiliki skor z tahan pencilan ${volume.robustZ.toFixed(2)} terhadap pembanding 45 hari bursa.`,
+        : `Volume terakhir memiliki skor z tahan pencilan ${volume.robustZ.toFixed(2)} terhadap pembanding ${windowLabel()}.`,
       protocol: {
         claim: "Aktivitas setelah pemicu menyimpang dari pembanding volume yang kuat terhadap pencilan.",
         supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos batas." : `Skor z tahan pencilan ${volume.robustZ.toFixed(2)} dengan status ${volume.status === "Normal" ? "normal" : volume.status === "Elevated" ? "meningkat" : "ekstrem"}.`,
@@ -388,14 +393,14 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       metrics: [
         { label: "Skor z tahan pencilan", value: volume.robustZ === null ? "Belum tersedia" : volume.robustZ.toFixed(2), citations: dailyCitations },
         { label: "Volume terbaru", value: compact(currentPoint.volume), citations: dailyCitations },
-        { label: "Pembanding", value: "45 hari bursa", citations: dailyCitations },
+        { label: "Pembanding", value: windowLabel(), citations: dailyCitations },
       ], citations: dailyCitations,
       calculation: {
         name: "Anomali volume tahan pencilan",
-        formula: "robust z = 0,6745 × (Vₜ − median(V₄₅)) / MAD(V₄₅)",
+        formula: `robust z = 0,6745 × (Vₜ − median(Vₙ)) / MAD(Vₙ), n = ${windowBaselineCount()} sesi pembanding`,
         substitution: `0,6745 × (${compact(currentPoint.volume)} − ${compact(baselineMedian)}) / ${compact(baselineMad)}`,
         result: volume.robustZ === null ? "Data belum cukup" : `${volume.robustZ.toFixed(2)} · ${volume.status === "Normal" ? "Normal" : volume.status === "Elevated" ? "Meningkat" : "Ekstrem"}`,
-        notes: ["Pembanding memakai 44 pengamatan sebelum hari terbaru dalam rekaman 45 hari bursa.", "Batas likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau pembanding pendek menghasilkan data belum cukup."],
+        notes: [`Pembanding memakai ${windowBaselineCount()} pengamatan sebelum hari terbaru dalam rekaman ${windowLabel()}.`, "Batas likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau pembanding pendek menghasilkan data belum cukup."],
       },
     },
     {
@@ -479,7 +484,8 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     ...sources,
   ]);
   const businessImpact = createBusinessImpact(researchPlan.focus, symbol, businessImpactCitations);
-  const materiality = primaryLink && primaryLink.relevance >= 85 ? "High" as const : "Medium" as const;
+  const relevanceFloor = relevanceFloorFor(context?.playbook);
+  const materiality = primaryLink && primaryLink.relevance >= relevanceFloor ? "High" as const : primaryLink ? "Medium" as const : "Low" as const;
   const primaryBusinessImpact = businessImpact.find((item) => item.status === "Primary test") ?? businessImpact[0];
   const researchDisposition = createResearchDisposition(evidenceState, materiality, primaryBusinessImpact, contradictions);
   const materialityRule = appliedRules.find((rule) => rule.kind === "materiality")?.rule
@@ -496,7 +502,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     },
     materialChange: {
       whatChanged: `${symbol}: ${primaryEvent?.title ?? "ringkasan daftar pantauan berubah"}.`,
-      baseline: `Volume ${volumeRatio.toFixed(2)}× median 45 hari. Imbal hasil 3 hari ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
+      baseline: `Volume ${volumeRatio.toFixed(2)}× median ${windowBaselineCount()} sesi. Imbal hasil 3 hari ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
       whyMaterial: primaryLink
         ? `Relevansi eksposur ${primaryLink.relevance}/100 dan jalur mencapai ${primaryBusinessImpact.label.toLowerCase()}.`
         : `Perubahan belum memiliki jalur eksposur yang cukup untuk melewati batas materialitas.`,
@@ -507,7 +513,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       novelty: primaryEvent ? "New" : "Updated",
       materiality,
       uncertainty: contradictions.length || evidenceState !== "Corroborated" ? "High" : "Medium",
-      reason: primaryLink ? `Relevansi eksposur ${primaryLink.relevance}/100; ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Data berubah, tetapi jalur pemicu belum lengkap.",
+      reason: primaryLink ? `Relevansi eksposur ${primaryLink.relevance}/100 (ambang ${relevanceFloor}); ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Data berubah, tetapi jalur pemicu belum lengkap.",
       ruleTrace: appliedRules.filter((rule) => rule.kind === "materiality" || rule.kind === "exposure" || rule.kind === "falsifier"),
     },
     contradictions,
@@ -743,7 +749,8 @@ async function buildCausalGraph(
     const link = event.impactLinks.find((item) => item.symbol === symbol);
     return link ? [{ event, link }] : [];
   });
-  const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= 90 ? "High" : relevance >= 75 ? "Medium" : "Low";
+  const graphFloor = relevanceFloorFor(options.context?.playbook);
+  const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= graphFloor + 5 ? "High" : relevance >= graphFloor - 10 ? "Medium" : "Low";
   const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : "1-10 sesi";
   const expectedFor = (event: MarketEvent) => {
     if (event.category === "company") return "Keterbukaan atau metrik operasional berikutnya bergerak konsisten dengan pemicu.";
@@ -849,7 +856,7 @@ async function buildCausalGraph(
         ? "Jalur belum mengisolasi masukan lain yang muncul pada jendela yang sama."
         : `Hipotesis peringkat ${index + 1} memiliki relevansi lebih rendah daripada penjelasan utama.`,
       discriminator: `${expectedFor(event)} Periksa setelah ${lagFor(event)}.`,
-      status: index === 0 ? "leading" : link.relevance >= 75 ? "plausible" : "challenged",
+      status: index === 0 ? "leading" : link.relevance >= graphFloor - 10 ? "plausible" : "challenged",
       confidence: confidenceFor(link.relevance),
       citations: uniqueCitations([...event.citations, ...link.citations]),
     })),

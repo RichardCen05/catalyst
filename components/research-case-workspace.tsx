@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AlertTriangle, ChevronDown, GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import type { MarketEvent, PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
+import { WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { useCatalystStore } from "@/lib/store";
 import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CitationDialog } from "@/components/citation-dialog";
@@ -34,6 +36,20 @@ export function ResearchCaseWorkspace({ analysis, symbol, relatedEvents }: {
   const activePillar = marketPillars.some((item) => item.key === requestedPillar) ? requestedPillar : marketPillars[0]?.key;
   const marketPillar = marketPillars.find((item) => item.key === activePillar) ?? marketPillars[0];
   const catalystPillar = analysis.pillars.find((item) => item.key === "catalyst");
+  const playbook = useCatalystStore((state) => state.playbook);
+  const sectorReturn = analysis.pillars.find((item) => item.key === "momentum")?.metrics.find((metric) => metric.label === "Imbal hasil sektor")?.value;
+  const comparables = playbook.preferredComparables[symbol] ?? [];
+  const focusDimension = analysis.researchPlan.focus;
+  const focusLabels: Record<string, string[]> = {
+    pricing: ["revenue", "realisasi harga", "price", "pendapatan"],
+    margin: ["margin", "spread", "biaya"],
+    volume: ["volume", "produksi", "utilisasi", "throughput"],
+    "cash-flow": ["cash flow", "arus kas", "casa", "working capital"],
+    "balance-sheet": ["debt", "utang", "equity", "neraca", "likuiditas"],
+    valuation: ["valuasi", "valuation", "multiple", "qoq", "yoy"],
+  };
+  const focusKeywords = focusLabels[focusDimension] ?? [];
+  const isFocusRow = (label: string) => focusKeywords.some((keyword) => label.toLowerCase().includes(keyword));
 
   return (
     <div>
@@ -53,7 +69,8 @@ export function ResearchCaseWorkspace({ analysis, symbol, relatedEvents }: {
           <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p></header>
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 bg-surface px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-surface-raised")}><span className="block truncate text-sm font-medium">{item.label}</span><span className={cn("mt-1 block truncate font-mono text-[10px]", active && "text-primary")}>{uiLabel(item.status)}</span></Link>; })}</div>
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
-          <details className="group mt-4 rounded-[10px] border border-border bg-surface"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary">Buka timeline 45 hari<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary><div className="border-t border-border p-3"><PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} /></div></details>
+          <section aria-label="Banding sektor" className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-border bg-surface px-4 py-3 text-xs"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Banding sektor</span>{sectorReturn ? <span className="text-muted-foreground">Sektor: <strong className="font-mono text-foreground">{sectorReturn}</strong></span> : null}{comparables.length ? <span className="text-muted-foreground">Pembanding: {comparables.map((item, index) => <span key={item}><Link href={`/cases/${item}`} className="font-mono text-primary hover:underline">{item}</Link>{index < comparables.length - 1 ? " · " : ""}</span>)}</span> : <span className="text-muted-foreground">Belum ada pembanding pilihan — atur di <Link href="/playbook" className="text-primary hover:underline">aturan riset</Link>.</span>}</section>
+          <details className="group mt-4 rounded-[10px] border border-border bg-surface"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary">Buka timeline {WINDOW_SESSIONS} hari<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary><div className="border-t border-border p-3"><PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} /></div></details>
         </section> : null}
 
         {activeTab === "business" && catalystPillar ? <section aria-labelledby="business-transmission-title" data-tour="business-transmission">
@@ -62,7 +79,7 @@ export function ResearchCaseWorkspace({ analysis, symbol, relatedEvents }: {
           <section aria-labelledby="business-impact-title" className="mt-4 overflow-hidden rounded-[12px] border border-border bg-surface">
             <header className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5"><div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Uji dampak bisnis</p><h3 id="business-impact-title" className="editorial mt-1 text-2xl">Di mana dampak harus terlihat?</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Dampak harus terlihat pada operasi atau keuangan, bukan hanya harga pasar.</p></div><CitationDialog citations={analysis.financialContext.flatMap((item) => item.citations)} label="Periksa data keuangan" /></header>
             <div className="grid gap-px bg-border md:grid-cols-2">{analysis.businessImpact.map((item) => <article key={item.dimension} className="bg-surface p-4 sm:p-5"><div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[10px] text-primary">{item.label}</p></div><span className={cn("rounded border px-2 py-1 font-mono text-[9px] uppercase tracking-wider", item.status === "Primary test" ? "border-primary/40 bg-primary/10 text-primary" : item.status === "Supporting" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{uiLabel(item.status)}</span></div><dl className="mt-4 space-y-3 text-xs leading-5"><div><dt className="font-medium">Cara kerja</dt><dd className="mt-1 text-muted-foreground">{item.mechanism}</dd></div><div><dt className="font-medium">Indikator yang dicari</dt><dd className="mt-1 text-muted-foreground">{item.observable}</dd></div><div><dt className="font-medium">Arti untuk riset</dt><dd className="mt-1 text-muted-foreground">{item.implication}</dd></div></dl></article>)}</div>
-            <details className="group border-t border-border"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary sm:px-5">Lihat data keuangan yang dipakai</summary><dl className="divide-y divide-border border-t border-border bg-background">{analysis.financialContext.map((item) => <div key={item.label} className="grid gap-2 px-4 py-4 sm:grid-cols-[minmax(160px,0.7fr)_minmax(120px,0.45fr)_minmax(0,1.5fr)] sm:items-start sm:px-5"><dt className="text-sm font-medium">{item.label}<span className="mt-1 block font-mono text-[10px] font-normal text-primary">{item.period}</span></dt><dd className="font-mono text-lg font-semibold tabular-nums">{item.value}</dd><dd className="text-sm leading-6 text-muted-foreground">{item.interpretation}</dd></div>)}</dl></details>
+            <details className="group border-t border-border"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary sm:px-5">Lihat data keuangan yang dipakai</summary><dl className="divide-y divide-border border-t border-border bg-background">{analysis.financialContext.map((item) => <div key={item.label} className="grid gap-2 px-4 py-4 sm:grid-cols-[minmax(160px,0.7fr)_minmax(120px,0.45fr)_minmax(0,1.5fr)] sm:items-start sm:px-5"><dt className="text-sm font-medium">{item.label}{isFocusRow(item.label) ? <span className="ml-2 rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">Fokus</span> : null}<span className="mt-1 block font-mono text-[10px] font-normal text-primary">{item.period}</span></dt><dd className="font-mono text-lg font-semibold tabular-nums">{item.value}</dd><dd className="text-sm leading-6 text-muted-foreground">{item.interpretation}</dd></div>)}</dl></details>
           </section>
         </section> : null}
 

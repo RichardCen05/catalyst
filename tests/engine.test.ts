@@ -112,7 +112,7 @@ describe("Catalyst agent engine", async () => {
     const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
     expect(researchCase?.materialChange.whatChanged).toContain("ANTM");
-    expect(researchCase?.materialChange.baseline).toMatch(/45 hari|sektor/i);
+    expect(researchCase?.materialChange.baseline).toMatch(/\d+ sesi|sektor/i);
     expect(researchCase?.materialChange.whyMaterial).toBeTruthy();
     expect(researchCase?.materialChange.rule).toBeTruthy();
     expect(researchCase?.researchDisposition.kind).toBe("escalate");

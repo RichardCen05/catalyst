@@ -14,8 +14,9 @@ import { uiLabel } from "@/lib/ui-labels";
 export function OnboardingWizard() {
   const [step, setStep] = useState(1);
   const { profile, setWatchlist, completeOnboarding } = useCatalystStore();
-  const commodityDesk = new Set<SymbolCode>(["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]);
-  const readyCompanies = companies.filter((company) => company.analyzed && commodityDesk.has(company.symbol));
+  // Commodity desk scope derived from recorded sectors — never a symbol list.
+  const commodityDesk = new Set(["Basic Materials", "Energy"]);
+  const readyCompanies = companies.filter((company) => company.analyzed && commodityDesk.has(company.sector));
   const readySelected = profile.watchlist.filter((item) => readyCompanies.some((company) => company.symbol === item));
   const toggleTicker = (symbol: SymbolCode) => {
     if (profile.watchlist.includes(symbol)) {

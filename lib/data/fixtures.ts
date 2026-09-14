@@ -101,8 +101,15 @@ export const events: MarketEvent[] = rawEvents.map((raw) => {
   };
 });
 
-/** Enam emiten dengan rekaman lengkap: harga harian, broker, keuangan. */
-const ANALYZED_SYMBOLS: SymbolCode[] = ["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"];
+/**
+ * Emiten dengan rekaman lengkap (harga harian + broker + keuangan).
+ * Diturunkan dari ketersediaan data, bukan daftar tangan: simbol lolos bila
+ * punya priceSeries dan brokerEvidence. Tambah rekaman + re-run script
+ * untuk memperluas cakupan otomatis.
+ */
+const ANALYZED_SYMBOLS: SymbolCode[] = (Object.keys(priceSeries) as SymbolCode[]).filter(
+  (symbol) => (priceSeries[symbol] ?? []).length > 0 && Boolean(brokerEvidence[symbol]),
+);
 
 const sectorOf = (symbol: SymbolCode): string =>
   rawCompanies.find((company) => company.symbol === symbol)?.sector ?? "Market";

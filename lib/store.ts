@@ -53,8 +53,9 @@ interface CatalystState {
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
-  setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables">, values: string[]) => void;
+  setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
+  setRelevanceFloor: (value: number) => void;
   removeInsight: (id: string) => void;
   togglePreference: (id: string) => void;
   resetMemory: () => void;
@@ -100,6 +101,7 @@ export const defaultPlaybook: InvestorResearchPlaybook = {
     "ADRO: hipotesis melemah bila volume penjualan atau margin tidak mengonfirmasi perubahan batu bara.",
     "PTBA: hipotesis melemah bila realisasi harga dan arus kas tidak bergerak setelah faktor DMO diperhitungkan.",
   ],
+  relevanceFloor: 85,
 };
 
 export const useCatalystStore = create<CatalystState>()(
@@ -195,6 +197,7 @@ export const useCatalystStore = create<CatalystState>()(
       }),
       setPlaybookList: (key, values) => set((state) => ({ playbook: { ...state.playbook, [key]: values } })),
       setPreferredComparables: (symbol, values) => set((state) => ({ playbook: { ...state.playbook, preferredComparables: { ...state.playbook.preferredComparables, [symbol]: values } } })),
+      setRelevanceFloor: (value) => set((state) => ({ playbook: { ...state.playbook, relevanceFloor: Math.min(100, Math.max(0, Math.round(value))) } })),
       removeInsight: (id) => set((state) => ({ insights: state.insights.filter((item) => item.id !== id), preferences: state.preferences.filter((item) => item.id !== `learned-${id}`) })),
       togglePreference: (id) => set((state) => ({ preferences: state.preferences.map((item) => item.id === id ? { ...item, active: !item.active } : item) })),
       resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseClarifications: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
@@ -221,7 +224,7 @@ export const useCatalystStore = create<CatalystState>()(
         return {
           ...current,
           ...stored,
-          playbook: stored.playbook ?? current.playbook,
+          playbook: { relevanceFloor: 85, ...current.playbook, ...(stored.playbook ?? {}) },
           caseMandates: stored.caseMandates ?? current.caseMandates,
           caseClarifications: stored.caseClarifications ?? current.caseClarifications,
           caseStatuses: stored.caseStatuses ?? current.caseStatuses,

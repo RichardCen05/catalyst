@@ -19,7 +19,7 @@ const pillars = [
   { name: "Konsentrasi", input: "Ringkasan broker, asal broker, arus asing, saham publik", formula: "Porsi terbesar, HHI, peserta efektif, saham publik terserap", output: "Arus terkonsentrasi, partisipasi luas, arus asing selaras, konflik sumber" },
   { name: "Volume", input: `Volume harian dan pembanding ${WINDOW_SESSIONS} hari bursa`, formula: "Median dan skor z berbasis MAD, lalu batas likuiditas", output: "Normal, meningkat, ekstrem, data belum cukup" },
   { name: "Momentum", input: "Harga penutupan, IHSG, beta, pembanding sektor", formula: "Imbal hasil 3 hari dikurangi beta × imbal hasil IHSG", output: "Mengikuti pasar, dipengaruhi sektor, khusus emiten, bercampur" },
-  { name: "Katalis", input: "Berita Sectors, keterbukaan, komoditas, BI-Rate, JISDOR, kebijakan, dan cuaca BMKG", formula: "Sumber ∩ eksposur ∩ waktu ∩ jalur sebab akibat yang dapat diuji", output: "Mendukung, berlawanan, bercampur, tidak terkait, belum terverifikasi" },
+  { name: "Katalis", input: catalystInputs.length ? catalystInputs.join(", ") : "Belum ada masukan terekam", formula: "Sumber ∩ eksposur ∩ waktu ∩ jalur sebab akibat yang dapat diuji", output: "Mendukung, berlawanan, bercampur, tidak terkait, belum terverifikasi" },
 ];
 
 export default function MethodPage() {
@@ -44,7 +44,7 @@ export default function MethodPage() {
       <Panel className="mt-4">
         <PanelHeader eyebrow="Batas yang diketahui" title="Faktor yang belum diperiksa" />
         <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">{[
-          { icon: IconCode, title: "Data statis", text: "Belum ada panggilan Sectors API, model bahasa, pengambilan web, atau jadwal otomatis." },
+          { icon: IconCode, title: "Data statis", text: "Angka dihitung dari rekaman 11 Sep 2026. Lapisan opsional (model bahasa, pengambilan web, memori GCS) aktif bila dikonfigurasi, dan selalu jatuh ke hasil deterministik bila gagal." },
           { icon: IconAttention, title: "Tanpa data intrahari", text: "Grafik memakai harga penutupan dan volume harian. Antrean transaksi tidak tersedia." },
           { icon: IconScales, title: "Tanpa motif", text: "Kode broker ditampilkan sebagai fakta transaksi, bukan atribusi niat." },
           { icon: IconAttention, title: "Tanpa aksi", text: "Hasil berhenti pada bukti, konflik, dan informasi yang belum ada." },

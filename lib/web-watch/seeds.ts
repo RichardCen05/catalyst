@@ -139,17 +139,16 @@ export const SEED_SOURCES: WatchedSource[] = [
     sourceType: "weather",
   },
   {
-    // Per-village forecast API (validated 200 for this adm4 code). Seeded as
-    // the pattern example: add one source per mining region (Bangka for
-    // TINS, Kalimantan Timur for ADRO/PTBA, Sulawesi for INCO/ANTM) by
-    // swapping the adm4 code from the BMKG data portal. The adm4 below is
-    // the validated sample — confirm the village name on the portal before
-    // citing it for a stock.
+    // Per-village forecast API pattern (validated 200 for one adm4 code on
+    // 14 Sep 2026). DISABLED by default: the seeded adm4 is a Jakarta sample,
+    // not a mining region. Enable per-region copies (Bangka for TINS,
+    // Kalimantan Timur for ADRO/PTBA, Sulawesi for INCO/ANTM) with adm4 codes
+    // confirmed on the BMKG data portal — never cite the sample for a stock.
     id: "src-bmkg-forecast-sample",
     url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=31.71.01.1001",
-    label: "BMKG — prakiraan cuaca per wilayah (contoh adm4, tambah wilayah tambang)",
+    label: "BMKG — prakiraan cuaca per wilayah (NONAKTIF: contoh adm4, tambah wilayah tambang)",
     kind: "document",
-    enabled: true,
+    enabled: false,
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",

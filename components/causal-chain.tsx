@@ -122,7 +122,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         type: "smoothstep",
         label: labelled ? (edge.basis === "Observed correlation" ? "teramati" : `${uiLabel(edge.confidence).toLowerCase()} · ${edge.relevance}`) : "",
         markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor[edge.direction] },
-        style: { stroke: edgeColor[edge.direction], strokeWidth: active ? 2.8 : edge.relevance >= 85 ? 2.4 : 1.5, opacity: dimmed ? 0.15 : 0.78 },
+        style: { stroke: edgeColor[edge.direction], strokeWidth: active ? 2.8 : 1.2 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.6, opacity: dimmed ? 0.15 : 0.78 },
         labelStyle: { fill: "var(--foreground)", fontSize: zoom >= 1 ? 11 : 9, fontFamily: "var(--font-mono)" },
         labelBgStyle: { fill: "var(--surface)", fillOpacity: 0.92 },
         animated: active,

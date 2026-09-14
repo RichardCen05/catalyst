@@ -14,8 +14,11 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const caseStatuses = useCatalystStore((state) => state.caseStatuses);
   const setCaseMandate = useCatalystStore((state) => state.setCaseMandate);
   const setCaseClarification = useCatalystStore((state) => state.setCaseClarification);
+  const recordInsight = useCatalystStore((state) => state.recordInsight);
   const insights = useCatalystStore((state) => state.insights);
   const [saved, setSaved] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [tracked, setTracked] = useState(false);
   const mandate = caseMandates[symbol] ?? researchCase.mandate;
   const status = caseStatuses[symbol] ?? researchCase.status;
   const caseNotes = insights.filter((item) => item.symbol === symbol && item.status !== "dismissed");
@@ -23,6 +26,33 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const saveMandate = () => {
     setCaseMandate(symbol, mandate.trim() || researchCase.mandate);
     setSaved(true);
+  };
+
+  const shareSummary = async () => {
+    const text = [
+      `${symbol} · ${researchCase.trigger.title}`,
+      `Pembanding: ${researchCase.materialChange.baseline}`,
+      `Alasan material: ${researchCase.materialChange.whyMaterial}`,
+      `Tindakan riset: ${researchCase.researchDisposition.label} — ${researchCase.researchDisposition.reason}`,
+      `Pantau: ${researchCase.researchDisposition.monitorObservable}`,
+      `Buka kembali bila: ${researchCase.researchDisposition.reopenWhen}`,
+      `Rekaman ${researchCase.asOf} · bukan pasar live.`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setShared(true);
+    } catch {
+      setShared(false);
+    }
+  };
+
+  const trackObservable = () => {
+    recordInsight({
+      symbol,
+      category: "missing-context",
+      note: `Pantau: ${researchCase.researchDisposition.monitorObservable} Buka kembali bila: ${researchCase.researchDisposition.reopenWhen}`,
+    });
+    setTracked(true);
   };
 
   return (
@@ -36,7 +66,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{researchCase.researchDisposition.reason}</p>
         </div>
         <dl className="grid gap-px overflow-hidden rounded-[8px] border border-border bg-border sm:grid-cols-2">
-          <div className="bg-surface p-3"><dt className="text-[11px] font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{researchCase.researchDisposition.monitorObservable}</dd></div>
+          <div className="bg-surface p-3"><dt className="text-[11px] font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{researchCase.researchDisposition.monitorObservable}<button type="button" onClick={trackObservable} className="mt-2 inline-flex min-h-8 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{tracked ? "Sudah masuk antrean pantauan" : "Jadikan item pantauan"}</button></dd></div>
           <div className="bg-surface p-3"><dt className="text-[11px] font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{researchCase.researchDisposition.reopenWhen}</dd></div>
         </dl>
       </section>
@@ -80,7 +110,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
         </div>
       </details>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Catat hasil setelah riset selesai.</p><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka Tinjau</Link></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Catat hasil setelah riset selesai.</p><div className="flex items-center gap-2"><button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{shared ? "Ringkasan tersalin" : "Salin ringkasan riset"}</button><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka Tinjau</Link></div></div>
     </Panel>
   );
 }

@@ -71,6 +71,7 @@ export const chatRequestSchema = z.object({
     thesisAssumptions: z.array(z.string().max(400)).max(50),
     trustedSources: z.array(z.string().max(400)).max(30),
     falsifiers: z.array(z.string().max(400)).max(50),
+    relevanceFloor: z.number().min(0).max(100).optional(),
   }).optional(),
   caseMandate: z.string().max(600).optional(),
 });

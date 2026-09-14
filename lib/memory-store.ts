@@ -1,6 +1,5 @@
 "use client";
 
-import { demoProfiles } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { FeedbackEvent, MemoryStore, UserInsight } from "@/lib/types";
 
@@ -10,6 +9,6 @@ export const browserMemoryStore: MemoryStore = {
   recordInsight: (insight: UserInsight) => useCatalystStore.getState().recordInsight({ symbol: insight.symbol, pillar: insight.pillar, category: insight.category, note: insight.note }),
   listInsights: () => useCatalystStore.getState().insights,
   listPreferences: () => useCatalystStore.getState().preferences,
-  compareProfiles: () => demoProfiles,
+  compareProfiles: () => [useCatalystStore.getState().profile],
   reset: () => useCatalystStore.getState().resetMemory(),
 };

@@ -4,9 +4,9 @@ Catalyst adalah prototype **watchlist change investigator** untuk investor discr
 
 **Lacak perubahan. Periksa buktinya.**
 
-Semua data pada prototype berasal dari **rekaman Sectors API** yang diambil sekali pada 11 September 2026 dan disimpan di `data/sectors/`. Tidak ada panggilan pasar langsung saat runtime, tidak ada LLM, scraping, penjadwalan, login, database, atau eksekusi transaksi.
+Semua data pada prototype berasal dari **rekaman Sectors API** yang diambil sekali pada 11 September 2026 dan disimpan di `data/sectors/`. Tidak ada panggilan pasar langsung saat runtime, tidak ada LLM wajib, scraping, penjadwalan, login, database, atau eksekusi transaksi.
 
-Harga, volume, IHSG, foreign flow, broker summary, free float, laporan keuangan kuartalan, berita, dan filing semuanya adalah field mentah dari rekaman itu. Beta, return sektor, konsentrasi partisipan, dan robust z dihitung dari data tersebut, bukan diisi tangan.
+Harga, volume, IHSG, foreign flow, broker summary, free float, laporan keuangan kuartalan, berita, dan filing semuanya adalah field mentah dari rekaman itu. Beta, return sektor, konsentrasi partisipan, dan robust z dihitung dari data tersebut, bukan diisi tangan. Tipe sumber terekam yang benar-benar ada: `sectors`, `filing`, dan `commodity` (batu bara/emas). Tipe `macro`, `weather`, dan `policy` hanya muncul bila temuan web-watch disetujui reviewer — tidak ada di rekaman dasar. Skor relevansi eksposur adalah heuristik terekam yang didokumentasikan di `scripts/build_market_data.py`, disaring oleh ambang relevansi playbook milik pengguna.
 
 ## Jalankan lokal
 
@@ -50,7 +50,7 @@ Pengujian unit memeriksa kalkulator, sumber, batas bahasa, penyusunan rencana, d
 ## Interface
 
 - `MarketDataProvider`: daftar emiten, data harian, bukti broker, kepemilikan, dan peristiwa perusahaan.
-- `NewsProvider`: berita dan keterbukaan Sectors serta data simulasi komoditas, makro, kebijakan, dan cuaca.
+- `NewsProvider`: berita dan keterbukaan Sectors terekam, plus overlay temuan web-watch yang disetujui reviewer (sumber makro/komoditas/kebijakan/cuaca dari daftar pantauan terverifikasi).
 - `AgentEngine`: `analyzeCompany`, `mapEventImpact`, `buildCausalGraph`, dan `answerFollowUp`.
 - `MemoryStore`: profil, pertanyaan riset, status kasus, hasil kasus, aturan, catatan pengguna, preferensi penyajian, dan atur ulang.
 - Jalur API: `POST /api/analyze`, `POST /api/impact`, dan `POST /api/chat`.

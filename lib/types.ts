@@ -282,6 +282,8 @@ export interface InvestorResearchPlaybook {
   thesisAssumptions: string[];
   trustedSources: string[];
   falsifiers: string[];
+  /** Ambang relevansi eksposur (0-100) untuk materialitas High. Default 85. */
+  relevanceFloor?: number;
 }
 
 export interface RuleProposal {

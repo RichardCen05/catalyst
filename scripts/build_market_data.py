@@ -22,7 +22,10 @@ OUT = ROOT / "lib" / "data" / "market.generated.ts"
 WINDOW = "__end-2026-09-11_start-2026-08-01"
 SYMBOLS = ["ANTM", "INCO", "TINS", "BBCA", "BBRI", "BMRI", "TLKM", "JSMR", "EXCL",
            "GOTO", "BUKA", "EMTK", "PGAS", "ADRO", "PTBA", "ICBP", "MYOR", "AMRT"]
-CASES = ["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"]
+# Full-case coverage is derived from recording availability: a symbol qualifies
+# when its broker-summary recording exists. Never hand-extend this list without
+# the recording — that would be dummy data.
+CASES = [s for s in SYMBOLS if (RAW / f"v2_broker-summary_{s}_top.json").exists()]
 
 SECTOR_MAP = {
     "Basic Materials": "Basic Materials",
@@ -253,6 +256,10 @@ def add_event(event_id, item, symbols_in_universe, source_type):
     links = []
     for symbol in sorted(symbols_in_universe):
         spread = len([x for x in (item.get("symbols") or [item.get("symbol")]) if x])
+        # Recorded heuristic, not a live model: filings carry 95; otherwise the
+        # score decays as the item spreads across more symbols (less specific).
+        # The engine treats this as a starting rank filtered by the user's
+        # playbook relevanceFloor — never as a verdict.
         relevance = 95 if source_type == "filing" else max(40, 88 - (spread - 1) * 6)
         relevance = min(97, relevance + (2 if dimension in ("financials", "future") else 0))
         segment = (revenue_segments.get(symbol) or [None])[0]
