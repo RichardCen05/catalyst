@@ -43,3 +43,27 @@ describe("public route handlers", () => {
     expect(body.answer.text.toLowerCase()).not.toContain("beli");
   });
 });
+
+describe("sectors refresh guard", () => {
+  it("refuses refresh while the flag is off and never spends", async () => {
+    const { POST } = await import("@/app/api/internal/refresh-sectors/route");
+    const response = await POST(request("/api/internal/refresh-sectors", { symbols: ["ANTM"], dryRun: false }));
+    expect(response.status).toBe(403);
+    expect((await response.json()).error).toBe("refresh-disabled");
+  });
+
+  it("dry-run plans only recorded symbols with zero spend", async () => {
+    process.env.SECTORS_REFRESH_ENABLED = "true";
+    try {
+      const { POST } = await import("@/app/api/internal/refresh-sectors/route");
+      const response = await POST(request("/api/internal/refresh-sectors", { symbols: ["ANTM", "XXXX"], dryRun: true }));
+      const body = await response.json();
+      expect(response.status).toBe(200);
+      expect(body.dryRun).toBe(true);
+      expect(body.plans.map((p: { symbol: string }) => p.symbol)).toEqual(["ANTM"]);
+      expect(body.rejected).toEqual(["XXXX"]);
+    } finally {
+      delete process.env.SECTORS_REFRESH_ENABLED;
+    }
+  });
+});

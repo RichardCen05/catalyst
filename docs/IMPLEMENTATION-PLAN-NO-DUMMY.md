@@ -110,3 +110,22 @@ e2e 13 passed / 12 failed — 12 gagal identik dengan baseline pra-perubahan
   nilai lama.
 - Verifikasi akhir: typecheck ✓, lint 0 error, unit 96/96 ✓, build ✓,
   smoke 7 rute (SSR + nol pageerror/console-error).
+
+## H. Batch 2 — e2e hijau, wiring live aman, cakupan jujur
+
+- Bug nyata: analisis tak pernah refetch setelah aksi user (mandat,
+  klarifikasi, playbook, insight). Deps `useEffect` diperbaiki di 4 halaman
+  (company-detail, cases, today, impact) — sebelumnya klik klarifikasi/
+  simpan mandat tak mengubah tampilan.
+- E2E 12 gagal → 0 (25/25 lolos): 7 oleh fix refetch; 5 oleh perbaikan
+  terarah — headline timeline fiktif → headline rekaman real; panel detail
+  node causal dibangun (fitur baru: keyakinan, jeda, penyangkal, sitasi,
+  "Tanya jalur ini"); referensi user di audit jadi tautan; dialog sitasi
+  merender tautan keluar; tur 5 langkah (termasuk Pantau) diselaraskan.
+- Live wiring aman: `POST /api/internal/refresh-sectors` — flag
+  `SECTORS_REFRESH_ENABLED`, butuh key + Bearer, dry-run default (nol spend),
+  hanya 6 simbol terekam, output ke GCS untuk review + regen manual.
+  Scheduler check-sources sudah ber-auth (tak diubah).
+- Cakupan: `coverageInfo` per simbol + picker menampilkan apa yang ada vs
+  kurang per emiten ("butuh: ringkasan broker + arus asing").
+- Final: typecheck ✓, lint 0 error, unit 98/98 ✓, build ✓, e2e 25/25 ✓.

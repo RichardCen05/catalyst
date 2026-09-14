@@ -39,7 +39,7 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile.watchlist.join(","), Object.keys(caseStatuses).join(",")]);
+  }, [profile, profile.watchlist.join(","), Object.keys(caseStatuses).join(","), caseMandates, caseClarifications, playbook, insights, caseResolutions]);
   const openCases = cases.map((symbol) => analyses[symbol]).filter((item) => item !== undefined)
     .filter((item) => triage === "all" || (triage === "owned" ? profile.owned.includes(item.company.symbol) : item.contradictions.length > 0));
   const watchEvents = events

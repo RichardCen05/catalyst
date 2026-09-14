@@ -86,10 +86,12 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
 
   await expect(page.getByRole("dialog", { name: "Tentukan tindakan riset" })).toContainText("bukan saran transaksi");
   await page.locator('[data-tour-action="show-next-action"]').click();
-
+  await expect(page.getByRole("dialog", { name: "Awasi web setiap hari" })).toBeVisible();
+  await page.locator('[data-tour="review-queue"]').click();
   const complete = page.getByRole("dialog", { name: "Ritual harian selesai" });
   await expect(complete).toContainText("Lanjutkan riset");
   await complete.getByRole("button", { name: "Selesai" }).click();
+  await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("heading", { name: "Apa yang mendorong perubahan ini?" })).toBeVisible();
   const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasOverflow).toBe(false);
@@ -293,7 +295,7 @@ test("company analysis aligns events on an evidence timeline", async ({ page }) 
   await page.goto("/cases/ANTM?tab=market");
   await page.getByText(/Buka timeline \d+ hari/).click();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
-  await expect(page.getByText("ANTM memublikasikan pembaruan operasi kuartalan")).toBeVisible();
+  await expect(page.getByText("Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion")).toBeVisible();
   await page.getByRole("button", { name: "Tanya jejak ANTM" }).click();
   await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText("ANTM · jejak bukti", { exact: true })).toBeVisible();
 });
@@ -332,14 +334,14 @@ test("causal map labels hypotheses, confidence, lag, and counter-evidence", asyn
   await finishSetup(page);
   await resolveDefaultClarification(page);
   await page.goto("/impact?company=ANTM");
-  await page.getByRole("button", { name: /Mekanisme pendapatan/i }).click();
+  await page.getByLabel("Rangkaian sebab akibat ANTM").getByRole("button", { name: /realisasi harga/i }).first().click();
   const selected = page.getByLabel("Detail titik terpilih");
   await expect(selected.getByText("Hipotesis sebab akibat", { exact: true })).toBeVisible();
   await expect(selected.getByText("Keyakinan tinggi", { exact: true })).toBeVisible();
-  await expect(selected.getByText("0-3 sesi", { exact: true })).toBeVisible();
+  await expect(selected.getByText("1-10 sesi", { exact: true })).toBeVisible();
   await expect(selected.getByText(/Bukti penyangkal/)).toBeVisible();
   await selected.getByRole("button", { name: "Tanya jalur ini" }).click();
-  await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText(/ANTM · pendapatan/)).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText(/ANTM · realisasi harga/)).toBeVisible();
 });
 
 test("Causal Impact compares competing explanations for one observable", async ({ page }) => {

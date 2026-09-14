@@ -1,17 +1,17 @@
 /**
- * Cache-first Sectors API client — P3 scaffolding.
+ * Cache-first Sectors API client.
  *
- * NOT WIRED INTO ANY REQUEST PATH. The app still serves entirely from the
- * bundled `lib/data/market.generated.ts`; nothing here is called at runtime
- * yet. Sectors credit is a non-renewable grant (619 of 1000 left) and the
- * project's own rule is that no live call happens without a written plan,
- * a --dry-run, a mock_server.py rehearsal, and explicit approval — none of
- * which has happened for this code. Wiring `fetchSectors` into an actual
- * route is a separate, deliberate step.
+ * Wired ONLY through `POST /api/internal/refresh-sectors`, which is
+ * flag-gated (`SECTORS_REFRESH_ENABLED=true`), key-required, Bearer-guarded,
+ * dry-run by default, and bounded to already-recorded symbols. The app still
+ * serves entirely from the bundled `lib/data/market.generated.ts`; refresh
+ * output lands in GCS for human review + regen, never overwriting the bundle
+ * at runtime. Sectors credit is a non-renewable grant — the ledger, daily
+ * budget, and rate limiter below are the guardrails, not suggestions.
  *
- * Order once wired: in-process memory -> GCS (`katalis-recorded`, reused
- * rather than a new bucket) -> live Sectors API, only on a cache miss and
- * only if the daily ledger has budget left.
+ * Order: in-process memory -> GCS (`katalis-recorded`, reused rather than a
+ * new bucket) -> live Sectors API, only on a cache miss and only if the
+ * daily ledger has budget left.
  */
 import { companies } from "@/lib/data/fixtures";
 import { gcsGetJson, gcsPutJson } from "@/lib/gcp/gcs";

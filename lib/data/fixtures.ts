@@ -135,6 +135,34 @@ export const analysisFixtures: Record<string, CompanyAnalysisFixture> = Object.f
   }),
 );
 
+export interface SymbolCoverage {
+  symbol: SymbolCode;
+  analyzed: boolean;
+  hasPriceSeries: boolean;
+  hasBroker: boolean;
+  financialRows: number;
+  linkedEvents: number;
+  /** Recordings still missing before this symbol can open a full case. */
+  missing: string[];
+}
+
+/** Per-symbol recording availability — drives the honest snapshot/full-case split in the picker. */
+export const coverageInfo: Record<string, SymbolCoverage> = Object.fromEntries(
+  rawCompanies.map((company) => {
+    const symbol = company.symbol;
+    const hasPriceSeries = (priceSeries[symbol] ?? []).length > 0;
+    const hasBroker = Boolean(brokerEvidence[symbol]);
+    const financialRowsCount = (financialRows[symbol] ?? []).length;
+    const linkedEvents = (eventIdsBySymbol[symbol] ?? []).length;
+    const missing: string[] = [];
+    if (!hasPriceSeries) missing.push("harga harian");
+    if (!hasBroker) missing.push("ringkasan broker + arus asing");
+    if (!financialRowsCount) missing.push("keuangan kuartalan");
+    if (!linkedEvents) missing.push("peristiwa terhubung");
+    return [symbol, { symbol, analyzed: hasPriceSeries && hasBroker, hasPriceSeries, hasBroker, financialRows: financialRowsCount, linkedEvents, missing }];
+  }),
+);
+
 export const demoProfiles: UserProfile[] = [
   {
     id: "flow-first", name: "Raka", description: "Mengutamakan arus, mencari konfirmasi partisipan sebelum membaca peristiwa.",

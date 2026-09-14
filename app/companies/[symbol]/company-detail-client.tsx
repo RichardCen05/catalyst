@@ -24,18 +24,21 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
   const { profile, playbook, caseMandates, caseClarifications, caseResolutions, insights, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
+  const mandate = caseMandates[symbol];
+  const clarificationChoice = caseClarifications[symbol];
+  const resolution = caseResolutions[symbol];
   useEffect(() => {
     let cancelled = false;
     agentEngine.analyzeCompany(symbol, profile, {
-      mandate: caseMandates[symbol],
-      clarificationChoice: caseClarifications[symbol],
+      mandate,
+      clarificationChoice,
       playbook,
       userInsights: insights,
-      resolution: caseResolutions[symbol],
+      resolution,
     }).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol]);
+  }, [symbol, profile, mandate, clarificationChoice, playbook, insights, resolution]);
   const relatedEvents = events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol));
 
   if (analysis === undefined) return (
