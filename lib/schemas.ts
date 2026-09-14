@@ -20,6 +20,12 @@ export const profileSchema = z.object({
 });
 
 export const analyzeRequestSchema = z.object({ symbol: symbolSchema, profile: profileSchema });
+export const causalGraphRequestSchema = z.object({
+  symbol: symbolSchema,
+  profile: profileSchema,
+  scope: z.enum(["watchlist", "market"]).default("market"),
+  minRelevance: z.number().min(0).max(100).default(60),
+});
 export const impactRequestSchema = z.object({ eventId: z.string().min(1), profile: profileSchema, scope: z.enum(["watchlist", "market"]) });
 export const userInsightSchema = z.object({
   id: z.string().min(1).max(100),
