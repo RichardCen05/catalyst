@@ -1,5 +1,5 @@
 // Fixtures-only sufficient — sectors-client unwired (P3: no plan/dry-run/approval). Live wiring is separate.
-import { analysisFixtures, citations, demoProfiles, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import {
@@ -30,7 +30,6 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
-import { parseMandateWithLlm, type MandatePlan } from "@/lib/agent/llm/mandate";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 
@@ -211,20 +210,6 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   const comparables = playbook.preferredComparables[symbol];
   add("comparable", comparables?.length ? comparables.join(" · ") : undefined, "Menetapkan pembanding yang dipakai saat menguji materialitas relatif.");
   return rules;
-}
-
-async function llmMandatePlan(symbol: SymbolCode, mandate: string): Promise<MandatePlan | null> {
-  if (agentMode() !== "llm") return null;
-  const key = cacheKeyFor(["mandate", symbol, mandate]);
-  const cached = await getCached<MandatePlan>(key);
-  if (cached) return cached;
-  try {
-    const plan = await parseMandateWithLlm({ symbol, mandate });
-    await setCached(key, plan);
-    return plan;
-  } catch {
-    return null;
-  }
 }
 
 function createResearchPlan(
@@ -878,5 +863,3 @@ export const agentEngine: AgentEngine = {
   answerFollowUp,
   buildCausalGraph: async (symbol, profile, options) => buildCausalGraph(symbol.toUpperCase() as SymbolCode, profile, options),
 };
-
-export const defaultProfile = demoProfiles[0];

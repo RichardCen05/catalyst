@@ -67,3 +67,21 @@ describe("sectors refresh guard", () => {
     }
   });
 });
+
+describe("analysis context wiring", () => {
+  it("applies the caller playbook relevanceFloor through the API", async () => {
+    const { POST } = await import("@/app/api/analyze/route");
+    const base = { symbol: "ANTM", profile: demoProfiles[0] };
+    const def = await (await POST(request("/api/analyze", base))).json();
+    expect(def.analysis.priority.materiality).toBe("High");
+    const strict = await (
+      await POST(
+        request("/api/analyze", {
+          ...base,
+          playbook: { preferredComparables: {}, materialityRules: [], knownExposures: [], thesisAssumptions: [], trustedSources: [], falsifiers: [], relevanceFloor: 97 },
+        }),
+      )
+    ).json();
+    expect(strict.analysis.priority.materiality).toBe("Medium");
+  });
+});

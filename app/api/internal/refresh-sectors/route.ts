@@ -39,6 +39,9 @@ interface RefreshPlan {
 }
 
 function planFor(symbol: string): RefreshPlan {
+  // Per-call costs are conservative estimates until verified against the
+  // Sectors credit table — the GCS ledger records actuals, and
+  // SECTORS_DAILY_BUDGET caps total spend either way.
   return {
     symbol,
     calls: [

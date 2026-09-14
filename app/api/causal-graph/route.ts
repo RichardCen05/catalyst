@@ -3,7 +3,7 @@ import { agentEngine } from "@/lib/agent/engine";
 import { causalGraphRequestSchema } from "@/lib/schemas";
 import { isKnownSymbol } from "@/lib/data/sectors-client";
 import { ensureOverlay } from "@/lib/web-watch/queue";
-import type { UserProfile } from "@/lib/types";
+import type { InvestorResearchPlaybook, UserProfile } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -15,7 +15,15 @@ export async function POST(request: Request) {
     const graph = await agentEngine.buildCausalGraph(
       parsed.data.symbol,
       parsed.data.profile as UserProfile,
-      { scope: parsed.data.scope, minRelevance: parsed.data.minRelevance }
+      {
+        scope: parsed.data.scope,
+        minRelevance: parsed.data.minRelevance,
+        context: {
+          mandate: parsed.data.mandate,
+          clarificationChoice: parsed.data.clarificationChoice,
+          playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
+        },
+      }
     );
     if (!graph) return NextResponse.json({ error: "Belum ada bukti yang cukup untuk ticker ini" }, { status: 404 });
     return NextResponse.json({ graph, mode: "recorded" });

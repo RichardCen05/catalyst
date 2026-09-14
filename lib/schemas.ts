@@ -19,12 +19,31 @@ export const profileSchema = z.object({
   hasOnboarded: z.boolean(),
 });
 
-export const analyzeRequestSchema = z.object({ symbol: symbolSchema, profile: profileSchema });
+export const playbookSchema = z.object({
+  preferredComparables: z.record(z.string(), z.array(symbolSchema).max(6)),
+  materialityRules: z.array(z.string().max(400)).max(30),
+  knownExposures: z.array(z.string().max(400)).max(50),
+  thesisAssumptions: z.array(z.string().max(400)).max(50),
+  trustedSources: z.array(z.string().max(400)).max(30),
+  falsifiers: z.array(z.string().max(400)).max(50),
+  relevanceFloor: z.number().min(0).max(100).optional(),
+});
+
+export const analyzeRequestSchema = z.object({
+  symbol: symbolSchema,
+  profile: profileSchema,
+  mandate: z.string().max(600).optional(),
+  clarificationChoice: z.string().max(40).optional(),
+  playbook: playbookSchema.optional(),
+});
 export const causalGraphRequestSchema = z.object({
   symbol: symbolSchema,
   profile: profileSchema,
   scope: z.enum(["watchlist", "market"]).default("market"),
   minRelevance: z.number().min(0).max(100).default(60),
+  mandate: z.string().max(600).optional(),
+  clarificationChoice: z.string().max(40).optional(),
+  playbook: playbookSchema.optional(),
 });
 export const impactRequestSchema = z.object({ eventId: z.string().min(1), profile: profileSchema, scope: z.enum(["watchlist", "market"]) });
 export const userInsightSchema = z.object({
@@ -64,14 +83,6 @@ export const chatRequestSchema = z.object({
   profile: profileSchema,
   contextSymbol: symbolSchema.optional(),
   userInsights: z.array(userInsightSchema).max(100).optional(),
-  playbook: z.object({
-    preferredComparables: z.record(z.string(), z.array(symbolSchema).max(6)),
-    materialityRules: z.array(z.string().max(400)).max(30),
-    knownExposures: z.array(z.string().max(400)).max(50),
-    thesisAssumptions: z.array(z.string().max(400)).max(50),
-    trustedSources: z.array(z.string().max(400)).max(30),
-    falsifiers: z.array(z.string().max(400)).max(50),
-    relevanceFloor: z.number().min(0).max(100).optional(),
-  }).optional(),
+  playbook: playbookSchema.optional(),
   caseMandate: z.string().max(600).optional(),
 });
