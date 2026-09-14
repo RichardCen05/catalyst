@@ -117,7 +117,7 @@ test("Hari ini memprioritaskan perubahan tanpa informasi berlebih", async ({ pag
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Hari ini", "Kasus", "Sebab akibat", "Asisten"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Hari ini", "Kasus", "Sebab akibat", "Pantau", "Asisten"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
@@ -459,7 +459,7 @@ test("theme persists and core routes do not overflow target breakpoints", async 
 
 test("core routes have no automatic WCAG A or AA violations", async ({ page }) => {
   await finishSetup(page);
-  const routes = ["/", "/cases", "/cases/ANTM", "/impact", "/copilot", "/playbook", "/companies", "/compare?symbols=ANTM%2CBBCA", "/agent", "/method"];
+  const routes = ["/", "/cases", "/cases/ANTM", "/impact", "/copilot", "/playbook", "/companies", "/compare?symbols=ANTM%2CBBCA", "/agent", "/method", "/pantau"];
   for (const theme of ["dark", "light"] as const) {
     if (theme === "light") {
       await page.goto("/");

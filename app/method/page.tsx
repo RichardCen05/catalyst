@@ -1,4 +1,4 @@
-import { events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { DATA_AS_OF, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
@@ -17,15 +17,16 @@ const catalystInputs = Array.from(new Set(events.map((event) => event.sourceType
 
 const pillars = [
   { name: "Konsentrasi", input: "Ringkasan broker, asal broker, arus asing, saham publik", formula: "Porsi terbesar, HHI, peserta efektif, saham publik terserap", output: "Arus terkonsentrasi, partisipasi luas, arus asing selaras, konflik sumber" },
-  { name: "Volume", input: "Volume harian dan pembanding 45 hari bursa", formula: "Median dan skor z berbasis MAD, lalu batas likuiditas", output: "Normal, meningkat, ekstrem, data belum cukup" },
+  { name: "Volume", input: `Volume harian dan pembanding ${WINDOW_SESSIONS} hari bursa`, formula: "Median dan skor z berbasis MAD, lalu batas likuiditas", output: "Normal, meningkat, ekstrem, data belum cukup" },
   { name: "Momentum", input: "Harga penutupan, IHSG, beta, pembanding sektor", formula: "Imbal hasil 3 hari dikurangi beta × imbal hasil IHSG", output: "Mengikuti pasar, dipengaruhi sektor, khusus emiten, bercampur" },
   { name: "Katalis", input: "Berita Sectors, keterbukaan, komoditas, BI-Rate, JISDOR, kebijakan, dan cuaca BMKG", formula: "Sumber ∩ eksposur ∩ waktu ∩ jalur sebab akibat yang dapat diuji", output: "Mendukung, berlawanan, bercampur, tidak terkait, belum terverifikasi" },
 ];
 
 export default function MethodPage() {
+  const recordDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(DATA_AS_OF));
   return (
     <div>
-      <PageHeader eyebrow="Metode dan batas" title="Cara Catalyst menyusun bukti" description="Prototipe memakai rekaman 11 Sep 2026 dan perhitungan tetap. Halaman ini menjelaskan rumus, sumber, dan kondisi saat Catalyst harus berhenti." />
+      <PageHeader eyebrow="Metode dan batas" title="Cara Catalyst menyusun bukti" description={`Prototipe memakai rekaman ${recordDate} dan perhitungan tetap. Halaman ini menjelaskan rumus, sumber, dan kondisi saat Catalyst harus berhenti.`} />
       <Panel>
         <PanelHeader eyebrow="Dua lapisan bukti" title="Empat pemeriksaan, dua pertanyaan" />
         <div className="grid gap-px border-b border-border bg-border md:grid-cols-2"><section className="bg-surface p-4 sm:p-5"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Lapisan 1</p><h2 className="editorial mt-1 text-2xl">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Konsentrasi, volume, dan momentum menunjukkan apakah perubahan terlihat di pasar.</p></section><section className="bg-surface p-4 sm:p-5"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Lapisan 2</p><h2 className="editorial mt-1 text-2xl">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Katalis, eksposur, dan indikator keuangan menunjukkan apakah perubahan dapat mencapai bisnis.</p></section></div>

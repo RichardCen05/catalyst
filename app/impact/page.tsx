@@ -30,13 +30,26 @@ function ImpactWorkspace() {
   };
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
   const [graph, setGraph] = useState<CausalGraph | null | undefined>(undefined);
+  // Relevance floor for the chain: lower shows more of the graph (up to the
+  // engine's visibility cap), higher thins it to the strongest paths.
+  const [minRelevance, setMinRelevance] = useState(60);
+  const [reloading, setReloading] = useState(false);
   useEffect(() => {
     let cancelled = false;
     agentEngine.analyzeCompany(symbol, profile, context).then((result) => { if (!cancelled) setAnalysis(result); });
-    agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance: 60, context }).then((result) => { if (!cancelled) setGraph(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol]);
+  useEffect(() => {
+    let cancelled = false;
+    // The previous graph stays visible while the new threshold loads, with a
+    // badge saying so — otherwise the filter looks broken for a beat.
+    // (reloading is set from the select handler, not here: setState inside
+    // an effect would cascade renders.)
+    agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance, context }).then((result) => { if (!cancelled) { setGraph(result); setReloading(false); } });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, minRelevance]);
 
   if (analysis === undefined || graph === undefined) {
     return (
@@ -56,6 +69,17 @@ function ImpactWorkspace() {
       />
 
       {!analysis || !graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : analysis.clarification.required ? <Panel className="p-5 sm:p-6"><IconAttention aria-hidden="true" className="size-5 text-attention" /><h2 className="mt-3 text-lg font-semibold">Tentukan fokus kasus lebih dulu</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Catalyst belum membandingkan penyebab karena hasil bisnis yang ingin diuji belum dipilih.</p><Link href={`/cases/${symbol}#clarification-gate`} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-[6px] bg-primary px-3 text-sm font-semibold text-primary-foreground">Buka kasus {symbol}<IconArrowRight aria-hidden="true" className="size-4" /></Link></Panel> : <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Ambang relevansi
+            <select aria-label="Ambang relevansi rantai" value={minRelevance} onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary">
+              <option value={40}>≥ 40 · lebar</option>
+              <option value={60}>≥ 60 · standar</option>
+              <option value={75}>≥ 75 · kuat</option>
+              <option value={90}>≥ 90 · terkuat</option>
+            </select>
+          </label>
+          <p className="text-xs text-muted-foreground">{reloading ? "Memuat ulang rantai…" : graph.hiddenRelationshipCount > 0 ? `${graph.hiddenRelationshipCount} hubungan di bawah ambang.` : "Semua hubungan yang lolos ditampilkan."}</p>
+        </div>
         <CompetingHypotheses graph={graph} />
         <CausalChain graph={graph} />
 

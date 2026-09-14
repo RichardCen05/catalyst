@@ -762,7 +762,12 @@ async function buildCausalGraph(
     return analysis.researchPlan.focus;
   };
   const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);
-  const visible = eligible.slice(0, 3);
+  // Bounded, not fixed: the graph shows at most this many sources so the
+  // chain stays readable, and `hiddenRelationshipCount` says exactly how many
+  // stayed out. Web-watch accepts can push `linked` well past the fixture
+  // count — that is what the bound is for.
+  const MAX_VISIBLE_SOURCES = 6;
+  const visible = eligible.slice(0, MAX_VISIBLE_SOURCES);
   const targetImpact = analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0];
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
@@ -832,7 +837,9 @@ async function buildCausalGraph(
     nodes,
     edges,
     targetObservable: targetImpact.label,
-    competingHypotheses: visible.map(({ event, link }, index) => ({
+    // Hypotheses stay at three even when the graph shows more: three
+    // competing claims fit in working memory, six do not.
+    competingHypotheses: visible.slice(0, 3).map(({ event, link }, index) => ({
       id: `${symbol}-competing-${event.id}`,
       rank: index + 1,
       claim: `${event.title} menjelaskan perubahan ${targetImpact.label.toLowerCase()} ${symbol}.`,

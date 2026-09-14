@@ -39,6 +39,26 @@ export const userInsightSchema = z.object({
   reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
+export const webWatchImpactSchema = z.object({
+  symbol: symbolSchema,
+  direction: z.enum(["Supported", "Adverse", "Mixed", "Unrelated", "Unverified"]),
+  band: z.enum(["high", "medium", "low"]),
+  path: z.string().trim().min(10).max(300),
+});
+
+export const webWatchReviewSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("accept"),
+    candidateId: z.string().min(1).max(120),
+    impacts: z.array(webWatchImpactSchema).min(1).max(18),
+    reason: z.string().trim().max(500).optional(),
+  }),
+  z.object({
+    action: z.literal("dismiss"),
+    candidateId: z.string().min(1).max(120),
+    reason: z.string().trim().min(3).max(500),
+  }),
+]);
 export const chatRequestSchema = z.object({
   question: z.string().trim().min(2).max(500),
   profile: profileSchema,

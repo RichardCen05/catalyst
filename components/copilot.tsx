@@ -2,22 +2,32 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useCatalystStore } from "@/lib/store";
-import { companies, events } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import type { ChatAnswer, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { IconCaretDown, IconClose, IconCopilot, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
 
-const DEFAULT_PROMPTS = [
-  "Kenapa ANTM masuk daftar hari ini?",
-  "Berita nikel ini berdampak ke daftar pantauan saya?",
-  "Bandingkan transmisi nikel ANTM dan INCO.",
-  "Data apa yang belum diperiksa?",
-];
+const RECORD_SHORT = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(DATA_AS_OF));
 
+/** Quick prompts name a real recorded event touching the watchlist — never a
+ *  topic the record does not contain. Falls back to generic prompts when the
+ *  watchlist has no linked event. */
 function buildQuickPrompts(profile: UserProfile): string[] {
   const first = profile.watchlist[0] ?? "ANTM";
-  return [`Kenapa ${first} masuk daftar hari ini?`, ...DEFAULT_PROMPTS.slice(1)];
+  const watched = new Set(profile.watchlist);
+  const top = events.find((event) => event.impactLinks.some((link) => watched.has(link.symbol) && link.direction !== "Unrelated"));
+  const prompts = [`Kenapa ${first} masuk daftar hari ini?`];
+  if (top) {
+    const headline = top.title.length > 72 ? `${top.title.slice(0, 72)}…` : top.title;
+    prompts.push(`${headline} — berdampak ke pantauan saya?`);
+  } else {
+    prompts.push("Peristiwa apa yang berdampak ke daftar pantauan saya?");
+  }
+  const second = profile.watchlist[1];
+  prompts.push(second ? `Bandingkan ${first} dan ${second}.` : "Bandingkan dua emiten pantauan saya.");
+  prompts.push("Data apa yang belum diperiksa?");
+  return prompts.slice(0, 4);
 }
 
 interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
@@ -54,7 +64,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     <div role={dismissible ? "dialog" : undefined} aria-label={dismissible ? "Asisten Catalyst" : undefined} className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
         <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
-        <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Asisten Catalyst</p><p className="truncate font-mono text-[11px] text-muted-foreground">Rekaman 11 Sep · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
+        <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Asisten Catalyst</p><p className="truncate font-mono text-[11px] text-muted-foreground">Rekaman {RECORD_SHORT} · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup asisten"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
       </div>
       <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><IconGate aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>

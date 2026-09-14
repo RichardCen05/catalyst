@@ -70,6 +70,17 @@ const steps: TourStep[] = [
     actionSelector: '[data-tour-action="show-next-action"]',
     destination: "Sebab akibat",
   },
+  {
+    id: "watch",
+    title: "Awasi web setiap hari",
+    body: "Regulator, portal pasar, dan cuaca BMKG dibaca terjadwal. Yang berubah masuk antrean untuk Anda petakan ke emiten.",
+    action: "Buka halaman Pantau.",
+    outcome: "Kandidat baru menunggu review — bukan vonis otomatis.",
+    href: "/pantau",
+    selector: '[data-tour="review-queue"]',
+    actionSelector: '[data-tour="review-queue"]',
+    destination: "Pantau",
+  },
 ];
 
 export function GuidedTour() {
