@@ -18,6 +18,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { checkInternalAuth } from "@/lib/internal-auth";
 import { BudgetExceededError, fetchSectors, isKnownSymbol } from "@/lib/data/sectors-client";
 import { gcsPutJson } from "@/lib/gcp/gcs";
 
@@ -27,10 +28,9 @@ export const dynamic = "force-dynamic";
 const RECORDED_SYMBOLS = ["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"] as const;
 const CACHE_BUCKET = process.env.GCS_CACHE_BUCKET || "katalis-recorded";
 
-function authorized(request: Request): boolean {
-  const secret = process.env.INTERNAL_CRON_SECRET;
-  if (!secret) return true;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+function authError(request: Request): { status: 401 | 503; error: string } | null {
+  const result = checkInternalAuth(request);
+  return result.ok ? null : { status: result.status, error: result.error };
 }
 
 interface RefreshPlan {
@@ -52,7 +52,8 @@ function planFor(symbol: string): RefreshPlan {
 }
 
 export async function POST(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const denied = authError(request);
+  if (denied) return NextResponse.json({ error: denied.error }, { status: denied.status });
   if (process.env.SECTORS_REFRESH_ENABLED !== "true") {
     return NextResponse.json(
       { error: "refresh-disabled", hint: "Set SECTORS_REFRESH_ENABLED=true plus SECTORS_API_KEY to enable. Recorded bundle keeps serving." },

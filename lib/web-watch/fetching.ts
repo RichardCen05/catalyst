@@ -20,6 +20,13 @@
  */
 
 import { createHash } from "node:crypto";
+import {
+  buildFieldPattern,
+  compileListingPattern,
+  MAX_ANCHORS_PER_PAGE,
+  SafePatternError,
+  testWithBudget,
+} from "@/lib/web-watch/safe-regex";
 
 export class FetchError extends Error {
   permanent: boolean;
@@ -253,8 +260,7 @@ export interface FeedRead {
 const DOCTYPE = /<!\s*(DOCTYPE|ENTITY)\b/i;
 
 function fieldText(xml: string, name: string): string {
-  const re = new RegExp(`<(?:\\w+:)?${name}\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?${name}>`, "i");
-  const match = xml.match(re);
+  const match = xml.match(buildFieldPattern(name));
   if (!match) return "";
   return stripCdata(match[1]).trim();
 }
@@ -341,12 +347,22 @@ export function parseFeed(raw: Buffer): FeedRead {
 const ANCHOR = /<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a\s*>/gi;
 
 export function extractLinks(markup: string, baseUrl: string, pattern: string): FeedEntry[] {
-  const compiled = new RegExp(pattern.replace(/[.*+?^${}()|[\]\]/g, "\$&"));
+  let compiled: RegExp;
+  try {
+    compiled = compileListingPattern(pattern);
+  } catch (error) {
+    // A bad operator pattern is a permanent misconfiguration, not a crash:
+    // surfaced like every other unusable-source condition.
+    const detail = error instanceof SafePatternError || error instanceof Error ? error.message : String(error);
+    throw new FetchError(`Pola tautan tidak bisa dipakai: ${detail}`, { permanent: true });
+  }
   const seen = new Set<string>();
   const entries: FeedEntry[] = [];
   ANCHOR.lastIndex = 0;
   let match: RegExpExecArray | null;
+  let scanned = 0;
   while ((match = ANCHOR.exec(markup)) !== null) {
+    if (++scanned > MAX_ANCHORS_PER_PAGE) break;
     const rawHref = unescapeHtml((match[1] ?? "").trim());
     if (!rawHref || rawHref.startsWith("#") || /^(javascript|mailto):/i.test(rawHref)) continue;
     let absolute: string;
@@ -355,7 +371,7 @@ export function extractLinks(markup: string, baseUrl: string, pattern: string): 
     } catch {
       continue;
     }
-    if (!compiled.test(absolute) || seen.has(absolute)) continue;
+    if (!testWithBudget(compiled, absolute) || seen.has(absolute)) continue;
     seen.add(absolute);
     const label = unescapeHtml((match[2] ?? "").replace(TAGS, " "))
       .replace(INLINE_SPACE, " ")

@@ -16,6 +16,11 @@
 const METADATA_TOKEN_URL =
   "https://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
 
+/** Exported for the transport regression test (Rec 4): the metadata token
+ *  endpoint must stay HTTPS — `http://metadata.google.internal` would leak
+ *  the service-account token in cleartext (CWE-319, vuln-0002). */
+export { METADATA_TOKEN_URL };
+
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {

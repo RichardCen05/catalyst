@@ -10,11 +10,13 @@
  *     --message-body='{}'
  *
  * Auth: when INTERNAL_CRON_SECRET is set, the Bearer token must match.
- * When unset (local dev), the route runs open — same rule as the memory
- * route's degrade-to-local behavior, but for a scheduler instead of a user.
+ * When unset, the route runs open ONLY in local dev — in production
+ * (NODE_ENV=production or Cloud Run) it fails closed with 503 so a missing
+ * secret is loud instead of open. See `lib/internal-auth.ts`.
  */
 
 import { NextResponse } from "next/server";
+import { checkInternalAuth } from "@/lib/internal-auth";
 import { checkSource } from "@/lib/web-watch/check";
 import { enqueue, ensureOverlay, gcsQueueStore, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
 import { gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
@@ -26,10 +28,9 @@ import { watchAll } from "@/lib/web-watch/watch-all";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function authorized(request: Request): boolean {
-  const secret = process.env.INTERNAL_CRON_SECRET;
-  if (!secret) return true;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+function authError(request: Request): { status: 401 | 503; error: string } | null {
+  const result = checkInternalAuth(request);
+  return result.ok ? null : { status: result.status, error: result.error };
 }
 
 async function seedIfEmpty(): Promise<{ seeded: number }> {
@@ -48,7 +49,8 @@ async function seedIfEmpty(): Promise<{ seeded: number }> {
 }
 
 export async function GET(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const denied = authError(request);
+  if (denied) return NextResponse.json({ error: denied.error }, { status: denied.status });
   try {
     const sources = await listSources(gcsRegistryStore);
     const latest = await gcsReviewStore.getLatestCheck().catch(() => null);
@@ -75,7 +77,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const denied = authError(request);
+  if (denied) return NextResponse.json({ error: denied.error }, { status: denied.status });
   let body: { force?: boolean; sourceId?: string } = {};
   try {
     body = await request.json();

@@ -7,7 +7,9 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 function readUid(request: Request): string | null {
   const cookie = request.headers.get("cookie") ?? "";
-  const match = cookie.match(new RegExp(`${COOKIE_NAME}=([0-9a-f-]{36})`));
+  // Literal pattern on purpose: COOKIE_NAME is a constant, and keeping the
+  // RegExp literal means no user-controlled string ever reaches RegExp.
+  const match = cookie.match(/catalyst_uid=([0-9a-f-]{36})/);
   return match?.[1] ?? null;
 }
 
