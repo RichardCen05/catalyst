@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
+import { apiUrl } from "@/lib/api-base";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -77,7 +78,7 @@ function CandidateCard({
       setBusy(true);
       setError(null);
       try {
-        const response = await fetch("/api/web-watch", {
+        const response = await fetch(apiUrl("/api/web-watch"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -229,7 +230,7 @@ export function WebWatchReview() {
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch("/api/web-watch");
+      const response = await fetch(apiUrl("/api/web-watch"));
       const body = (await response.json()) as QueueData;
       if (body.unavailable) {
         setError("Antrean belum tersedia (GCS tidak terjangkau dari sini). Jalankan di Cloud Run atau isi manual.");
@@ -244,7 +245,7 @@ export function WebWatchReview() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/web-watch")      .then((response) => response.json() as Promise<QueueData>)
+    fetch(apiUrl("/api/web-watch"))      .then((response) => response.json() as Promise<QueueData>)
       .then((body) => {
         if (cancelled) return;
         if (body.unavailable) {

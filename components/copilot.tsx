@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useCatalystStore } from "@/lib/store";
+import { apiUrl } from "@/lib/api-base";
 import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import type { ChatAnswer, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
+      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
       setMessages((current) => [...current, { id: `a-${current.length}`, role: "assistant", text: answer.text, answer }]);

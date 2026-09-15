@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCatalystStore } from "@/lib/store";
+import { apiUrl } from "@/lib/api-base";
 import { browserMemoryStore } from "@/lib/memory-store";
 
 const STORAGE_KEY = "catalyst:v1";
@@ -19,7 +20,7 @@ export function MemorySync() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/memory")
+    fetch(apiUrl("/api/memory"))
       .then((response) => response.json())
       .then((body: { data?: { profile?: { hasOnboarded?: boolean } } }) => {
         if (cancelled || hydratedRemote.current) return;
@@ -51,7 +52,7 @@ export function MemorySync() {
         try {
           const parsed = JSON.parse(raw) as { state?: Record<string, unknown> };
           if (!parsed.state) return;
-          void fetch("/api/memory", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.state) });
+          void fetch(apiUrl("/api/memory"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.state) });
         } catch {
           // malformed local snapshot — skip this sync, try again next change
         }
