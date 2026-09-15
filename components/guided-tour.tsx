@@ -73,7 +73,7 @@ const steps: TourStep[] = [
   {
     id: "watch",
     title: "Awasi web setiap hari",
-    body: "Regulator, portal pasar, dan cuaca BMKG dibaca terjadwal. Yang berubah masuk antrean untuk Anda petakan ke emiten.",
+    body: "Regulator, portal pasar, dan cuaca BMKG dibaca setiap sweep dijalankan. Yang berubah masuk antrean untuk Anda petakan ke emiten.",
     action: "Buka halaman Pantau.",
     outcome: "Kandidat baru menunggu review — bukan vonis otomatis.",
     href: "/pantau",

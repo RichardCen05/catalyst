@@ -1,22 +1,28 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-/** Pentest Rec 4 (vuln-0002, CWE-319): the GCP metadata token endpoint must
- *  stay HTTPS. An `http://` URL would send the service-account token in
- *  cleartext. This pins the scheme and the `Metadata-Flavor` header. */
+/** The GCE/Cloud Run metadata server is HTTP-only on the link-local host
+ *  `metadata.google.internal`. An `https://` URL there does not fail loudly —
+ *  it makes every GCS-backed feature (memory sync, web-watch registry and
+ *  queue) degrade to "unavailable", because each caller swallows the error.
+ *  These tests pin the host and the `Metadata-Flavor: Google` header, which is
+ *  the control that actually guards the endpoint: the request never leaves the
+ *  VM, and callers that cannot set custom headers (browsers, plain SSRF) are
+ *  rejected by the metadata server. Storage API calls stay on https. */
 
 describe("GCS metadata transport", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("uses an https metadata token URL (no http downgrade)", async () => {
+  it("points at the link-local metadata host over http (no https upgrade)", async () => {
     const { METADATA_TOKEN_URL } = await import("@/lib/gcp/gcs");
-    expect(METADATA_TOKEN_URL.startsWith("https://")).toBe(true);
-    expect(METADATA_TOKEN_URL).not.toContain("http://");
-    expect(METADATA_TOKEN_URL).toContain("metadata.google.internal");
+    const url = new URL(METADATA_TOKEN_URL);
+    expect(url.protocol).toBe("http:");
+    expect(url.hostname).toBe("metadata.google.internal");
+    expect(url.pathname).toBe("/computeMetadata/v1/instance/service-accounts/default/token");
   });
 
-  it("fetches the token over https with the Metadata-Flavor header", async () => {
+  it("sends Metadata-Flavor: Google on the token fetch and https for storage", async () => {
     const seen: string[] = [];
     const fetchMock = vi.fn(async (url: string, _init?: unknown) => {
       void _init;
@@ -34,11 +40,13 @@ describe("GCS metadata transport", () => {
     const { gcsGetJson } = await import("@/lib/gcp/gcs");
     await gcsGetJson("bucket", "path");
 
-    expect(seen.length).toBeGreaterThan(0);
-    for (const url of seen) expect(url.startsWith("https://")).toBe(true);
     const tokenCall = fetchMock.mock.calls.find(([url]) =>
       String(url).includes("metadata.google.internal"),
     );
     expect(tokenCall?.[1]).toMatchObject({ headers: { "Metadata-Flavor": "Google" } });
+
+    const storageCalls = seen.filter((url) => !url.includes("metadata.google.internal"));
+    expect(storageCalls.length).toBeGreaterThan(0);
+    for (const url of storageCalls) expect(url.startsWith("https://")).toBe(true);
   });
 });

@@ -2,6 +2,12 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { loadMemory, saveMemory } from "@/lib/memory/gcs-memory";
 
+/**
+ * Anonymous per-browser identity. No sign-in, so this cookie IS the user as
+ * far as GCS memory is concerned: clear it, or open the app on another
+ * device, and the next request mints a new uid with empty memory. Anything
+ * described as "remembers you across devices" needs an account first.
+ */
 const COOKIE_NAME = "catalyst_uid";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 

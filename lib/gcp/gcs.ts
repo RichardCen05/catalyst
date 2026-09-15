@@ -13,12 +13,20 @@
  * "GCS unavailable" rather than an error to surface to the user.
  */
 
+/**
+ * The GCE/Cloud Run metadata server is HTTP-only on the link-local address
+ * `metadata.google.internal` (169.254.169.254); it serves no TLS, so an
+ * `https://` URL here fails the token fetch outright and every GCS-backed
+ * feature degrades to "unavailable" in silence. The request never leaves the
+ * VM, so this is not a cleartext-exposure case — the `Metadata-Flavor`
+ * header is what protects the endpoint (it blocks browser/SSRF-style calls
+ * that cannot set custom headers).
+ */
 const METADATA_TOKEN_URL =
-  "https://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+  "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
 
-/** Exported for the transport regression test (Rec 4): the metadata token
- *  endpoint must stay HTTPS — `http://metadata.google.internal` would leak
- *  the service-account token in cleartext (CWE-319, vuln-0002). */
+/** Exported for the transport regression test: the token endpoint must stay
+ *  on the link-local metadata host and keep the `Metadata-Flavor` header. */
 export { METADATA_TOKEN_URL };
 
 let cachedToken: { value: string; expiresAt: number } | null = null;

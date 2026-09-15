@@ -53,7 +53,7 @@ const statusLabel: Record<string, string> = {
   error: "Gagal",
   busy: "Sibuk",
   disabled: "Nonaktif",
-  not_due: "Menunggu jadwal",
+  not_due: "Belum jatuh tempo",
 };
 
 function CandidateCard({
@@ -276,7 +276,7 @@ export function WebWatchReview() {
       <PageHeader
         eyebrow="Pantau web"
         title="Apa yang berubah di web sejak kemarin?"
-        description="Sumber resmi dan portal pasar yang diawasi terjadwal. Kandidat masuk antrean tanpa peta dampak — reviewer yang memetakan, terbuka."
+        description="Sumber resmi dan portal pasar yang diperiksa setiap sweep dijalankan. Kandidat masuk antrean tanpa peta dampak — reviewer yang memetakan, terbuka."
         action={<Button onClick={load}>Muat ulang</Button>}
       />
       {error ? (
@@ -306,7 +306,7 @@ export function WebWatchReview() {
                 </Panel>
               ))}
               {!data.sources.length ? (
-                <Panel className="p-6 text-sm text-muted-foreground">Belum ada sumber — sweep terjadwal mengisi daftar seed otomatis.</Panel>
+                <Panel className="p-6 text-sm text-muted-foreground">Belum ada sumber — jalankan sweep untuk mengisi daftar seed.</Panel>
               ) : null}
             </div>
           </section>

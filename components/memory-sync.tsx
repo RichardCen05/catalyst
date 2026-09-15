@@ -9,11 +9,18 @@ const STORAGE_KEY = "catalyst:v1";
 const SYNC_DEBOUNCE_MS = 1500;
 
 /**
- * Cross-device continuity on top of the localStorage-only zustand `persist`.
- * GCS is the source of truth (plan P4); this only ever hydrates a browser
- * that has never onboarded locally — an already-used browser keeps its own
- * state rather than being silently overwritten by whatever a different
- * device last synced.
+ * Server-side backup of the localStorage-only zustand `persist`, keyed by the
+ * anonymous `catalyst_uid` cookie set in `/api/memory`.
+ *
+ * NOT cross-device. There is no sign-in: the cookie is per-browser, so a new
+ * device (or a cleared browser) gets a fresh uid and starts empty. What this
+ * does buy is recovery inside one browser — a profile that survives a
+ * localStorage wipe, as long as the cookie is still there. Real cross-device
+ * continuity needs an account (plan P4); do not claim it until then.
+ *
+ * Hydration is one-way and conservative: it only fills a browser that has
+ * never onboarded locally, so an already-used browser keeps its own state
+ * instead of being overwritten by whatever was last synced.
  */
 export function MemorySync() {
   const hydratedRemote = useRef(false);

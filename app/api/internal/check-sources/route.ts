@@ -1,5 +1,10 @@
 /**
- * Internal web-watch trigger — the Cloud Scheduler target.
+ * Internal web-watch trigger — the intended Cloud Scheduler target.
+ *
+ * STATUS: no scheduler job exists yet. Until the command below is actually
+ * run against the deployed service, the sweep only happens when something
+ * calls this route (or `watchAll()`) by hand. Do not describe the sweep as
+ * automatic or scheduled in UI copy, docs, or release notes before then.
  *
  * Cloud Scheduler (Asia/Jakarta, weekdays after close):
  *   gcloud scheduler jobs create http catalyst-web-watch \
