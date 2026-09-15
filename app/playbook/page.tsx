@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BookOpenCheck, Check, Save } from "lucide-react";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
+import { holdingExposure, holdingPnl } from "@/lib/portfolio";
 import type { InvestorResearchPlaybook, SymbolCode } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,9 @@ export default function PlaybookPage() {
   const toggleOwned = useCatalystStore((state) => state.toggleOwned);
   const preferences = useCatalystStore((state) => state.preferences);
   const togglePreference = useCatalystStore((state) => state.togglePreference);
+  const holdings = useCatalystStore((state) => state.holdings);
+  const setHolding = useCatalystStore((state) => state.setHolding);
+  const removeHolding = useCatalystStore((state) => state.removeHolding);
   const [activeSymbol, setActiveSymbol] = useState<SymbolCode>("ANTM");
   const [saved, setSaved] = useState(false);
   const analyzed = companies.filter((company) => company.analyzed);
@@ -75,6 +79,36 @@ export default function PlaybookPage() {
           })}
         </div>
         <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Hanya emiten berlabel kasus penuh yang membuka analisis; sisanya tampil sebagai data ringkas.</p>
+      </Panel>
+
+      <Panel className="mb-4">
+        <PanelHeader eyebrow="Posisi portofolio" title="Lembar saham dan harga rata-rata" />
+        <div className="grid gap-2 p-4 sm:grid-cols-2">
+          {profile.watchlist.map((symbol) => {
+            const company = companies.find((item) => item.symbol === symbol);
+            const holding = holdings[symbol];
+            const exposure = holdingExposure(holding, company?.price ?? 0);
+            const pnl = holdingPnl(holding, company?.price ?? 0);
+            return (
+              <div key={symbol} className="rounded-lg border border-border bg-background px-3 py-2.5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-mono text-sm font-semibold text-primary">{symbol}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground">@{company?.price.toLocaleString("id-ID")}</span>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="text-[11px] text-muted-foreground">Lembar
+                    <input type="number" min={0} step={100} value={holding?.shares ?? ""} placeholder="0" onChange={(event) => { const shares = Number(event.target.value); if (shares > 0) setHolding(symbol, { shares, avgCost: holding?.avgCost ?? company?.price ?? 0 }); else removeHolding(symbol); }} className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Lembar ${symbol}`} />
+                  </label>
+                  <label className="text-[11px] text-muted-foreground">Rata-rata (Rp)
+                    <input type="number" min={0} step={50} value={holding?.avgCost ?? ""} placeholder="0" onChange={(event) => { const avgCost = Number(event.target.value); if (holding && avgCost >= 0) setHolding(symbol, { shares: holding.shares, avgCost }); }} className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Harga rata-rata ${symbol}`} />
+                  </label>
+                </div>
+                {holding ? <p className="mt-2 font-mono text-[10px] text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p> : null}
+              </div>
+            );
+          })}
+        </div>
+        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Posisi memengaruhi urutan Hari ini (bobot portofolio × materialitas). Harga memakai close rekaman, bukan live.</p>
       </Panel>
 
       <Panel className="mb-4">

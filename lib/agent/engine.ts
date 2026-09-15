@@ -32,6 +32,8 @@ import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exp
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
+import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
+import { deriveMissingEvidence } from "@/lib/evidence-gaps";
 
 const percent = (value: number, digits = 1) =>
   new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
@@ -559,11 +561,13 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     appliedRules,
     resolution: context?.resolution,
     company, evidenceState, thesis, pillars: ordered, hypotheses, sources,
-    missingEvidence: [
-      "Data dalam hari perdagangan dan antrean pesanan tidak tersedia.",
-      "Transaksi pihak terafiliasi belum diidentifikasi.",
-      "Rekaman 11 Sep 2026 tidak memuat detail kontrak atau lindung nilai emiten.",
-    ],
+    missingEvidence: deriveMissingEvidence({
+      analyzed: company.analyzed,
+      hasBroker: Boolean(brokerEvidence.buyers.length),
+      hasOwnershipSeries: Boolean(brokerEvidence.ownershipSeries?.length),
+      eventCount: relatedEvents.length,
+      financialRows: fixture.financialContext.length,
+    }),
     priceSeries: series,
     financialContext: fixture.financialContext,
     asOf: company.asOf,
@@ -572,35 +576,16 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
 
 function findSymbols(question: string): SymbolCode[] {
   const symbols = fixtureMarketDataProvider.listCompanies().map((company) => company.symbol);
+  const robust = findSymbolsRobust(question, symbols);
+  if (robust.length) return robust;
+  // Legacy fallback: bare code mention (kept for short inputs like "ANTM?").
   const upper = question.toUpperCase();
-  return symbols.filter((symbol) => upper.includes(symbol));
+  return symbols.filter((symbol) => new RegExp(`\\b${symbol}\\b`).test(upper));
 }
 
-const questionCategories: Array<[string[], MarketEvent["category"]]> = [
-  [["nikel", "batu bara", "komoditas", "emas", "timah"], "commodity"],
-  [["rupiah", "kurs", "dolar"], "currency"],
-  [["suku bunga", "bi rate", "inflasi"], "rates"],
-  [["kebijakan", "regulasi", "pemerintah", "pajak"], "policy"],
-];
-
 function eventFromQuestion(question: string): MarketEvent | undefined {
-  const value = question.toLowerCase();
-  const events = fixtureNewsProvider.listEvents();
-  const category = questionCategories.find(([terms]) => terms.some((term) => value.includes(term)))?.[1];
-  if (category) {
-    const match = events.find((event) => event.category === category);
-    if (match) return match;
-  }
-  const words = value.split(/[^a-z0-9]+/).filter((word) => word.length > 4);
-  // Whole-word on both sides: naive substring fires on "belum" inside
-  // "sebelumnya" and hijacks unrelated questions into event-impact.
-  // Tokenize the title the same way as the question before comparing.
-  return words.length
-    ? events.find((event) => {
-      const titleWords = new Set(event.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 4));
-      return words.some((word) => titleWords.has(word));
-    })
-    : undefined;
+  const symbols = fixtureMarketDataProvider.listCompanies().map((company) => company.symbol);
+  return matchEventForQuestion(question, fixtureNewsProvider.listEvents(), symbols);
 }
 
 function relevantInsights(insights: UserInsight[] | undefined, symbol?: SymbolCode): UserInsight[] {

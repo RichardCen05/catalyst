@@ -19,12 +19,15 @@ import type {
   UserProfile,
 } from "@/lib/types";
 
+import type { Holding, Holdings } from "@/lib/portfolio";
+
 interface CatalystState {
   profile: UserProfile;
   preferences: LearnedPreference[];
   feedback: FeedbackEvent[];
   insights: UserInsight[];
   playbook: InvestorResearchPlaybook;
+  holdings: Holdings;
   caseMandates: Partial<Record<SymbolCode, string>>;
   caseClarifications: Partial<Record<SymbolCode, string>>;
   caseStatuses: Partial<Record<SymbolCode, ResearchCaseStatus>>;
@@ -56,6 +59,8 @@ interface CatalystState {
   setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
   setRelevanceFloor: (value: number) => void;
+  setHolding: (symbol: SymbolCode, holding: Holding) => void;
+  removeHolding: (symbol: SymbolCode) => void;
   removeInsight: (id: string) => void;
   togglePreference: (id: string) => void;
   resetMemory: () => void;
@@ -112,6 +117,7 @@ export const useCatalystStore = create<CatalystState>()(
       feedback: [],
       insights: [],
       playbook: structuredClone(defaultPlaybook),
+      holdings: {},
       caseMandates: {},
       caseClarifications: {},
       caseStatuses: {},
@@ -198,18 +204,28 @@ export const useCatalystStore = create<CatalystState>()(
       setPlaybookList: (key, values) => set((state) => ({ playbook: { ...state.playbook, [key]: values } })),
       setPreferredComparables: (symbol, values) => set((state) => ({ playbook: { ...state.playbook, preferredComparables: { ...state.playbook.preferredComparables, [symbol]: values } } })),
       setRelevanceFloor: (value) => set((state) => ({ playbook: { ...state.playbook, relevanceFloor: Math.min(100, Math.max(0, Math.round(value))) } })),
+      setHolding: (symbol, holding) => set((state) => ({
+        holdings: { ...state.holdings, [symbol]: { shares: Math.max(0, Math.round(holding.shares)), avgCost: Math.max(0, holding.avgCost) } },
+        profile: state.profile.owned.includes(symbol) ? state.profile : { ...state.profile, owned: [...state.profile.owned, symbol] },
+      })),
+      removeHolding: (symbol) => set((state) => {
+        const holdings = { ...state.holdings };
+        delete holdings[symbol];
+        return { holdings };
+      }),
       removeInsight: (id) => set((state) => ({ insights: state.insights.filter((item) => item.id !== id), preferences: state.preferences.filter((item) => item.id !== `learned-${id}`) })),
       togglePreference: (id) => set((state) => ({ preferences: state.preferences.map((item) => item.id === id ? { ...item, active: !item.active } : item) })),
-      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseClarifications: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
+      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], holdings: {}, playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseClarifications: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
     }),
     {
       name: "catalyst:v1",
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== "object") return persisted as CatalystState;
         const stored = persisted as Partial<CatalystState>;
         return {
           ...stored,
+          holdings: stored.holdings ?? {},
           caseMandates: stored.caseMandates ?? {},
           caseClarifications: stored.caseClarifications ?? {},
           caseStatuses: stored.caseStatuses ?? {},

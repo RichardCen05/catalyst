@@ -29,6 +29,7 @@ function ResearchCasesContent() {
   const activeView = views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
   const { profile, playbook, caseMandates, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"analyzed" | "change" | "marketCap" | "price">("analyzed");
   const [selected, setSelected] = useState<SymbolCode[]>(() => (searchParams.get("compare") ?? "")
     .split(",")
     .map((item) => item.toUpperCase() as SymbolCode)
@@ -43,8 +44,14 @@ function ResearchCasesContent() {
   }, [profile, profile.watchlist.join(","), caseMandates, caseClarifications, playbook, insights, caseResolutions]);
   const filteredCompanies = useMemo(() => {
     const value = query.trim().toLowerCase();
-    return companies.filter((company) => !value || `${company.symbol} ${company.name} ${company.sector}`.toLowerCase().includes(value));
-  }, [query]);
+    const rows = companies.filter((company) => !value || `${company.symbol} ${company.name} ${company.sector}`.toLowerCase().includes(value));
+    return [...rows].sort((a, b) => {
+      if (sort === "change") return Math.abs(b.changePct) - Math.abs(a.changePct);
+      if (sort === "marketCap") return b.marketCap - a.marketCap;
+      if (sort === "price") return b.price - a.price;
+      return Number(b.analyzed) - Number(a.analyzed) || Math.abs(b.changePct) - Math.abs(a.changePct);
+    });
+  }, [query, sort]);
   const [compared, setCompared] = useState<AnalysisCase[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +87,7 @@ function ResearchCasesContent() {
 
       {activeView === "picker" ? <div>
         <Panel className="overflow-hidden">
-          <div className="border-b border-border p-4"><label className="relative block max-w-lg"><IconSearch aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><span className="sr-only">Cari emiten atau sektor</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari kode, nama, atau sektor" className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" /></label><p className="mt-2 text-xs text-muted-foreground">Buka satu kasus atau pilih dua hingga tiga emiten untuk dibandingkan.</p></div>
+          <div className="border-b border-border p-4"><label className="relative block max-w-lg"><IconSearch aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><span className="sr-only">Cari emiten atau sektor</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari kode, nama, atau sektor" className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" /></label><div className="mt-3 flex flex-wrap items-center gap-2"><label className="text-xs text-muted-foreground">Urutkan<select aria-label="Urutkan emiten" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="ml-2 h-9 rounded-md border border-border bg-background px-2 font-mono text-xs outline-none focus:border-primary"><option value="analyzed">Kasus penuh dulu</option><option value="change">Perubahan terbesar</option><option value="marketCap">Kapitalisasi terbesar</option><option value="price">Harga tertinggi</option></select></label></div><p className="mt-2 text-xs text-muted-foreground">Buka satu kasus atau pilih dua hingga tiga emiten untuk dibandingkan.</p></div>
           <div className="divide-y divide-border">{filteredCompanies.map((company) => <div key={company.symbol} className="grid gap-3 px-4 py-3 sm:grid-cols-[32px_minmax(0,1fr)_auto] sm:items-center"><input type="checkbox" checked={selected.includes(company.symbol)} onChange={() => toggleCompare(company.symbol)} disabled={!company.analyzed || (!selected.includes(company.symbol) && selected.length >= 3)} aria-label={`Pilih ${company.symbol} untuk dibandingkan`} className="size-4 cursor-pointer accent-[var(--primary)]" /><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold text-primary">{company.symbol}</span><span className="text-sm font-medium">{company.name}</span><span className="font-mono text-[9px] text-muted-foreground">{uiLabel(company.sector)}</span></div><p className="mt-1 text-xs text-muted-foreground">{company.analyzed ? company.summary : `Data ringkas tersedia (${coverageInfo[company.symbol]?.linkedEvents ?? 0} peristiwa, ${coverageInfo[company.symbol]?.financialRows ?? 0} baris keuangan). Kasus lengkap butuh: ${(coverageInfo[company.symbol]?.missing ?? []).join(", ") || "—"}.`}</p></div><div className="flex items-center gap-3"><span className="font-mono text-xs">{formatCurrency(company.price).replace("Rp", "Rp ")}</span>{company.analyzed ? <Link href={`/cases/${company.symbol}`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka kasus</Link> : <Link href="/method" className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground hover:text-primary" title={`Menunggu rekaman: ${(coverageInfo[company.symbol]?.missing ?? []).join(", ")}`}>Data ringkas</Link>}</div></div>)}</div>
         </Panel>
 

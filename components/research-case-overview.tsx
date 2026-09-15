@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Check, ChevronDown, Circle, GitBranch, PauseCircle, Save } from "lucide-react";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
 import { useCatalystStore } from "@/lib/store";
+import { buildInvestmentMemo } from "@/lib/memo";
+import { deriveMonitorTriggers } from "@/lib/monitor";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -18,7 +20,9 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const insights = useCatalystStore((state) => state.insights);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
+  const [memoShared, setMemoShared] = useState(false);
   const [tracked, setTracked] = useState(false);
+  const triggers = deriveMonitorTriggers(researchCase);
   const mandate = caseMandates[symbol] ?? researchCase.mandate;
   const status = caseStatuses[symbol] ?? researchCase.status;
   const caseNotes = insights.filter((item) => item.symbol === symbol && item.status !== "dismissed");
@@ -44,6 +48,25 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
     } catch {
       setShared(false);
     }
+  };
+
+  const shareMemo = async () => {
+    try {
+      await navigator.clipboard.writeText(buildInvestmentMemo(researchCase));
+      setMemoShared(true);
+    } catch {
+      setMemoShared(false);
+    }
+  };
+
+  const downloadMemo = () => {
+    const blob = new Blob([buildInvestmentMemo(researchCase)], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `memo-${symbol}-${researchCase.asOf.slice(0, 10)}.md`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const trackObservable = () => {
@@ -110,7 +133,20 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
         </div>
       </details>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Catat hasil setelah riset selesai.</p><div className="flex items-center gap-2"><button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{shared ? "Ringkasan tersalin" : "Salin ringkasan riset"}</button><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka Tinjau</Link></div></div>
+      <section aria-label="Antrean pantauan" className="border-t border-border px-4 py-4 sm:px-5">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Antrean pantauan · {triggers.length} pemicu menunggu rekaman baru</p>
+        <ul className="mt-3 space-y-2">
+          {triggers.map((trigger) => (
+            <li key={trigger.id} className="rounded-[8px] border border-border bg-background p-3 text-xs leading-5">
+              <strong className="block text-[13px]">{trigger.label}</strong>
+              <span className="mt-1 block text-muted-foreground">{trigger.condition}</span>
+              <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Menunggu · {trigger.source}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Catat hasil setelah riset selesai.</p><div className="flex flex-wrap items-center gap-2"><button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{shared ? "Ringkasan tersalin" : "Salin ringkasan riset"}</button><button type="button" onClick={shareMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{memoShared ? "Memo tersalin" : "Salin memo riset"}</button><button type="button" onClick={downloadMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Unduh memo .md</button><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka Tinjau</Link></div></div>
     </Panel>
   );
 }

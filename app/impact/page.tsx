@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
-import { companies } from "@/lib/data/fixtures";
+import { companies, events } from "@/lib/data/fixtures";
+import { getSharedShocks, validateLag } from "@/lib/agent/lag-validate";
 import { useCatalystStore } from "@/lib/store";
 import type { CausalGraph, ResearchCase, SymbolCode } from "@/lib/types";
 import { dispositionLabel } from "@/lib/ui-labels";
@@ -30,6 +31,7 @@ function ImpactWorkspace() {
   const mandate = caseMandates[symbol];
   const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
+  const sharedShocks = getSharedShocks(events, profile.watchlist);
   const context = {
     mandate,
     clarificationChoice,
@@ -83,6 +85,13 @@ function ImpactWorkspace() {
           </label>
           <p className="text-xs text-muted-foreground">{reloading ? "Memuat ulang rantai…" : graph.hiddenRelationshipCount > 0 ? `${graph.hiddenRelationshipCount} hubungan di bawah ambang.` : "Semua hubungan yang lolos ditampilkan."}</p>
         </div>
+        {sharedShocks.length > 1 ? <section aria-label="Guncangan bersama" className="rounded-[12px] border border-border bg-surface px-4 py-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Guncangan bersama pantauan</p><ul className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">{sharedShocks.slice(0, 4).map((event) => <li key={event.id}><strong className="text-foreground">{event.title}</strong> — {event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)).map((link) => link.symbol).join(" · ")}</li>)}</ul></section> : null}
+        {analysis && graph.nodes.find((node) => node.kind === "source") ? (() => {
+          const firstSource = graph.nodes.find((node) => node.kind === "source")!;
+          const event = events.find((item) => `source-${item.id}` === firstSource.id);
+          const check = event ? validateLag(event, analysis.priceSeries) : null;
+          return check ? <p className="rounded-[12px] border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Uji waktu · </span>{check.note} Puncak volume {check.spikeDate}.</p> : null;
+        })() : null}
         <CompetingHypotheses graph={graph} />
         <CausalChain graph={graph} />
 
