@@ -423,7 +423,7 @@ Kontrol — ini yang menentukan biaya, bukan pilihan modelnya:
 ### Yang sudah ada dan bisa dipakai ulang
 
 Proyek `ada-sectors-508410` sudah memiliki Artifact Registry, bucket GCS `katalis-recorded`
-di `us-east1`, secret `SECTORS_API_KEY`, layanan Cloud Run `katalis-api`, job
+di `us-east1`, secret `SECTORS_API_KEY`, layanan Cloud Run `catalyst-web`, job
 `katalis-refresh`, dan satu Cloud Scheduler. Pola `cloudbuild.yaml` di repo Sectors — gate
 berjalan **di dalam image** sebelum deploy — dipakai ulang apa adanya.
 
@@ -431,11 +431,11 @@ berjalan **di dalam image** sebelum deploy — dipakai ulang apa adanya.
 
 | # | Objek | Nilai |
 |---|---|---|
-| 1 | Artifact Registry repo `catalyst` | `asia-southeast2`, kebijakan simpan 5 tag. Repo `katalis` yang sudah ada juga bisa dipakai ulang untuk menghemat satu objek |
-| 2 | Cloud Run service `catalyst-web` | `asia-southeast2`, min 0, max 3, 512Mi, port 8080 |
+| 1 | Artifact Registry repo `catalyst` | `us-central1`, kebijakan simpan 5 tag. Repo `katalis` yang sudah ada juga bisa dipakai ulang untuk menghemat satu objek |
+| 2 | Cloud Run service `catalyst-web` | `us-central1`, min 0, max 3, 512Mi, port 8080 |
 | 3 | Bucket `gs://catalyst-memory` | `us-east1`, uniform access, versioning on, lifecycle hapus versi lama > 30 hari |
 | 4 | Bucket `gs://catalyst-recorded` | `us-east1`, cache respons Sectors + hasil LLM |
-| 5 | Secret `SECTORS_API_KEY` dan `GOOGLE_API_KEY` | `SECTORS_API_KEY` sudah ada; `GOOGLE_API_KEY` dibuat baru |
+| 5 | Secret `SECTORS_API_KEY`, `GOOGLE_API_KEY`, dan `INTERNAL_CRON_SECRET` | `SECTORS_API_KEY` sudah ada; `GOOGLE_API_KEY` dibuat baru; `INTERNAL_CRON_SECRET` dibuat baru (nilai acak 32+ byte). Tanpa secret ini, `/api/internal/*` gagal-tertutup 503 di produksi — jangan deploy tanpanya |
 | 6 | Service account `catalyst-run@` | `roles/storage.objectAdmin` terbatas pada dua bucket, `roles/secretmanager.secretAccessor` |
 | 7 | Cloud Run job `catalyst-refresh` + Scheduler | `30 17 * * 1-5` Asia/Jakarta |
 | 8 | Cloud Build trigger | branch `main` repo `RichardCen05/catalyst` |
@@ -450,7 +450,12 @@ berjalan **di dalam image** sebelum deploy — dipakai ulang apa adanya.
 3. `.dockerignore`: `.next`, `node_modules`, `test-results`, `playwright-report`, `.env*`.
 4. Health check `GET /api/health` yang memeriksa cache GCS terbaca.
 5. Langkah gate di Cloud Build: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
-   dijalankan di dalam image, sama seperti pola katalis.
+   dijalankan di dalam image, sama seperti pola katalis. Gate ini mencakup
+   `tests/gcs-transport.test.ts` (endpoint token metadata harus tetap di host
+   link-local `metadata.google.internal` lewat HTTP dengan header
+   `Metadata-Flavor: Google`; metadata server GCP tidak melayani TLS, jadi
+   `https://` di sana mematikan seluruh fitur GCS) dan
+   `tests/internal-auth.test.ts` (Rec 3).
 
 ### Kredensial LLM di Cloud Run
 
@@ -463,7 +468,13 @@ printf %s "$KEY" | gcloud secrets versions add GOOGLE_API_KEY --data-file=-
 
 Pada `gcloud run deploy`, kunci masuk sebagai referensi, bukan nilai:
 `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest`, ditambah
+`--set-secrets=INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest`, ditambah
 `--set-env-vars=GEMINI_MODEL=...,AGENT_MODE=llm`.
+
+Scheduler memanggil `/api/internal/check-sources` dengan header
+`Authorization: Bearer ${INTERNAL_CRON_SECRET}` (lihat komentar di route).
+Verifikasi pasca-deploy: `POST /api/internal/check-sources` tanpa header
+harus 401 (secret terpasang), dan Cloud Scheduler run harus 200.
 
 `aiplatform.googleapis.com` tidak perlu diaktifkan selama masih di Developer API.
 

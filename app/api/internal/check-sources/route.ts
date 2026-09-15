@@ -1,12 +1,12 @@
 /**
- * Internal web-watch trigger — the intended Cloud Scheduler target.
+ * Internal web-watch trigger — the Cloud Scheduler target.
  *
- * STATUS: no scheduler job exists yet. Until the command below is actually
- * run against the deployed service, the sweep only happens when something
- * calls this route (or `watchAll()`) by hand. Do not describe the sweep as
- * automatic or scheduled in UI copy, docs, or release notes before then.
+ * STATUS: wired. Job `catalyst-web-watch` exists in `us-central1` of project
+ * `ada-sectors-508410`, runs `30 17 * * 1-5` Asia/Jakarta against this route,
+ * and carries the `INTERNAL_CRON_SECRET` bearer header. If that job is ever
+ * deleted or paused, stop calling the sweep "scheduled" in UI copy and docs.
  *
- * Cloud Scheduler (Asia/Jakarta, weekdays after close):
+ * The command that created it (Asia/Jakarta, weekdays after close):
  *   gcloud scheduler jobs create http catalyst-web-watch \
  *     --schedule="30 17 * * 1-5" --time-zone="Asia/Jakarta" \
  *     --uri="https://<service>/api/internal/check-sources" \

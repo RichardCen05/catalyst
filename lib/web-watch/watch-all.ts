@@ -1,18 +1,18 @@
 /**
- * The source sweep — port of ReguLens `check_all`.
+ * The scheduled sweep — port of ReguLens `check_all`.
  *
- * "Due" here means a source's own check interval has elapsed; it does not
- * mean anything runs on its own. No Cloud Scheduler job is wired yet, so
- * every sweep is triggered by hand today.
+ * "Due" here means a source's own check interval has elapsed, checked each
+ * time the sweep runs. Cloud Scheduler job `catalyst-web-watch` runs it on
+ * weekdays at 17.30 Asia/Jakarta; a manual trigger can run it any time.
  *
  * Every enabled source that is due, one at a time. Sequential on purpose:
  * the fan-out that matters happens after ingestion, in review and in the
  * engine, where it is already bounded. Firing twelve fetches at once here
  * would only make the failure modes harder to read.
  *
- * `POST /api/internal/check-sources` is the entry point a Cloud Scheduler
- * job would hit once one is created; the local fallback (`runInBackground` /
- * manual trigger) calls `watchAll()` directly. One code path either way.
+ * `POST /api/internal/check-sources` is the entry point Cloud Scheduler
+ * hits; the local fallback (`runInBackground` / manual trigger) calls
+ * `watchAll()` directly. One code path either way.
  */
 
 import { checkSource, type CheckDeps } from "@/lib/web-watch/check";
