@@ -21,12 +21,12 @@ import type {
   SymbolCode,
   UserProfile,
 } from "@/lib/types";
+import { locate } from "@/lib/agent/citations";
 
 export const DATA_AS_OF = GENERATED_AS_OF;
 export const WINDOW_START = WINDOW_DATES[0];
 export const WINDOW_SESSIONS = WINDOW_DATES.length;
 
-const SECTORS_DOCS = "https://docs.sectors.app/llms.txt";
 const SECTORS_DAILY_DOCS = "https://docs.sectors.app/api-references/v2/indonesia/transaction/daily";
 const SECTORS_BROKER_DOCS = "https://docs.sectors.app/api-references/v2/indonesia/brokers/broker-summary-by-symbol";
 const SECTORS_FOREIGN_DOCS = "https://docs.sectors.app/api-references/v2/indonesia/brokers/foreign-flow-by-symbol";
@@ -40,11 +40,19 @@ function cite(
   field: string,
   label: string,
   provider = "Sectors rekaman",
-  url = SECTORS_DOCS,
-  urlLabel = "Buka dokumentasi sumber",
-  access: Citation["access"] = "documentation",
+  url?: string,
+  urlLabel?: string,
+  access?: Citation["access"],
 ): Citation {
-  return { id, provider, endpoint, field, asOf: DATA_AS_OF, label, url, urlLabel, access };
+  return {
+    id,
+    provider,
+    endpoint,
+    field,
+    asOf: DATA_AS_OF,
+    label,
+    ...(url ? { url, urlLabel: urlLabel ?? "Buka dokumentasi sumber", access: access ?? "documentation" } : {}),
+  };
 }
 
 export const citations = {
@@ -57,8 +65,11 @@ export const citations = {
   ihsg: cite("ihsg", "/v2/index-daily/ihsg/", "date, close", "Data harian IHSG", "Sectors rekaman", "https://docs.sectors.app/api-references/v2/indonesia/transaction/index-daily"),
   market: cite("market-snapshot", "/v2/close/", "date, symbol, close, volume", "Ringkasan pasar umum", "Sectors rekaman", "https://docs.sectors.app/api-references/v2/indonesia/transaction/close"),
   news: (eventId: string) => cite(`news-${eventId}`, eventId.includes("filing") ? "/v2/filings/" : "/v2/news/", "title, published_at, symbols, dimensions", "Berita perusahaan Sectors", "Sectors rekaman", eventId.includes("filing") ? SECTORS_FILINGS_DOCS : SECTORS_NEWS_DOCS),
-  financial: (symbol: string) => cite(`financial-${symbol}`, `/v2/financials/quarterly/${symbol}/`, "period, revenue, earnings, sector_metrics", `Konteks keuangan ${symbol}`, "Sectors rekaman", SECTORS_FINANCIAL_DOCS),
-  external: (eventId: string) => cite(`external-${eventId}`, `fixture://external/${eventId}`, "headline, published_at, exposure_tags", "Berita terekam dengan tautan sumber asal", "Sumber asal terekam", SECTORS_DOCS, "Buka referensi sumber", "provider"),
+  financial: (symbol: string) => cite(`financial-${symbol}`, `/v2/financials/quarterly/${symbol}/`, "period, revenue, earnings, sector_metrics", `Konteks keuangan ${symbol}`, "Sectors rekaman", SECTORS_FINANCIAL_DOCS, "Buka dokumentasi sumber", "documentation"),
+  /** Rekaman tanpa tautan asal yang bisa dibaca — jujur tanpa link, bukan link dokumentasi palsu. */
+  external: (eventId: string) => cite(`external-${eventId}`, `fixture://recorded/${eventId}`, "headline, published_at, exposure_tags", "Rekaman tanpa tautan sumber asal", "Sectors rekaman"),
+  /** Pengganti jujur saat tidak ada peristiwa terverifikasi — lolos gate, tanpa link palsu. */
+  empty: (symbol: string) => cite(`empty-${symbol}`, "/v2/news/", "title", "Belum ada peristiwa terverifikasi", "Sectors rekaman"),
 };
 
 export const companies: Company[] = rawCompanies.map((company) => ({
@@ -70,18 +81,57 @@ export const companies: Company[] = rawCompanies.map((company) => ({
 /**
  * Kabar dan filing asli dari rekaman Sectors API 11 Sep 2026
  * (data/sectors/ via lib/data/market.generated.ts). Bukan karangan.
+ *
+ * Aturan tautan — yang bisa dibaca user selalu menang:
+ * - `source` asal ada (kompas, emitennews, ...): link langsung ke artikel asal,
+ *   provider = host asal, endpoint tetap /v2/news/ atau /v2/filings/.
+ * - Agregat turunan tanpa artikel (arus asing, hitungan liputan, aksi
+ *   korporasi, komoditas): endpoint + field sesuai API aslinya, link hanya ke
+ *   dokumentasi bila memang endpoint itu; tanpa link palsu bila tidak ada
+ *   halaman docs yang cocok.
  */
 const eventCitation = (raw: (typeof rawEvents)[number]): Citation => {
-  if (raw.sourceType === "filing" || raw.sourceType === "sectors") return citations.news(raw.id);
+  let base: Citation;
   if (raw.source) {
     try {
       const host = new URL(raw.source).hostname.replace(/^www\./, "");
-      return cite(`external-${raw.id}`, `fixture://external/${raw.id}`, "headline, published_at, exposure_tags", "Berita terekam dengan tautan sumber asal", host, raw.source, "Buka sumber asal", "provider");
+      if (raw.sourceType === "filing" || raw.sourceType === "sectors") {
+        base = cite(
+          `news-${raw.id}`,
+          raw.sourceType === "filing" ? "/v2/filings/" : "/v2/news/",
+          "title, published_at, symbols, dimensions",
+          "Berita perusahaan Sectors",
+          host,
+          raw.source,
+          "Buka sumber asal",
+          "provider",
+        );
+      } else {
+        base = cite(`external-${raw.id}`, `fixture://recorded/${raw.id}`, "headline, published_at, exposure_tags", "Berita terekam dengan tautan sumber asal", host, raw.source, "Buka sumber asal", "provider");
+      }
     } catch {
-      /* jatuh ke kutipan generik di bawah */
+      base = citations.external(raw.id);
     }
+  } else if (raw.id.startsWith("flows-foreign-net-")) {
+    const symbol = raw.impactLinks[0]?.symbol ?? "";
+    base = symbol ? citations.foreign(symbol) : citations.external(raw.id);
+  } else if (raw.id.startsWith("sentiment-attention-")) {
+    base = cite(`news-${raw.id}`, "/v2/news/", "title, published_at, symbols", "Hitungan liputan Sectors", "Sectors rekaman", SECTORS_NEWS_DOCS, "Buka dokumentasi sumber", "documentation");
+  } else if (raw.id.startsWith("filing-corporate-action-")) {
+    const symbol = raw.impactLinks[0]?.symbol ?? "";
+    base = cite(`news-${raw.id}`, symbol ? `/v2/corporate-actions/${symbol}/` : "/v2/corporate-actions/", "action, ex_date, amount", "Aksi korporasi Sectors", "Sectors rekaman");
+  } else if (raw.sourceType === "commodity") {
+    base = cite(`news-${raw.id}`, "/v2/mining-commodities/", "price_usd_per_ton", "Harga acuan komoditas Sectors", "Sectors rekaman");
+  } else if (raw.sourceType === "filing" || raw.sourceType === "sectors") {
+    base = citations.news(raw.id);
+  } else {
+    base = citations.external(raw.id);
   }
-  return citations.external(raw.id);
+  if (raw.body) {
+    const span = locate(raw.id, raw.body, (raw.summary ?? "").replace(/…$/, ""));
+    if (span.match !== "not_found") return { ...base, span };
+  }
+  return base;
 };
 
 export const events: MarketEvent[] = rawEvents.map((raw) => {

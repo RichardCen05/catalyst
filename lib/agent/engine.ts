@@ -451,9 +451,9 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         nextQuestion: "Indikator operasional atau keuangan apa yang harus muncul, dan kapan, bila jalur ini benar?",
       },
       metrics: [
-        { label: "Peristiwa terhubung", value: String(relatedEvents.length), citations: catalystCitations.length ? catalystCitations : [citations.news(`none-${symbol}`)] },
-        { label: "Arah utama", value: catalystDirection === "Supported" ? "Mendukung" : catalystDirection === "Adverse" ? "Berlawanan" : catalystDirection === "Mixed" ? "Bercampur" : "Belum terverifikasi", citations: catalystCitations.length ? catalystCitations : [citations.news(`none-${symbol}`)] },
-      ], citations: catalystCitations.length ? catalystCitations : [citations.news(`none-${symbol}`)],
+        { label: "Peristiwa terhubung", value: String(relatedEvents.length), citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)] },
+        { label: "Arah utama", value: catalystDirection === "Supported" ? "Mendukung" : catalystDirection === "Adverse" ? "Berlawanan" : catalystDirection === "Mixed" ? "Bercampur" : "Belum terverifikasi", citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)] },
+      ], citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)],
       calculation: {
         name: "Uji jalur katalis",
         formula: "status = sumber teridentifikasi ∩ eksposur tersedia ∩ waktu diperiksa ∩ jalur sebab akibat dapat diuji",
@@ -592,10 +592,14 @@ function eventFromQuestion(question: string): MarketEvent | undefined {
     if (match) return match;
   }
   const words = value.split(/[^a-z0-9]+/).filter((word) => word.length > 4);
-  // Whole-word match: naive substring would fire on "belum" inside
-  // "sebelumnya" and hijack unrelated questions into event-impact.
+  // Whole-word on both sides: naive substring fires on "belum" inside
+  // "sebelumnya" and hijacks unrelated questions into event-impact.
+  // Tokenize the title the same way as the question before comparing.
   return words.length
-    ? events.find((event) => words.some((word) => event.title.toLowerCase().includes(word)))
+    ? events.find((event) => {
+      const titleWords = new Set(event.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 4));
+      return words.some((word) => titleWords.has(word));
+    })
     : undefined;
 }
 
