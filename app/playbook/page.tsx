@@ -48,25 +48,25 @@ export default function PlaybookPage() {
             const watched = profile.watchlist.includes(company.symbol);
             const owned = profile.owned.includes(company.symbol);
             return (
-              <div key={company.symbol} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5">
+              <div key={company.symbol} className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5">
                 <input
                   type="checkbox"
                   id={`watch-${company.symbol}`}
                   checked={watched}
                   onChange={() => setWatchlist(watched ? profile.watchlist.filter((item) => item !== company.symbol) : [...profile.watchlist, company.symbol])}
-                  className="size-4 cursor-pointer accent-[var(--primary)]"
+                  className="size-4 shrink-0 cursor-pointer accent-[var(--primary)]"
                   aria-label={`Pantau ${company.symbol}`}
                 />
-                <label htmlFor={`watch-${company.symbol}`} className="min-w-0 flex-1 cursor-pointer">
-                  <span className="font-mono text-sm font-semibold text-primary">{company.symbol}</span>
-                  <span className="ml-2 truncate text-xs text-muted-foreground">{company.name}{company.analyzed ? "" : " · ringkas"}</span>
+                <label htmlFor={`watch-${company.symbol}`} className="flex min-w-0 flex-1 cursor-pointer items-baseline gap-2">
+                  <span className="shrink-0 font-mono text-sm font-semibold text-primary">{company.symbol}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{company.name}{company.analyzed ? "" : " · ringkas"}</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleOwned(company.symbol)}
                   aria-pressed={owned}
                   title={owned ? "Hapus tanda dimiliki" : "Tandai dimiliki"}
-                  className={cn("min-h-9 rounded-lg border px-2.5 font-mono text-[10px] uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", owned ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}
+                  className={cn("min-h-9 shrink-0 rounded-lg border px-2.5 font-mono text-[10px] uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", owned ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}
                 >
                   {owned ? "Dimiliki" : "Tandai"}
                 </button>

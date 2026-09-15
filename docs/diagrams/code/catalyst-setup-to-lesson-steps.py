@@ -1,25 +1,25 @@
-"""Dari awal sampai pelajaran — santai + contoh. Dibuat dengan orthogram step-flow."""
+"""Dari triase sampai aturan reusable — misal ANTM. Dibuat dengan orthogram step-flow."""
 import sys
 sys.path.insert(0, "/Users/af/.claude/plugins/cache/orthogram/orthogram/0.2.0/skills/drawing-step-flows")
 from step_drawio import Steps, L, R, T, B
 
-s = Steps("Dari awal sampai paham — misal BBCA", "6 langkah aja")
+s = Steps("Dari triase sampai aturan — misal ANTM", "6 langkah aja")
 
-w = s.node("Kamu", "misal mau pantau BBCA", col=0, row=0)
-today = s.node("Hari Ini", "misal BBCA naik 3%", col=1, row=0)
-check = s.node("Bedah", "misal kok naik?", col=2, row=0)
-links = s.node("Alur duit", "misal kabar oke -> laris?", col=2, row=1)
-helper = s.node("Tanya-tanya", "misal kurang berita apa?", col=1, row=1)
-keep = s.node("Buku aku", "misal BBCA kuat, simpen!", col=0, row=1)
+w = s.node("Kamu", "misal pantau ANTM + 17 lagi", col=0, row=0)
+today = s.node("Dashboard", "misal ANTM relevan 90", col=1, row=0)
+check = s.node("Case", "misal fokus pricing?", col=2, row=0)
+links = s.node("Impact graph", "misal ≤6 sumber + tanding", col=2, row=1)
+helper = s.node("Copilot", "misal kurang sumber apa?", col=1, row=1)
+keep = s.node("Playbook", "misal aturan ANTM, simpen!", col=0, row=1)
 
-s.step(w, today, "pilih BBCA + 5 lagi", exit=R(), entry=L(), direct=True)
-s.step(today, check, "klik BBCA yang naik", exit=R(), entry=L(), direct=True)
-s.step(check, links, "adu 2 tebakan misal asing beli?", exit=B(), entry=T(), direct=True)
+s.step(w, today, "triase by rank + konflik", exit=R(), entry=L(), direct=True)
+s.step(today, check, "buka ANTM + mandate", exit=R(), entry=L(), direct=True)
+s.step(check, links, "buildCausalGraph ≤6", exit=B(), entry=T(), direct=True)
 s.step(links, helper, "nanya kurang apa?", exit=L(), entry=R(), direct=True)
-s.step(helper, keep, "simpen misal BBCA kuat", exit=L(), entry=R(), corridor=s.corridor(after_col=0))
+s.step(helper, keep, "accept usul aturan", exit=L(), entry=R(), corridor=s.corridor(after_col=0))
 s.step(keep, w, "besok kepake lagi", exit=T(), entry=B(), band=s.band(below_row=0))
 s.link(today, helper, "nanya cepat aja", exit=B(), entry=T(), direct=True)
-s.note("Misal: angka dari 11 Sep. Coretanmu ga ubah angka.", col=0, row=1.4, w=340)
+s.note("Misal: rekaman 11 Sep + overlay. Insight ga ubah angka.", col=0, row=1.4, w=340)
 
 s.write("docs/diagrams/code/catalyst-setup-to-lesson-steps.drawio")
-print("Wrote steps santai")
+print("Wrote steps")

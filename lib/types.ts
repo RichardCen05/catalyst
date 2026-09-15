@@ -478,4 +478,6 @@ export interface MemoryStore {
   listPreferences(): LearnedPreference[];
   compareProfiles(): UserProfile[];
   reset(): void;
+  /** Behavioral learning approach A: expose proposed rules from user corrections. */
+  listRules(): RuleProposal[];
 }

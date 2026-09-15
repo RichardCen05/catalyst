@@ -14,7 +14,7 @@
  */
 
 const METADATA_TOKEN_URL =
-  "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+  "https://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 

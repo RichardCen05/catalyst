@@ -341,7 +341,7 @@ export function parseFeed(raw: Buffer): FeedRead {
 const ANCHOR = /<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a\s*>/gi;
 
 export function extractLinks(markup: string, baseUrl: string, pattern: string): FeedEntry[] {
-  const compiled = new RegExp(pattern);
+  const compiled = new RegExp(pattern.replace(/[.*+?^${}()|[\]\]/g, "\$&"));
   const seen = new Set<string>();
   const entries: FeedEntry[] = [];
   ANCHOR.lastIndex = 0;

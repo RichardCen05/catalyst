@@ -203,10 +203,26 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
     .forEach((rule) => add("materiality", rule, rule.startsWith(`[Hasil ${symbol}]`) || rule.startsWith(`[Disetujui ${symbol}]`)
     ? "Menggunakan kembali aturan yang disetujui dari hasil kasus ini."
     : "Menentukan apakah pemicu layak membuka dan menaikkan prioritas kasus."));
-  add("exposure", playbook.knownExposures.find(forSymbol), "Membatasi jalur sebab akibat pada eksposur yang sudah dinyatakan pengguna.");
-  add("assumption", playbook.thesisAssumptions.find(forSymbol), "Menjadi asumsi yang harus tetap benar selama kasus terbuka.");
+  // Aturan yang disetujui ([Disetujui SYMBOL]) harus menang atas bawaan:
+  // .find() mengembalikan bawaan pertama sehingga aturan baru yang di-append
+  // tidak pernah terpakai. Tambahkan yang disetujui dulu, lalu bawaan.
+  const addSymbolRule = (
+    kind: AppliedPlaybookRule["kind"],
+    list: string[],
+    effect: string,
+    approvedEffect: string,
+  ) => {
+    const approved = list.filter(
+      (rule) => rule.startsWith(`[Disetujui ${symbol}]`) || rule.startsWith(`[Hasil ${symbol}]`),
+    );
+    approved.forEach((rule) => add(kind, rule, approvedEffect));
+    const baseline = list.find((rule) => forSymbol(rule) && !approved.includes(rule));
+    if (baseline) add(kind, baseline, effect);
+  };
+  addSymbolRule("exposure", playbook.knownExposures, "Membatasi jalur sebab akibat pada eksposur yang sudah dinyatakan pengguna.", "Menggunakan kembali eksposur yang disetujui dari hasil kasus ini.");
+  addSymbolRule("assumption", playbook.thesisAssumptions, "Menjadi asumsi yang harus tetap benar selama kasus terbuka.", "Menggunakan kembali asumsi yang disetujui dari hasil kasus ini.");
   add("source", playbook.trustedSources[0], "Menempatkan sumber ini pada urutan pertama rencana sumber.");
-  add("falsifier", playbook.falsifiers.find(forSymbol), "Menjadi kondisi pembatal hipotesis yang dapat diperiksa.");
+  addSymbolRule("falsifier", playbook.falsifiers, "Menjadi kondisi pembatal hipotesis yang dapat diperiksa.", "Menggunakan kembali kondisi pembatal yang disetujui dari hasil kasus ini.");
   const comparables = playbook.preferredComparables[symbol];
   add("comparable", comparables?.length ? comparables.join(" · ") : undefined, "Menetapkan pembanding yang dipakai saat menguji materialitas relatif.");
   return rules;
@@ -557,7 +573,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
 function findSymbols(question: string): SymbolCode[] {
   const symbols = fixtureMarketDataProvider.listCompanies().map((company) => company.symbol);
   const upper = question.toUpperCase();
-  return symbols.filter((symbol) => new RegExp(`\\b${symbol}\\b`).test(upper));
+  return symbols.filter((symbol) => upper.includes(symbol));
 }
 
 const questionCategories: Array<[string[], MarketEvent["category"]]> = [
@@ -579,7 +595,7 @@ function eventFromQuestion(question: string): MarketEvent | undefined {
   // Whole-word match: naive substring would fire on "belum" inside
   // "sebelumnya" and hijack unrelated questions into event-impact.
   return words.length
-    ? events.find((event) => words.some((word) => new RegExp(`\\b${word}\\b`).test(event.title.toLowerCase())))
+    ? events.find((event) => words.some((word) => event.title.toLowerCase().includes(word)))
     : undefined;
 }
 

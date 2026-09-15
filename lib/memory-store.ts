@@ -9,6 +9,7 @@ export const browserMemoryStore: MemoryStore = {
   recordInsight: (insight: UserInsight) => useCatalystStore.getState().recordInsight({ symbol: insight.symbol, pillar: insight.pillar, category: insight.category, note: insight.note }),
   listInsights: () => useCatalystStore.getState().insights,
   listPreferences: () => useCatalystStore.getState().preferences,
+  listRules: () => useCatalystStore.getState().ruleProposals,
   compareProfiles: () => [useCatalystStore.getState().profile],
   reset: () => useCatalystStore.getState().resetMemory(),
 };
