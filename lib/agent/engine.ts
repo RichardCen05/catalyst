@@ -324,7 +324,17 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const momentum = calculateMomentum(stockReturn, marketReturn, fixture.beta, fixture.sectorReturn);
   const relatedEvents = fixture.catalystEventIds
     .map((id) => fixtureNewsProvider.getEvent(id))
-    .filter((event): event is MarketEvent => Boolean(event));
+    .filter((event): event is MarketEvent => Boolean(event))
+    // Primary = strongest link first, newest breaks ties. Materiality is
+    // defined by the relevance floor, so the event that decides it must be
+    // the relevance leader — not merely the newest. Recency stays visible via
+    // publishedAt and the timeline; it must not let a fresh low-relevance
+    // aggregate demote a stronger recorded trigger.
+    .sort((a, b) => {
+      const ra = a.impactLinks.find((link) => link.symbol === symbol)?.relevance ?? 0;
+      const rb = b.impactLinks.find((link) => link.symbol === symbol)?.relevance ?? 0;
+      return rb - ra || b.publishedAt.localeCompare(a.publishedAt);
+    });
   const primaryEvent = relatedEvents[0];
   const catalystDirection = primaryEvent ? eventDirection(primaryEvent, symbol) : "Unverified";
 
@@ -566,8 +576,10 @@ function eventFromQuestion(question: string): MarketEvent | undefined {
     if (match) return match;
   }
   const words = value.split(/[^a-z0-9]+/).filter((word) => word.length > 4);
+  // Whole-word match: naive substring would fire on "belum" inside
+  // "sebelumnya" and hijack unrelated questions into event-impact.
   return words.length
-    ? events.find((event) => words.some((word) => event.title.toLowerCase().includes(word)))
+    ? events.find((event) => words.some((word) => new RegExp(`\\b${word}\\b`).test(event.title.toLowerCase())))
     : undefined;
 }
 
@@ -736,13 +748,15 @@ async function buildCausalGraph(
   });
   const graphFloor = relevanceFloorFor(options.context?.playbook);
   const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= graphFloor + 5 ? "High" : relevance >= graphFloor - 10 ? "Medium" : "Low";
-  const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : "1-10 sesi";
+  const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : event.category === "rates" ? "5-20 sesi" : event.category === "sentiment" ? "1-5 sesi" : "1-10 sesi";
   const expectedFor = (event: MarketEvent) => {
     if (event.category === "company") return "Keterbukaan atau metrik operasional berikutnya bergerak konsisten dengan pemicu.";
     if (event.category === "commodity") return "Realisasi harga, volume penjualan, atau margin berubah pada periode berikutnya.";
     if (event.category === "rates") return "Biaya dana, imbal hasil aset, atau margin bunga menunjukkan perubahan yang searah.";
     if (event.category === "currency") return "Pendapatan, biaya bahan baku, atau translasi valuta menunjukkan perubahan yang searah.";
     if (event.category === "weather") return "Volume produksi, jam operasi, atau logistik menunjukkan gangguan pada jeda terkait.";
+    if (event.category === "flows") return "Arus asing, konsentrasi broker, atau bobot indeks menunjukkan kelanjutan atau pembalikan pada sesi berikutnya.";
+    if (event.category === "sentiment") return "Volume pemberitaan dan kecepatan liputan kembali normal tanpa diikuti perubahan operasional.";
     return "Metrik biaya, volume, atau kapasitas menunjukkan dampak setelah aturan berlaku.";
   };
   const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension => {
@@ -751,6 +765,8 @@ async function buildCausalGraph(
     if (event.category === "currency") return "cash-flow";
     if (event.category === "weather") return "volume";
     if (event.category === "policy") return "margin";
+    if (event.category === "flows") return "valuation";
+    if (event.category === "sentiment") return "valuation";
     return analysis.researchPlan.focus;
   };
   const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);

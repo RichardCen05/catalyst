@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkSource, type FetchImpl } from "@/lib/web-watch/check";
+import { checkSource, hintBuckets, keywordHits, type FetchImpl } from "@/lib/web-watch/check";
 import { FetchError, type Fetched } from "@/lib/web-watch/fetching";
 import { addSource, claim, isLocked, listSources, memoryRegistryStore, release, saveRegistry } from "@/lib/web-watch/registry";
 import { isDue, newSourceState, type WatchedSource } from "@/lib/web-watch/types";
@@ -241,5 +241,28 @@ describe("watchAll", () => {
     const second = await watchAll({ store, review, queue, fetchImpl, nowMs: 2_000 });
     expect(second.results.find((r) => r.sourceId === "src-doc")?.status).toBe("not_due");
     expect(second.results.find((r) => r.sourceId === "src-off")?.status).toBe("disabled");
+  });
+});
+
+describe("hintBuckets", () => {
+  it("suggests review buckets without deciding anything", () => {
+    const hints = hintBuckets("Smelter outage dan force majeure menunda pengapalan; RKAB terhambat.");
+    expect(hints.activity).toContain("smelter");
+    expect(hints.activity).toContain("force majeure");
+    expect(hints.ownership).toHaveLength(0);
+    expect(hints.flows).toHaveLength(0);
+  });
+
+  it("spots ownership and flows language case-insensitively", () => {
+    const hints = hintBuckets("Keterbukaan Informasi Pemegang Saham: DANANTARA tambah kepemilikan; MSCI Rebalancing picu net foreign.");
+    expect(hints.ownership).toContain("danantara");
+    expect(hints.flows).toContain("msci");
+    expect(hints.flows).toContain("net foreign");
+  });
+
+  it("stays empty on plain text", () => {
+    const hints = hintBuckets("Laporan keuangan kuartal ketiga tumbuh moderat.");
+    expect(hints).toMatchObject({ activity: [], ownership: [], flows: [] });
+    expect(keywordHits("", ["smelter"])).toHaveLength(0);
   });
 });

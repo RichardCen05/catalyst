@@ -168,13 +168,13 @@ export const demoProfiles: UserProfile[] = [
     id: "flow-first", name: "Raka", description: "Mengutamakan arus, mencari konfirmasi partisipan sebelum membaca peristiwa.",
     watchlist: ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"], owned: ["ANTM", "PGAS"],
     config: { horizon: "event", depth: "standard", pillarOrder: ["concentration", "volume", "momentum", "catalyst"] },
-    preferredSectors: ["Basic Materials", "Energy"], preferredEventTypes: ["commodity", "company", "currency", "weather", "policy"], hasOnboarded: false,
+    preferredSectors: ["Basic Materials", "Energy"], preferredEventTypes: ["commodity", "company", "currency", "weather", "policy", "flows"], hasOnboarded: false,
   },
   {
     id: "catalyst-first", name: "Maya", description: "Mengutamakan katalis, membuka analisis dari jalur dampak dan waktu peristiwa.",
     watchlist: ["ANTM", "INCO", "GOTO", "PGAS", "ICBP", "AMRT"], owned: ["GOTO", "ICBP"],
     config: { horizon: "position", depth: "forensic", pillarOrder: ["catalyst", "momentum", "volume", "concentration"] },
-    preferredSectors: ["Technology", "Consumer", "Energy"], preferredEventTypes: ["policy", "currency", "rates"], hasOnboarded: true,
+    preferredSectors: ["Technology", "Consumer", "Energy"], preferredEventTypes: ["policy", "currency", "rates", "flows", "sentiment"], hasOnboarded: true,
   },
 ];
 export { revenueSegments };

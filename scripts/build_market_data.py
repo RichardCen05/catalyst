@@ -12,7 +12,7 @@ category and direction vocabularies.
 import json
 import math
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,12 +51,16 @@ CATEGORY_PATH = {
     "rates": "Suku bunga → biaya dana dan yield aset → margin bunga",
     "currency": "Kurs → biaya input dan pendapatan valuta → margin",
     "policy": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+    "flows": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+    "sentiment": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
 }
 DIMENSION_PATH = {
     "financials": "Kinerja kuartalan → pendapatan dan laba → valuasi",
     "valuation": "Ekspektasi analis → asumsi valuasi → multiple",
     "ownership": "Perubahan kepemilikan → free float dan arus → likuiditas",
     "dividend": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+    "buyback": "Pembelian kembali → kas dan saham beredar → neraca",
+    "corporate": "Aksi korporasi → struktur modal dan likuiditas → valuasi",
     "management": "Perubahan manajemen → eksekusi operasi → biaya",
     "future": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
     "sustainability": "Komitmen keberlanjutan → biaya kepatuhan → margin",
@@ -330,47 +334,142 @@ for symbol in SYMBOLS:
                   item, universe, "filing")
 
 # --------------------------------------------------------------------------- corporate actions
+# Every branch below reads the per-symbol corporate-actions recording when it
+# exists and emits nothing when it does not. Splits/rights recordings on disk
+# are all stale (2011-2021), so those branches stay silent until a fresh
+# recording lands — that silence is honest, not a missing feature.
+BUYBACK_RE = re.compile(r"buy-?back|pembelian kembali|repurchase", re.IGNORECASE)
+LEAD_RE = re.compile(r"appoint|new Director|President Commissioner| Direksi|Dewan Komisaris|board.{0,20}term", re.IGNORECASE)
+
+
+def _leadership_snippet(result):
+    for sentence in re.split(r"(?<=[.!])\s+", result or ""):
+        if LEAD_RE.search(sentence):
+            return sentence.strip()[:220]
+    return None
+
+
 def add_corporate_action_events(symbol, asof_date):
     filename = f"v2_company_corporate-actions_{symbol}.json"
     if not (RAW / filename).exists():
         return
     actions = load(filename)["corporate_actions"]
+    sector = sector_of[symbol]
+
+    def emit(event_id, title, summary, published_at, path, rationale, tags, relevance):
+        events[event_id] = {
+            "id": event_id,
+            "title": title,
+            "summary": summary,
+            "body": None,
+            "category": "company",
+            "sourceType": "filing",
+            "publishedAt": published_at,
+            "sector": sector,
+            "impactLinks": [{
+                "symbol": symbol, "direction": "Mixed", "relevance": relevance,
+                "path": path,
+                "rationale": rationale,
+            }],
+            "source": None,
+            "tags": tags,
+        }
+
     dividends = [d for d in (actions.get("dividend") or []) if d.get("ex_date")]
-    if not dividends:
-        return
-    nearest = min(dividends, key=lambda d: abs((date.fromisoformat(d["ex_date"]) - asof_date).days))
-    if abs((date.fromisoformat(nearest["ex_date"]) - asof_date).days) > 270:
-        return
-    amount = nearest["dividend_amount"]
-    event_id = f"filing-corporate-action-dividend-{symbol.lower()}"
-    events[event_id] = {
-        "id": event_id,
-        "title": f"{symbol} dividen tunai Rp{amount:,.2f} per saham".replace(",", "."),
-        "summary": f"Ex-date {nearest['ex_date']}, pembayaran {nearest['payment_date']}. Jadwal distribusi tunai, bukan sinyal arah harga.",
-        "body": None,
-        "category": "company",
-        "sourceType": "filing",
-        "publishedAt": jakarta(nearest["ex_date"] + "T09:00:00"),
-        "sector": sector_of[symbol],
-        "impactLinks": [{
-            "symbol": symbol, "direction": "Mixed", "relevance": 92,
-            "path": DIMENSION_PATH["dividend"],
-            "rationale": f"Sectors corporate-actions API mencatat dividen ex-date {nearest['ex_date']}, dibayar {nearest['payment_date']}. Fakta jadwal distribusi, bukan sinyal arah harga.",
-        }],
-        "source": None,
-        "tags": ["Dividend"],
-    }
+    if dividends:
+        nearest = min(dividends, key=lambda d: abs((date.fromisoformat(d["ex_date"]) - asof_date).days))
+        if abs((date.fromisoformat(nearest["ex_date"]) - asof_date).days) <= 270:
+            amount = nearest["dividend_amount"]
+            emit(f"filing-corporate-action-dividend-{symbol.lower()}",
+                 f"{symbol} dividen tunai Rp{amount:,.2f} per saham".replace(",", "."),
+                 f"Ex-date {nearest['ex_date']}, pembayaran {nearest['payment_date']}. Jadwal distribusi tunai, bukan sinyal arah harga.",
+                 jakarta(nearest["ex_date"] + "T09:00:00"),
+                 DIMENSION_PATH["dividend"],
+                 f"Sectors corporate-actions API mencatat dividen ex-date {nearest['ex_date']}, dibayar {nearest['payment_date']}. Fakta jadwal distribusi, bukan sinyal arah harga.",
+                 ["Dividend"], 92)
+
+    for split in (actions.get("stock_split") or []):
+        if not split.get("date"):
+            continue
+        if abs((date.fromisoformat(split["date"]) - asof_date).days) > 270:
+            continue
+        emit(f"filing-corporate-action-split-{symbol.lower()}-{split['date']}",
+             f"{symbol} stock split 1:{split['split_ratio']} pada {split['date']}",
+             f"Rasio split {split['split_ratio']}:1 berlaku {split['date']}. Jumlah saham berubah, nilai perusahaan tidak.",
+             jakarta(split["date"] + "T09:00:00"),
+             DIMENSION_PATH["corporate"],
+             f"Sectors corporate-actions API mencatat stock split {symbol} rasio {split['split_ratio']}:1 pada {split['date']}. Fakta struktur modal, bukan sinyal arah harga.",
+             ["Stock Split"], 90)
+
+    for right in (actions.get("right_issue") or []):
+        if not right.get("ex_date"):
+            continue
+        if abs((date.fromisoformat(right["ex_date"]) - asof_date).days) > 270:
+            continue
+        emit(f"filing-corporate-action-rights-{symbol.lower()}-{right['ex_date']}",
+             f"{symbol} rights issue ex-date {right['ex_date']} harga Rp{right['price']:,}".replace(",", "."),
+             f"Ex-date {right['ex_date']}, harga pelaksanaan Rp{right['price']:,}. Potensi dilusi bila hak tidak ditebus.".replace(",", "."),
+             jakarta(right["ex_date"] + "T09:00:00"),
+             DIMENSION_PATH["corporate"],
+             f"Sectors corporate-actions API mencatat rights issue {symbol} ex-date {right['ex_date']} pada harga Rp{right['price']:,}. Fakta penawaran saham baru, bukan sinyal arah harga.".replace(",", "."),
+             ["Right Issue"], 90)
+
+    for agm in (actions.get("agm") or []):
+        result = agm.get("agm_result") or ""
+        agm_date = agm.get("agm_date") or ""
+        if not result or not agm_date:
+            continue
+        try:
+            within = abs((date.fromisoformat(agm_date) - asof_date).days) <= 270
+        except ValueError:
+            continue
+        if not within:
+            continue
+        buyback_hit = BUYBACK_RE.search(result)
+        if buyback_hit:
+            snippet = result[max(0, buyback_hit.start() - 60):buyback_hit.end() + 140].strip()
+            emit(f"filing-corporate-action-buyback-{symbol.lower()}-{agm_date}",
+                 f"{symbol} RUPS menyetujui buyback ({agm_date})",
+                 f"RUPS {agm_date} menyetujui pembelian kembali saham. …{snippet}… Potensi menopang EPS dan memberi sinyal keyakinan manajemen; eksekusi dan harga beli aktual belum terekam.",
+                 jakarta(agm_date + "T09:00:00"),
+                 DIMENSION_PATH["buyback"],
+                 f"Sectors corporate-actions API mencatat persetujuan buyback {symbol} pada RUPS {agm_date}. Fakta otorisasi, bukan bukti eksekusi — realisasi pembelian kembali masih harus diverifikasi.",
+                 ["Buyback"], 90)
+        snippet = _leadership_snippet(result)
+        if snippet:
+            emit(f"filing-corporate-action-leadership-{symbol.lower()}-{agm_date}",
+                 f"{symbol} perubahan pengurus hasil RUPS ({agm_date})",
+                 f"RUPS {agm_date}: {snippet} Dampak ke eksekusi operasi masih harus diuji pada laporan berikutnya.",
+                 jakarta(agm_date + "T09:00:00"),
+                 DIMENSION_PATH["management"],
+                 f"Sectors corporate-actions API mencatat keputusan pengurus {symbol} pada RUPS {agm_date}. Fakta tata kelola; jalur ke biaya/eksekusi belum terbukti dan diuji pada laba/arus kas laporan berikutnya.",
+                 ["Leadership"], 88)
 
 
-for symbol in ["ADRO", "BBCA", "BBRI", "TLKM"]:
+for symbol in SYMBOLS:
     add_corporate_action_events(symbol, date.fromisoformat(DATES[-1]))
 
 # --------------------------------------------------------------------------- commodity prices
-COMMODITY_EXPOSURE = {"Coal": ["ADRO", "PTBA"], "Gold": ["ANTM"]}
+# Exposure legs for the miners/consumers this app tracks. Only Coal and Gold
+# have a price recording on disk today; the rest are declared here so the
+# mapping is reviewable, and add_commodity_event skips legs with no recording
+# instead of inventing a series. Drop the file in data/sectors/ + re-run to
+# light the leg up — no code change needed.
+COMMODITY_EXPOSURE = {
+    "Coal": ["ADRO", "PTBA"],
+    "Gold": ["ANTM"],
+    "Nickel": ["ANTM", "INCO"],
+    "Tin": ["TINS"],
+    "CPO": ["ICBP", "MYOR", "AMRT"],
+    "Oil": ["PGAS", "ADRO", "PTBA"],
+}
 
 
 def add_commodity_event(name):
-    points = sorted((r for r in load(f"v2_mining_commodities_{name}_price__end_year-2025_start_year-2023.json")),
+    recording = RAW / f"v2_mining_commodities_{name}_price__end_year-2025_start_year-2023.json"
+    if not recording.exists():
+        return
+    points = sorted((r for r in json.loads(recording.read_text())),
                      key=lambda r: r["date"])
     if len(points) < 2:
         return
@@ -409,6 +508,139 @@ def add_commodity_event(name):
 
 for commodity in COMMODITY_EXPOSURE:
     add_commodity_event(commodity)
+
+# --------------------------------------------------------------------------- ownership change (foreign pct MoM)
+# Reads the same shareholders-composition recordings that feed ownershipSeries.
+# Emits only on the latest month-over-month move beyond ±0.5pp — an honest,
+# reviewable tripwire, not a model. Runs for every symbol with a recording;
+# today none of the four recorded symbols trips it, so this section is silent
+# until the next recording refresh.
+def add_ownership_change_events(symbol):
+    series_out = foreign_ownership_series(symbol)
+    if not series_out or len(series_out) < 2:
+        return
+    prev, last = series_out[-2], series_out[-1]
+    delta_pp = (last["foreignPct"] - prev["foreignPct"]) * 100
+    if abs(delta_pp) < 0.5:
+        return
+    direction = "Supported" if delta_pp > 0 else "Adverse"
+    event_id = f"filing-ownership-change-{symbol.lower()}-{last['date']}"
+    events[event_id] = {
+        "id": event_id,
+        "title": f"Kepemilikan asing {symbol} berubah {delta_pp:+.1f}pp MoM ({last['date']})".replace(".", ","),
+        "summary": (f"Asing {pct(last['foreignPct'])} per {last['date']} vs {pct(prev['foreignPct'])} per {prev['date']} "
+                    f"(Δ {delta_pp:+.2f}pp). Fakta komposisi pemegang saham; arah harga masih harus diverifikasi.".replace(".", ",")),
+        "body": None,
+        "category": "company",
+        "sourceType": "filing",
+        "publishedAt": jakarta(last["date"] + "T09:00:00"),
+        "sector": sector_of[symbol],
+        "impactLinks": [{
+            "symbol": symbol, "direction": direction, "relevance": 85,
+            "path": DIMENSION_PATH["ownership"],
+            "rationale": (f"Sectors shareholders-composition API mencatat porsi asing {symbol} bergerak {delta_pp:+.2f}pp "
+                          f"dari {prev['date']} ke {last['date']}. Fakta kepemilikan; jalur ke free float dan likuiditas masih harus diuji.".replace(".", ",")),
+        }],
+        "source": None,
+        "tags": ["Ownership"],
+    }
+
+
+for symbol in SYMBOLS:
+    add_ownership_change_events(symbol)
+
+# --------------------------------------------------------------------------- flows (foreign net vs value traded)
+# Recorded heuristic: |netForeign| over the app window at least 2% of total
+# value traded flags a flows event. Direction follows the sign of the foreign
+# net; the rationale names both numbers so the claim stays checkable. A
+# block-trade flag (topBuyerShare >= 0.42 + volume Extreme) is deliberately
+# NOT emitted: the broker-summary recordings carry only top-2 cohorts, so no
+# honest denominator exists. It stays a web-watch review keyword instead.
+def add_flows_events(symbol):
+    if symbol not in CASES:
+        return
+    filename = f"v2_foreign-flow_{symbol}.json"
+    if not (RAW / filename).exists():
+        return
+    flow = rows(load(filename), "data", "results")
+    window_flow = [r for r in flow if DATES[0] <= r["date"] <= DATES[-1]]
+    if not window_flow:
+        return
+    net_foreign = sum(r["net_foreign_inflow"] for r in window_flow)
+    total_value = sum(p["close"] * p["volume"] for p in series[symbol])
+    if not total_value:
+        return
+    share = abs(net_foreign) / total_value
+    if share < 0.02:
+        return
+    direction = "Supported" if net_foreign > 0 else "Adverse"
+    event_id = f"flows-foreign-net-{symbol.lower()}-{DATES[-1]}"
+    events[event_id] = {
+        "id": event_id,
+        "title": f"Arus asing neto {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{DATES[-1]}",
+        "summary": (f"Neto asing {idr(net_foreign)} ≈ {share * 100:.1f}% dari nilai transaksi {idr(total_value)} "
+                    "pada jendela aplikasi. Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya.".replace(".", ",")),
+        "body": None,
+        "category": "flows",
+        "sourceType": "sectors",
+        "publishedAt": jakarta(DATES[-1] + "T16:15:00"),
+        "sector": sector_of[symbol],
+        "impactLinks": [{
+            "symbol": symbol, "direction": direction, "relevance": 80,
+            "path": CATEGORY_PATH["flows"],
+            "rationale": (f"Sectors foreign-flow API mencatat neto asing {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{DATES[-1]}. "
+                          "Fakta arus; bukan atribusi niat pembeli/penjual."),
+        }],
+        "source": None,
+        "tags": ["Foreign Flow"],
+    }
+
+
+for symbol in SYMBOLS:
+    add_flows_events(symbol)
+
+# --------------------------------------------------------------------------- attention velocity (SVI proxy, no new source)
+# Retail-dominated IDX moves on attention; this proxy counts the already-
+# recorded Sectors news per symbol: last-7d count ≥ 5 AND at least double the
+# prior 7d flags a sentiment event. Relevance is capped at 55 so the engine
+# always renders it Low confidence, and the rationale carries the falsifier
+# (no operational change → dismiss). No scraping, no new source risk.
+def add_attention_velocity_events(symbol, asof):
+    filename = f"v2_news{WINDOW}_symbols-{symbol}.JK.json"
+    if not (RAW / filename).exists():
+        return
+    items = rows(load(filename), "results", "data")
+    stamps = sorted(item["timestamp"][:10] for item in items if item.get("timestamp"))
+    cutoff = (date.fromisoformat(asof) - timedelta(days=6)).isoformat()
+    prior_start = (date.fromisoformat(asof) - timedelta(days=13)).isoformat()
+    last7 = [d for d in stamps if d >= cutoff]
+    prev7 = [d for d in stamps if prior_start <= d < cutoff]
+    if len(last7) < 5 or len(last7) < 2 * len(prev7):
+        return
+    event_id = f"sentiment-attention-{symbol.lower()}-{asof}"
+    events[event_id] = {
+        "id": event_id,
+        "title": f"Lonjakan liputan {symbol}: {len(last7)} berita 7 hari terakhir (vs {len(prev7)} pekan sebelumnya)",
+        "summary": (f"Sectors news API mencatat {len(last7)} item {symbol} pada {cutoff}–{asof} vs {len(prev7)} pada 7 hari sebelumnya. "
+                    "Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional."),
+        "body": None,
+        "category": "sentiment",
+        "sourceType": "sectors",
+        "publishedAt": jakarta(asof + "T16:15:00"),
+        "sector": sector_of[symbol],
+        "impactLinks": [{
+            "symbol": symbol, "direction": "Unverified", "relevance": 55,
+            "path": CATEGORY_PATH["sentiment"],
+            "rationale": (f"Hitungan rekaman Sectors news untuk {symbol}: {len(last7)} vs {len(prev7)} pekan sebelumnya. "
+                          "Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."),
+        }],
+        "source": None,
+        "tags": ["Attention"],
+    }
+
+
+for symbol in SYMBOLS:
+    add_attention_velocity_events(symbol, DATES[-1])
 
 event_list = sorted(events.values(), key=lambda e: e["publishedAt"], reverse=True)
 events_by_symbol = {s: [e["id"] for e in event_list if any(l["symbol"] == s for l in e["impactLinks"])]

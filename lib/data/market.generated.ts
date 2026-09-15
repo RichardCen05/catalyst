@@ -75,7 +75,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 78.6,
     "analyzed": true,
     "evidenceState": "Corroborated",
-    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "INCO",
@@ -111,7 +111,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 771.9,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 6.325 pada 2026-09-11; volume terakhir 1.87× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.325 pada 2026-09-11; volume terakhir 1.87× median 27 sesi; 8 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBRI",
@@ -122,8 +122,8 @@ export const rawCompanies: RawCompany[] = [
     "changePct": -1.51,
     "marketCap": 490.6,
     "analyzed": true,
-    "evidenceState": "Corroborated",
-    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.37× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.37× median 27 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BMRI",
@@ -135,7 +135,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 402.9,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.360 pada 2026-09-11; volume terakhir 1.09× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.360 pada 2026-09-11; volume terakhir 1.09× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "TLKM",
@@ -147,7 +147,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 257.6,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 8 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "JSMR",
@@ -183,7 +183,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 57.0,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 50 pada 2026-09-11; volume terakhir 0.19× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 50 pada 2026-09-11; volume terakhir 0.19× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BUKA",
@@ -195,7 +195,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 11.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 107 pada 2026-09-11; volume terakhir 0.77× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 107 pada 2026-09-11; volume terakhir 0.77× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EMTK",
@@ -219,7 +219,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 36.8,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 1.520 pada 2026-09-11; volume terakhir 0.90× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.520 pada 2026-09-11; volume terakhir 0.90× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ADRO",
@@ -231,7 +231,7 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 76.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PTBA",
@@ -4350,22 +4350,22 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 
 export const sectorReturns: Record<string, number> = {
   "Technology": -0.018821,
-  "Energy": -0.00472,
+  "Basic Materials": 0.041557,
   "Infrastructure": -0.022054,
   "Consumer": -0.021312,
-  "Basic Materials": 0.041557,
+  "Energy": -0.00472,
   "Financials": -0.040221
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Transportation Infrastructure": -0.019934,
-  "Food & Staples Retailing": -0.041985,
-  "Basic Materials": 0.041557,
-  "Food & Beverage": -0.012101,
   "Banks": -0.040221,
+  "Food & Beverage": -0.012101,
+  "Basic Materials": 0.041557,
+  "Oil, Gas & Coal": -0.00472,
+  "Transportation Infrastructure": -0.019934,
   "Software & IT Services": -0.018821,
   "Telecommunication": -0.022203,
-  "Oil, Gas & Coal": -0.00472
+  "Food & Staples Retailing": -0.041985
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
@@ -4521,6 +4521,259 @@ export const rawEvents: RawEvent[] = [
       "Capital & Funding",
       "Government Policy",
       "Risk & Compliance"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-antm-2026-09-11",
+    "title": "Arus asing neto ANTM Rp300,0M pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp300,0M ≈ 3,1% dari nilai transaksi Rp9,7T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing ANTM Rp300,0M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-bbca-2026-09-11",
+    "title": "Arus asing neto BBCA Rp1,3T pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp1,3T ≈ 6,5% dari nilai transaksi Rp19,9T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBCA Rp1,3T pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-bbri-2026-09-11",
+    "title": "Arus asing neto BBRI Rp1,6T pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp1,6T ≈ 9,1% dari nilai transaksi Rp17,1T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBRI Rp1,6T pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-tlkm-2026-09-11",
+    "title": "Arus asing neto TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp-481,1M ≈ 6,9% dari nilai transaksi Rp7,0T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-goto-2026-09-11",
+    "title": "Arus asing neto GOTO Rp5,2M pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp5,2M ≈ 15,5% dari nilai transaksi Rp33,6M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing GOTO Rp5,2M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-pgas-2026-09-11",
+    "title": "Arus asing neto PGAS Rp-106,2M pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp-106,2M ≈ 8,3% dari nilai transaksi Rp1,3T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PGAS",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-106,2M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bbca-2026-09-11",
+    "title": "Lonjakan liputan BBCA: 19 berita 7 hari terakhir (vs 1 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 19 item BBCA pada 2026-09-05–2026-09-11 vs 1 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BBCA: 19 vs 1 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bbri-2026-09-11",
+    "title": "Lonjakan liputan BBRI: 19 berita 7 hari terakhir (vs 1 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 19 item BBRI pada 2026-09-05–2026-09-11 vs 1 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BBRI: 19 vs 1 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bmri-2026-09-11",
+    "title": "Lonjakan liputan BMRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BMRI pada 2026-09-05–2026-09-11 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BMRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-tlkm-2026-09-11",
+    "title": "Lonjakan liputan TLKM: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item TLKM pada 2026-09-05–2026-09-11 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-buka-2026-09-11",
+    "title": "Lonjakan liputan BUKA: 6 berita 7 hari terakhir (vs 2 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 6 item BUKA pada 2026-09-05–2026-09-11 vs 2 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "BUKA",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BUKA: 6 vs 2 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
     ]
   },
   {
@@ -6123,6 +6376,52 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
+    "id": "filing-corporate-action-buyback-tlkm-2026-06-08",
+    "title": "TLKM RUPS menyetujui buyback (2026-06-08)",
+    "summary": "RUPS 2026-06-08 menyetujui pembelian kembali saham. …complete the task.\nAgenda #5: Shareholders approved a share buyback program with a maximum budget of Rp4,000,000,000,000, including all related execution costs and regulatory compliance. The Board of Directo… Potensi menopang EPS dan memberi sinyal keyakinan manajemen; eksekusi dan harga beli aktual belum terekam.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-06-08T09:00:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Mixed",
+        "relevance": 90,
+        "path": "Pembelian kembali → kas dan saham beredar → neraca",
+        "rationale": "Sectors corporate-actions API mencatat persetujuan buyback TLKM pada RUPS 2026-06-08. Fakta otorisasi, bukan bukti eksekusi — realisasi pembelian kembali masih harus diverifikasi."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Buyback"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-leadership-tlkm-2026-06-08",
+    "title": "TLKM perubahan pengurus hasil RUPS (2026-06-08)",
+    "summary": "RUPS 2026-06-08: Agenda #4: The Board of Commissioners, subject to Series B Shareholder approval, was authorized to appoint a Public Accounting Firm to audit the 2026 consolidated financial statements and the Micro and Small Business Fun Dampak ke eksekusi operasi masih harus diuji pada laporan berikutnya.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-06-08T09:00:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Mixed",
+        "relevance": 88,
+        "path": "Perubahan manajemen → eksekusi operasi → biaya",
+        "rationale": "Sectors corporate-actions API mencatat keputusan pengurus TLKM pada RUPS 2026-06-08. Fakta tata kelola; jalur ke biaya/eksekusi belum terbukti dan diuji pada laba/arus kas laporan berikutnya."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Leadership"
+    ]
+  },
+  {
     "id": "filing-corporate-action-dividend-bbri",
     "title": "BBRI dividen tunai Rp209.00 per saham",
     "summary": "Ex-date 2026-04-21, pembayaran 2026-05-08. Jadwal distribusi tunai, bukan sinyal arah harga.",
@@ -6143,6 +6442,121 @@ export const rawEvents: RawEvent[] = [
     "source": null,
     "tags": [
       "Dividend"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-buyback-adro-2026-04-17",
+    "title": "ADRO RUPS menyetujui buyback (2026-04-17)",
+    "summary": "RUPS 2026-04-17 menyetujui pembelian kembali saham. …ement this change.\nAgenda #6: Shareholders approved a share buyback of up to Rp5,000,000,000,000 in accordance with OJK Regulation No. 29/2023. The Board of Directors was granted authority to execute the buy… Potensi menopang EPS dan memberi sinyal keyakinan manajemen; eksekusi dan harga beli aktual belum terekam.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-04-17T09:00:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Mixed",
+        "relevance": 90,
+        "path": "Pembelian kembali → kas dan saham beredar → neraca",
+        "rationale": "Sectors corporate-actions API mencatat persetujuan buyback ADRO pada RUPS 2026-04-17. Fakta otorisasi, bukan bukti eksekusi — realisasi pembelian kembali masih harus diverifikasi."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Buyback"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-leadership-adro-2026-04-17",
+    "title": "ADRO perubahan pengurus hasil RUPS (2026-04-17)",
+    "summary": "RUPS 2026-04-17: Agenda #3: Shareholders approved the reappointment of KAP Rintis, Jumadi, Rianto dan Rekan (PwC) and Public Accountant Firman Sababalat to audit the 2026 financial statements. Dampak ke eksekusi operasi masih harus diuji pada laporan berikutnya.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-04-17T09:00:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Mixed",
+        "relevance": 88,
+        "path": "Perubahan manajemen → eksekusi operasi → biaya",
+        "rationale": "Sectors corporate-actions API mencatat keputusan pengurus ADRO pada RUPS 2026-04-17. Fakta tata kelola; jalur ke biaya/eksekusi belum terbukti dan diuji pada laba/arus kas laporan berikutnya."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Leadership"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-leadership-bbri-2026-04-10",
+    "title": "BBRI perubahan pengurus hasil RUPS (2026-04-10)",
+    "summary": "RUPS 2026-04-10: Agenda #4: Shareholders approved appointing Purwanto Susanti dan Surja (Ernst & Young Global) to audit the 2026 Financial Statements and PUMK Program reports. Dampak ke eksekusi operasi masih harus diuji pada laporan berikutnya.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-04-10T09:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Mixed",
+        "relevance": 88,
+        "path": "Perubahan manajemen → eksekusi operasi → biaya",
+        "rationale": "Sectors corporate-actions API mencatat keputusan pengurus BBRI pada RUPS 2026-04-10. Fakta tata kelola; jalur ke biaya/eksekusi belum terbukti dan diuji pada laba/arus kas laporan berikutnya."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Leadership"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-buyback-bbca-2026-03-12",
+    "title": "BBCA RUPS menyetujui buyback (2026-03-12)",
+    "summary": "RUPS 2026-03-12 menyetujui pembelian kembali saham. …ermine honorariums.\nAgenda #5: The meeting approved a share buyback plan with a maximum budget of Rp5,000,000,000,000 and authorized the Board of Directors to execute the process and determine pricing.\nAgend… Potensi menopang EPS dan memberi sinyal keyakinan manajemen; eksekusi dan harga beli aktual belum terekam.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-03-12T09:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Mixed",
+        "relevance": 90,
+        "path": "Pembelian kembali → kas dan saham beredar → neraca",
+        "rationale": "Sectors corporate-actions API mencatat persetujuan buyback BBCA pada RUPS 2026-03-12. Fakta otorisasi, bukan bukti eksekusi — realisasi pembelian kembali masih harus diverifikasi."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Buyback"
+    ]
+  },
+  {
+    "id": "filing-corporate-action-leadership-bbca-2026-03-12",
+    "title": "BBCA perubahan pengurus hasil RUPS (2026-03-12)",
+    "summary": "RUPS 2026-03-12: Agenda #4: PwC Indonesia and Eddy Rintis were appointed to audit the company's 2026 financial records, with the Board of Commissioners authorized to appoint replacements and determine honorariums. Dampak ke eksekusi operasi masih harus diuji pada laporan berikutnya.",
+    "body": null,
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-03-12T09:00:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Mixed",
+        "relevance": 88,
+        "path": "Perubahan manajemen → eksekusi operasi → biaya",
+        "rationale": "Sectors corporate-actions API mencatat keputusan pengurus BBCA pada RUPS 2026-03-12. Fakta tata kelola; jalur ke biaya/eksekusi belum terbukti dan diuji pada laba/arus kas laporan berikutnya."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Leadership"
     ]
   },
   {
@@ -6225,6 +6639,7 @@ export const rawEvents: RawEvent[] = [
 
 export const eventIdsBySymbol: Record<string, string[]> = {
   "ANTM": [
+    "flows-foreign-net-antm-2026-09-11",
     "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
     "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
     "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
@@ -6241,29 +6656,41 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
   ],
   "BBCA": [
+    "flows-foreign-net-bbca-2026-09-11",
+    "sentiment-attention-bbca-2026-09-11",
     "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
     "news-ncana-pembagian-dividen-interim-secara-kuartalan",
     "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
-    "filing-corporate-action-dividend-bbca"
+    "filing-corporate-action-dividend-bbca",
+    "filing-corporate-action-buyback-bbca-2026-03-12",
+    "filing-corporate-action-leadership-bbca-2026-03-12"
   ],
   "BBRI": [
+    "flows-foreign-net-bbri-2026-09-11",
+    "sentiment-attention-bbri-2026-09-11",
     "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
     "news-owo-minta-semua-wni-punya-rekening-siap-jalankan",
     "news-un-bri-tegaskan-komitmen-jaga-shareholder-return",
-    "filing-corporate-action-dividend-bbri"
+    "filing-corporate-action-dividend-bbri",
+    "filing-corporate-action-leadership-bbri-2026-04-10"
   ],
   "BMRI": [
     "news-k-mandiri-bmri-terbitkan-surat-utang-usd750-juta",
+    "sentiment-attention-bmri-2026-09-11",
     "news-si-blok-madura-murah-raja-raup-laba-us15-54-juta",
     "news-rampungkan-penerbitan-perpetual-bond-usd750-juta",
     "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
     "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf"
   ],
   "TLKM": [
+    "flows-foreign-net-tlkm-2026-09-11",
+    "sentiment-attention-tlkm-2026-09-11",
     "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
     "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
     "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
-    "filing-corporate-action-dividend-tlkm"
+    "filing-corporate-action-dividend-tlkm",
+    "filing-corporate-action-buyback-tlkm-2026-06-08",
+    "filing-corporate-action-leadership-tlkm-2026-06-08"
   ],
   "JSMR": [
     "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
@@ -6277,6 +6704,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini"
   ],
   "GOTO": [
+    "flows-foreign-net-goto-2026-09-11",
     "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
     "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
     "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
@@ -6284,6 +6712,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi"
   ],
   "BUKA": [
+    "sentiment-attention-buka-2026-09-11",
     "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
     "filing-entstock-from-ksei-lk-08092026-6401-00-pdf-0-pdf",
     "news-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
@@ -6297,6 +6726,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing"
   ],
   "PGAS": [
+    "flows-foreign-net-pgas-2026-09-11",
     "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
     "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
     "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor"
@@ -6305,6 +6735,8 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
     "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
     "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
+    "filing-corporate-action-buyback-adro-2026-04-17",
+    "filing-corporate-action-leadership-adro-2026-04-17",
     "filing-corporate-action-dividend-adro",
     "commodity-coal-2025-12-15"
   ],

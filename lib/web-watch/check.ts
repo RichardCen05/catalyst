@@ -131,6 +131,83 @@ function capSeen(seen: string[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Review-time keyword gates (pure — no I/O, no invented links).
+//
+// A candidate enters the queue with empty impactLinks whatever it mentions.
+// These lists exist so the *reviewer* (human or mapping pass) can spot which
+// bucket a candidate likely belongs to: physical supply-chain disruption
+// (weather/commodity legs for TINS/ADRO/PTBA/INCO/ANTM/PGAS), ownership
+// change (company leg), or flows/block-trade/rebalancing (flows leg).
+// Matching is case-insensitive substring; it suggests, never decides.
+// ---------------------------------------------------------------------------
+
+/** Vessel dwell, smelter outage, DMO shipment: 4-12 week lead on earnings. */
+export const ACTIVITY_KEYWORDS = [
+  "smelter",
+  "outage",
+  "force majeure",
+  "dmo",
+  "rkab",
+  "pemeliharaan",
+  "maintenance",
+  "kecelakaan tambang",
+  "banjir tambang",
+  "longsor",
+  "antrean kapal",
+  "vessel",
+  "tongkang",
+  "dermaga",
+];
+
+/** Substantial-shareholder / insider / sovereign (Danantara, pension) moves. */
+export const OWNERSHIP_KEYWORDS = [
+  "keterbukaan informasi pemegang saham",
+  "pemegang saham substansial",
+  "kepemilikan saham",
+  "danantara",
+  "buyback",
+  "pembelian kembali",
+  "right issue",
+  "stock split",
+  "pemecahan saham",
+];
+
+/** Foreign net, broker concentration, index rebalancing, liquidity ops. */
+export const FLOWS_KEYWORDS = [
+  "net foreign",
+  "asing",
+  "block trade",
+  "transaksi negosiasi",
+  "rebalancing",
+  "rebalance",
+  "msci",
+  "lqf45",
+  "idx30",
+  "srbi",
+  "operasi moneter",
+];
+
+export function keywordHits(text: string, keywords: string[]): string[] {
+  const lowered = (text ?? "").toLowerCase();
+  return keywords.filter((keyword) => lowered.includes(keyword.toLowerCase()));
+}
+
+export interface CandidateHints {
+  activity: string[];
+  ownership: string[];
+  flows: string[];
+}
+
+/** Suggest review buckets for a candidate body. Empty everywhere = no hint. */
+export function hintBuckets(text: string): CandidateHints {
+  return {
+    activity: keywordHits(text, ACTIVITY_KEYWORDS),
+    ownership: keywordHits(text, OWNERSHIP_KEYWORDS),
+    flows: keywordHits(text, FLOWS_KEYWORDS),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Document
 // ---------------------------------------------------------------------------
 

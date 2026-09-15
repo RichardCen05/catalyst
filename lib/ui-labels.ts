@@ -80,6 +80,8 @@ const labels: Record<string, string> = {
   "Market": "Pasar",
   "rates": "Suku bunga",
   "currency": "Mata uang",
+  "flows": "Arus dana",
+  "sentiment": "Sentimen",
   "Nickel Mining": "Tambang nikel",
   "Tin Mining": "Tambang timah",
   "Coal Production": "Produksi batu bara",

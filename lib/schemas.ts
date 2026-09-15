@@ -15,7 +15,7 @@ export const profileSchema = z.object({
     pillarOrder: z.array(pillarSchema).length(4).refine((value) => new Set(value).size === 4, "Pillar order must contain four unique values"),
   }),
   preferredSectors: z.array(z.enum(["Basic Materials", "Financials", "Infrastructure", "Technology", "Energy", "Consumer"])),
-  preferredEventTypes: z.array(z.enum(["company", "commodity", "rates", "currency", "policy", "weather"])),
+  preferredEventTypes: z.array(z.enum(["company", "commodity", "rates", "currency", "policy", "weather", "flows", "sentiment"])),
   hasOnboarded: z.boolean(),
 });
 

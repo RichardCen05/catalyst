@@ -61,6 +61,10 @@ export const SEED_SOURCES: WatchedSource[] = [
     // Banking policy for BBCA/BBRI. Verified reachable from a datacenter
     // address with curl (389 KB); the interactive fetch layer is refused, so
     // this seed carries a plain curl UA, not a browser one.
+    // Ownership note: keterbukaan kepemilikan pemegang saham substansial yang
+    // terbit di sini ikut terbaca lewat pola yang sama dan dipetakan ke
+    // emiten pada review (Detektor ΔforeignPct di build_market_data.py
+    // menutup sisi rekaman bulanannya).
     id: "src-ojk-siaran-pers",
     url: "https://www.ojk.go.id/id/berita-dan-kegiatan/siaran-pers/",
     label: "OJK — siaran pers (aturan bank & pasar modal)",
@@ -74,6 +78,9 @@ export const SEED_SOURCES: WatchedSource[] = [
   {
     // BI-Rate decisions move BBCA/BBRI/BMRI; JISDOR moves exporters
     // (ANTM/INCO). Article links are stable `sp_<digits>.aspx` addresses.
+    // SRBI auction results are announced through this same listing, so no
+    // second BI seed is needed — liquidity-proxy items get category rates at
+    // registration and human-mapped to flows at review when relevant.
     id: "src-bi-news",
     url: "https://www.bi.go.id/id/publikasi/ruang-media/news-release/",
     label: "Bank Indonesia — siaran pers (BI-Rate, rupiah, likuiditas)",
@@ -87,7 +94,10 @@ export const SEED_SOURCES: WatchedSource[] = [
   {
     // ICP (Indonesian Crude Price) is published here first — it moves
     // ADRO/PTBA/PGAS directly. DMO and export-rule changes appear here too
-    // (TINS export regulation, coal DMO).
+    // (TINS export regulation, coal DMO). Supply-chain activity keywords
+    // (smelter, outage, force majeure, DMO, RKAB — see ACTIVITY_KEYWORDS in
+    // check.ts) are matched at review time against items from this listing
+    // plus the CNBC/Katadata feeds above; no new infrastructure.
     id: "src-esdm-berita",
     url: "https://www.esdm.go.id/id/media-center/arsip-berita",
     label: "ESDM — arsip berita (ICP, DMO, aturan ekspor)",
@@ -152,6 +162,78 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+  },
+
+  // -- Awaiting datacenter verification (disabled until checked) -----------
+  // Rule, same as IDX below: a seed goes enabled:true only after a
+  // 14-Sep-style curl from a datacenter-shaped address proves it reachable
+  // without a session, stable in text, and small enough to read. Until then
+  // these stay visible-but-off so the gap is explicit, never silent.
+  {
+    // BPS press releases: inflation (rates leg for BBCA/BBRI/BMRI) and trade
+    // balance (currency leg for ANTM/INCO exporters). Macro numeric feed.
+    id: "src-bps-pressrelease",
+    url: "https://www.bps.go.id/id/pressrelease.html",
+    label: "BPS — berita resmi statistik (NONAKTIF: belum verifikasi datacenter)",
+    kind: "listing",
+    enabled: false,
+    checkIntervalHours: 24,
+    linkPattern: "/id/pressrelease/[^\"']+\\.html",
+    category: "rates",
+    sourceType: "macro",
+  },
+  {
+    // US 10Y constant-maturity series as plain CSV — the datacenter-safe end
+    // of FRED. Pairs with SBN10Y from BI/OJK items for the rate-differential
+    // leg (Mirae/Samuel Sep 2026 narrative: US10Y ~5%, SBN 7.11%).
+    id: "src-fred-dgs10",
+    url: "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10",
+    label: "FRED — US 10Y DGS10 CSV (NONAKTIF: belum verifikasi datacenter)",
+    kind: "document",
+    enabled: false,
+    checkIntervalHours: 24,
+    category: "rates",
+    sourceType: "macro",
+  },
+  {
+    // Index rebalancing calendar for the flows leg (banks + GOTO). IDX direct
+    // is 403 from datacenters, so MSCI announcements are the reachable half;
+    // IDX-side items continue to arrive via the OJK listing mirror.
+    id: "src-msci-announcements",
+    url: "https://www.msci.com/index-announcements",
+    label: "MSCI — pengumuman indeks (NONAKTIF: belum verifikasi datacenter)",
+    kind: "listing",
+    enabled: false,
+    checkIntervalHours: 24,
+    linkPattern: "/index-announcements/[^\"']+",
+    category: "flows",
+    sourceType: "macro",
+  },
+  {
+    // KPBN auction posts: transacted CPO price leg for ICBP/MYOR/AMRT cost
+    // path (CPO 4,654 reference). Complements GAPKI policy-side coverage.
+    id: "src-kpbn-cpo",
+    url: "https://www.kpbn.co.id/",
+    label: "KPBN — lelang CPO (NONAKTIF: belum verifikasi datacenter)",
+    kind: "listing",
+    enabled: false,
+    checkIntervalHours: 24,
+    linkPattern: "kpbn\\.co\\.id/[^\"']*",
+    category: "commodity",
+    sourceType: "commodity",
+  },
+  {
+    // Antam Logam Mulia daily price page: gold proxy leg for ANTM until an
+    // LME-cash equivalent reachable from datacenters is found (LME pages are
+    // JS-heavy — deliberately avoided).
+    id: "src-antam-lm",
+    url: "https://www.logammulia.com/id/harga-emas-hari-ini",
+    label: "Logam Mulia — harga emas harian (NONAKTIF: belum verifikasi datacenter)",
+    kind: "document",
+    enabled: false,
+    checkIntervalHours: 24,
+    category: "commodity",
+    sourceType: "commodity",
   },
 
   // -- Deliberately NOT enabled --------------------------------------------

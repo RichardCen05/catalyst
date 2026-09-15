@@ -312,7 +312,7 @@ export interface MarketEvent {
   summary: string;
   /** Full source text (news/filing body), when the recording carried one. Used to locate citation spans. */
   body: string | null;
-  category: "company" | "commodity" | "rates" | "currency" | "policy" | "weather";
+  category: "company" | "commodity" | "rates" | "currency" | "policy" | "weather" | "flows" | "sentiment";
   sourceType: "sectors" | "filing" | "macro" | "commodity" | "weather" | "policy";
   publishedAt: string;
   asOf: string;
