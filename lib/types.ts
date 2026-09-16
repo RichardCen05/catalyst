@@ -431,6 +431,10 @@ export interface ChatAnswer {
   citations: Citation[];
   preferenceNote: string;
   relatedSymbols: SymbolCode[];
+  /** Set when the model layer refused for the day — daily call budget reached
+   *  or a 429 — and the deterministic path answered instead. The reader is
+   *  told, because that state lasts until tomorrow. */
+  llmFallbackNote?: string;
 }
 
 export interface CopilotContext {

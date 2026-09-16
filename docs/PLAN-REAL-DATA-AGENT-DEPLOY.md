@@ -407,9 +407,12 @@ Kontrol — ini yang menentukan biaya, bukan pilihan modelnya:
    Mandate yang sama pada evidence yang sama tidak pernah dipanggil dua kali.
 4. **Model kecil untuk pekerjaan kecil.** Penilai relevance dan penulis exposure path jalan di
    model flash; perencanaan mandate dan verifier di model pro. Satu variabel env per peran.
-5. **Plafon panggilan harian** di ledger yang sama dengan credit Sectors, disetel di bawah RPD
-   free tier. Lewat plafon, atau kena 429 → jalur deterministik, UI memberi tahu bahwa mode
-   agent sedang dibatasi. Jangan pernah menampilkan error kuota mentah ke pengguna.
+5. **Plafon panggilan harian** (`LLM_DAILY_CALL_BUDGET`) dengan ledger harian sendiri di
+   `catalyst/_ledger/llm/<tanggal>.json`, terpisah dari ledger credit Sectors karena yang satu
+   menghitung uang yang sudah keluar dan yang satu lagi menghitung kuota yang terisi ulang.
+   Disetel di bawah RPD free tier. Lewat plafon, atau kena 429 → jalur deterministik, dan
+   jawaban membawa catatan bahwa mode agent sedang dibatasi. Jangan pernah menampilkan error
+   kuota mentah ke pengguna. Variabel dikosongkan berarti tanpa plafon.
 6. **Pra-hitung sebelum judging.** Enam research case dengan mandate default dijalankan
    sekali, hasilnya disimpan di GCS, dan itu yang dilihat juri saat membuka halaman. Panggilan
    model hanya terjadi kalau juri mengetik mandate atau pertanyaan baru.

@@ -1,5 +1,6 @@
 // Wired: fixtures fallback + live Sectors when key present.
 import { analysisFixtures, citations, coverageInfo, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import {
@@ -790,18 +791,23 @@ const LLM_ANSWER_TIMEOUT_MS = 20_000;
  * verifier menolak angka baru, timeout/gagal selalu jatuh ke teks asli.
  * Penolakan saran transaksi tidak pernah ditulis ulang.
  */
-async function rewriteWithLlm(question: string, deterministicText: string): Promise<string> {
-  if (agentMode() !== "llm") return deterministicText;
+async function rewriteWithLlm(question: string, deterministicText: string): Promise<{ text: string; llmFallbackNote?: string }> {
+  if (agentMode() !== "llm") return { text: deterministicText };
   try {
     const evidenceNumbers = [...new Set(deterministicText.match(/-?\d[\d.,]*%?/g) ?? [])];
     const draft = await Promise.race([
       composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
-    return draft.text;
+    return { text: draft.text };
   } catch (error) {
     reportLlmFallback("answer", `pertanyaan ${question.length} karakter`, error);
-    return deterministicText;
+    // A budget or rate-limit refusal is the one fallback the reader is told
+    // about: it is a standing condition for the rest of the day, not a blip,
+    // and `.env.example` promises the app says so.
+    return error instanceof LlmBudgetError
+      ? { text: deterministicText, llmFallbackNote: budgetNoteFor(error.reason) }
+      : { text: deterministicText };
   }
 }
 
@@ -832,7 +838,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
         const firstCatalyst = first.pillars.find((pillar) => pillar.key === "catalyst")!;
         const secondCatalyst = second.pillars.find((pillar) => pillar.key === "catalyst")!;
         return {
-          text: await rewriteWithLlm(request.question, `${symbols[0]} menguji dampak ke ${firstImpact.label.toLowerCase()} dengan status katalis ${firstCatalyst.summary}. Tindakan risetnya ${first.researchDisposition.label.toLowerCase()}. ${symbols[1]} menguji dampak ke ${secondImpact.label.toLowerCase()} dengan status katalis ${secondCatalyst.summary}. Tindakan risetnya ${second.researchDisposition.label.toLowerCase()}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`),
+          ...(await rewriteWithLlm(request.question, `${symbols[0]} menguji dampak ke ${firstImpact.label.toLowerCase()} dengan status katalis ${firstCatalyst.summary}. Tindakan risetnya ${first.researchDisposition.label.toLowerCase()}. ${symbols[1]} menguji dampak ke ${secondImpact.label.toLowerCase()} dengan status katalis ${secondCatalyst.summary}. Tindakan risetnya ${second.researchDisposition.label.toLowerCase()}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`)),
           refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
           citations: uniqueCitations([...firstCatalyst.citations, ...secondCatalyst.citations, ...firstImpact.citations, ...secondImpact.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
         };
@@ -840,7 +846,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       const firstPillar = first.pillars.find((pillar) => pillar.key === "concentration")!;
       const secondPillar = second.pillars.find((pillar) => pillar.key === "concentration")!;
       return {
-        text: await rewriteWithLlm(request.question, `${symbols[0]} memiliki ${firstPillar.summary} ${symbols[1]} memiliki ${secondPillar.summary} Konflik sumber tetap ditampilkan bila asal broker dan arus asing agregat berbeda.`),
+        ...(await rewriteWithLlm(request.question, `${symbols[0]} memiliki ${firstPillar.summary} ${symbols[1]} memiliki ${secondPillar.summary} Konflik sumber tetap ditampilkan bila asal broker dan arus asing agregat berbeda.`)),
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
         citations: uniqueCitations([...firstPillar.citations, ...secondPillar.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
       };
@@ -855,19 +861,19 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     const text = scoped.length
       ? scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")
       : "Peristiwa tersebut tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.";
-    return { text: await rewriteWithLlm(request.question, text), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
+    return { ...(await rewriteWithLlm(request.question, text)), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
   if (question.includes("belum") || question.includes("data apa") || question.includes("tidak diperiksa")) {
     return {
-      text: await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe."),
+      ...(await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.")),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
   if (analysis && (question.includes("kenapa") || question.includes("daftar") || primary)) {
     return {
-      text: await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`),
+      ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`)),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
