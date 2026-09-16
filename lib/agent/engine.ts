@@ -799,7 +799,8 @@ async function rewriteWithLlm(question: string, deterministicText: string): Prom
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
     return draft.text;
-  } catch {
+  } catch (error) {
+    reportLlmFallback("answer", `pertanyaan ${question.length} karakter`, error);
     return deterministicText;
   }
 }
@@ -875,6 +876,24 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 }
 
 
+/**
+ * Say out loud when the LLM layer drops to the deterministic path.
+ *
+ * Both call sites fall back on purpose — a dead model must never take the
+ * page down. They used to swallow the reason too, so a production key that
+ * answered `403 PERMISSION_DENIED` looked exactly like a healthy
+ * deterministic render, and nothing in the logs said otherwise. One line per
+ * fallback, no payload, no key material.
+ *
+ * `subject` must stay non-content: a symbol, an event id, or a length. The
+ * user's question never reaches the log — Cloud Logging is a different trust
+ * boundary from the page that asked it.
+ */
+function reportLlmFallback(stage: "answer" | "exposure", subject: string, error: unknown): void {
+  const reason = error instanceof Error ? error.message : String(error);
+  console.warn(`[llm-fallback] ${stage} ${subject}: ${reason.slice(0, 300)}`);
+}
+
 /** Exposure link plus the short card title the model wrote for it. The label
  *  rides alongside the link instead of inside it: `ImpactLink` is recorded
  *  data, the label is presentation. */
@@ -931,7 +950,8 @@ async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: imp
   try {
     const assessment = await resolve();
     return { ...fallback, path: assessment.path, direction: assessment.direction, relevance: RELEVANCE_BAND_SCORE[assessment.relevanceBand], rationale: assessment.rationale, mechanismLabel: assessment.label };
-  } catch {
+  } catch (error) {
+    reportLlmFallback("exposure", `${symbol}/${event.id}`, error);
     return fallback;
   }
 }
