@@ -9,6 +9,10 @@ export const RELEVANCE_BAND_SCORE: Record<RelevanceBand, number> = { high: 90, m
 
 export interface ExposureAssessment {
   path: string;
+  /** Short node title for the mechanism card (2-5 words). Optional so cache
+   *  entries written before this field stay readable — the engine falls back
+   *  to the exposure path, then to a category label. */
+  label?: string;
   direction: ImpactDirection;
   relevanceBand: RelevanceBand;
   rationale: string;
@@ -26,14 +30,15 @@ const EXPOSURE_SCHEMA = {
   type: "object",
   properties: {
     path: { type: "string" },
+    label: { type: "string" },
     direction: { type: "string", enum: DIRECTIONS },
     relevanceBand: { type: "string", enum: RELEVANCE_BANDS },
     rationale: { type: "string" },
   },
-  required: ["path", "direction", "relevanceBand", "rationale"],
+  required: ["path", "label", "direction", "relevanceBand", "rationale"],
 };
 
-const SYSTEM_INSTRUCTION = `Kamu penulis exposure path untuk investor. Diberi satu peristiwa dan segmen pendapatan emiten, tulis SATU kalimat jalur sebab-akibat spesifik (bukan template generik), pilih arah dampak (Supported/Adverse/Mixed/Unrelated/Unverified), dan nilai relevansi sebagai pita ordinal (high/medium/low) — JANGAN mengeluarkan angka apa pun, termasuk skor relevansi numerik.`;
+const SYSTEM_INSTRUCTION = `Kamu penulis exposure path untuk investor. Diberi satu peristiwa dan segmen pendapatan emiten, tulis SATU kalimat jalur sebab-akibat spesifik (bukan template generik), SATU label pendek 2-5 kata untuk jalur itu (judul kartu, tanpa angka, tanpa tanda baca akhir), pilih arah dampak (Supported/Adverse/Mixed/Unrelated/Unverified), dan nilai relevansi sebagai pita ordinal (high/medium/low) — JANGAN mengeluarkan angka apa pun, termasuk skor relevansi numerik.`;
 
 export async function assessExposureWithLlm(
   input: ExposureInput,

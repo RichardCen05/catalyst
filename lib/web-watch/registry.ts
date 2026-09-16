@@ -84,6 +84,40 @@ export async function addSource(
   return { state, created: true };
 }
 
+/**
+ * Re-apply the declaration half of every seed to an existing registry.
+ *
+ * Declarations (enabled, label, interval, category) live in `seeds.ts`;
+ * observed state (shas, counters, lock, last check) lives in the registry and
+ * is never touched here. Seeding used to skip any id it had already written,
+ * so flipping a seed to `enabled: false` never reached a deployed registry —
+ * `src-bmkg-forecast-sample` kept being fetched for days after the seed said
+ * NONAKTIF. Nothing mutates `enabled` at runtime, so the seed file is the
+ * single source of truth and re-applying it is safe.
+ */
+export function applySeedDeclarations(file: RegistryFile, seeds: WatchedSource[]): RegistryFile {
+  const sources = { ...file.sources };
+  for (const seed of seeds) {
+    const existing = sources[seed.id] ?? Object.values(sources).find((s) => s.url === seed.url);
+    if (!existing) {
+      sources[seed.id] = newSourceState(seed);
+      continue;
+    }
+    sources[existing.id] = {
+      ...existing,
+      url: seed.url,
+      label: seed.label,
+      kind: seed.kind,
+      enabled: seed.enabled,
+      checkIntervalHours: seed.checkIntervalHours,
+      linkPattern: seed.linkPattern,
+      category: seed.category,
+      sourceType: seed.sourceType,
+    };
+  }
+  return { version: 1, sources };
+}
+
 export interface Claim {
   state: WatchedSourceState;
   file: RegistryFile;

@@ -24,8 +24,7 @@ import { NextResponse } from "next/server";
 import { checkInternalAuth } from "@/lib/internal-auth";
 import { checkSource } from "@/lib/web-watch/check";
 import { enqueue, ensureOverlay, gcsQueueStore, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
-import { gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
-import { newSourceState } from "@/lib/web-watch/types";
+import { applySeedDeclarations, gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
 import { gcsReviewStore } from "@/lib/web-watch/review";
 import { SEED_SOURCES } from "@/lib/web-watch/seeds";
 import { watchAll } from "@/lib/web-watch/watch-all";
@@ -38,18 +37,13 @@ function authError(request: Request): { status: 401 | 503; error: string } | nul
   return result.ok ? null : { status: result.status, error: result.error };
 }
 
-async function seedIfEmpty(): Promise<{ seeded: number }> {
+async function seedAndSyncSources(): Promise<{ seeded: number }> {
   // Top-up, not just first-boot: additive by id, so a raced seed run can
-  // never delete sources — it only fills the gaps, keeping live state.
-  const file = await saveRegistry(gcsRegistryStore, (current) => {
-    const next = { ...current, sources: { ...current.sources } };
-    for (const source of SEED_SOURCES) {
-      if (!next.sources[source.id] && !Object.values(next.sources).some((s) => s.url === source.url)) {
-        next.sources[source.id] = newSourceState(source);
-      }
-    }
-    return next;
-  }).catch(() => null);
+  // never delete sources — it only fills the gaps and re-applies the seed
+  // declarations (enabled, label, interval) over the observed state.
+  const file = await saveRegistry(gcsRegistryStore, (current) =>
+    applySeedDeclarations(current, SEED_SOURCES),
+  ).catch(() => null);
   return { seeded: file ? Object.keys(file.sources).length : 0 };
 }
 
@@ -93,7 +87,7 @@ export async function POST(request: Request) {
   const store = gcsRegistryStore;
   const date = new Date().toISOString().slice(0, 10);
   try {
-    await seedIfEmpty();
+    await seedAndSyncSources();
     if (body.sourceId) {
       const result = await checkSource(body.sourceId, { store }, body.force ?? true);
       for (const candidate of result.candidates ?? []) {

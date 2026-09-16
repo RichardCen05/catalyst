@@ -129,9 +129,14 @@ export const SEED_SOURCES: WatchedSource[] = [
     // ADRO/PTBA pits and INCO operations (rainfall is a named exposure).
     id: "src-bmkg-warning",
     url: "https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca",
-    label: "BMKG — peringatan dini cuaca (laut & hujan lebat)",
+    label: "BMKG — peringatan dini cuaca (NONAKTIF: halaman dirender JS, teks kosong)",
     kind: "document",
-    enabled: true,
+    // Verified 17 Sep 2026: a plain fetch returns the site shell only — the
+    // extracted text is the nav menu ("Tentang BMKG Struktur Organisasi ..."),
+    // never a warning, so every check reported `changed` and filed an empty
+    // candidate. The forecast API entries below carry the same signal as
+    // numbers. Re-enable only with an endpoint that answers without JS.
+    enabled: false,
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
@@ -149,16 +154,76 @@ export const SEED_SOURCES: WatchedSource[] = [
     sourceType: "weather",
   },
   {
-    // Per-village forecast API pattern (validated 200 for one adm4 code on
-    // 14 Sep 2026). DISABLED by default: the seeded adm4 is a Jakarta sample,
-    // not a mining region. Enable per-region copies (Bangka for TINS,
-    // Kalimantan Timur for ADRO/PTBA, Sulawesi for INCO/ANTM) with adm4 codes
-    // confirmed on the BMKG data portal — never cite the sample for a stock.
+    // Jakarta sample kept ONLY so the seed sync can switch it off in a
+    // registry that was seeded while it was enabled — it produced Gambir
+    // forecasts that no stock may cite. Replaced by the five mine-site
+    // entries below. Do not re-enable.
     id: "src-bmkg-forecast-sample",
     url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=31.71.01.1001",
-    label: "BMKG — prakiraan cuaca per wilayah (NONAKTIF: contoh adm4, tambah wilayah tambang)",
+    label: "BMKG — prakiraan cuaca Gambir (NONAKTIF: contoh adm4, diganti wilayah tambang)",
     kind: "document",
     enabled: false,
+    checkIntervalHours: 12,
+    category: "weather",
+    sourceType: "weather",
+  },
+  // Per-village forecast API, one entry per mine site. Every adm4 below was
+  // resolved from the Kemendagri code list and then fetched from BMKG on
+  // 17 Sep 2026: each answered 200 with the province/regency/district/village
+  // names quoted in its label, so a citation names the place it came from.
+  // Rainfall and wind here gate pit hours, haul roads, and shipment windows —
+  // the named exposures in `defaultPlaybook.knownExposures`.
+  {
+    // TINS: Sungailiat, Bangka — tin dredging and shipment windows.
+    id: "src-bmkg-forecast-sungailiat",
+    url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=19.01.01.1001",
+    label: "BMKG — prakiraan cuaca Sungailiat, Bangka (TINS)",
+    kind: "document",
+    enabled: true,
+    checkIntervalHours: 12,
+    category: "weather",
+    sourceType: "weather",
+  },
+  {
+    // ADRO: Tanjung, Tabalong, Kalimantan Selatan — pit and haul road.
+    id: "src-bmkg-forecast-tanjung-tabalong",
+    url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=63.09.04.1002",
+    label: "BMKG — prakiraan cuaca Tanjung, Tabalong (ADRO)",
+    kind: "document",
+    enabled: true,
+    checkIntervalHours: 12,
+    category: "weather",
+    sourceType: "weather",
+  },
+  {
+    // PTBA: Tanjung Enim, Lawang Kidul, Muara Enim — pit and rail loading.
+    id: "src-bmkg-forecast-tanjung-enim",
+    url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=16.03.07.1001",
+    label: "BMKG — prakiraan cuaca Tanjung Enim, Muara Enim (PTBA)",
+    kind: "document",
+    enabled: true,
+    checkIntervalHours: 12,
+    category: "weather",
+    sourceType: "weather",
+  },
+  {
+    // ANTM: Pomalaa, Kolaka — nickel mine and jetty.
+    id: "src-bmkg-forecast-pomalaa",
+    url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=74.01.07.1002",
+    label: "BMKG — prakiraan cuaca Pomalaa, Kolaka (ANTM)",
+    kind: "document",
+    enabled: true,
+    checkIntervalHours: 12,
+    category: "weather",
+    sourceType: "weather",
+  },
+  {
+    // INCO: Sorowako, Nuha, Luwu Timur — mine, smelter, and hydro catchment.
+    id: "src-bmkg-forecast-sorowako",
+    url: "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=73.24.02.2009",
+    label: "BMKG — prakiraan cuaca Sorowako, Luwu Timur (INCO)",
+    kind: "document",
+    enabled: true,
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",

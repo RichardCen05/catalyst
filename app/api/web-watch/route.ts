@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { webWatchReviewSchema } from "@/lib/schemas";
+import { checkOperatorAuth } from "@/lib/operator-auth";
 import { listSources, gcsRegistryStore } from "@/lib/web-watch/registry";
 import {
   BAND_SCORE,
@@ -59,6 +60,8 @@ export async function GET() {
  * the engine itself is untouched.
  */
 export async function POST(request: Request) {
+  const auth = checkOperatorAuth(request);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   let body: unknown;
   try {
     body = await request.json();

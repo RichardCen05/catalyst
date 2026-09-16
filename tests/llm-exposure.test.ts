@@ -23,6 +23,18 @@ describe("assessExposureWithLlm", () => {
     expect(result.direction).toBe("Adverse");
   });
 
+  it("carries the model's short card label through", async () => {
+    const call = vi.fn().mockResolvedValue({
+      path: "Sales of Coal (55% pendapatan ADRO) → realisasi harga → margin",
+      label: "Harga batu bara ke margin",
+      direction: "Adverse",
+      relevanceBand: "high",
+      rationale: "Harga batu bara turun langsung menekan pendapatan segmen Sales of Coal ADRO.",
+    } satisfies ExposureAssessment);
+    const result = await assessExposureWithLlm(baseInput, call);
+    expect(result.label).toBe("Harga batu bara ke margin");
+  });
+
   it("rejects a direction outside the five known values", async () => {
     const call = vi.fn().mockResolvedValue({ path: "x", direction: "Bullish", relevanceBand: "high", rationale: "x" });
     await expect(assessExposureWithLlm(baseInput, call)).rejects.toThrow(/direction/);

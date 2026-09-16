@@ -875,10 +875,43 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 }
 
 
-async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: import("@/lib/types").ImpactLink): Promise<import("@/lib/types").ImpactLink> {
+/** Exposure link plus the short card title the model wrote for it. The label
+ *  rides alongside the link instead of inside it: `ImpactLink` is recorded
+ *  data, the label is presentation. */
+type ResolvedExposure = import("@/lib/types").ImpactLink & { mechanismLabel?: string };
+
+const CATEGORY_MECHANISM_LABEL: Record<MarketEvent["category"], string> = {
+  company: "Kinerja emiten ke valuasi",
+  commodity: "Harga komoditas ke margin",
+  rates: "Suku bunga ke margin bunga",
+  currency: "Kurs ke biaya dan pendapatan",
+  policy: "Aturan ke biaya operasi",
+  weather: "Cuaca ke volume operasi",
+  flows: "Arus dana ke likuiditas",
+  sentiment: "Liputan ke perhatian ritel",
+};
+
+/** Title for a mechanism card, in falling order of specificity: the label the
+ *  model wrote, the middle leg of an arrow-shaped exposure path, then the
+ *  category default. An LLM path is a sentence and carries no arrow, which is
+ *  why every card used to read "Jalur eksposur". */
+export function mechanismLabelFor(
+  llmLabel: string | undefined,
+  path: string,
+  category: MarketEvent["category"],
+): string {
+  const clip = (value: string) => value.length <= 60 ? value : `${value.slice(0, 60).replace(/\s+\S*$/, "")}…`;
+  const fromLlm = llmLabel?.trim().replace(/[.;]+$/, "");
+  if (fromLlm) return clip(fromLlm);
+  const fromPath = path.split(/→|->/)[1]?.trim();
+  if (fromPath) return clip(fromPath);
+  return CATEGORY_MECHANISM_LABEL[category] ?? "Jalur eksposur";
+}
+
+async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: import("@/lib/types").ImpactLink): Promise<ResolvedExposure> {
   if (agentMode() !== "llm") return fallback;
   const key = cacheKeyFor(["exposure", symbol, event.id]);
-  const cached = await getCached<{ path: string; direction: import("@/lib/types").ImpactDirection; relevanceBand: "high" | "medium" | "low"; rationale: string }>(key);
+  const cached = await getCached<{ path: string; label?: string; direction: import("@/lib/types").ImpactDirection; relevanceBand: "high" | "medium" | "low"; rationale: string }>(key);
   const segments = (await import("@/lib/data/fixtures")).revenueSegments[symbol] ?? [];
   const resolve = async () => {
     if (cached) return cached;
@@ -894,7 +927,7 @@ async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: imp
   };
   try {
     const assessment = await resolve();
-    return { ...fallback, path: assessment.path, direction: assessment.direction, relevance: RELEVANCE_BAND_SCORE[assessment.relevanceBand], rationale: assessment.rationale };
+    return { ...fallback, path: assessment.path, direction: assessment.direction, relevance: RELEVANCE_BAND_SCORE[assessment.relevanceBand], rationale: assessment.rationale, mechanismLabel: assessment.label };
   } catch {
     return fallback;
   }
@@ -959,7 +992,7 @@ async function buildCausalGraph(
     const resolvedLink = await llmExposure(event, symbol, link);
     const sourceId = `source-${event.id}`;
     const mechanismId = `mechanism-${event.id}-${symbol}`;
-    const mechanismLabel = resolvedLink.path.split(/→|->/)[1]?.trim() ?? "Jalur eksposur";
+    const mechanismLabel = mechanismLabelFor(resolvedLink.mechanismLabel, resolvedLink.path, event.category);
     nodes.push({
       id: sourceId, label: event.title, kind: "source", detail: event.summary,
       sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,

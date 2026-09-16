@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
+import { operatorHeaders } from "@/lib/operator-token";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -80,7 +81,7 @@ function CandidateCard({
       try {
         const response = await fetch(apiUrl("/api/web-watch"), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: operatorHeaders(),
           body: JSON.stringify(payload),
         });
         const data = await response.json();
