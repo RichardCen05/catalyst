@@ -33,6 +33,7 @@ import {
   type FetchOptions,
   type SourceText,
 } from "@/lib/web-watch/fetching";
+import { summarizeJsonPayload } from "@/lib/web-watch/json-summary";
 import { claim, release, type RegistryStore } from "@/lib/web-watch/registry";
 import type { MarketEvent } from "@/lib/types";
 import { isDue, type CheckResult, type WatchedSourceState } from "@/lib/web-watch/types";
@@ -80,12 +81,19 @@ export function buildCandidate(
   key: string,
   nowIso: string,
 ): MarketEvent {
-  const headline = (title ?? text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl;
+  // A JSON endpoint has no headline to slice, so the generic rule produced a
+  // title that was a slice of the payload. Derive one from the fields when the
+  // shape is recognised; an unrecognised or malformed payload returns null and
+  // nothing changes. A feed-supplied title always wins — a human wrote it.
+  const derived = title ? null : summarizeJsonPayload(text.text);
+  const headline = (title ?? derived?.title ?? text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl;
   const citationId = `web-${state.id}-${textSha(text).slice(0, 8)}`;
   return {
     id: candidateId(state.id, key, textSha(text)),
     title: headline,
-    summary: text.text.slice(0, 500),
+    // The raw text stays in `body` either way — the citation and the audit
+    // trail must not lose it.
+    summary: (derived?.summary ?? text.text).slice(0, 500),
     body: text.text.slice(0, BODY_CAP),
     category: state.category,
     sourceType: state.sourceType,
