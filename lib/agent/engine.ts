@@ -1,6 +1,6 @@
-// Fixtures-only sufficient — sectors-client unwired (P3: no plan/dry-run/approval). Live wiring is separate.
+// Wired: fixtures fallback + live Sectors when key present.
 import { analysisFixtures, citations, WINDOW_SESSIONS } from "@/lib/data/fixtures";
-import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
+import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import {
   calculateConcentration,
@@ -133,7 +133,7 @@ const impactObservables: Record<BusinessImpactDimension, string> = {
  * per-symbol table. Explicit mandate keywords always win over the default.
  */
 function sectorDefaultFocus(symbol?: SymbolCode): BusinessImpactDimension {
-  const sector = symbol ? fixtureMarketDataProvider.getCompany(symbol)?.sector : undefined;
+  const sector = symbol ? marketDataProvider.getCompany(symbol)?.sector : undefined;
   switch (sector) {
     case "Basic Materials":
     case "Energy":
@@ -315,7 +315,7 @@ function createResearchDisposition(
 }
 
 function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
-  const company = fixtureMarketDataProvider.getCompany(symbol);
+  const company = marketDataProvider.getCompany(symbol);
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
 
@@ -370,8 +370,8 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     symbol,
     date: series.at(-1)?.date ?? "",
     priceSeriesBySymbol,
-    events: fixtureNewsProvider.listEvents(),
-    getSubsector: (s) => fixtureMarketDataProvider.getCompany(s)?.subsector,
+    events: newsProvider.listEvents(),
+    getSubsector: (s) => marketDataProvider.getCompany(s)?.subsector,
     playbook: context?.playbook,
     thresholds: {
       contagionDropFloor: thresholds.contagionDropFloor,
@@ -383,7 +383,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     const d = series.at(-1)?.date ?? "";
     const d1 = series.length >= 2 ? series.at(-2)?.date : undefined;
     const linked = new Set(
-      fixtureNewsProvider.listEvents()
+      newsProvider.listEvents()
         .filter((e) => e.impactLinks.some((l) => l.symbol === symbol))
         .map((e) => e.publishedAt.slice(0, 10)),
     );
@@ -391,7 +391,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   })();
   const unexplainedDrop = lastDrop <= -Math.abs(thresholds.contagionDropFloor) && !hasLinkedOnDrop;
   const relatedEvents = fixture.catalystEventIds
-    .map((id) => fixtureNewsProvider.getEvent(id))
+    .map((id) => newsProvider.getEvent(id))
     .filter((event): event is MarketEvent => Boolean(event))
     // Primary = strongest link first, newest breaks ties. Materiality is
     // defined by the relevance floor, so the event that decides it must be
@@ -735,7 +735,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
 }
 
 function findSymbols(question: string): SymbolCode[] {
-  const symbols = fixtureMarketDataProvider.listCompanies().map((company) => company.symbol);
+  const symbols = marketDataProvider.listCompanies().map((company) => company.symbol);
   const robust = findSymbolsRobust(question, symbols);
   if (robust.length) return robust;
   // Legacy fallback: bare code mention (kept for short inputs like "ANTM?").
@@ -744,8 +744,8 @@ function findSymbols(question: string): SymbolCode[] {
 }
 
 function eventFromQuestion(question: string): MarketEvent | undefined {
-  const symbols = fixtureMarketDataProvider.listCompanies().map((company) => company.symbol);
-  return matchEventForQuestion(question, fixtureNewsProvider.listEvents(), symbols);
+  const symbols = marketDataProvider.listCompanies().map((company) => company.symbol);
+  return matchEventForQuestion(question, newsProvider.listEvents(), symbols);
 }
 
 function relevantInsights(insights: UserInsight[] | undefined, symbol?: SymbolCode): UserInsight[] {
@@ -848,7 +848,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 
   const event = eventFromQuestion(request.question);
   if (event || question.includes("berita") || question.includes("dampak")) {
-    const selected = event ?? fixtureNewsProvider.listEvents()[0];
+    const selected = event ?? newsProvider.listEvents()[0];
     const scoped = selected.impactLinks.filter((link) => request.profile.watchlist.includes(link.symbol));
     const direction = (value: ImpactDirection) => value === "Supported" ? "Mendukung" : value === "Adverse" ? "Berlawanan" : value === "Mixed" ? "Bercampur" : value === "Unrelated" ? "Tidak terkait" : "Belum terverifikasi";
     const text = scoped.length
@@ -907,7 +907,7 @@ async function buildCausalGraph(
 ): Promise<CausalGraph | null> {
   const analysis = await buildAnalysis(symbol, profile, options.context);
   if (!analysis || (options.scope === "watchlist" && !profile.watchlist.includes(symbol))) return null;
-  const linked = fixtureNewsProvider.listEvents().flatMap((event) => {
+  const linked = newsProvider.listEvents().flatMap((event) => {
     const link = event.impactLinks.find((item) => item.symbol === symbol);
     return link ? [{ event, link }] : [];
   });
@@ -1018,8 +1018,8 @@ async function buildCausalGraph(
       symbol,
       date: analysis.priceSeries.at(-1)?.date ?? "",
       priceSeriesBySymbol: bySymbol,
-      events: fixtureNewsProvider.listEvents(),
-      getSubsector: (s) => fixtureMarketDataProvider.getCompany(s)?.subsector,
+      events: newsProvider.listEvents(),
+      getSubsector: (s) => marketDataProvider.getCompany(s)?.subsector,
       playbook: options.context?.playbook,
       thresholds: { contagionDropFloor: t.contagionDropFloor, contagionCorrelationFloor: t.contagionCorrelationFloor },
     });
@@ -1080,7 +1080,7 @@ async function buildCausalGraph(
 export const agentEngine: AgentEngine = {
   analyzeCompany: async (symbol, profile, context) => buildAnalysis(symbol.toUpperCase() as SymbolCode, profile, context),
   mapEventImpact: (eventId, profile, scope) => {
-    const event = fixtureNewsProvider.getEvent(eventId);
+    const event = newsProvider.getEvent(eventId);
     if (!event) return null;
     const impactLinks = event.impactLinks
       .filter((link) => scope === "market" || profile.watchlist.includes(link.symbol))

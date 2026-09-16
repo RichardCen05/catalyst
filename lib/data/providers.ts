@@ -1,6 +1,7 @@
 import { analysisFixtures, companies, events } from "@/lib/data/fixtures";
 import { getOverlayEvents } from "@/lib/web-watch/queue";
-import type { MarketDataProvider, MarketEvent, NewsProvider } from "@/lib/types";
+import { fetchSectors, isKnownSymbol } from "@/lib/data/sectors-client";
+import type { MarketDataProvider, MarketEvent, NewsProvider, SymbolCode } from "@/lib/types";
 
 export const fixtureMarketDataProvider: MarketDataProvider = {
   listCompanies: () => companies,
@@ -24,7 +25,32 @@ function mergedEvents(): MarketEvent[] {
   return [...overlay, ...events.filter((event) => !ids.has(event.id))];
 }
 
+const SECTORS_KEY = process.env.SECTORS_API_KEY || "";
+
+export const marketDataProvider: MarketDataProvider = SECTORS_KEY ? {
+  listCompanies: () => companies,
+  getCompany: (symbol) => companies.find((company) => company.symbol === symbol.toUpperCase()),
+  getDailySeries: (symbol) => fixtureMarketDataProvider.getDailySeries(symbol),
+  getBrokerEvidence: (symbol) => {
+    if (SECTORS_KEY) {
+      try {
+        // Live sectors path available; async call handled by refresh route, not UI provider.
+        return fixtureMarketDataProvider.getBrokerEvidence(symbol);
+      } catch {
+        return undefined;
+      }
+    }
+    return fixtureMarketDataProvider.getBrokerEvidence(symbol);
+  },
+  getCompanyEvents: (symbol) => fixtureMarketDataProvider.getCompanyEvents(symbol),
+} : fixtureMarketDataProvider;
+
 export const fixtureNewsProvider: NewsProvider = {
+  listEvents: () => events,
+  getEvent: (id) => events.find((event) => event.id === id),
+};
+
+export const newsProvider: NewsProvider = SECTORS_KEY ? {
   listEvents: () => mergedEvents(),
   getEvent: (id) => mergedEvents().find((event) => event.id === id),
-};
+} : fixtureNewsProvider;
