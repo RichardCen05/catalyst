@@ -469,7 +469,10 @@ export interface CausalEdge {
   alternativeExplanation: string;
   falsificationCondition: string;
   confidenceBasis: string;
-  businessImpactDimension: BusinessImpactDimension;
+  /** Absent when the symbol has no recorded financials to test the path
+   *  against — a partially recorded symbol must not be handed a business
+   *  dimension it has no data for. */
+  businessImpactDimension?: BusinessImpactDimension;
   businessImpactImplication: string;
   citations: Citation[];
 }
@@ -495,6 +498,11 @@ export interface CausalGraph {
   competingHypotheses: CompetingHypothesis[];
   hiddenRelationshipCount: number;
   asOf: string;
+  /** What this chain is allowed to claim. `analyzed: false` means the symbol
+   *  has a price series and linked sources but no broker or quarterly
+   *  financial recording, so the chain stops at the company and names what is
+   *  missing instead of asserting a business outcome. */
+  coverage: { analyzed: boolean; missing: string[] };
 }
 
 export interface MarketDataProvider {

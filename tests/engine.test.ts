@@ -93,6 +93,35 @@ describe("Catalyst agent engine", async () => {
     expect(graph?.edges.every((edge) => edge.businessImpactDimension && edge.businessImpactImplication)).toBe(true);
   });
 
+  /** Twelve of the eighteen universe symbols have a price series and linked
+   *  sources but no broker summary or quarterly financials. They used to 404,
+   *  which reported recorded evidence — including a reviewer-accepted
+   *  web-watch event — as no evidence at all. They now draw the chain the
+   *  recordings support and stop at the company. */
+  it("draws a chain for a partially recorded symbol and stops before business impact", async () => {
+    const graph = await agentEngine.buildCausalGraph("PTBA", demoProfiles[0], { scope: "market", minRelevance: 60 });
+
+    expect(graph).not.toBeNull();
+    expect(graph?.coverage.analyzed).toBe(false);
+    expect(graph?.coverage.missing).toContain("ringkasan broker + arus asing");
+    expect(graph?.nodes.some((node) => node.kind === "source")).toBe(true);
+    expect(graph?.nodes.some((node) => node.kind === "mechanism")).toBe(true);
+    expect(graph?.nodes.some((node) => node.kind === "company")).toBe(true);
+    // No recorded financials means no business-outcome column and no claimed
+    // observable — the chain must not name one it cannot test.
+    expect(graph?.nodes.some((node) => node.kind === "business-impact")).toBe(false);
+    expect(graph?.targetObservable).toContain("belum terekam");
+    expect(graph?.edges.every((edge) => edge.businessImpactImplication)).toBe(true);
+  });
+
+  it("keeps the business-impact column for a fully recorded symbol", async () => {
+    const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+
+    expect(graph?.coverage.analyzed).toBe(true);
+    expect(graph?.coverage.missing).toEqual([]);
+    expect(graph?.nodes.some((node) => node.kind === "business-impact")).toBe(true);
+  });
+
   it("organizes company analysis as a hypothesis-driven Research Case", async () => {
     const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 

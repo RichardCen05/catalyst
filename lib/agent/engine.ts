@@ -1,5 +1,5 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, coverageInfo, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import {
@@ -961,12 +961,24 @@ async function buildCausalGraph(
   profile: UserProfile,
   options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext },
 ): Promise<CausalGraph | null> {
+  // A symbol carries a full case only when its broker summary and quarterly
+  // financials were recorded. The other twelve in the universe still have a
+  // price series and linked sources, and a reviewer-accepted web-watch event
+  // maps to them like any other. Returning null for those threw away real
+  // evidence and reported it as "no evidence at all". Build the chain that
+  // the recordings do support, and let `coverage` say what is missing.
   const analysis = await buildAnalysis(symbol, profile, options.context);
-  if (!analysis || (options.scope === "watchlist" && !profile.watchlist.includes(symbol))) return null;
+  const company = marketDataProvider.getCompany(symbol);
+  if (!company) return null;
+  if (options.scope === "watchlist" && !profile.watchlist.includes(symbol)) return null;
+  const coverage = coverageInfo[symbol] ?? { analyzed: Boolean(analysis), missing: [] };
   const linked = newsProvider.listEvents().flatMap((event) => {
     const link = event.impactLinks.find((item) => item.symbol === symbol);
     return link ? [{ event, link }] : [];
   });
+  // A partially recorded symbol earns a chain only when something is actually
+  // linked to it. A lone company node is noise, not evidence.
+  if (!analysis && !linked.length) return null;
   const graphFloor = relevanceFloorFor(options.context?.playbook);
   const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= graphFloor + 5 ? "High" : relevance >= graphFloor - 10 ? "Medium" : "Low";
   const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : event.category === "rates" ? "5-20 sesi" : event.category === "sentiment" ? "1-5 sesi" : "1-10 sesi";
@@ -980,7 +992,7 @@ async function buildCausalGraph(
     if (event.category === "sentiment") return "Volume pemberitaan dan kecepatan liputan kembali normal tanpa diikuti perubahan operasional.";
     return "Metrik biaya, volume, atau kapasitas menunjukkan dampak setelah aturan berlaku.";
   };
-  const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension => {
+  const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension | undefined => {
     if (event.category === "commodity") return "pricing";
     if (event.category === "rates") return "margin";
     if (event.category === "currency") return "cash-flow";
@@ -988,7 +1000,18 @@ async function buildCausalGraph(
     if (event.category === "policy") return "margin";
     if (event.category === "flows") return "valuation";
     if (event.category === "sentiment") return "valuation";
-    return analysis.researchPlan.focus;
+    // Company disclosures test whatever the research plan focuses on. Without
+    // a recorded plan there is no honest default, so the edge carries none.
+    return analysis?.researchPlan.focus;
+  };
+  const implicationFor = (event: MarketEvent, phrasing: "reach" | "tested"): string => {
+    const dimension = businessDimensionFor(event);
+    if (!dimension) {
+      return "Indikator bisnis untuk emiten ini belum terekam, jadi jalur ini belum dapat diuji terhadap angka keuangan.";
+    }
+    return phrasing === "reach"
+      ? `Jalur harus mencapai ${impactLabels[dimension].toLowerCase()} sebelum dianggap material.`
+      : `Dampak diuji pada ${impactLabels[dimension].toLowerCase()}.`;
   };
   const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);
   // Bounded, not fixed: the graph shows at most this many sources so the
@@ -997,17 +1020,22 @@ async function buildCausalGraph(
   // count — that is what the bound is for.
   const MAX_VISIBLE_SOURCES = 6;
   const visible = eligible.slice(0, MAX_VISIBLE_SOURCES);
-  const targetImpact = analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0];
+  const targetImpact = analysis ? analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0] : undefined;
+  // Without a recorded business observable the chain must not name one.
+  const targetObservable = targetImpact?.label
+    ?? `Indikator bisnis belum terekam (${coverage.missing.join(", ") || "rekaman belum lengkap"})`;
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
     label: symbol,
     kind: "company",
-    detail: `${analysis.company.name}. Titik temu seluruh jalur; bukan kesimpulan transaksi.`,
+    detail: analysis
+      ? `${company.name}. Titik temu seluruh jalur; bukan kesimpulan transaksi.`
+      : `${company.name}. Titik temu jalur yang terekam. Rekaman yang belum ada: ${coverage.missing.join(", ")}. Rantai berhenti di emiten dan tidak menyatakan dampak bisnis.`,
     basis: "Aggregation point",
     confidence: "High",
     lag: "Tidak berlaku",
     counterEvidence: "Emiten menghubungkan jalur, tetapi tidak membuktikan bahwa setiap masukan menyebabkan perubahan harga.",
-    citations: analysis.company.citations,
+    citations: company.citations,
   }];
   const edges: CausalGraph["edges"] = [];
 
@@ -1029,18 +1057,23 @@ async function buildCausalGraph(
       counterEvidence: resolvedLink.rationale.includes("belum") || resolvedLink.rationale.includes("harus") ? resolvedLink.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: resolvedLink.citations,
     });
     edges.push(
-      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Sumber dan waktu tersedia, tetapi belum merupakan bukti sebab akibat.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: link.citations },
+      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Sumber dan waktu tersedia, tetapi belum merupakan bukti sebab akibat.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: implicationFor(event, "reach"), citations: event.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: implicationFor(event, "tested"), citations: link.citations },
     );
   }
 
-  const outcomeDirection: CausalGraph["edges"][number]["direction"] = analysis.evidenceState === "Corroborated"
+  // Business-outcome nodes exist only where quarterly financials were
+  // recorded. A partially recorded symbol gets no outcome column rather than
+  // an invented one.
+  const outcomeDirection: CausalGraph["edges"][number]["direction"] = analysis?.evidenceState === "Corroborated"
     ? "Supported"
-    : analysis.evidenceState === "Mixed Evidence" ? "Mixed" : "Unverified";
-  const outcomeNodes = analysis.businessImpact.filter((item) => item.status === "Primary test" || item.status === "Supporting").slice(0, 3);
+    : analysis?.evidenceState === "Mixed Evidence" ? "Mixed" : "Unverified";
+  const outcomeNodes = analysis
+    ? analysis.businessImpact.filter((item) => item.status === "Primary test" || item.status === "Supporting").slice(0, 3)
+    : [];
   for (const outcome of outcomeNodes) {
     const nodeId = `business-impact-${outcome.dimension}`;
-    const confidence = outcome.status === "Primary test" && analysis.evidenceState === "Corroborated" ? "High" : "Medium";
+    const confidence = outcome.status === "Primary test" && analysis?.evidenceState === "Corroborated" ? "High" : "Medium";
     nodes.push({
       id: nodeId, label: `${outcome.label} · ${outcome.status === "Primary test" ? "Uji utama" : "Pendukung"}`, kind: "business-impact", detail: `${outcome.observable}. ${outcome.implication}`,
       sourceType: "financial", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? 100 : 85,
@@ -1072,7 +1105,7 @@ async function buildCausalGraph(
     );
     const cands = detectContagionCandidates({
       symbol,
-      date: analysis.priceSeries.at(-1)?.date ?? "",
+      date: marketDataProvider.getDailySeries(symbol).at(-1)?.date ?? "",
       priceSeriesBySymbol: bySymbol,
       events: newsProvider.listEvents(),
       getSubsector: (s) => marketDataProvider.getCompany(s)?.subsector,
@@ -1100,7 +1133,7 @@ async function buildCausalGraph(
         alternativeExplanation: "Gerak bersama karena faktor pasar atau jalur fundamental yang belum terekam.",
         falsificationCondition: "Pertanyaan gugur bila ada peristiwa terhubung ke target pada D/D-1 atau korelasi di bawah ambang.",
         confidenceBasis: `Korelasi ${c.correlation.toFixed(2)} vs ambang ${t.contagionCorrelationFloor}. Selalu Rendah: co-movement bukan bukti sebab-akibat.`,
-        businessImpactDimension: targetImpact.dimension,
+        businessImpactDimension: targetImpact?.dimension,
         businessImpactImplication: "Belum ada implikasi bisnis; periksa dulu apakah penularan atau jalur yang belum terekam.",
         citations: c.citations,
       });
@@ -1111,14 +1144,16 @@ async function buildCausalGraph(
     targetSymbol: symbol,
     nodes,
     edges,
-    targetObservable: targetImpact.label,
+    targetObservable,
     // Hypotheses stay at three even when the graph shows more: three
     // competing claims fit in working memory, six do not.
     competingHypotheses: visible.slice(0, 3).map(({ event, link }, index) => ({
       id: `${symbol}-competing-${event.id}`,
       rank: index + 1,
-      claim: `${event.title} menjelaskan perubahan ${targetImpact.label.toLowerCase()} ${symbol}.`,
-      targetObservable: targetImpact.label,
+      claim: targetImpact
+        ? `${event.title} menjelaskan perubahan ${targetImpact.label.toLowerCase()} ${symbol}.`
+        : `${event.title} adalah jalur terhubung ke ${symbol}; indikator bisnisnya belum terekam untuk diuji.`,
+      targetObservable,
       supportingEvidence: `${link.path}. Relevansi ${link.relevance}/100 dan waktu sumber tersedia.`,
       counterEvidence: index === 0
         ? "Jalur belum mengisolasi masukan lain yang muncul pada jendela yang sama."
@@ -1129,7 +1164,8 @@ async function buildCausalGraph(
       citations: uniqueCitations([...event.citations, ...link.citations]),
     })),
     hiddenRelationshipCount: linked.length - visible.length,
-    asOf: analysis.asOf,
+    asOf: analysis?.asOf ?? company.asOf,
+    coverage: { analyzed: coverage.analyzed, missing: coverage.missing },
   };
 }
 
