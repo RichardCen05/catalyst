@@ -910,7 +910,10 @@ export function mechanismLabelFor(
 
 async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: import("@/lib/types").ImpactLink): Promise<ResolvedExposure> {
   if (agentMode() !== "llm") return fallback;
-  const key = cacheKeyFor(["exposure", symbol, event.id]);
+  // v2: entries written before the model returned a card label. Reusing them
+  // would keep every mechanism card on the fallback label forever, so the
+  // version rides in the key rather than deleting objects from the bucket.
+  const key = cacheKeyFor(["exposure-v2", symbol, event.id]);
   const cached = await getCached<{ path: string; label?: string; direction: import("@/lib/types").ImpactDirection; relevanceBand: "high" | "medium" | "low"; rationale: string }>(key);
   const segments = (await import("@/lib/data/fixtures")).revenueSegments[symbol] ?? [];
   const resolve = async () => {
