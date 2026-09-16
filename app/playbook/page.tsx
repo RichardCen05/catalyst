@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
-type ListKey = Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor">;
+type ListKey = Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor" | "thresholds">;
 
 const fields: Array<{ key: ListKey; label: string; hint: string }> = [
   { key: "materialityRules", label: "Aturan materialitas", hint: "Kapan perubahan layak membuka atau menaikkan prioritas kasus." },
@@ -26,6 +26,8 @@ export default function PlaybookPage() {
   const setPlaybookList = useCatalystStore((state) => state.setPlaybookList);
   const setPreferredComparables = useCatalystStore((state) => state.setPreferredComparables);
   const setRelevanceFloor = useCatalystStore((state) => state.setRelevanceFloor);
+  const setThreshold = useCatalystStore((state) => state.setThreshold);
+  const resetThreshold = useCatalystStore((state) => state.resetThreshold);
   const relevanceFloor = playbook.relevanceFloor ?? 85;
   const profile = useCatalystStore((state) => state.profile);
   const setWatchlist = useCatalystStore((state) => state.setWatchlist);
@@ -126,6 +128,39 @@ export default function PlaybookPage() {
           <label htmlFor="relevance-floor" className="text-xs font-medium">Ambang relevansi materialitas: <span className="font-mono text-primary">{relevanceFloor}</span></label>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">Eksposur dengan relevansi di atas ambang ini menandai kasus High. Kasus tanpa jalur eksposur tetap Low.</p>
           <input id="relevance-floor" type="range" min={40} max={97} step={1} value={relevanceFloor} onChange={(event) => { setSaved(false); setRelevanceFloor(Number(event.target.value)); }} className="mt-3 w-full max-w-md accent-[var(--primary)]" aria-valuetext={`${relevanceFloor} dari 100`} />
+        </div>
+        <div className="border-b border-border p-4">
+          <p className="text-xs font-medium">Ambang penilaian</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Mengubah ambang mengubah status yang tampil, bukan angka dasar. Setiap perubahan tercatat sebagai aturan yang diterapkan pada kasus.</p>
+          <div className="mt-3 grid gap-4">
+            {(
+              [
+                { key: "concentrationFloor", label: "Ambang konsentrasi", min: 0.1, max: 0.8, step: 0.01, def: 0.42, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit kasus berstatus Concentrated Flow." },
+                { key: "volumeZFloor", label: "Ambang volume (Meningkat)", min: 1, max: 6, step: 0.1, def: 2.5, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Meningkat." },
+                { key: "volumeExtremeFloor", label: "Ambang volume (Ekstrem)", min: 3, max: 10, step: 0.1, def: 5, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Ekstrem." },
+                { key: "contagionDropFloor", label: "Ambang penurunan penularan", min: 0.01, max: 0.15, step: 0.005, def: 0.04, fmt: (v: number) => `${(v * 100).toFixed(1)}%`, hint: "Menaikkan ambang membuat lebih sedikit penurunan diperiksa sebagai penularan." },
+                { key: "contagionCorrelationFloor", label: "Ambang korelasi penularan", min: 0.1, max: 0.9, step: 0.05, def: 0.5, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit co-movement layak diperiksa." },
+                { key: "distributionValueFloor", label: "Ambang nilai distribusi", min: 10000000000, max: 500000000000, step: 10000000000, def: 100000000000, fmt: (v: number) => `Rp${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 0 })}M`, hint: "Menaikkan ambang membuat lebih sedikit pelepasan ditandai distribusi." },
+              ] as const
+            ).map((row) => {
+              const cur = (playbook.thresholds?.[row.key] ?? row.def) as number;
+              const changed = cur !== row.def;
+              return (
+                <div key={row.key}>
+                  <label htmlFor={`threshold-${row.key}`} className="flex flex-wrap items-center gap-2 text-xs font-medium">
+                    {row.label}: <span className="font-mono text-primary">{row.fmt(cur)}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground">(bawaan {row.fmt(row.def)})</span>
+                    {changed ? <span className="rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">diubah dari bawaan</span> : null}
+                  </label>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{row.hint}</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <input id={`threshold-${row.key}`} type="range" min={row.min} max={row.max} step={row.step} value={cur} onChange={(event) => { setSaved(false); setThreshold(row.key, Number(event.target.value)); }} className="w-full max-w-md accent-[var(--primary)]" aria-valuetext={`${row.fmt(cur)} dari bawaan ${row.fmt(row.def)}`} />
+                    {changed ? <button type="button" onClick={() => { setSaved(false); resetThreshold(row.key); }} className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-primary">kembalikan ke bawaan</button> : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="grid gap-5 p-4 lg:grid-cols-2">
           {fields.map((field) => <label key={field.key} className={field.key === "falsifiers" ? "lg:col-span-2" : undefined}><span className="text-xs font-medium">{field.label}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{field.hint}</span><textarea aria-label={field.label} rows={4} value={playbook[field.key].join("\n")} onChange={(event) => { setSaved(false); setPlaybookList(field.key, event.target.value.split("\n").map((item) => item.trim()).filter(Boolean)); }} className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-ring/25" /></label>)}

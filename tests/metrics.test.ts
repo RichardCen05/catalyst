@@ -32,6 +32,18 @@ describe("four-pillar calculators", () => {
     expect(result.robustZ).toBeGreaterThan(10);
   });
 
+  it("honours custom volume floors threaded from resolveThresholds (C5)", () => {
+    const baseline = [100, 98, 101, 99, 102, 97, 103, 100, 99, 101, 98, 102];
+    // robustZ ≈ besar (>10): default Extreme; naikkan extreme ke 99 → turun ke Elevated.
+    const def = calculateVolumeSignal(baseline, 160, 50);
+    expect(def.status).toBe("Extreme");
+    const raised = calculateVolumeSignal(baseline, 160, 50, { elevated: 2.5, extreme: 99 });
+    expect(raised.status).toBe("Elevated");
+    // Naikkan elevated juga ke 99 → Normal.
+    const normal = calculateVolumeSignal(baseline, 160, 50, { elevated: 99, extreme: 100 });
+    expect(normal.status).toBe("Normal");
+  });
+
   it("returns insufficient data when liquidity is below the gate", () => {
     const result = calculateVolumeSignal([100, 99, 101, 98, 102], 120, 4);
     expect(result.status).toBe("Insufficient Data");

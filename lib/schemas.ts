@@ -27,6 +27,14 @@ export const playbookSchema = z.object({
   trustedSources: z.array(z.string().max(400)).max(30),
   falsifiers: z.array(z.string().max(400)).max(50),
   relevanceFloor: z.number().min(0).max(100).optional(),
+  thresholds: z.object({
+    concentrationFloor: z.number().min(0).max(1).optional(),
+    volumeZFloor: z.number().min(0).max(10).optional(),
+    volumeExtremeFloor: z.number().min(0).max(10).optional(),
+    contagionDropFloor: z.number().min(0).max(1).optional(),
+    contagionCorrelationFloor: z.number().min(0).max(1).optional(),
+    distributionValueFloor: z.number().min(0).max(1e15).optional(),
+  }).optional(),
 });
 
 export const analyzeRequestSchema = z.object({
@@ -78,6 +86,14 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     reason: z.string().trim().min(3).max(500),
   }),
 ]);
+export const refreshToggleSchema = z.object({
+  enabled: z.boolean(),
+});
+export const refreshRunSchema = z.object({
+  run: z.literal(true),
+  dryRun: z.boolean().default(true),
+  symbols: z.array(z.string().trim().min(4).max(5)).max(6).optional(),
+});
 export const chatRequestSchema = z.object({
   question: z.string().trim().min(2).max(500),
   profile: profileSchema,

@@ -1,11 +1,16 @@
 "use client";
 
 import { describeSignalStability } from "@/lib/agent/signal-history";
+import { resolveThresholds } from "@/lib/agent/thresholds";
+import { useCatalystStore } from "@/lib/store";
 import type { PricePoint } from "@/lib/types";
 
 /** Stability read over trailing halves of the recorded volume window. */
 export function SignalHistory({ series }: { series: PricePoint[] }) {
-  const stability = describeSignalStability(series);
+  // C5: slider harus menggerakkan label ini juga, bukan hanya pilar.
+  const playbook = useCatalystStore((s) => s.playbook);
+  const t = resolveThresholds(playbook);
+  const stability = describeSignalStability(series, { elevated: t.volumeZFloor, extreme: t.volumeExtremeFloor });
   if (!stability.windowScores.length) {
     return (
       <section aria-label="Rekam jejak sinyal" className="mt-4 rounded-[10px] border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground">

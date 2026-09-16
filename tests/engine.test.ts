@@ -174,6 +174,89 @@ describe("Catalyst agent engine", async () => {
     ]);
   });
 
+  it("flips concentration status with a lowered floor and traces exactly one rule", async () => {
+    const base = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const baseConc = base?.pillars.find((p) => p.key === "concentration")?.status;
+    expect(baseConc).toBe("Broad Participation");
+    const lowered = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      playbook: {
+        preferredComparables: {},
+        materialityRules: [],
+        knownExposures: [],
+        thesisAssumptions: [],
+        trustedSources: [],
+        falsifiers: [],
+        thresholds: { concentrationFloor: 0.2 },
+      },
+    });
+    expect(lowered?.pillars.find((p) => p.key === "concentration")?.status).toBe("Concentrated Flow");
+    const extra = (lowered?.appliedRules ?? []).filter((r) => r.id === "ANTM-threshold-concentration");
+    expect(extra).toHaveLength(1);
+    expect(extra[0].rule).toMatch(/0\.2.*0\.42/);
+  });
+
+  it("keeps default-playbook output byte-identical (regression guard)", async () => {
+    const a = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
+    const b = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      playbook: {
+        preferredComparables: {},
+        materialityRules: [],
+        knownExposures: [],
+        thesisAssumptions: [],
+        trustedSources: [],
+        falsifiers: [],
+        thresholds: {
+          concentrationFloor: 0.42,
+          volumeZFloor: 2.5,
+          volumeExtremeFloor: 5,
+          contagionDropFloor: 0.04,
+          contagionCorrelationFloor: 0.5,
+          distributionValueFloor: 1e11,
+        },
+      },
+    });
+    expect(JSON.stringify(b)).toBe(JSON.stringify({ ...b, appliedRules: a?.appliedRules }));
+    // Explicit defaults must not add threshold rules; only real overrides do.
+    expect(b?.appliedRules.filter((r) => r.id.startsWith("ANTM-threshold-"))).toHaveLength(0);
+    expect(JSON.stringify(a?.pillars)).toBe(JSON.stringify(b?.pillars));
+  });
+
+  it("relabels graph confidences when the relevance floor moves (C9)", async () => {
+    const lo = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
+    const hi = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], {
+      scope: "market",
+      minRelevance: 60,
+      context: {
+        playbook: {
+          preferredComparables: {},
+          materialityRules: [],
+          knownExposures: [],
+          thesisAssumptions: [],
+          trustedSources: [],
+          falsifiers: [],
+          relevanceFloor: 97,
+        },
+      },
+    });
+    expect(lo).not.toBeNull();
+    expect(hi).not.toBeNull();
+    // ConfidenceBasis carries the floor, so movement is visible.
+    expect(JSON.stringify(hi?.edges)).toContain("ambang 97");
+    expect(JSON.stringify(lo?.edges)).toContain("ambang 85");
+    const hiAnalysis = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      playbook: {
+        preferredComparables: {},
+        materialityRules: [],
+        knownExposures: [],
+        thesisAssumptions: [],
+        trustedSources: [],
+        falsifiers: [],
+        relevanceFloor: 97,
+      },
+    });
+    expect(hiAnalysis?.appliedRules.some((r) => r.id === "ANTM-threshold-relevance")).toBe(true);
+  });
+
   it("treats a user correction as an open hypothesis without changing analysis facts", async () => {
     const before = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
     const answer = await agentEngine.answerFollowUp({

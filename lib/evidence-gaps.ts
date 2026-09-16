@@ -4,6 +4,10 @@ export interface EvidenceAvailability {
   hasOwnershipSeries: boolean;
   eventCount: number;
   financialRows: number;
+  /** C8: jumlah filing holder-change terekam; mengendalikan baris afiliasi. */
+  institutionalFlows: number;
+  /** Task 10: ada peristiwa RUPS pengurus terekam untuk simbol ini. */
+  hasLeadershipEvent: boolean;
 }
 
 /**
@@ -25,6 +29,12 @@ export function deriveMissingEvidence(availability: EvidenceAvailability): strin
     missing.push("Laporan keuangan kuartalan tidak terekam untuk emiten ini.");
   }
   missing.push("Data dalam hari perdagangan dan antrean pesanan tidak tersedia.");
-  missing.push("Transaksi pihak terafiliasi belum diidentifikasi.");
+  if (availability.institutionalFlows === 0) {
+    missing.push("Transaksi pihak terafiliasi belum diidentifikasi.");
+  }
+  missing.push("Transaksi pasar negosiasi tidak tersedia pada sumber terekam.");
+  if (availability.hasLeadershipEvent) {
+    missing.push("Rekam jejak individu pengurus tidak tersedia pada sumber terekam; penilaian hanya memakai fakta RUPS.");
+  }
   return missing;
 }

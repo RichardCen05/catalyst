@@ -1,4 +1,5 @@
 import type { PricePoint } from "@/lib/types";
+import type { VolumeFloors } from "@/lib/agent/metrics";
 
 export interface SignalStability {
   /** Robust-z of the latest session against each trailing sub-window. */
@@ -22,10 +23,14 @@ function robustZ(latest: number, baseline: number[]): number | null {
   return (0.6745 * (latest - med)) / mad;
 }
 
-function statusFor(z: number | null): string {
+function statusFor(z: number | null, floors?: VolumeFloors): string {
   if (z === null) return "Data belum cukup";
-  if (z >= 3) return "Ekstrem";
-  if (z >= 2) return "Meningkat";
+  // C5: di-thread lewat resolveThresholds agar slider menggerakkan label ini juga.
+  // Default disatukan ke live values mesin (5/2.5), bukan 3/2 lama di file ini.
+  const elevated = typeof floors?.elevated === "number" ? floors.elevated : 2.5;
+  const extreme = typeof floors?.extreme === "number" ? floors.extreme : 5;
+  if (z >= extreme) return "Ekstrem";
+  if (z >= elevated) return "Meningkat";
   return "Normal";
 }
 
@@ -35,7 +40,7 @@ function statusFor(z: number | null): string {
  * new signal. Honest about short baselines: windows under 5 sessions report
  * "Data belum cukup" instead of a number.
  */
-export function describeSignalStability(series: PricePoint[]): SignalStability {
+export function describeSignalStability(series: PricePoint[], floors?: VolumeFloors): SignalStability {
   if (series.length < 8) {
     return {
       windowScores: [],
@@ -54,7 +59,7 @@ export function describeSignalStability(series: PricePoint[]): SignalStability {
   ];
   const windowScores = slices.map(({ label, data }) => {
     const z = robustZ(latest, data);
-    return { label, robustZ: z, status: statusFor(z) };
+    return { label, robustZ: z, status: statusFor(z, floors) };
   });
   const elevated = windowScores.filter((item) => item.status === "Meningkat" || item.status === "Ekstrem").length;
   const scored = windowScores.filter((item) => item.robustZ !== null).length;

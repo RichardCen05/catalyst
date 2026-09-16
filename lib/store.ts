@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { demoProfiles } from "@/lib/data/fixtures";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type {
   AnswerDepth,
   CaseResolution,
@@ -56,9 +57,12 @@ interface CatalystState {
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
-  setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor">, values: string[]) => void;
+  setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor" | "thresholds">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
   setRelevanceFloor: (value: number) => void;
+  setThreshold: (key: keyof typeof DEFAULT_THRESHOLDS extends infer K ? Exclude<K, "relevanceFloor"> : never, value: number) => void;
+  resetThreshold: (key: Exclude<keyof typeof DEFAULT_THRESHOLDS, "relevanceFloor">) => void;
+  resetAllThresholds: () => void;
   setHolding: (symbol: SymbolCode, holding: Holding) => void;
   removeHolding: (symbol: SymbolCode) => void;
   removeInsight: (id: string) => void;
@@ -204,6 +208,25 @@ export const useCatalystStore = create<CatalystState>()(
       setPlaybookList: (key, values) => set((state) => ({ playbook: { ...state.playbook, [key]: values } })),
       setPreferredComparables: (symbol, values) => set((state) => ({ playbook: { ...state.playbook, preferredComparables: { ...state.playbook.preferredComparables, [symbol]: values } } })),
       setRelevanceFloor: (value) => set((state) => ({ playbook: { ...state.playbook, relevanceFloor: Math.min(100, Math.max(0, Math.round(value))) } })),
+      setThreshold: (key, value) => set((state) => {
+        const bounds: Record<string, [number, number]> = {
+          concentrationFloor: [0, 1],
+          volumeZFloor: [0, 10],
+          volumeExtremeFloor: [0, 10],
+          contagionDropFloor: [0, 1],
+          contagionCorrelationFloor: [0, 1],
+          distributionValueFloor: [0, 1e15],
+        };
+        const [lo, hi] = bounds[key] ?? [0, Number.MAX_SAFE_INTEGER];
+        const clamped = Math.min(hi, Math.max(lo, value));
+        return { playbook: { ...state.playbook, thresholds: { ...(state.playbook.thresholds ?? {}), [key]: clamped } } };
+      }),
+      resetThreshold: (key) => set((state) => {
+        const thresholds = { ...(state.playbook.thresholds ?? {}) };
+        delete (thresholds as Record<string, unknown>)[key];
+        return { playbook: { ...state.playbook, thresholds } };
+      }),
+      resetAllThresholds: () => set((state) => ({ playbook: { ...state.playbook, thresholds: {} } })),
       setHolding: (symbol, holding) => set((state) => ({
         holdings: { ...state.holdings, [symbol]: { shares: Math.max(0, Math.round(holding.shares)), avgCost: Math.max(0, holding.avgCost) } },
         profile: state.profile.owned.includes(symbol) ? state.profile : { ...state.profile, owned: [...state.profile.owned, symbol] },
@@ -219,11 +242,11 @@ export const useCatalystStore = create<CatalystState>()(
     }),
     {
       name: "catalyst:v1",
-      version: 3,
+      version: 4,
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== "object") return persisted as CatalystState;
-        const stored = persisted as Partial<CatalystState>;
-        return {
+        const stored = persisted as Partial<CatalystState> & { version?: number };
+        const out = {
           ...stored,
           holdings: stored.holdings ?? {},
           caseMandates: stored.caseMandates ?? {},
@@ -234,13 +257,20 @@ export const useCatalystStore = create<CatalystState>()(
           insights: stored.insights ?? [],
           feedback: stored.feedback ?? [],
         } as CatalystState;
+        // v3 → v4: thresholds diperkenalkan; snapshot lama tidak punya field ini.
+        // Isi objek kosong agar resolveThresholds mengisi default per kunci (C7).
+        if (out.playbook) {
+          out.playbook = { ...out.playbook, thresholds: (out.playbook.thresholds ?? {}) as InvestorResearchPlaybook["thresholds"] };
+        }
+        return out;
       },
       merge: (persisted, current) => {
         const stored = persisted as Partial<CatalystState>;
         return {
           ...current,
           ...stored,
-          playbook: { relevanceFloor: 85, ...current.playbook, ...(stored.playbook ?? {}) },
+          // Satu tabel default (C7): tidak ada duplikat literal 85 di sini.
+          playbook: { relevanceFloor: DEFAULT_THRESHOLDS.relevanceFloor, ...current.playbook, ...(stored.playbook ?? {}) },
           caseMandates: stored.caseMandates ?? current.caseMandates,
           caseClarifications: stored.caseClarifications ?? current.caseClarifications,
           caseStatuses: stored.caseStatuses ?? current.caseStatuses,

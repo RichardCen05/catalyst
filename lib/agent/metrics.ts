@@ -38,10 +38,18 @@ function median(values: number[]): number {
     : sorted[middle];
 }
 
+export interface VolumeFloors {
+  /** Elevated floor; default 2.5 (live value sebelum C5). */
+  elevated?: number;
+  /** Extreme floor; default 5 (live value sebelum C5). */
+  extreme?: number;
+}
+
 export function calculateVolumeSignal(
   baseline: number[],
   current: number,
   medianDailyValue: number,
+  floors?: VolumeFloors,
 ): { robustZ: number | null; status: "Normal" | "Elevated" | "Extreme" | "Insufficient Data" } {
   if (baseline.length < 8 || medianDailyValue < 10) {
     return { robustZ: null, status: "Insufficient Data" };
@@ -53,9 +61,13 @@ export function calculateVolumeSignal(
   }
   const robustZ = round((0.6745 * (current - center)) / mad, 2);
   const absolute = Math.abs(robustZ);
+  // Di-thread lewat resolveThresholds (C5): default dari live values,
+  // bukan tebakan plan (3). elevated 2.5, extreme 5.
+  const elevatedFloor = typeof floors?.elevated === "number" ? floors.elevated : 2.5;
+  const extremeFloor = typeof floors?.extreme === "number" ? floors.extreme : 5;
   return {
     robustZ,
-    status: absolute >= 5 ? "Extreme" : absolute >= 2.5 ? "Elevated" : "Normal",
+    status: absolute >= extremeFloor ? "Extreme" : absolute >= elevatedFloor ? "Elevated" : "Normal",
   };
 }
 

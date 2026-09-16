@@ -34,6 +34,10 @@ import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
+import { DEFAULT_THRESHOLDS as _DEFAULTS, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds } from "@/lib/agent/thresholds";
+import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
+import { detectContagionCandidates } from "@/lib/agent/contagion";
+import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
 
 const percent = (value: number, digits = 1) =>
   new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
@@ -46,9 +50,9 @@ export const windowLabel = () => `${WINDOW_SESSIONS} hari bursa`;
 const windowBaselineCount = () => Math.max(WINDOW_SESSIONS - 1, 1);
 
 /** Materiality floor comes from the user's playbook, defaulting to the recorded baseline. */
-export const DEFAULT_RELEVANCE_FLOOR = 85;
-export const relevanceFloorFor = (playbook?: { relevanceFloor?: number }) =>
-  typeof playbook?.relevanceFloor === "number" ? playbook.relevanceFloor : DEFAULT_RELEVANCE_FLOOR;
+export { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+export const DEFAULT_RELEVANCE_FLOOR = _DEFAULTS.relevanceFloor;
+export const relevanceFloorFor = _relevanceFloorFor;
 
 function uniqueCitations(values: Citation[]): Citation[] {
   return [...new Map(values.map((citation) => [citation.id, citation])).values()];
@@ -315,6 +319,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
 
+  const thresholds = _resolveThresholds(context?.playbook);
   const series = fixture.priceSeries;
   const brokerEvidence = fixture.broker;
   const buyerValues = brokerEvidence.buyers.map((row) => row.value);
@@ -328,18 +333,63 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     .reduce((total, row) => total + row.value, 0);
   const foreignParticipantShare = foreignParticipantValue / buyerValues.reduce((total, value) => total + value, 0);
   const conflict = detectFlowContradiction(foreignParticipantShare, brokerEvidence.netForeign);
+  // Task 6: distribusi institusional dihitung di samping blok concentration.
+  // C4: metrik baru hanya diemisikan bila institutionalFlows.length > 0 —
+  // jangan pernah menambahkannya tanpa syarat (14 simbol tanpa filings akan 500 via enforceCitations).
+  const flows = fixture.institutionalFlows ?? [];
+  const windowStart = series[0]?.date;
+  const windowEnd = series.at(-1)?.date;
+  const netFlow = netInstitutionalFlow(flows, { windowStart, windowEnd, referencePrice: brokerEvidence.referencePrice });
+  const churnRows = brokerChurnRatio(brokerEvidence);
+  const topChurn = churnRows[0];
 
   const currentPoint = series.at(-1)!;
   const baseline = series.slice(0, -1).map((point) => point.volume);
   const baselineMedian = median(baseline);
   const baselineMad = median(baseline.map((value) => Math.abs(value - baselineMedian)));
   const medianDailyValue = baseline[Math.floor(baseline.length / 2)] * currentPoint.close;
-  const volume = calculateVolumeSignal(baseline, currentPoint.volume, medianDailyValue / 1e9);
+  const volume = calculateVolumeSignal(baseline, currentPoint.volume, medianDailyValue / 1e9, {
+    elevated: thresholds.volumeZFloor,
+    extreme: thresholds.volumeExtremeFloor,
+  });
 
   const startPoint = series.at(-4)!;
   const stockReturn = currentPoint.close / startPoint.close - 1;
   const marketReturn = currentPoint.ihsg / startPoint.ihsg - 1;
   const momentum = calculateMomentum(stockReturn, marketReturn, fixture.beta, fixture.sectorReturn);
+  const divergent = flows.length > 0 && detectDistributionDivergence({
+    priceReturn: stockReturn,
+    netValue: netFlow.netValue,
+    floor: thresholds.distributionValueFloor,
+  });
+  // Task 7/8: kandidat penularan untuk tanggal terbaru (falsifiable question, bukan vonis).
+  const priceSeriesBySymbol = Object.fromEntries(
+    Object.entries(analysisFixtures).map(([s, f]) => [s, f.priceSeries]),
+  );
+  const contagionCandidates = detectContagionCandidates({
+    symbol,
+    date: series.at(-1)?.date ?? "",
+    priceSeriesBySymbol,
+    events: fixtureNewsProvider.listEvents(),
+    getSubsector: (s) => fixtureMarketDataProvider.getCompany(s)?.subsector,
+    playbook: context?.playbook,
+    thresholds: {
+      contagionDropFloor: thresholds.contagionDropFloor,
+      contagionCorrelationFloor: thresholds.contagionCorrelationFloor,
+    },
+  });
+  const lastDrop = series.length >= 2 ? series.at(-1)!.close / series.at(-2)!.close - 1 : 0;
+  const hasLinkedOnDrop = (() => {
+    const d = series.at(-1)?.date ?? "";
+    const d1 = series.length >= 2 ? series.at(-2)?.date : undefined;
+    const linked = new Set(
+      fixtureNewsProvider.listEvents()
+        .filter((e) => e.impactLinks.some((l) => l.symbol === symbol))
+        .map((e) => e.publishedAt.slice(0, 10)),
+    );
+    return linked.has(d) || (d1 ? linked.has(d1) : false);
+  })();
+  const unexplainedDrop = lastDrop <= -Math.abs(thresholds.contagionDropFloor) && !hasLinkedOnDrop;
   const relatedEvents = fixture.catalystEventIds
     .map((id) => fixtureNewsProvider.getEvent(id))
     .filter((event): event is MarketEvent => Boolean(event))
@@ -364,7 +414,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const pillars: PillarResult[] = [
     {
       key: "concentration", label: "Konsentrasi",
-      status: conflict ? "Source Conflict" : concentration.topBuyerShare >= 0.42 ? "Concentrated Flow" : "Broad Participation",
+      status: conflict ? "Source Conflict" : concentration.topBuyerShare >= thresholds.concentrationFloor ? "Concentrated Flow" : "Broad Participation",
       summary: conflict
         ? "Asal partisipan dominan tidak searah dengan arus asing agregat. Kesimpulan konsentrasi ditahan."
         : `${percent(concentration.topBuyerShare)} nilai partisipasi sisi akumulasi berasal dari peserta teratas.`,
@@ -466,6 +516,41 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     },
   ];
 
+  // Task 6 + C4: metrik distribusi hanya bila ada filings terekam.
+  {
+    const conc = pillars.find((p) => p.key === "concentration")!;
+    if (flows.length > 0) {
+      const filingCites = uniqueCitations(flows.map((f) => citations.filing(symbol, f.source || undefined)));
+      const fmtIdr = (v: number) => {
+        const abs = Math.abs(v);
+        const sign = v < 0 ? "-" : "";
+        if (abs >= 1e12) return `${sign}Rp${(abs / 1e12).toLocaleString("id-ID", { maximumFractionDigits: 1 })}T`;
+        if (abs >= 1e9) return `${sign}Rp${(abs / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 1 })}M`;
+        if (abs >= 1e6) return `${sign}Rp${(abs / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt`;
+        return `${sign}Rp${abs.toLocaleString("id-ID")}`;
+      };
+      const topHolder = netFlow.topHolders[0];
+      conc.metrics.push(
+        { label: "Aliran institusi bersih", value: fmtIdr(netFlow.netValue), citations: filingCites },
+        {
+          label: "Pemegang terbesar berubah",
+          value: topHolder ? `${topHolder.holderName.slice(0, 32)} · ${compact(topHolder.netShares)} lbr` : "Tidak ada",
+          citations: topHolder ? [citations.filing(symbol, flows.find((f) => f.holderName === topHolder.holderName)?.source || undefined)] : filingCites,
+        },
+        {
+          label: "Rasio churn broker teratas (proksi)",
+          value: topChurn ? `${topChurn.code} ${topChurn.churnRatio.toFixed(2)}` : "Tidak ada",
+          citations: [citations.broker(symbol)],
+        },
+      );
+      conc.citations = uniqueCitations([...conc.citations, ...filingCites]);
+      conc.calculation?.notes.push("Rasio churn adalah proksi crossing/block; pasar nego tidak teramati pada sumber ini.");
+      if (divergent) {
+        conc.protocol.challengingEvidence += ` Divergensi: harga naik ${percent(stockReturn)} sementara aliran institusi neto ${fmtIdr(netFlow.netValue)} melampaui ambang.`;
+      }
+    }
+  }
+
   enforceCitations(pillars);
   const ordered = profile.config.pillarOrder.map((key) => pillars.find((pillar) => pillar.key === key)!);
   const evidenceState: EvidenceState = conflict
@@ -482,13 +567,72 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       : "Data rekaman 11 Sep 2026 belum cukup untuk menghubungkan perilaku pasar dengan dampak bisnis.";
   assertSafeOutput(thesis);
   const hypotheses = createTrace(symbol, pillars, relatedEvents);
-  const sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
+  let sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
 
   const contradictions = pillars.flatMap((pillar) => pillar.conflict ? [pillar.conflict] : []);
+  if (divergent) {
+    contradictions.push(
+      `Harga naik ${percent(stockReturn)} dalam 3 hari sementara aliran institusi neto negatif melampaui ambang. Apakah penguatan didukung partisipasi yang terekam atau tertahan oleh pelepasan yang belum dijelaskan?`,
+    );
+  }
+  // Task 9: narasi vs angka terekam — diam bila tren unknown/flat.
+  if (primaryEvent) {
+    const fundCheck = checkNarrativeAgainstFinancials({ event: primaryEvent, symbol, financialContext: fixture.financialContext });
+    if (fundCheck) {
+      contradictions.push(fundCheck.text);
+      sources = uniqueCitations([...sources, ...fundCheck.citations]);
+    }
+  }
   const primaryLink = primaryEvent?.impactLinks.find((link) => link.symbol === symbol);
   const defaultMandate = `Periksa perubahan ${symbol}: uji apakah pemicu, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya.`;
   const mandate = context?.mandate?.trim() || defaultMandate;
   const appliedRules = compilePlaybook(symbol, context);
+  // Task 2 + C9: setiap ambang non-bawaan yang mengubah hasil mendorong satu
+  // AppliedPlaybookRule agar pergeseran slider dapat ditelusuri. Relevansi juga
+  // mencakup jalur graf (confidenceFor memakai ambang yang sama).
+  // Di-unshift ke depan agar tampil di ruleTrace.slice(0, 3) pada audit;
+  // id memakai prefix threshold- agar materialityRule di bawah tetap menunjuk
+  // aturan materialitas pengguna, bukan ambang.
+  {
+    const custom = context?.playbook;
+    const t = custom?.thresholds;
+    const concentrationPillar = pillars.find((p) => p.key === "concentration")!;
+    const volumePillar = pillars.find((p) => p.key === "volume")!;
+    const extra: typeof appliedRules = [];
+    if (t?.concentrationFloor !== undefined && t.concentrationFloor !== _DEFAULTS.concentrationFloor) {
+      const defStatus = conflict ? "Source Conflict" : concentration.topBuyerShare >= _DEFAULTS.concentrationFloor ? "Concentrated Flow" : "Broad Participation";
+      extra.push({
+        id: `${symbol}-threshold-concentration`,
+        kind: "materiality",
+        rule: `Ambang konsentrasi ${t.concentrationFloor} (bawaan ${_DEFAULTS.concentrationFloor})`,
+        effect: `Status konsentrasi ${concentrationPillar.status} (bawaan ${defStatus})`,
+      });
+    }
+    if ((t?.volumeZFloor !== undefined && t.volumeZFloor !== _DEFAULTS.volumeZFloor) ||
+        (t?.volumeExtremeFloor !== undefined && t.volumeExtremeFloor !== _DEFAULTS.volumeExtremeFloor)) {
+      const defVol = calculateVolumeSignal(baseline, currentPoint.volume, medianDailyValue / 1e9, {
+        elevated: _DEFAULTS.volumeZFloor,
+        extreme: _DEFAULTS.volumeExtremeFloor,
+      });
+      extra.push({
+        id: `${symbol}-threshold-volume`,
+        kind: "materiality",
+        rule: `Ambang volume ${t?.volumeZFloor ?? _DEFAULTS.volumeZFloor}/${t?.volumeExtremeFloor ?? _DEFAULTS.volumeExtremeFloor} (bawaan ${_DEFAULTS.volumeZFloor}/${_DEFAULTS.volumeExtremeFloor})`,
+        effect: `Status volume ${volumePillar.status} (bawaan ${defVol.status})`,
+      });
+    }
+    if (custom?.relevanceFloor !== undefined && custom.relevanceFloor !== _DEFAULTS.relevanceFloor) {
+      const defMat = primaryLink && primaryLink.relevance >= _DEFAULTS.relevanceFloor ? "High" : primaryLink ? "Medium" : "Low";
+      const curMat = primaryLink && primaryLink.relevance >= thresholds.relevanceFloor ? "High" : primaryLink ? "Medium" : "Low";
+      extra.push({
+        id: `${symbol}-threshold-relevance`,
+        kind: "materiality",
+        rule: `Ambang relevansi ${custom.relevanceFloor} (bawaan ${_DEFAULTS.relevanceFloor})`,
+        effect: `Materialitas ${curMat} (bawaan ${defMat}); keyakinan graf sebab-akibat dihitung ulang terhadap ambang ini`,
+      });
+    }
+    appliedRules.unshift(...extra);
+  }
   const clarification = createClarification(symbol, mandate, context?.clarificationChoice);
   const selectedFocus = clarification.options.find((option) => option.id === clarification.selectedOptionId)?.focus;
   const researchPlan = createResearchPlan(symbol, mandate, ordered, selectedFocus, context);
@@ -501,7 +645,14 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const materiality = primaryLink && primaryLink.relevance >= relevanceFloor ? "High" as const : primaryLink ? "Medium" as const : "Low" as const;
   const primaryBusinessImpact = businessImpact.find((item) => item.status === "Primary test") ?? businessImpact[0];
   const researchDisposition = createResearchDisposition(evidenceState, materiality, primaryBusinessImpact, contradictions);
-  const materialityRule = appliedRules.find((rule) => rule.kind === "materiality")?.rule
+  // Task 10: RUPS pengurus terekam — jujur tanpa skor individu.
+  // Pemicu primer jarang leadership (relevansi 88 < dividen 92), sehingga
+  // pemicu memakai ANY leadership terekam, bukan hanya primer.
+  const hasLeadershipEvent = relatedEvents.some((e) => e.id.startsWith("filing-corporate-action-leadership-"));
+  if (hasLeadershipEvent) {
+    researchDisposition.monitorObservable = "biaya dan eksekusi pada laporan kuartal berikutnya";
+  }
+  const materialityRule = appliedRules.find((rule) => rule.kind === "materiality" && !rule.id.includes("-threshold-"))?.rule
     ?? "Buka kasus bila pemicu memiliki eksposur emiten dan dapat mencapai volume, realisasi harga, margin, atau arus kas.";
   const volumeRatio = currentPoint.volume / baselineMedian;
 
@@ -530,15 +681,22 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       ruleTrace: appliedRules.filter((rule) => rule.kind === "materiality" || rule.kind === "exposure" || rule.kind === "falsifier"),
     },
     contradictions,
-    counterEvidence: ordered.map((pillar) => `${pillar.label}: ${pillar.protocol.challengingEvidence}`),
+    counterEvidence: [
+      ...ordered.map((pillar) => `${pillar.label}: ${pillar.protocol.challengingEvidence}`),
+      ...(unexplainedDrop ? ["Penurunan tanpa peristiwa terhubung melemahkan narasi yang terlalu yakin; gerak belum punya jalur yang dapat diuji."] : []),
+    ],
     userNotes: [],
     unresolvedQuestions: [
       ...ordered.map((pillar) => pillar.protocol.nextQuestion),
+      ...contagionCandidates.map((c) =>
+        `Penurunan ${c.symbol} ${c.date} tidak punya peristiwa terhubung, sementara ${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${c.correlation.toFixed(2)}. Apakah ini penularan sentimen atau jalur fundamental yang belum terekam?`,
+      ),
       "Apakah ada perubahan penting pada eksposur emiten yang belum tercakup rekaman 11 Sep 2026?",
     ],
     nextResearchActions: [
       "Periksa indikator yang diharapkan pada keterbukaan atau data keuangan berikutnya.",
       "Ulangi pemeriksaan konflik setelah jendela peristiwa berakhir.",
+      ...(hasLeadershipEvent ? ["Batalkan pengaruh pengurus bila biaya dan eksekusi tidak berubah pada laporan kuartal berikutnya."] : []),
     ],
     sourcePlan: researchPlan.sourcePlan,
     clarificationGate: researchPlan.clarificationGate,
@@ -567,6 +725,8 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       hasOwnershipSeries: Boolean(brokerEvidence.ownershipSeries?.length),
       eventCount: relatedEvents.length,
       financialRows: fixture.financialContext.length,
+      institutionalFlows: flows.length,
+      hasLeadershipEvent: relatedEvents.some((e) => e.id.startsWith("filing-corporate-action-leadership-")),
     }),
     priceSeries: series,
     financialContext: fixture.financialContext,
@@ -813,8 +973,8 @@ async function buildCausalGraph(
       counterEvidence: resolvedLink.rationale.includes("belum") || resolvedLink.rationale.includes("harus") ? resolvedLink.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: resolvedLink.citations,
     });
     edges.push(
-      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevansi ${link.relevance}/100. Sumber dan waktu tersedia, tetapi belum merupakan bukti sebab akibat.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: link.citations },
+      { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Sumber dan waktu tersedia, tetapi belum merupakan bukti sebab akibat.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Jalur harus mencapai ${impactLabels[businessDimensionFor(event)].toLowerCase()} sebelum dianggap material.`, citations: event.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: `Dampak diuji pada ${impactLabels[businessDimensionFor(event)].toLowerCase()}.`, citations: link.citations },
     );
   }
 
@@ -843,6 +1003,52 @@ async function buildCausalGraph(
       businessImpactImplication: outcome.implication,
       citations: outcome.citations,
     });
+  }
+
+  // Task 8: co-movement edges — pertanyaan, bukan sebab-akibat.
+  // C9: confidence "Low" di-hardcode di sini, melewati confidenceFor.
+  // Ini pengecualian yang disengaja (bukan bug): co-movement tidak pernah
+  // sekuat hipotesis kausal, betapapun tinggi korelasinya.
+  {
+    const t = _resolveThresholds(options.context?.playbook);
+    const bySymbol = Object.fromEntries(
+      Object.entries(analysisFixtures).map(([s, f]) => [s, f.priceSeries]),
+    );
+    const cands = detectContagionCandidates({
+      symbol,
+      date: analysis.priceSeries.at(-1)?.date ?? "",
+      priceSeriesBySymbol: bySymbol,
+      events: fixtureNewsProvider.listEvents(),
+      getSubsector: (s) => fixtureMarketDataProvider.getCompany(s)?.subsector,
+      playbook: options.context?.playbook,
+      thresholds: { contagionDropFloor: t.contagionDropFloor, contagionCorrelationFloor: t.contagionCorrelationFloor },
+    });
+    for (const c of cands.slice(0, 3)) {
+      const peerId = `comove-${c.peer}`;
+      if (!nodes.some((n) => n.id === peerId)) {
+        nodes.push({
+          id: peerId, label: `${c.peer} · co-movement`, kind: "observation",
+          detail: `${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${c.correlation.toFixed(2)}. Pertanyaan penularan, bukan penyebab.`,
+          sourceType: "market", direction: "Unverified", relevance: Math.round(c.correlation * 100),
+          basis: "Observed correlation", confidence: "Low", lag: "0-1 sesi",
+          counterEvidence: "Korelasi bukan sebab-akibat; jalur fundamental yang belum terekam masih mungkin.",
+          citations: c.citations,
+        });
+      }
+      edges.push({
+        id: `${peerId}-to-company-${symbol}`, from: peerId, to: `company-${symbol}`,
+        label: "co-movement", direction: "Unverified", relevance: Math.round(c.correlation * 100),
+        basis: "Observed correlation", confidence: "Low", lag: "0-1 sesi",
+        exposure: `${c.peer} → ${symbol} · co-movement imbal hasil berlebih`,
+        expectedObservable: "Tidak ada — pertanyaan untuk diperiksa, bukan jalur yang diuji.",
+        alternativeExplanation: "Gerak bersama karena faktor pasar atau jalur fundamental yang belum terekam.",
+        falsificationCondition: "Pertanyaan gugur bila ada peristiwa terhubung ke target pada D/D-1 atau korelasi di bawah ambang.",
+        confidenceBasis: `Korelasi ${c.correlation.toFixed(2)} vs ambang ${t.contagionCorrelationFloor}. Selalu Rendah: co-movement bukan bukti sebab-akibat.`,
+        businessImpactDimension: targetImpact.dimension,
+        businessImpactImplication: "Belum ada implikasi bisnis; periksa dulu apakah penularan atau jalur yang belum terekam.",
+        citations: c.citations,
+      });
+    }
   }
 
   return {

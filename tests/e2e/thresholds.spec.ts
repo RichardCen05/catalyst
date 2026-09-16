@@ -1,0 +1,43 @@
+import { expect, test, type Page } from "@playwright/test";
+
+async function finishSetup(page: Page) {
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Lanjut" }).click();
+  await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await expect(page.getByRole("heading", { name: "Apa yang berubah dan apakah penting?" })).toBeVisible();
+}
+
+async function dismissTourIfOpen(page: Page) {
+  const skip = page.getByRole("button", { name: "Lewati tur" });
+  if (await skip.isVisible().catch(() => false)) {
+    await skip.click();
+  }
+}
+
+test("threshold slider persists and traces into the case", async ({ page }) => {
+  await finishSetup(page);
+  await page.goto("/playbook");
+  const slider = page.locator("#threshold-concentrationFloor");
+  await expect(slider).toBeVisible();
+  // Range input terkontrol React: pakai native setter agar onChange terpicu.
+  await page.$eval("#threshold-concentrationFloor", (el) => {
+    const input = el as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+    if (setter) setter.call(input, "0.2");
+    else input.value = "0.2";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.getByText("diubah dari bawaan").first()).toBeVisible();
+  await page.reload();
+  await expect(page.locator("#threshold-concentrationFloor")).toHaveValue("0.2");
+
+  // Kasus ANTM harus memuat appliedRules dari ambang konsentrasi.
+  await page.goto("/cases/ANTM");
+  await dismissTourIfOpen(page);
+  await page.getByText("Lihat rincian audit", { exact: true }).click();
+  await expect(page.getByText(/Ambang konsentrasi 0\.2.*bawaan 0\.42/)).toBeVisible();
+});

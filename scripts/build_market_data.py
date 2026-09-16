@@ -311,6 +311,8 @@ def sector_from_subsector(sub):
     return SUBSECTOR_SECTOR.get(sub or "", "Market")
 
 
+institutional_flows: dict[str, list] = {s: [] for s in SYMBOLS}
+
 for symbol in SYMBOLS:
     news = rows(load(f"v2_news{WINDOW}_symbols-{symbol}.JK.json"), "results", "data")
     scored = []
@@ -332,6 +334,28 @@ for symbol in SYMBOLS:
             continue
         add_event("filing-" + re.sub(r"[^a-z0-9]+", "-", item["source"].lower())[-48:].strip("-"),
                   item, universe, "filing")
+    # Structured holder-change rows (Task 4): alongside the text event, never replacing it.
+    # Drop rows where holding_before/holding_after absent rather than defaulting to 0.
+    for item in filings:
+        before = item.get("holding_before")
+        after = item.get("holding_after")
+        if before is None or after is None:
+            continue
+        raw_type = (item.get("holder_type") or "").lower()
+        holder_type = "institution" if raw_type == "institution" else "insider" if raw_type == "insider" else "other"
+        institutional_flows[symbol].append({
+            "symbol": symbol,
+            "holderName": item.get("holder_name") or "Tidak tercatat",
+            "holderType": holder_type,
+            "transactionType": item.get("transaction_type") or "others",
+            "sharesBefore": before,
+            "sharesAfter": after,
+            "sharesDelta": after - before,
+            "filedAt": jakarta(item["timestamp"]) if item.get("timestamp") else "",
+            "source": item.get("source") or "",
+            "transactionValue": item.get("transaction_value"),
+            "price": item.get("price"),
+        })
 
 # --------------------------------------------------------------------------- corporate actions
 # Every branch below reads the per-symbol corporate-actions recording when it
@@ -654,14 +678,17 @@ for symbol in CASES:
     window_flow = [r for r in flow if DATES[0] <= r["date"] <= DATES[-1]]
     reference = series[symbol][-1]["close"]
     shares_outstanding = market_cap_of[symbol] / reference
+    # C2: bawa triple buyIdr/sellIdr/netIdr agar brokerChurnRatio dapat dihitung.
     broker_evidence[symbol] = {
         "buyers": sorted([{"code": b["broker_code"],
                            "origin": "foreign" if brokers.get(b["broker_code"], {}).get("is_foreign") else "local",
-                           "value": b["buy_idr"]} for b in top["top_buyers"]],
+                           "value": b["buy_idr"],
+                           "buyIdr": b["buy_idr"], "sellIdr": b["sell_idr"], "netIdr": b["net_idr"]} for b in top["top_buyers"]],
                           key=lambda r: r["value"], reverse=True),
         "sellers": sorted([{"code": b["broker_code"],
                             "origin": "foreign" if brokers.get(b["broker_code"], {}).get("is_foreign") else "local",
-                            "value": b["sell_idr"]} for b in top["top_sellers"]],
+                            "value": b["sell_idr"],
+                            "buyIdr": b["buy_idr"], "sellIdr": b["sell_idr"], "netIdr": b["net_idr"]} for b in top["top_sellers"]],
                            key=lambda r: r["value"], reverse=True),
         "netForeign": sum(r["net_foreign_inflow"] for r in window_flow),
         "totalMarketValue": sum(p["close"] * p["volume"] for p in series[symbol]),
@@ -676,44 +703,85 @@ for symbol in CASES:
         broker_evidence[symbol]["ownershipSeries"] = ownership_series
 
 # --------------------------------------------------------------------------- financials
+# Task 8b (C1): tiap label membawa seri kuartalan numerik dari 4 kuartal terekam.
+# value tetap string display (dua render site tidak pecah); valueNum + history
+# adalah angka mentah untuk directionOfFinancialTrend — tidak pernah parse prose.
 def financial_rows(symbol):
     quarters = load(f"v2_financials_quarterly_{symbol}__n_quarters-4.json")
     quarters = sorted(quarters, key=lambda q: q["date"], reverse=True)
+    asc = sorted(quarters, key=lambda q: q["date"])
     latest = quarters[0]
     period = latest["date"]
     bank = latest.get("financials_sector_metrics") or {}
     out = []
 
-    def row(label, value, interpretation):
-        out.append({"label": label, "value": value, "period": period, "interpretation": interpretation})
+    def row(label, value, interpretation, value_num=None, history=None):
+        item = {"label": label, "value": value, "period": period, "interpretation": interpretation}
+        if value_num is not None:
+            item["valueNum"] = value_num
+        if history:
+            item["history"] = history
+        out.append(item)
+
+    def hist(fn):
+        pts = []
+        for q in asc:
+            try:
+                v = fn(q)
+            except (KeyError, TypeError, ZeroDivisionError):
+                continue
+            if v is None:
+                continue
+            pts.append({"period": q["date"], "value": v})
+        return pts
+
+    def bank_of(q):
+        return q.get("financials_sector_metrics") or {}
 
     if bank.get("total_deposit"):
         casa = (bank.get("current_account", 0) + bank.get("savings_account", 0)) / bank["total_deposit"]
         row("Net interest income", idr(bank["net_interest_income"]),
-            "Menguji transmisi biaya dana dan yield aset pada pilar Katalis.")
+            "Menguji transmisi biaya dana dan yield aset pada pilar Katalis.",
+            bank["net_interest_income"],
+            hist(lambda q: bank_of(q).get("net_interest_income")))
         row("CASA ratio", pct(casa),
-            "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan.")
+            "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan.",
+            casa,
+            hist(lambda q: ((bank_of(q).get("current_account", 0) + bank_of(q).get("savings_account", 0)) / bank_of(q)["total_deposit"]) if bank_of(q).get("total_deposit") else None))
         row("Gross loan", idr(bank["gross_loan"]),
-            "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin.")
+            "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin.",
+            bank["gross_loan"],
+            hist(lambda q: bank_of(q).get("gross_loan")))
         if bank.get("allowance_for_loans") and bank.get("gross_loan"):
             row("Allowance / gross loan", pct(bank["allowance_for_loans"] / bank["gross_loan"]),
-                "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin.")
+                "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin.",
+                bank["allowance_for_loans"] / bank["gross_loan"],
+                hist(lambda q: (bank_of(q)["allowance_for_loans"] / bank_of(q)["gross_loan"]) if bank_of(q).get("allowance_for_loans") and bank_of(q).get("gross_loan") else None))
     else:
         row("Revenue", idr(latest["revenue"]),
-            "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.")
+            "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+            latest["revenue"],
+            hist(lambda q: q.get("revenue")))
         if latest.get("operating_pnl") and latest.get("revenue"):
             row("Operating margin", pct(latest["operating_pnl"] / latest["revenue"]),
-                "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.")
+                "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+                latest["operating_pnl"] / latest["revenue"],
+                hist(lambda q: (q["operating_pnl"] / q["revenue"]) if q.get("operating_pnl") and q.get("revenue") else None))
         if latest.get("operating_cash_flow"):
             row("Operating cash flow", idr(latest["operating_cash_flow"]),
-                "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.")
+                "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+                latest["operating_cash_flow"],
+                hist(lambda q: q.get("operating_cash_flow")))
         if latest.get("total_debt") and latest.get("total_equity"):
             row("Total debt / equity", pct(latest["total_debt"] / latest["total_equity"]),
-                "Memberi konteks ruang neraca saat siklus berubah.")
+                "Memberi konteks ruang neraca saat siklus berubah.",
+                latest["total_debt"] / latest["total_equity"],
+                hist(lambda q: (q["total_debt"] / q["total_equity"]) if q.get("total_debt") and q.get("total_equity") else None))
     if len(quarters) > 1 and quarters[1].get("revenue"):
         change = latest["revenue"] / quarters[1]["revenue"] - 1
         row("Revenue QoQ", pct(change),
-            f"Pembanding kuartal sebelumnya ({quarters[1]['date']}); bukan pertumbuhan tahunan.")
+            f"Pembanding kuartal sebelumnya ({quarters[1]['date']}); bukan pertumbuhan tahunan.",
+            change, None)
     return out
 
 
@@ -770,7 +838,7 @@ OUT.write_text(f"""// GENERATED FILE — do not edit by hand.
 // in data/sectors/. Every value below is either a raw field from those recordings or
 // an aggregate of them; re-run the script to refresh it.
 
-import type {{ BrokerEvidence, EvidenceState, ImpactDirection, MarketEvent, PricePoint, Sector, SymbolCode }} from "@/lib/types";
+import type {{ BrokerEvidence, EvidenceState, ImpactDirection, InstitutionalFlow, MarketEvent, PricePoint, Sector, SymbolCode }} from "@/lib/types";
 
 export const DATA_AS_OF = {fmt(ASOF + "T16:15:00+07:00")};
 export const WINDOW_DATES = {ts(DATES)} as const;
@@ -808,7 +876,9 @@ export const priceSeries: Record<string, PricePoint[]> = {ts(series)};
 
 export const brokerEvidence: Record<string, BrokerEvidence & {{ windowStart: string; windowEnd: string }}> = {ts(broker_evidence)};
 
-export const financialRows: Record<string, Array<{{ label: string; value: string; period: string; interpretation: string }}>> = {ts(financials)};
+export const institutionalFlows: Record<string, InstitutionalFlow[]> = {ts(institutional_flows)};
+
+export const financialRows: Record<string, Array<{{ label: string; value: string; period: string; interpretation: string; valueNum?: number; history?: Array<{{ period: string; value: number }}> }}>> = {ts(financials)};
 
 export const sectorReturns: Record<string, number> = {ts(sector_returns)};
 

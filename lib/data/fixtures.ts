@@ -4,6 +4,7 @@ import {
   DATA_AS_OF as GENERATED_AS_OF,
   eventIdsBySymbol,
   financialRows,
+  institutionalFlows,
   priceSeries,
   rawCompanies,
   rawEvents,
@@ -66,6 +67,16 @@ export const citations = {
   market: cite("market-snapshot", "/v2/close/", "date, symbol, close, volume", "Ringkasan pasar umum", "Sectors rekaman", "https://docs.sectors.app/api-references/v2/indonesia/transaction/close"),
   news: (eventId: string) => cite(`news-${eventId}`, eventId.includes("filing") ? "/v2/filings/" : "/v2/news/", "title, published_at, symbols, dimensions", "Berita perusahaan Sectors", "Sectors rekaman", eventId.includes("filing") ? SECTORS_FILINGS_DOCS : SECTORS_NEWS_DOCS),
   financial: (symbol: string) => cite(`financial-${symbol}`, `/v2/financials/quarterly/${symbol}/`, "period, revenue, earnings, sector_metrics", `Konteks keuangan ${symbol}`, "Sectors rekaman", SECTORS_FINANCIAL_DOCS, "Buka dokumentasi sumber", "documentation"),
+  /**
+   * C3: setiap filing row membawa PDF pengumuman IDX sendiri di `source`,
+   * sehingga citations.filing(symbol) tidak cukup. Teruskan source terekam.
+   * Registry yang benar adalah file ini (fixtures.ts:58), bukan lib/agent/citations.ts
+   * yang merupakan source-span locator porting ReguLens.
+   */
+  filing: (symbol: string, sourceUrl?: string) =>
+    sourceUrl
+      ? cite(`filing-${symbol}`, "/v2/filings/", "holder_name, holding_before, holding_after, transaction_value", `Keterbukaan ${symbol}`, "IDX", sourceUrl, "Buka pengumuman IDX", "provider")
+      : cite(`filing-${symbol}`, "/v2/filings/", "holder_name, holding_before, holding_after, transaction_value", `Keterbukaan ${symbol}`, "Sectors rekaman", SECTORS_FILINGS_DOCS),
   /** Rekaman tanpa tautan asal yang bisa dibaca — jujur tanpa link, bukan link dokumentasi palsu. */
   external: (eventId: string) => cite(`external-${eventId}`, `fixture://recorded/${eventId}`, "headline, published_at, exposure_tags", "Rekaman tanpa tautan sumber asal", "Sectors rekaman"),
   /** Pengganti jujur saat tidak ada peristiwa terverifikasi — lolos gate, tanpa link palsu. */
@@ -180,6 +191,7 @@ export const analysisFixtures: Record<string, CompanyAnalysisFixture> = Object.f
         financialContext: (financialRows[symbol] ?? []).map(
           (row): FinancialInput => ({ ...row, citations: [citations.financial(symbol)] }),
         ),
+        institutionalFlows: (institutionalFlows[symbol] ?? []).map((row) => ({ ...row, symbol })),
       },
     ];
   }),

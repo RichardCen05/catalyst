@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { loadMemory, saveMemory } from "@/lib/memory/gcs-memory";
+import { playbookSchema } from "@/lib/schemas";
 
 /**
  * Anonymous per-browser identity. No sign-in, so this cookie IS the user as
@@ -42,6 +43,17 @@ export async function POST(request: Request) {
     patch = await request.json();
   } catch {
     return NextResponse.json({ error: "Body bukan JSON valid" }, { status: 400 });
+  }
+  // C6: thresholds mencapai GCS tanpa validasi bila tidak diperiksa di sini.
+  // /api/analyze dkk memvalidasi via zod (400 bila out-of-bound); samakan untuk backup memori.
+  if (patch.playbook !== undefined) {
+    const parsed = playbookSchema.safeParse(patch.playbook);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Playbook tidak valid", details: parsed.error.flatten() }, { status: 400 });
+    }
+    // playbookSchema tidak .strict(): kunci tak dikenal ter-strip; simpan hasil parse
+    // agar field thresholds yang dikenal justru lolos (schema extension di Task 1).
+    patch = { ...patch, playbook: parsed.data };
   }
   try {
     const saved = await saveMemory(uid, patch);

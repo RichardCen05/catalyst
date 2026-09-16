@@ -3,7 +3,7 @@
 // in data/sectors/. Every value below is either a raw field from those recordings or
 // an aggregate of them; re-run the script to refresh it.
 
-import type { BrokerEvidence, EvidenceState, ImpactDirection, MarketEvent, PricePoint, Sector, SymbolCode } from "@/lib/types";
+import type { BrokerEvidence, EvidenceState, ImpactDirection, InstitutionalFlow, MarketEvent, PricePoint, Sector, SymbolCode } from "@/lib/types";
 
 export const DATA_AS_OF = "2026-09-11T16:15:00+07:00";
 export const WINDOW_DATES = [
@@ -3352,104 +3352,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "CC",
         "origin": "local",
-        "value": 2886424188000
+        "value": 2886424188000,
+        "buyIdr": 2886424188000,
+        "sellIdr": 2491559254000,
+        "netIdr": 394864934000
       },
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 2585686056000
+        "value": 2585686056000,
+        "buyIdr": 2585686056000,
+        "sellIdr": 2341861079000,
+        "netIdr": 243824977000
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 1652874687000
+        "value": 1652874687000,
+        "buyIdr": 1652874687000,
+        "sellIdr": 1582498403000,
+        "netIdr": 70376284000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 837202001000
+        "value": 837202001000,
+        "buyIdr": 837202001000,
+        "sellIdr": 369602045000,
+        "netIdr": 467599956000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 725096559000
+        "value": 725096559000,
+        "buyIdr": 725096559000,
+        "sellIdr": 623908620000,
+        "netIdr": 101187939000
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 586545015000
+        "value": 586545015000,
+        "buyIdr": 586545015000,
+        "sellIdr": 154322381000,
+        "netIdr": 432222634000
       },
       {
         "code": "DR",
         "origin": "foreign",
-        "value": 391349562000
+        "value": 391349562000,
+        "buyIdr": 391349562000,
+        "sellIdr": 310858494000,
+        "netIdr": 80491068000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 318694191000
+        "value": 318694191000,
+        "buyIdr": 318694191000,
+        "sellIdr": 302117297000,
+        "netIdr": 16576894000
       },
       {
         "code": "KK",
         "origin": "foreign",
-        "value": 284928039000
+        "value": 284928039000,
+        "buyIdr": 284928039000,
+        "sellIdr": 228974895000,
+        "netIdr": 55953144000
       },
       {
         "code": "GR",
         "origin": "local",
-        "value": 229044992000
+        "value": 229044992000,
+        "buyIdr": 229044992000,
+        "sellIdr": 204265969000,
+        "netIdr": 24779023000
       }
     ],
     "sellers": [
       {
         "code": "PD",
         "origin": "local",
-        "value": 949677786000
+        "value": 949677786000,
+        "buyIdr": 571609274000,
+        "sellIdr": 949677786000,
+        "netIdr": -378068512000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 615977769000
+        "value": 615977769000,
+        "buyIdr": 472925699000,
+        "sellIdr": 615977769000,
+        "netIdr": -143052070000
       },
       {
         "code": "LG",
         "origin": "local",
-        "value": 613119937000
+        "value": 613119937000,
+        "buyIdr": 381700530000,
+        "sellIdr": 613119937000,
+        "netIdr": -231419407000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 482217161000
+        "value": 482217161000,
+        "buyIdr": 366021834000,
+        "sellIdr": 482217161000,
+        "netIdr": -116195327000
       },
       {
         "code": "AZ",
         "origin": "local",
-        "value": 463372499000
+        "value": 463372499000,
+        "buyIdr": 257186727000,
+        "sellIdr": 463372499000,
+        "netIdr": -206185772000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 394478600000
+        "value": 394478600000,
+        "buyIdr": 178838942000,
+        "sellIdr": 394478600000,
+        "netIdr": -215639658000
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 290739254000
+        "value": 290739254000,
+        "buyIdr": 126548375000,
+        "sellIdr": 290739254000,
+        "netIdr": -164190879000
       },
       {
         "code": "AI",
         "origin": "foreign",
-        "value": 216839467000
+        "value": 216839467000,
+        "buyIdr": 138598867000,
+        "sellIdr": 216839467000,
+        "netIdr": -78240600000
       },
       {
         "code": "DH",
         "origin": "local",
-        "value": 129654529000
+        "value": 129654529000,
+        "buyIdr": 77721333000,
+        "sellIdr": 129654529000,
+        "netIdr": -51933196000
       },
       {
         "code": "AF",
         "origin": "local",
-        "value": 87277587000
+        "value": 87277587000,
+        "buyIdr": 6606839000,
+        "sellIdr": 87277587000,
+        "netIdr": -80670748000
       }
     ],
     "netForeign": 299990321000,
@@ -3465,104 +3525,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 11625066207500
+        "value": 11625066207500,
+        "buyIdr": 11625066207500,
+        "sellIdr": 9542643340000,
+        "netIdr": 2082422867500
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 6021413449000
+        "value": 6021413449000,
+        "buyIdr": 6021413449000,
+        "sellIdr": 3678431981500,
+        "netIdr": 2342981467500
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 3581007184500
+        "value": 3581007184500,
+        "buyIdr": 3581007184500,
+        "sellIdr": 448852033500,
+        "netIdr": 3132155151000
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 2740245458500
+        "value": 2740245458500,
+        "buyIdr": 2740245458500,
+        "sellIdr": 2618644130000,
+        "netIdr": 121601328500
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 2564911724000
+        "value": 2564911724000,
+        "buyIdr": 2564911724000,
+        "sellIdr": 1640503252000,
+        "netIdr": 924408472000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 1832332177500
+        "value": 1832332177500,
+        "buyIdr": 1832332177500,
+        "sellIdr": 1168819706000,
+        "netIdr": 663512471500
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 1606710927500
+        "value": 1606710927500,
+        "buyIdr": 1606710927500,
+        "sellIdr": 1445575546500,
+        "netIdr": 161135381000
       },
       {
         "code": "AZ",
         "origin": "local",
-        "value": 646453079000
+        "value": 646453079000,
+        "buyIdr": 646453079000,
+        "sellIdr": 525109601500,
+        "netIdr": 121343477500
       },
       {
         "code": "DR",
         "origin": "foreign",
-        "value": 639686133000
+        "value": 639686133000,
+        "buyIdr": 639686133000,
+        "sellIdr": 469812472500,
+        "netIdr": 169873660500
       },
       {
         "code": "IF",
         "origin": "local",
-        "value": 450365181000
+        "value": 450365181000,
+        "buyIdr": 450365181000,
+        "sellIdr": 323723744500,
+        "netIdr": 126641436500
       }
     ],
     "sellers": [
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 14503228880000
+        "value": 14503228880000,
+        "buyIdr": 10417606887000,
+        "sellIdr": 14503228880000,
+        "netIdr": -4085621993000
       },
       {
         "code": "CC",
         "origin": "local",
-        "value": 8056345626500
+        "value": 8056345626500,
+        "buyIdr": 7432866226000,
+        "sellIdr": 8056345626500,
+        "netIdr": -623479400500
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 8044379798500
+        "value": 8044379798500,
+        "buyIdr": 5704892063500,
+        "sellIdr": 8044379798500,
+        "netIdr": -2339487735000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 3451150195500
+        "value": 3451150195500,
+        "buyIdr": 3119904255000,
+        "sellIdr": 3451150195500,
+        "netIdr": -331245940500
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 3067367733500
+        "value": 3067367733500,
+        "buyIdr": 2686991482000,
+        "sellIdr": 3067367733500,
+        "netIdr": -380376251500
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 2851671950500
+        "value": 2851671950500,
+        "buyIdr": 2054567628500,
+        "sellIdr": 2851671950500,
+        "netIdr": -797104322000
       },
       {
         "code": "XC",
         "origin": "local",
-        "value": 1744660735500
+        "value": 1744660735500,
+        "buyIdr": 1563357755500,
+        "sellIdr": 1744660735500,
+        "netIdr": -181302980000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 1143624792000
+        "value": 1143624792000,
+        "buyIdr": 959591585500,
+        "sellIdr": 1143624792000,
+        "netIdr": -184033206500
       },
       {
         "code": "MG",
         "origin": "local",
-        "value": 856681264500
+        "value": 856681264500,
+        "buyIdr": 761143865500,
+        "sellIdr": 856681264500,
+        "netIdr": -95537399000
       },
       {
         "code": "AI",
         "origin": "foreign",
-        "value": 460270844500
+        "value": 460270844500,
+        "buyIdr": 230725078500,
+        "sellIdr": 460270844500,
+        "netIdr": -229545766000
       }
     ],
     "netForeign": 1289788970000,
@@ -3620,104 +3740,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "CC",
         "origin": "local",
-        "value": 6824489161000
+        "value": 6824489161000,
+        "buyIdr": 6824489161000,
+        "sellIdr": 6476722351000,
+        "netIdr": 347766810000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 3730051038000
+        "value": 3730051038000,
+        "buyIdr": 3730051038000,
+        "sellIdr": 3410294975000,
+        "netIdr": 319756063000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 3446313328000
+        "value": 3446313328000,
+        "buyIdr": 3446313328000,
+        "sellIdr": 2664060606000,
+        "netIdr": 782252722000
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 3166780511000
+        "value": 3166780511000,
+        "buyIdr": 3166780511000,
+        "sellIdr": 2926576997000,
+        "netIdr": 240203514000
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 1828594136000
+        "value": 1828594136000,
+        "buyIdr": 1828594136000,
+        "sellIdr": 1556002453000,
+        "netIdr": 272591683000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 1260999390000
+        "value": 1260999390000,
+        "buyIdr": 1260999390000,
+        "sellIdr": 711259648000,
+        "netIdr": 549739742000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 1258240912000
+        "value": 1258240912000,
+        "buyIdr": 1258240912000,
+        "sellIdr": 1085680660000,
+        "netIdr": 172560252000
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 1190592802000
+        "value": 1190592802000,
+        "buyIdr": 1190592802000,
+        "sellIdr": 1007429882000,
+        "netIdr": 183162920000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 1008530641000
+        "value": 1008530641000,
+        "buyIdr": 1008530641000,
+        "sellIdr": 838278982000,
+        "netIdr": 170251659000
       },
       {
         "code": "AG",
         "origin": "foreign",
-        "value": 312139557000
+        "value": 312139557000,
+        "buyIdr": 312139557000,
+        "sellIdr": 142491590000,
+        "netIdr": 169647967000
       }
     ],
     "sellers": [
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 7070507531000
+        "value": 7070507531000,
+        "buyIdr": 6266781870000,
+        "sellIdr": 7070507531000,
+        "netIdr": -803725661000
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 2600094426000
+        "value": 2600094426000,
+        "buyIdr": 466419972000,
+        "sellIdr": 2600094426000,
+        "netIdr": -2133674454000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 2263553648000
+        "value": 2263553648000,
+        "buyIdr": 2105028617000,
+        "sellIdr": 2263553648000,
+        "netIdr": -158525031000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 1728996068000
+        "value": 1728996068000,
+        "buyIdr": 1032184127000,
+        "sellIdr": 1728996068000,
+        "netIdr": -696811941000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 723230496000
+        "value": 723230496000,
+        "buyIdr": 683107674000,
+        "sellIdr": 723230496000,
+        "netIdr": -40122822000
       },
       {
         "code": "TP",
         "origin": "foreign",
-        "value": 525146035000
+        "value": 525146035000,
+        "buyIdr": 442309277000,
+        "sellIdr": 525146035000,
+        "netIdr": -82836758000
       },
       {
         "code": "XA",
         "origin": "foreign",
-        "value": 409010916000
+        "value": 409010916000,
+        "buyIdr": 379399234000,
+        "sellIdr": 409010916000,
+        "netIdr": -29611682000
       },
       {
         "code": "YB",
         "origin": "local",
-        "value": 111198504000
+        "value": 111198504000,
+        "buyIdr": 87185738000,
+        "sellIdr": 111198504000,
+        "netIdr": -24012766000
       },
       {
         "code": "HP",
         "origin": "local",
-        "value": 103613885000
+        "value": 103613885000,
+        "buyIdr": 86645905000,
+        "sellIdr": 103613885000,
+        "netIdr": -16967980000
       },
       {
         "code": "AT",
         "origin": "local",
-        "value": 97963509000
+        "value": 97963509000,
+        "buyIdr": 66462875000,
+        "sellIdr": 97963509000,
+        "netIdr": -31500634000
       }
     ],
     "netForeign": 1559521131000,
@@ -3775,104 +3955,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "CC",
         "origin": "local",
-        "value": 2607839688000
+        "value": 2607839688000,
+        "buyIdr": 2607839688000,
+        "sellIdr": 2255063661000,
+        "netIdr": 352776027000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 1977104460000
+        "value": 1977104460000,
+        "buyIdr": 1977104460000,
+        "sellIdr": 1679087717000,
+        "netIdr": 298016743000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 849719953000
+        "value": 849719953000,
+        "buyIdr": 849719953000,
+        "sellIdr": 627065702000,
+        "netIdr": 222654251000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 539042768000
+        "value": 539042768000,
+        "buyIdr": 539042768000,
+        "sellIdr": 455932625000,
+        "netIdr": 83110143000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 461245789000
+        "value": 461245789000,
+        "buyIdr": 461245789000,
+        "sellIdr": 369378479000,
+        "netIdr": 91867310000
       },
       {
         "code": "XC",
         "origin": "local",
-        "value": 409034792000
+        "value": 409034792000,
+        "buyIdr": 409034792000,
+        "sellIdr": 334046883000,
+        "netIdr": 74987909000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 332347489000
+        "value": 332347489000,
+        "buyIdr": 332347489000,
+        "sellIdr": 259480983000,
+        "netIdr": 72866506000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 257621101000
+        "value": 257621101000,
+        "buyIdr": 257621101000,
+        "sellIdr": 181931050000,
+        "netIdr": 75690051000
       },
       {
         "code": "LG",
         "origin": "local",
-        "value": 184301971000
+        "value": 184301971000,
+        "buyIdr": 184301971000,
+        "sellIdr": 71492143000,
+        "netIdr": 112809828000
       },
       {
         "code": "SH",
         "origin": "local",
-        "value": 72408565000
+        "value": 72408565000,
+        "buyIdr": 72408565000,
+        "sellIdr": 6545595000,
+        "netIdr": 65862970000
       }
     ],
     "sellers": [
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 3934228133000
+        "value": 3934228133000,
+        "buyIdr": 3712252919000,
+        "sellIdr": 3934228133000,
+        "netIdr": -221975214000
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 3137180383000
+        "value": 3137180383000,
+        "buyIdr": 2635056438000,
+        "sellIdr": 3137180383000,
+        "netIdr": -502123945000
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 2206522575000
+        "value": 2206522575000,
+        "buyIdr": 2094969521000,
+        "sellIdr": 2206522575000,
+        "netIdr": -111553054000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 1128200479000
+        "value": 1128200479000,
+        "buyIdr": 551735754000,
+        "sellIdr": 1128200479000,
+        "netIdr": -576464725000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 686932448000
+        "value": 686932448000,
+        "buyIdr": 608803964000,
+        "sellIdr": 686932448000,
+        "netIdr": -78128484000
       },
       {
         "code": "TP",
         "origin": "foreign",
-        "value": 260836175000
+        "value": 260836175000,
+        "buyIdr": 177910578000,
+        "sellIdr": 260836175000,
+        "netIdr": -82925597000
       },
       {
         "code": "AG",
         "origin": "foreign",
-        "value": 214990229000
+        "value": 214990229000,
+        "buyIdr": 131663371000,
+        "sellIdr": 214990229000,
+        "netIdr": -83326858000
       },
       {
         "code": "SS",
         "origin": "local",
-        "value": 113209619000
+        "value": 113209619000,
+        "buyIdr": 59124459000,
+        "sellIdr": 113209619000,
+        "netIdr": -54085160000
       },
       {
         "code": "BQ",
         "origin": "foreign",
-        "value": 110882566000
+        "value": 110882566000,
+        "buyIdr": 56008753000,
+        "sellIdr": 110882566000,
+        "netIdr": -54873813000
       },
       {
         "code": "IU",
         "origin": "local",
-        "value": 20167085000
+        "value": 20167085000,
+        "buyIdr": 1542702000,
+        "sellIdr": 20167085000,
+        "netIdr": -18624383000
       }
     ],
     "netForeign": -481094325000,
@@ -3930,104 +4170,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 79996865000
+        "value": 79996865000,
+        "buyIdr": 79996865000,
+        "sellIdr": 13712080000,
+        "netIdr": 66284785000
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 54600970000
+        "value": 54600970000,
+        "buyIdr": 54600970000,
+        "sellIdr": 0,
+        "netIdr": 54600970000
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 38133630000
+        "value": 38133630000,
+        "buyIdr": 38133630000,
+        "sellIdr": 15091405000,
+        "netIdr": 23042225000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 26751385000
+        "value": 26751385000,
+        "buyIdr": 26751385000,
+        "sellIdr": 17919025000,
+        "netIdr": 8832360000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 18100870000
+        "value": 18100870000,
+        "buyIdr": 18100870000,
+        "sellIdr": 0,
+        "netIdr": 18100870000
       },
       {
         "code": "CC",
         "origin": "local",
-        "value": 14500345000
+        "value": 14500345000,
+        "buyIdr": 14500345000,
+        "sellIdr": 0,
+        "netIdr": 14500345000
       },
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 9463220000
+        "value": 9463220000,
+        "buyIdr": 9463220000,
+        "sellIdr": 258915000,
+        "netIdr": 9204305000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 7779310000
+        "value": 7779310000,
+        "buyIdr": 7779310000,
+        "sellIdr": 19500000,
+        "netIdr": 7759810000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 5985635000
+        "value": 5985635000,
+        "buyIdr": 5985635000,
+        "sellIdr": 250000000,
+        "netIdr": 5735635000
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 5222455000
+        "value": 5222455000,
+        "buyIdr": 5222455000,
+        "sellIdr": 0,
+        "netIdr": 5222455000
       }
     ],
     "sellers": [
       {
         "code": "YB",
         "origin": "local",
-        "value": 74050610000
+        "value": 74050610000,
+        "buyIdr": 271175000,
+        "sellIdr": 74050610000,
+        "netIdr": -73779435000
       },
       {
         "code": "MG",
         "origin": "local",
-        "value": 59486525000
+        "value": 59486525000,
+        "buyIdr": 1139545000,
+        "sellIdr": 59486525000,
+        "netIdr": -58346980000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 29369475000
+        "value": 29369475000,
+        "buyIdr": 2351805000,
+        "sellIdr": 29369475000,
+        "netIdr": -27017670000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 14713060000
+        "value": 14713060000,
+        "buyIdr": 1570320000,
+        "sellIdr": 14713060000,
+        "netIdr": -13142740000
       },
       {
         "code": "RB",
         "origin": "local",
-        "value": 14537930000
+        "value": 14537930000,
+        "buyIdr": 80000,
+        "sellIdr": 14537930000,
+        "netIdr": -14537850000
       },
       {
         "code": "MU",
         "origin": "local",
-        "value": 11224955000
+        "value": 11224955000,
+        "buyIdr": 110000,
+        "sellIdr": 11224955000,
+        "netIdr": -11224845000
       },
       {
         "code": "AZ",
         "origin": "local",
-        "value": 9862095000
+        "value": 9862095000,
+        "buyIdr": 3006730000,
+        "sellIdr": 9862095000,
+        "netIdr": -6855365000
       },
       {
         "code": "PI",
         "origin": "local",
-        "value": 9860465000
+        "value": 9860465000,
+        "buyIdr": 570000,
+        "sellIdr": 9860465000,
+        "netIdr": -9859895000
       },
       {
         "code": "IU",
         "origin": "local",
-        "value": 8535815000
+        "value": 8535815000,
+        "buyIdr": 34470000,
+        "sellIdr": 8535815000,
+        "netIdr": -8501345000
       },
       {
         "code": "HD",
         "origin": "foreign",
-        "value": 7733095000
+        "value": 7733095000,
+        "buyIdr": 2650000,
+        "sellIdr": 7733095000,
+        "netIdr": -7730445000
       }
     ],
     "netForeign": 5198490000,
@@ -4043,104 +4343,164 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 240288178500
+        "value": 240288178500,
+        "buyIdr": 240288178500,
+        "sellIdr": 217577384000,
+        "netIdr": 22710794500
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 231097938000
+        "value": 231097938000,
+        "buyIdr": 231097938000,
+        "sellIdr": 161073139000,
+        "netIdr": 70024799000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 134368622000
+        "value": 134368622000,
+        "buyIdr": 134368622000,
+        "sellIdr": 108201674500,
+        "netIdr": 26166947500
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 87427995500
+        "value": 87427995500,
+        "buyIdr": 87427995500,
+        "sellIdr": 66069821500,
+        "netIdr": 21358174000
       },
       {
         "code": "XC",
         "origin": "local",
-        "value": 87397785000
+        "value": 87397785000,
+        "buyIdr": 87397785000,
+        "sellIdr": 72589155000,
+        "netIdr": 14808630000
       },
       {
         "code": "GR",
         "origin": "local",
-        "value": 82040763000
+        "value": 82040763000,
+        "buyIdr": 82040763000,
+        "sellIdr": 22897719500,
+        "netIdr": 59143043500
       },
       {
         "code": "LG",
         "origin": "local",
-        "value": 55110462500
+        "value": 55110462500,
+        "buyIdr": 55110462500,
+        "sellIdr": 28444075500,
+        "netIdr": 26666387000
       },
       {
         "code": "KK",
         "origin": "foreign",
-        "value": 55064240500
+        "value": 55064240500,
+        "buyIdr": 55064240500,
+        "sellIdr": 28175840500,
+        "netIdr": 26888400000
       },
       {
         "code": "DH",
         "origin": "local",
-        "value": 52323613500
+        "value": 52323613500,
+        "buyIdr": 52323613500,
+        "sellIdr": 19198531500,
+        "netIdr": 33125082000
       },
       {
         "code": "EP",
         "origin": "local",
-        "value": 48637934000
+        "value": 48637934000,
+        "buyIdr": 48637934000,
+        "sellIdr": 15435789000,
+        "netIdr": 33202145000
       }
     ],
     "sellers": [
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 232294098000
+        "value": 232294098000,
+        "buyIdr": 157695589000,
+        "sellIdr": 232294098000,
+        "netIdr": -74598509000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 200066265000
+        "value": 200066265000,
+        "buyIdr": 36103775000,
+        "sellIdr": 200066265000,
+        "netIdr": -163962490000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 181305021000
+        "value": 181305021000,
+        "buyIdr": 159758752000,
+        "sellIdr": 181305021000,
+        "netIdr": -21546269000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 140822210000
+        "value": 140822210000,
+        "buyIdr": 115627488500,
+        "sellIdr": 140822210000,
+        "netIdr": -25194721500
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 108218245000
+        "value": 108218245000,
+        "buyIdr": 49483732000,
+        "sellIdr": 108218245000,
+        "netIdr": -58734513000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 56840300500
+        "value": 56840300500,
+        "buyIdr": 40952790500,
+        "sellIdr": 56840300500,
+        "netIdr": -15887510000
       },
       {
         "code": "AI",
         "origin": "foreign",
-        "value": 41003899000
+        "value": 41003899000,
+        "buyIdr": 10624107000,
+        "sellIdr": 41003899000,
+        "netIdr": -30379792000
       },
       {
         "code": "AG",
         "origin": "foreign",
-        "value": 26951885500
+        "value": 26951885500,
+        "buyIdr": 15164309000,
+        "sellIdr": 26951885500,
+        "netIdr": -11787576500
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 25981301500
+        "value": 25981301500,
+        "buyIdr": 6762045000,
+        "sellIdr": 25981301500,
+        "netIdr": -19219256500
       },
       {
         "code": "AO",
         "origin": "local",
-        "value": 13709617500
+        "value": 13709617500,
+        "buyIdr": 6506821500,
+        "sellIdr": 13709617500,
+        "netIdr": -7202796000
       }
     ],
     "netForeign": -106177979000,
@@ -4153,37 +4513,282 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
   }
 };
 
-export const financialRows: Record<string, Array<{ label: string; value: string; period: string; interpretation: string }>> = {
+export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
+  "ANTM": [],
+  "INCO": [],
+  "TINS": [],
+  "BBCA": [],
+  "BBRI": [],
+  "BMRI": [
+    {
+      "symbol": "BMRI",
+      "holderName": "Yuliot, Ir",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 165600,
+      "sharesAfter": 188400,
+      "sharesDelta": 22800,
+      "filedAt": "2026-09-08T17:58:46+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-3898-00.pdf-0.pdf",
+      "transactionValue": 99864000.0,
+      "price": 4380.0
+    },
+    {
+      "symbol": "BMRI",
+      "holderName": "Yuliot, Ir",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 143200,
+      "sharesAfter": 165600,
+      "sharesDelta": 22400,
+      "filedAt": "2026-09-08T17:53:21+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-7905-00.pdf-0.pdf",
+      "transactionValue": 99232000.0,
+      "price": 4430.0
+    }
+  ],
+  "TLKM": [],
+  "JSMR": [
+    {
+      "symbol": "JSMR",
+      "holderName": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 362426800,
+      "sharesAfter": 365685500,
+      "sharesDelta": 3258700,
+      "filedAt": "2026-09-02T19:25:26+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-02092026-8460-00.pdf-0.pdf",
+      "transactionValue": 9522965100.0,
+      "price": 2922.32
+    }
+  ],
+  "EXCL": [],
+  "GOTO": [
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "others",
+      "sharesBefore": 80476862884,
+      "sharesAfter": 82306356884,
+      "sharesDelta": 1829494000,
+      "filedAt": "2026-09-10T16:56:31+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-10092026-1930-00.pdf-0.pdf",
+      "transactionValue": 49396338000.0,
+      "price": 27.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "others",
+      "sharesBefore": 84971460184,
+      "sharesAfter": 80476862884,
+      "sharesDelta": -4494597300,
+      "filedAt": "2026-09-09T18:40:37+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-09092026-8686-00.pdf-0.pdf",
+      "transactionValue": 187964997300.0,
+      "price": 25.393
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "buy",
+      "sharesBefore": 65808820258,
+      "sharesAfter": 75029997584,
+      "sharesDelta": 9221177326,
+      "filedAt": "2026-09-07T17:10:05+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-9537-00.pdf-0.pdf",
+      "transactionValue": 230529433150.0,
+      "price": 25.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "others",
+      "sharesBefore": 75029997584,
+      "sharesAfter": 87487916784,
+      "sharesDelta": 12457919200,
+      "filedAt": "2026-09-07T17:10:05+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-9537-00.pdf-0.pdf",
+      "transactionValue": 317445640000.0,
+      "price": 25.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "buy",
+      "sharesBefore": 55572469938,
+      "sharesAfter": 58710992438,
+      "sharesDelta": 3138522500,
+      "filedAt": "2026-08-26T17:26:48+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-26082026-1699-00.pdf-0.pdf",
+      "transactionValue": 72186017500.0,
+      "price": 23.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "others",
+      "sharesBefore": 58710992438,
+      "sharesAfter": 59368333838,
+      "sharesDelta": 657341400,
+      "filedAt": "2026-08-26T17:26:48+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-26082026-1699-00.pdf-0.pdf",
+      "transactionValue": 15118852200.0,
+      "price": 23.0
+    }
+  ],
+  "BUKA": [
+    {
+      "symbol": "BUKA",
+      "holderName": "Rd Adi Wardhana Sariaatmadja",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 772585501,
+      "sharesAfter": 1407585501,
+      "sharesDelta": 635000000,
+      "filedAt": "2026-09-08T16:15:50+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-6401-00.pdf-0.pdf",
+      "transactionValue": 78740000000.0,
+      "price": 124.0
+    },
+    {
+      "symbol": "BUKA",
+      "holderName": "Kreatif Media Karya",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 46321746385,
+      "sharesAfter": 47125034185,
+      "sharesDelta": 803287800,
+      "filedAt": "2026-09-07T16:28:10+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-8071-00.pdf-0.pdf",
+      "transactionValue": 101214262800.0,
+      "price": 126.0
+    }
+  ],
+  "EMTK": [],
+  "PGAS": [],
+  "ADRO": [],
+  "PTBA": [],
+  "ICBP": [],
+  "MYOR": [],
+  "AMRT": []
+};
+
+export const financialRows: Record<string, Array<{ label: string; value: string; period: string; interpretation: string; valueNum?: number; history?: Array<{ period: string; value: number }> }>> = {
   "ANTM": [
     {
       "label": "Revenue",
       "value": "Rp33,4T",
       "period": "2026-06-30",
-      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+      "valueNum": 33390942000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 13008399000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 12614315000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 29323338000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 33390942000000
+        }
+      ]
     },
     {
       "label": "Operating margin",
       "value": "11,8%",
       "period": "2026-06-30",
-      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+      "valueNum": 0.11800346932410592,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.13453692495133338
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.04021756234880768
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.15356229226017856
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.11800346932410592
+        }
+      ]
     },
     {
       "label": "Operating cash flow",
       "value": "Rp2,4T",
       "period": "2026-06-30",
-      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+      "valueNum": 2402307000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 1746066000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 831959000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": -3154169000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 2402307000000
+        }
+      ]
     },
     {
       "label": "Total debt / equity",
       "value": "15,1%",
       "period": "2026-06-30",
-      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
+      "valueNum": 0.15118092927556454,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.10479087970145567
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.11945673819858346
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.21151795954319766
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.15118092927556454
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "13,9%",
       "period": "2026-06-30",
-      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
+      "valueNum": 0.13871558551758323
     }
   ],
   "BBCA": [
@@ -4191,31 +4796,108 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "label": "Net interest income",
       "value": "Rp21,4T",
       "period": "2026-06-30",
-      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis."
+      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis.",
+      "valueNum": 21404135000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 21361400000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 21601806000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 21108433000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 21404135000000
+        }
+      ]
     },
     {
       "label": "CASA ratio",
       "value": "84,8%",
       "period": "2026-06-30",
-      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan."
+      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan.",
+      "valueNum": 0.8479140913371449,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.8347050415947819
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.8422198443832364
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.84771845736511
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.8479140913371449
+        }
+      ]
     },
     {
       "label": "Gross loan",
       "value": "Rp1.012,7T",
       "period": "2026-06-30",
-      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin."
+      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin.",
+      "valueNum": 1012705846000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 921999630000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 970233234000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 970701203000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 1012705846000000
+        }
+      ]
     },
     {
       "label": "Allowance / gross loan",
       "value": "3,0%",
       "period": "2026-06-30",
-      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin."
+      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin.",
+      "valueNum": 0.03032069886955111,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.034129470312260324
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.030664826721447887
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.03144819941054508
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.03032069886955111
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "0,9%",
       "period": "2026-06-30",
-      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
+      "valueNum": 0.008553843660633387
     }
   ],
   "BBRI": [
@@ -4223,31 +4905,108 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "label": "Net interest income",
       "value": "Rp40,2T",
       "period": "2026-03-31",
-      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis."
+      "interpretation": "Menguji transmisi biaya dana dan yield aset pada pilar Katalis.",
+      "valueNum": 40155032000000,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 37422814000000
+        },
+        {
+          "period": "2025-09-30",
+          "value": 37716509000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 39507348000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 40155032000000
+        }
+      ]
     },
     {
       "label": "CASA ratio",
       "value": "68,1%",
       "period": "2026-03-31",
-      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan."
+      "interpretation": "Memberi konteks struktur biaya dana, tanpa menggantikan bukti arus partisipan.",
+      "valueNum": 0.6807293353191028,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 0.655105873389088
+        },
+        {
+          "period": "2025-09-30",
+          "value": 0.6764535065639647
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.7061348348479514
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.6807293353191028
+        }
+      ]
     },
     {
       "label": "Gross loan",
       "value": "Rp1.497,3T",
       "period": "2026-03-31",
-      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin."
+      "interpretation": "Menunjukkan basis penyaluran kredit yang menanggung perubahan margin.",
+      "valueNum": 1497270336000000,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 1358009739000000
+        },
+        {
+          "period": "2025-09-30",
+          "value": 1379689071000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 1460729418000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 1497270336000000
+        }
+      ]
     },
     {
       "label": "Allowance / gross loan",
       "value": "5,4%",
       "period": "2026-03-31",
-      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin."
+      "interpretation": "Memeriksa sisi kualitas aset yang dapat berlawanan dengan dukungan margin.",
+      "valueNum": 0.05376785478504264,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 0.057452839813544224
+        },
+        {
+          "period": "2025-09-30",
+          "value": 0.05628473301141341
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.05430753842735301
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.05376785478504264
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "-2,1%",
       "period": "2026-03-31",
-      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan.",
+      "valueNum": -0.020747303445917464
     }
   ],
   "TLKM": [
@@ -4255,31 +5014,108 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "label": "Revenue",
       "value": "Rp38,7T",
       "period": "2026-06-30",
-      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+      "valueNum": 38689000000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 36613000000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 37125000000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 37189000000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 38689000000000
+        }
+      ]
     },
     {
       "label": "Operating margin",
       "value": "28,7%",
       "period": "2026-06-30",
-      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+      "valueNum": 0.28731680839515106,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.2572310381558463
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.12923905723905724
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.2459060474871602
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.28731680839515106
+        }
+      ]
     },
     {
       "label": "Operating cash flow",
       "value": "Rp17,6T",
       "period": "2026-06-30",
-      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+      "valueNum": 17572000000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 17032000000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 14237000000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 17290000000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 17572000000000
+        }
+      ]
     },
     {
       "label": "Total debt / equity",
       "value": "42,2%",
       "period": "2026-06-30",
-      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
+      "valueNum": 0.42206780968201235,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.345270043609527
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.3372858499903678
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.2917591938899942
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.42206780968201235
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "4,0%",
       "period": "2026-06-30",
-      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
+      "valueNum": 0.04033450751566314
     }
   ],
   "GOTO": [
@@ -4287,31 +5123,108 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "label": "Revenue",
       "value": "Rp5,7T",
       "period": "2026-06-30",
-      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+      "valueNum": 5652799000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 4736512000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 5026636000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 5341314000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 5652799000000
+        }
+      ]
     },
     {
       "label": "Operating margin",
       "value": "6,4%",
       "period": "2026-06-30",
-      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+      "valueNum": 0.06433998449263807,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": -0.010719280348070478
+        },
+        {
+          "period": "2025-12-31",
+          "value": -0.031011793971156852
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.07829215807196506
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.06433998449263807
+        }
+      ]
     },
     {
       "label": "Operating cash flow",
       "value": "Rp662,5M",
       "period": "2026-06-30",
-      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+      "valueNum": 662485000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 451217000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 467860000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 1061925000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 662485000000
+        }
+      ]
     },
     {
       "label": "Total debt / equity",
       "value": "17,9%",
       "period": "2026-06-30",
-      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
+      "valueNum": 0.1789931342471108,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.05698414352115924
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.17264761138655285
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.1780723368440745
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.1789931342471108
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "5,8%",
       "period": "2026-06-30",
-      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
+      "valueNum": 0.05831617463418182
     }
   ],
   "PGAS": [
@@ -4319,53 +5232,130 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "label": "Revenue",
       "value": "Rp15,8T",
       "period": "2026-03-31",
-      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga."
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+      "valueNum": 15800743017591,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 15763252754248
+        },
+        {
+          "period": "2025-09-30",
+          "value": 16396819875661
+        },
+        {
+          "period": "2025-12-31",
+          "value": 17623775644586
+        },
+        {
+          "period": "2026-03-31",
+          "value": 15800743017591
+        }
+      ]
     },
     {
       "label": "Operating margin",
       "value": "12,8%",
       "period": "2026-03-31",
-      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi."
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+      "valueNum": 0.12771906268314687,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 0.14027278285994121
+        },
+        {
+          "period": "2025-09-30",
+          "value": 0.14375898933749648
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.14345885371212644
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.12771906268314687
+        }
+      ]
     },
     {
       "label": "Operating cash flow",
       "value": "Rp1,5T",
       "period": "2026-03-31",
-      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham."
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+      "valueNum": 1476896483813,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 1463956486061
+        },
+        {
+          "period": "2025-09-30",
+          "value": 1743006771459
+        },
+        {
+          "period": "2025-12-31",
+          "value": 3644248834054
+        },
+        {
+          "period": "2026-03-31",
+          "value": 1476896483813
+        }
+      ]
     },
     {
       "label": "Total debt / equity",
       "value": "19,6%",
       "period": "2026-03-31",
-      "interpretation": "Memberi konteks ruang neraca saat siklus berubah."
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
+      "valueNum": 0.19582528721695966,
+      "history": [
+        {
+          "period": "2025-06-30",
+          "value": 0.2372417359042434
+        },
+        {
+          "period": "2025-09-30",
+          "value": 0.2239129440090946
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.20576626805639006
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.19582528721695966
+        }
+      ]
     },
     {
       "label": "Revenue QoQ",
       "value": "-10,3%",
       "period": "2026-03-31",
-      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan."
+      "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan.",
+      "valueNum": -0.10344166106966035
     }
   ]
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Technology": -0.018821,
-  "Basic Materials": 0.041557,
   "Infrastructure": -0.022054,
-  "Consumer": -0.021312,
   "Energy": -0.00472,
-  "Financials": -0.040221
+  "Consumer": -0.021312,
+  "Financials": -0.040221,
+  "Basic Materials": 0.041557,
+  "Technology": -0.018821
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Banks": -0.040221,
+  "Telecommunication": -0.022203,
+  "Software & IT Services": -0.018821,
+  "Transportation Infrastructure": -0.019934,
+  "Oil, Gas & Coal": -0.00472,
+  "Food & Staples Retailing": -0.041985,
   "Food & Beverage": -0.012101,
   "Basic Materials": 0.041557,
-  "Oil, Gas & Coal": -0.00472,
-  "Transportation Infrastructure": -0.019934,
-  "Software & IT Services": -0.018821,
-  "Telecommunication": -0.022203,
-  "Food & Staples Retailing": -0.041985
+  "Banks": -0.040221
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {

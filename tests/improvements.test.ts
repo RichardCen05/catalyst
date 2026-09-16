@@ -67,7 +67,7 @@ describe("lag validation", () => {
 
 describe("evidence gaps", () => {
   it("derives gaps from availability, keeps standing limitations", () => {
-    const gaps = deriveMissingEvidence({ analyzed: true, hasBroker: true, hasOwnershipSeries: false, eventCount: 0, financialRows: 2 });
+    const gaps = deriveMissingEvidence({ analyzed: true, hasBroker: true, hasOwnershipSeries: false, eventCount: 0, financialRows: 2, institutionalFlows: 0, hasLeadershipEvent: false });
     expect(gaps.join(" ")).toMatch(/kepemilikan/);
     expect(gaps.join(" ")).toMatch(/peristiwa terverifikasi/);
     expect(gaps.join(" ")).toMatch(/antrean pesanan/);

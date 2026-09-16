@@ -83,6 +83,10 @@ export interface FinancialInput {
   period: string;
   interpretation: string;
   citations: Citation[];
+  /** Angka mentah kuartal terbaru untuk komputasi tren (Task 8b); display tetap `value`. */
+  valueNum?: number;
+  /** Seri kuartalan per label dari 4 kuartal terekam, menanjak (oldest→newest). */
+  history?: Array<{ period: string; value: number }>;
 }
 
 export interface Company {
@@ -107,9 +111,19 @@ export interface PricePoint {
   volume: number;
 }
 
+export interface BrokerParticipant {
+  code: string;
+  origin: "local" | "foreign";
+  value: number;
+  /** Per-broker triple dari rekaman v2_broker-summary_*_top.json (C2). */
+  buyIdr?: number;
+  sellIdr?: number;
+  netIdr?: number;
+}
+
 export interface BrokerEvidence {
-  buyers: Array<{ code: string; origin: "local" | "foreign"; value: number }>;
-  sellers: Array<{ code: string; origin: "local" | "foreign"; value: number }>;
+  buyers: BrokerParticipant[];
+  sellers: BrokerParticipant[];
   netForeign: number;
   totalMarketValue: number;
   freeFloatShares: number;
@@ -122,6 +136,21 @@ export interface BrokerEvidence {
   ownershipSeries?: Array<{ date: string; foreignPct: number; localPct: number }>;
 }
 
+export interface InstitutionalFlow {
+  symbol: SymbolCode;
+  holderName: string;
+  holderType: "institution" | "insider" | "other";
+  transactionType: string;
+  sharesBefore: number;
+  sharesAfter: number;
+  sharesDelta: number;
+  filedAt: string;
+  source: string;
+  /** Nilai transaksi terekam (transaction_value); diutamakan atas hitungan ulang dari referencePrice. */
+  transactionValue?: number;
+  price?: number;
+}
+
 export interface CompanyAnalysisFixture {
   symbol: SymbolCode;
   priceSeries: PricePoint[];
@@ -132,6 +161,7 @@ export interface CompanyAnalysisFixture {
   beta: number;
   catalystEventIds: string[];
   financialContext: FinancialInput[];
+  institutionalFlows: InstitutionalFlow[];
 }
 
 export interface HypothesisTrace {
@@ -284,7 +314,24 @@ export interface InvestorResearchPlaybook {
   falsifiers: string[];
   /** Ambang relevansi eksposur (0-100) untuk materialitas High. Default 85. */
   relevanceFloor?: number;
+  /** Ambang yang bisa diatur pengguna. Semua opsional; default ada di lib/agent/thresholds.ts. */
+  thresholds?: {
+    /** Porsi nilai peserta teratas yang dianggap "Concentrated Flow". Default 0.42. */
+    concentrationFloor?: number;
+    /** Skor z volume tahan-pencilan minimum sebelum anomali ditandai (Elevated). Default 2.5 (nilai live di metrics.ts:58). */
+    volumeZFloor?: number;
+    /** Skor z volume untuk status Extreme. Default 5 (nilai live di metrics.ts:58). */
+    volumeExtremeFloor?: number;
+    /** Penurunan harga harian (absolut) yang memicu pemeriksaan penularan. Default 0.04. */
+    contagionDropFloor?: number;
+    /** Korelasi imbal hasil minimum sebelum co-movement dianggap layak diperiksa. Default 0.5. */
+    contagionCorrelationFloor?: number;
+    /** Nilai bersih pelepasan institusi (IDR) minimum sebelum ditandai distribusi. Default 1e11. */
+    distributionValueFloor?: number;
+  };
 }
+
+export type ThresholdKey = NonNullable<InvestorResearchPlaybook["thresholds"]>;
 
 export interface RuleProposal {
   id: string;

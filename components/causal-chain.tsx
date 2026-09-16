@@ -115,17 +115,22 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       const active = selectedEdgeId === edge.id;
       const labelled = active || hoveredEdgeId === edge.id;
       const dimmed = highlighted ? !(highlighted.has(edge.from) && highlighted.has(edge.to)) : false;
+      // Task 8: co-movement (Observed correlation) tidak pernah seberat hipotesis
+      // kausal — abu-abu putus-putus, bukan warna arah.
+      const isComove = edge.basis === "Observed correlation";
       return {
         id: edge.id,
         source: edge.from,
         target: edge.to,
         type: "smoothstep",
-        label: labelled ? (edge.basis === "Observed correlation" ? "teramati" : `${uiLabel(edge.confidence).toLowerCase()} · ${edge.relevance}`) : "",
-        markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor[edge.direction] },
-        style: { stroke: edgeColor[edge.direction], strokeWidth: active ? 2.8 : 1.2 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.6, opacity: dimmed ? 0.15 : 0.78 },
+        label: labelled ? (isComove ? "teramati" : `${uiLabel(edge.confidence).toLowerCase()} · ${edge.relevance}`) : "",
+        markerEnd: { type: MarkerType.ArrowClosed, color: isComove ? "var(--muted-foreground)" : edgeColor[edge.direction] },
+        style: isComove
+          ? { stroke: "var(--muted-foreground)", strokeWidth: active ? 2 : 1.2, strokeDasharray: "6 5", opacity: dimmed ? 0.15 : 0.6 }
+          : { stroke: edgeColor[edge.direction], strokeWidth: active ? 2.8 : 1.2 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.6, opacity: dimmed ? 0.15 : 0.78 },
         labelStyle: { fill: "var(--foreground)", fontSize: zoom >= 1 ? 11 : 9, fontFamily: "var(--font-mono)" },
         labelBgStyle: { fill: "var(--surface)", fillOpacity: 0.92 },
-        animated: active,
+        animated: active && !isComove,
       };
     });
     return { nodes: flowNodes, edges: flowEdges };
