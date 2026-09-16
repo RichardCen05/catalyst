@@ -1,9 +1,11 @@
 /**
  * Cache-first Sectors API client.
  *
- * Wired ONLY through `POST /api/internal/refresh-sectors`, which is
- * flag-gated (`SECTORS_REFRESH_ENABLED=true`), key-required, Bearer-guarded,
- * dry-run by default, and bounded to already-recorded symbols. The app still
+ * Wired ONLY through the shared planner in `lib/data/sectors-refresh.ts`,
+ * reached via `POST /api/internal/refresh-sectors` (Bearer-guarded) or
+ * `POST /api/settings/refresh` (Pengaturan UI toggle + run), both
+ * flag-gated, key-required, dry-run by default, and bounded to
+ * already-recorded symbols. The app still
  * serves entirely from the bundled `lib/data/market.generated.ts`; refresh
  * output lands in GCS for human review + regen, never overwriting the bundle
  * at runtime. Sectors credit is a non-renewable grant — the ledger, daily
