@@ -23,9 +23,13 @@ export type OperatorAuth =
   | { ok: false; status: 401 | 503; error: string };
 
 export function checkOperatorAuth(request: Request): OperatorAuth {
-  const token = process.env.OPERATOR_TOKEN;
+  // Trimmed on both sides: a secret payload stored with a trailing newline
+  // (Secret Manager keeps the bytes verbatim) can never match a header value,
+  // because HTTP header values cannot carry one. That failure mode locked
+  // every operator mutation out of production and read as a wrong token.
+  const token = process.env.OPERATOR_TOKEN?.trim();
   if (token) {
-    return request.headers.get("authorization") === `Bearer ${token}`
+    return request.headers.get("authorization")?.trim() === `Bearer ${token}`
       ? { ok: true }
       : { ok: false, status: 401, error: "Token operator tidak cocok. Isi di Pengaturan → Token operator." };
   }

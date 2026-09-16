@@ -32,6 +32,22 @@ describe("checkOperatorAuth", () => {
     }
   });
 
+  /** Secret Manager stores the payload verbatim, so a token saved with a
+   *  trailing newline reaches the process as "token\n". No HTTP header value
+   *  can carry that newline, so an untrimmed compare rejects every caller —
+   *  which is exactly what locked operator mutations out of production. */
+  it("accepts the bearer token when the stored secret has trailing whitespace", () => {
+    vi.stubEnv("OPERATOR_TOKEN", `${TOKEN}\n`);
+    expect(checkOperatorAuth(requestWith(`Bearer ${TOKEN}`))).toEqual({ ok: true });
+  });
+
+  it("still rejects a wrong token when the stored secret has trailing whitespace", () => {
+    vi.stubEnv("OPERATOR_TOKEN", `${TOKEN}\n`);
+    const result = checkOperatorAuth(requestWith("Bearer wrong"));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(401);
+  });
+
   it("fails closed with 503 in production when the token is unset", () => {
     vi.stubEnv("OPERATOR_TOKEN", "");
     vi.stubEnv("K_SERVICE", "catalyst-web");

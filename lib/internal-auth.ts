@@ -21,9 +21,11 @@ export type InternalAuth =
   | { ok: false; status: 401 | 503; error: string };
 
 export function checkInternalAuth(request: Request): InternalAuth {
-  const secret = process.env.INTERNAL_CRON_SECRET;
+  // Trimmed for the same reason as `checkOperatorAuth`: a stray newline in the
+  // stored secret would make every scheduler call look unauthorized.
+  const secret = process.env.INTERNAL_CRON_SECRET?.trim();
   if (secret) {
-    return request.headers.get("authorization") === `Bearer ${secret}`
+    return request.headers.get("authorization")?.trim() === `Bearer ${secret}`
       ? { ok: true }
       : { ok: false, status: 401, error: "unauthorized" };
   }

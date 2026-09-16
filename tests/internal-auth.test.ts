@@ -19,6 +19,16 @@ describe("checkInternalAuth", () => {
     vi.unstubAllEnvs();
   });
 
+  /** Same trailing-newline hazard as the operator token: the stored secret
+   *  keeps its bytes, the header cannot. */
+  it("tolerates trailing whitespace in the stored secret", () => {
+    vi.stubEnv("INTERNAL_CRON_SECRET", `${SECRET}\n`);
+    expect(checkInternalAuth(requestWith(`Bearer ${SECRET}`))).toEqual({ ok: true });
+    const denied = checkInternalAuth(requestWith("Bearer wrong"));
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.status).toBe(401);
+  });
+
   it("requires the Bearer token when the secret is set", () => {
     vi.stubEnv("INTERNAL_CRON_SECRET", SECRET);
     expect(checkInternalAuth(requestWith(`Bearer ${SECRET}`))).toEqual({ ok: true });
