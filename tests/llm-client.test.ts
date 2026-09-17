@@ -69,6 +69,26 @@ describe("generateStructured", () => {
     await expect(generateStructured(params)).rejects.toThrow(/403 PERMISSION_DENIED/);
   });
 
+  it("names a truncated response instead of failing on the cut-off JSON", async () => {
+    const generateContent = vi.fn().mockResolvedValue({
+      candidates: [{ finishReason: "MAX_TOKENS" }],
+      text: '{"text": "Berdasarkan ringkasan bukti yang',
+    });
+    vi.doMock("@google/genai", () => ({ GoogleGenAI: class { models = { generateContent }; } }));
+
+    const { generateStructured } = await import("@/lib/agent/llm/client");
+    await expect(generateStructured(params)).rejects.toThrow(/MAX_TOKENS/);
+  });
+
+  it("leaves room for reasoning tokens alongside the answer", async () => {
+    const generateContent = vi.fn().mockResolvedValue({ candidates: [{ finishReason: "STOP" }], text: '{"ok":true}' });
+    vi.doMock("@google/genai", () => ({ GoogleGenAI: class { models = { generateContent }; } }));
+
+    const { generateStructured } = await import("@/lib/agent/llm/client");
+    await generateStructured(params);
+    expect(generateContent.mock.calls[0][0].config.maxOutputTokens).toBe(4096);
+  });
+
   it("refuses before the request leaves once the day is over budget", async () => {
     process.env.LLM_DAILY_CALL_BUDGET = "1";
     const generateContent = vi.fn();

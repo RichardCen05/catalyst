@@ -17,6 +17,19 @@ describe("verifyDraft", () => {
     const result = verifyDraft("Belum ada bukti yang cukup.", [], []);
     expect(result.approved).toBe(true);
   });
+  it("accepts the Indonesian decimal comma for a figure the evidence quotes with a dot", () => {
+    const result = verifyDraft("Pendapatan Rp 62,71 triliun.", ["62.71"], [baseCitation]);
+    expect(result.approved).toBe(true);
+  });
+  it("still rejects a figure whose digits are not in the evidence", () => {
+    const result = verifyDraft("Pendapatan Rp 63,71 triliun.", ["62.71"], [baseCitation]);
+    expect(result.approved).toBe(false);
+    expect(result.violations.some((v) => v.includes("63,71"))).toBe(true);
+  });
+  it("does not accept a percentage on the strength of a bare number", () => {
+    const result = verifyDraft("Imbal hasil 6,2%.", ["6.2"], [baseCitation]);
+    expect(result.approved).toBe(false);
+  });
   it("does not reject a not_found citation span", () => {
     const citations = [{ ...baseCitation, span: { documentId: "d1", start: 0, end: 0, match: "not_found" as const } }];
     expect(verifyDraft("Sumbernya belum bisa ditemukan.", [], citations).approved).toBe(true);

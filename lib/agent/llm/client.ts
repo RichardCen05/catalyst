@@ -24,6 +24,18 @@ export interface StructuredCallParams {
 }
 
 /**
+ * Reasoning tokens are drawn from the same allowance as the answer, and the
+ * model spends a variable number of them on an identical prompt: a chat
+ * rewrite that measured 394 thought tokens on one call measured 674 on the
+ * next. With the old 1024 ceiling the JSON was sometimes cut mid-string, and
+ * `JSON.parse` failed with "Unterminated string in JSON", so a working key
+ * still produced the deterministic answer. The ceiling now leaves room for
+ * both, and a truncated response is named instead of surfacing as a parse
+ * error.
+ */
+const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
+
+/**
  * Every model call in the app goes through here, which is why the daily
  * ceiling is enforced here and not at each of the three call sites. The
  * reservation happens before the request leaves: a call that fails still
@@ -41,7 +53,7 @@ export async function generateStructured<T>(params: StructuredCallParams): Promi
         systemInstruction: params.systemInstruction,
         responseMimeType: "application/json",
         responseJsonSchema: params.schema,
-        maxOutputTokens: params.maxOutputTokens ?? 1024,
+        maxOutputTokens: params.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
       },
     });
   } catch (error) {
@@ -52,6 +64,10 @@ export async function generateStructured<T>(params: StructuredCallParams): Promi
       throw new LlmBudgetError("rate-limit", error instanceof Error ? error.message : String(error));
     }
     throw error;
+  }
+  const finishReason = response.candidates?.[0]?.finishReason;
+  if (finishReason === "MAX_TOKENS") {
+    throw new Error(`Gemini response truncated at the output ceiling (finishReason=MAX_TOKENS, model=${params.model})`);
   }
   const text = response.text;
   if (!text) throw new Error("Gemini returned no text");
