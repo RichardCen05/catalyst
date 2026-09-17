@@ -82,7 +82,9 @@ describe("engine menjawab kegagalan dengan jujur", () => {
     const answer = await agentEngine.answerFollowUp({ question: "xyz qwerty zzzz", profile });
     expect(answer.intent).toBe("unknown");
     expect(answer.citations).toEqual([]);
-    expect(answer.text).toContain("Belum ada bukti yang cukup");
+    expect(answer.text).toContain("belum bisa dipetakan ke bukti");
+    // No figures invented for a question that named nothing.
+    expect(answer.text).not.toMatch(/\d+,\d+%/);
   });
 
   it("regresi: 'belum' tidak lagi dibajak 'sebelumnya' menjadi event-impact", async () => {

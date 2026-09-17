@@ -24,7 +24,6 @@ import type {
   HypothesisTrace,
   ImpactDirection,
   MarketEvent,
-  MetricValue,
   PillarResult,
   SymbolCode,
   UserInsight,
@@ -32,6 +31,7 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
+import { describeCaseSources, explainMetric, matchFieldName, matchMetric } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
@@ -883,73 +883,101 @@ function visibleFiguresFor(analysis: AnalysisCase | null | undefined): string[] 
  * On a page about listed equities that is the worst kind of miss: the one
  * question that audits the evidence got an answer about something else.
  */
+/**
+ * Intent matching is bilingual on purpose.
+ *
+ * Every phrase list here used to be Indonesian only, and the app is used in
+ * both languages. "what is hhi and where we get it from" therefore matched
+ * nothing, fell through to the why-listed catch-all, and the model dutifully
+ * answered "tidak ada informasi mengenai apa itu HHI" about a figure printed
+ * on the same screen. A reader asking the one question that audits the
+ * evidence got told the evidence does not exist.
+ */
+const PROVENANCE_PHRASES = [
+  "sumber mana", "dari mana", "sumber apa", "sumbernya", "asal angka", "asal data",
+  "dari sumber", "rekaman mana", "sumber data", "sumber datamu", "endpoint", "provenance",
+  "where do", "where does", "where did", "where we get", "where you get", "comes from",
+  "come from", "data source", "which source", "what source", "which data", "cite",
+];
+
+const EXPLAIN_PHRASES = [
+  "apa itu", "apa arti", "artinya apa", "arti dari", "jelaskan", "maksud",
+  "cara hitung", "cara menghitung", "bagaimana dihitung", "dihitung dari", "rumus",
+  "what is", "what's", "what does", "explain", "meaning", "how do you calculate",
+  "how is", "how was", "calculated", "formula", "definition",
+];
+
+const COMPARE_PHRASES = ["banding", "versus", " vs ", " vs. ", "compare", "comparison", "dibanding"];
+
+const MISSING_PHRASES = [
+  "belum", "data apa", "tidak diperiksa", "missing", "not checked", "what data",
+  "unavailable", "gap", "kosong",
+];
+
+const EVENT_PHRASES = ["berita", "dampak", "peristiwa", "news", "impact", "event"];
+
+const WHY_PHRASES = ["kenapa", "mengapa", "daftar", "why", "listed"];
+
+/** Padded so " vs " matches a real separator rather than any word ending in
+ *  "vs", and so a bare "vs" at either end of the question still hits. */
+function mentions(question: string, phrases: string[]): boolean {
+  const padded = ` ${question} `;
+  return phrases.some((phrase) => padded.includes(phrase));
+}
+
 function isProvenanceQuestion(question: string): boolean {
-  return ["sumber mana", "dari mana", "sumber apa", "sumbernya", "asal angka", "asal data", "dari sumber", "endpoint", "provenance", "rekaman mana"]
-    .some((phrase) => question.includes(phrase));
+  return mentions(question, PROVENANCE_PHRASES);
 }
 
-/** One metric, with the pillar it belongs to, resolved from a provenance
- *  question: first on a figure quoted in the question, then on a metric or
- *  pillar label. Separators are ignored on the figure match, so `27,5%`
- *  finds the metric rendered as `27,5%` and `27.5%` alike. */
-function metricForProvenance(analysis: AnalysisCase, question: string): { pillar: PillarResult; metric: MetricValue } | undefined {
-  const asked = extractNumerals(question).map(canonicalFigure);
-  const pairs = analysis.pillars.flatMap((pillar) => pillar.metrics.map((metric) => ({ pillar, metric })));
-  if (asked.length) {
-    const byFigure = pairs.find(({ metric }) => extractNumerals(metric.value).map(canonicalFigure).some((figure) => asked.includes(figure)));
-    if (byFigure) return byFigure;
-  }
-  const lower = question.toLowerCase();
-  return pairs.find(({ metric }) => lower.includes(metric.label.toLowerCase()))
-    ?? pairs.find(({ pillar }) => lower.includes(pillar.label.toLowerCase()));
-}
-
-/** Digits only, percent sign kept — the same shape the answer verifier
- *  compares, so `27,5%` and `27.5%` are one figure and `27,5` is not. */
-function canonicalFigure(numeral: string): string {
-  const percent = numeral.endsWith("%");
-  const digits = numeral.replace(/%$/, "").replace(/[.,]/g, "");
-  return percent ? `${digits}%` : digits;
-}
-
-/** One recording, written out so the reader can go check it. */
-function describeCitation(citation: Citation): string {
-  return `${citation.label} — ${citation.endpoint} (${citation.field}), ${citation.provider} per ${formatAsOfDate(citation.asOf)}`;
-}
-
-function formatAsOfDate(asOf: string): string {
-  const parsed = new Date(asOf);
-  return Number.isNaN(parsed.getTime())
-    ? asOf
-    : parsed.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+function isExplainQuestion(question: string): boolean {
+  return mentions(question, EXPLAIN_PHRASES);
 }
 
 /**
- * Answer a provenance question from the citation list the metric chip counted.
+ * Answer a provenance or definition question from the metric itself.
  *
- * This answer is never handed to the model. Endpoints and field names are
- * verbatim claims about which recording produced a figure; a rewrite that
- * tidies `/v2/broker-summary/ANTM/top/` into something more readable turns
- * the one auditable sentence on the page into prose. The deterministic text
- * is the product here, not a draft.
+ * Never handed to the model. The formula, the substituted numbers and the
+ * endpoint are verbatim claims; a rewrite that tidies
+ * `/v2/broker-summary/ANTM/top/` into readable prose destroys the one
+ * auditable sentence on the page. What the model used to add instead was a
+ * "Berdasarkan evidence summary yang diberikan" preamble and a denial.
  */
 function provenanceAnswer(analysis: AnalysisCase, question: string): { text: string; citations: Citation[] } {
-  const hit = metricForProvenance(analysis, question);
+  const hit = matchMetric(analysis.pillars, question, extractNumerals);
   if (!hit) {
+    // A column name, not a figure: "what is buy_idr" is answerable and used
+    // to land in the menu below.
+    const field = matchFieldName(question);
+    if (field) {
+      return {
+        text: `${field.field} adalah ${field.meaning}. Kolom ini dibaca dari rekaman Sectors untuk kasus ${analysis.company.symbol}; angka mana pun yang memakainya menyebut rekamannya sendiri.\n\nSumber kasus ini — ${describeCaseSources(analysis.sources)}`,
+        citations: analysis.sources,
+      };
+    }
+    // "apa sumber datamu" / "what is your data source" is a question about
+    // the whole case, so answer it with the recordings in plain words.
+    if (mentions(question, ["sumber data", "sumber datamu", "data source", "semua sumber", "all sources", "sumber apa saja"])) {
+      return {
+        text: `Kasus ${analysis.company.symbol} dibaca dari ${describeCaseSources(analysis.sources)}`,
+        citations: analysis.sources,
+      };
+    }
+    // Otherwise name what this case can answer instead of dumping thirteen
+    // endpoint strings at a reader who asked one question.
+    const menu = analysis.pillars
+      .map((pillar) => `${pillar.label}: ${pillar.metrics.map((metric) => `${metric.label} ${metric.value}`).join(", ")}`)
+      .join("\n");
     return {
-      text: `Angka itu tidak dikenali pada kasus ${analysis.company.symbol}. Kasus ini memakai ${analysis.sources.length} rekaman: ${analysis.sources.map(describeCitation).join("; ")}.`,
+      text: `Belum jelas angka mana yang dimaksud pada kasus ${analysis.company.symbol}. Angka yang tersedia:\n${menu}\n\nSebut salah satu labelnya atau tempelkan angkanya, dan saya jelaskan artinya, rekaman sumbernya, dan cara hitungnya.`,
       citations: analysis.sources,
     };
   }
   const { pillar, metric } = hit;
-  const others = pillar.metrics.filter((item) => item.label !== metric.label && item.citations.length !== metric.citations.length);
-  const note = others.length
-    ? ` Metrik lain pada pilar ${pillar.label} memakai rekaman yang berbeda — jumlah sumber dihitung per angka, bukan per kartu.`
+  const body = explainMetric(pillar, metric);
+  const spread = new Set(pillar.metrics.map((item) => item.citations.length)).size > 1
+    ? "\nJumlah sumber dihitung per angka, bukan per kartu, jadi dua angka pada satu pilar bisa berbeda jumlah rekamannya."
     : "";
-  return {
-    text: `${metric.label} ${metric.value} pada pilar ${pillar.label} berasal dari ${metric.citations.length} rekaman: ${metric.citations.map(describeCitation).join("; ")}.${note}`,
-    citations: metric.citations,
-  };
+  return { text: `${body}${spread}`, citations: metric.citations };
 }
 
 async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
@@ -969,9 +997,22 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   }
 
   const question = request.question.toLowerCase();
-  if ((question.includes("banding") || question.includes("versus")) && symbols.length >= 2) {
+  if (mentions(question, COMPARE_PHRASES) && symbols.length >= 2) {
     const first = await buildAnalysis(symbols[0], request.profile);
     const second = await buildAnalysis(symbols[1], request.profile);
+    // Only six symbols carry a full case. A comparison against one of the
+    // other twelve used to fall through to the why-listed branch, which
+    // answered about a single symbol and never said the other side was
+    // missing — the reader saw an answer to a comparison they did not get.
+    if (!first || !second) {
+      const missing = [!first ? symbols[0] : null, !second ? symbols[1] : null].filter(Boolean).join(" dan ");
+      const covered = coverageInfo[!first ? symbols[0] : symbols[1]]?.missing ?? [];
+      return {
+        text: `Perbandingan belum bisa dijalankan: ${missing} belum punya kasus lengkap pada rekaman ${DATA_AS_OF_LABEL}${covered.length ? ` (${covered.join(", ")} belum ada)` : ""}. Emiten dengan kasus lengkap: ${Object.values(coverageInfo).filter((item) => item.analyzed).map((item) => item.symbol).join(", ")}.`,
+        refused: false, intent: "compare", hypotheses: openInsightTraces, citations: (first ?? second)?.sources.slice(0, 4) ?? [],
+        preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
+      };
+    }
     if (first && second) {
       if (question.includes("transmisi") || question.includes("bisnis") || question.includes("katalis")) {
         const firstImpact = first.businessImpact.find((item) => item.status === "Primary test") ?? first.businessImpact[0];
@@ -994,45 +1035,88 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     }
   }
 
-  // Ahead of the event branch on purpose. `eventFromQuestion` matches loosely,
-  // so "dari sumber mana saja HHI" resolved to some recorded event and got an
-  // impact-path answer. A question about where a figure came from has exactly
-  // one correct answer, and it is not an event summary.
-  if (analysis && isProvenanceQuestion(question)) {
+  // Both run ahead of the event branch. `eventFromQuestion` matches loosely
+  // enough that "dari sumber mana saja HHI" and "apa sumber datamu" both
+  // resolved to some recorded event and answered with that event's impact
+  // path. A question about where a figure came from, or what it means, has
+  // exactly one correct answer, and it is not an event summary.
+  if (analysis && (isProvenanceQuestion(question) || isExplainQuestion(question))) {
+    const mode = isProvenanceQuestion(question) ? "provenance" : "explain";
     const provenance = provenanceAnswer(analysis, request.question);
     return {
-      text: provenance.text, refused: false, intent: "provenance",
+      text: provenance.text, refused: false, intent: mode,
       hypotheses: openInsightTraces, citations: provenance.citations,
       preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
 
   const event = eventFromQuestion(request.question);
-  if (event || question.includes("berita") || question.includes("dampak")) {
-    const selected = event ?? newsProvider.listEvents()[0];
+  if (event || mentions(question, EVENT_PHRASES)) {
+    // No fallback to `listEvents()[0]`. An unmatched question used to be
+    // answered about whichever event happened to be newest, with that
+    // event's citations attached and nothing in the text saying which event
+    // was picked — a confident answer about something the reader never asked
+    // about.
+    const selected = event ?? newsProvider.listEvents().find((item) =>
+      item.impactLinks.some((link) => link.symbol === primary));
+    if (!selected) {
+      return {
+        text: `Tidak ada peristiwa terekam yang cocok dengan pertanyaan itu pada rekaman ${DATA_AS_OF_LABEL}. Sebut judul, emiten, atau tanggal peristiwanya.`,
+        refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: [],
+        preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
+      };
+    }
     const scoped = selected.impactLinks.filter((link) => request.profile.watchlist.includes(link.symbol));
     const direction = (value: ImpactDirection) => value === "Supported" ? "Mendukung" : value === "Adverse" ? "Berlawanan" : value === "Mixed" ? "Bercampur" : value === "Unrelated" ? "Tidak terkait" : "Belum terverifikasi";
+    // Name the event. The reader cannot check an impact path without knowing
+    // which trigger it belongs to.
+    const header = `Peristiwa: ${selected.title}.`;
     const text = scoped.length
-      ? scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")
-      : "Peristiwa tersebut tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.";
+      ? `${header} ${scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")}`
+      : `${header} Peristiwa ini tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.`;
     return { ...(await rewriteWithLlm(request.question, text, visibleFiguresFor(analysis))), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
-  if (question.includes("belum") || question.includes("data apa") || question.includes("tidak diperiksa")) {
+  if (mentions(question, MISSING_PHRASES)) {
     return {
       ...(await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.", visibleFiguresFor(analysis))),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
-  if (analysis && (question.includes("kenapa") || question.includes("daftar") || primary)) {
+  // A bare metric name is a question about that metric. "hhi" used to reach
+  // the why-listed branch and come back with revenue figures.
+  if (analysis && matchMetric(analysis.pillars, request.question, extractNumerals) && question.trim().split(/\s+/).length <= 4) {
+    const provenance = provenanceAnswer(analysis, request.question);
+    return {
+      text: provenance.text, refused: false, intent: "explain",
+      hypotheses: openInsightTraces, citations: provenance.citations,
+      preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
+    };
+  }
+
+  // `primary` alone is not a question. It comes from the case page's context,
+  // so "asdfgh" typed on the ANTM case used to return the full why-listed
+  // summary — a confident answer to nothing. Require either a why-shaped
+  // phrase or a symbol the reader actually named.
+  if (analysis && (mentions(question, WHY_PHRASES) || symbols.length > 0)) {
     return {
       ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
 
-  return { text: `Belum ada bukti yang cukup untuk menjawab pertanyaan itu dari rekaman Catalyst ${DATA_AS_OF_LABEL}.`, refused: false, intent: "unknown", hypotheses: [], citations: [], preferenceNote: personalizedNote(), relatedSymbols: [] };
+  // Say what this assistant can answer. "Belum ada bukti yang cukup" alone
+  // reads as a data gap when the real problem is that the question did not
+  // name anything the recordings cover.
+  const menu = analysis
+    ? ` Untuk ${analysis.company.symbol} saya bisa menjawab: kenapa emiten ini masuk daftar, arti dan asal setiap angka (mis. "apa itu HHI", "dari mana 27,5%"), dampak sebuah peristiwa, perbandingan dengan emiten lain berkasus lengkap, dan data apa yang belum ada.`
+    : ` Sebut kode emiten lebih dulu, lalu tanyakan alasan masuk daftar, arti sebuah angka, asal angkanya, dampak peristiwa, atau data yang belum ada.`;
+  return {
+    text: `Pertanyaan itu belum bisa dipetakan ke bukti pada rekaman Catalyst ${DATA_AS_OF_LABEL}.${menu}`,
+    refused: false, intent: "unknown", hypotheses: [], citations: analysis?.sources.slice(0, 3) ?? [],
+    preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
+  };
 }
 
 

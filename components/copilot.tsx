@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useCatalystStore } from "@/lib/store";
 import { apiUrl } from "@/lib/api-base";
-import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import type { ChatAnswer, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
@@ -25,10 +25,16 @@ function buildQuickPrompts(profile: UserProfile): string[] {
   } else {
     prompts.push("Peristiwa apa yang berdampak ke daftar pantauan saya?");
   }
-  const second = profile.watchlist[1];
-  prompts.push(second ? `Bandingkan ${first} dan ${second}.` : "Bandingkan dua emiten pantauan saya.");
+  // Only symbols with a full case can be compared. The old prompt used
+  // watchlist[1] blindly and suggested "Bandingkan ANTM dan INCO" — INCO has
+  // no broker or quarterly recording, so the suggestion the app offered was
+  // one it then had to refuse.
+  const comparable = profile.watchlist.filter((symbol) => coverageInfo[symbol]?.analyzed && symbol !== first);
+  prompts.push(comparable[0] ? `Bandingkan ${first} dan ${comparable[0]}.` : "Data apa yang belum diperiksa?");
+  // A figure on screen is the question readers actually ask next.
+  prompts.push(`Apa itu HHI dan dari mana angkanya untuk ${first}?`);
   prompts.push("Data apa yang belum diperiksa?");
-  return prompts.slice(0, 4);
+  return [...new Set(prompts)].slice(0, 4);
 }
 
 interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
@@ -74,7 +80,10 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         {messages.map((message) => <div key={message.id} className={message.role === "user" ? "ml-7" : "mr-2"}>
           <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <IconUser aria-hidden="true" className="size-3" /> : <IconCopilot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Asisten"}</div>
           <div className={`rounded-xl border p-3 text-sm leading-6 ${message.role === "user" ? "border-primary/25 bg-primary/10" : "border-border bg-background"}`}>
-            <p>{message.text}</p>
+            {/* Answers are multi-line on purpose — meaning, source, formula,
+                result, then the technical detail. Without pre-line the whole
+                explanation collapsed into one paragraph. */}
+            <p className="whitespace-pre-line">{message.text}</p>
             {message.answer?.llmFallbackNote ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">{message.answer.llmFallbackNote}</p> : null}
             {message.answer ? <details className="mt-3 border-t border-border pt-2"><summary className="flex min-h-8 cursor-pointer items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3" /></summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">Catatan pengguna hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-3"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
           </div>

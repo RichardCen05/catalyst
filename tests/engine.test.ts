@@ -31,7 +31,11 @@ describe("Catalyst agent engine", async () => {
     expect(await agentEngine.analyzeCompany("XXXX", demoProfiles[0])).toBeNull();
     const answer = await agentEngine.answerFollowUp({ question: "Jelaskan XXXX", profile: demoProfiles[0] });
     expect(answer.intent).toBe("unknown");
-    expect(answer.text).toContain("Belum ada bukti yang cukup");
+    // Still fails closed. The wording now says the question could not be
+    // mapped to evidence and lists what can be asked, because "belum ada
+    // bukti yang cukup" read as a data gap when the recordings were fine.
+    expect(answer.text).toContain("belum bisa dipetakan ke bukti");
+    expect(answer.text).not.toMatch(/\d+,\d+%/);
   });
 
   it("gives every six-company metric complete citation metadata", async () => {
