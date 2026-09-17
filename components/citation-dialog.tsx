@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Citation } from "@/lib/types";
 import { locate } from "@/lib/agent/citations";
+import { DATA_AS_OF_LABEL } from "@/lib/data/fixtures";
 import { events } from "@/lib/data/fixtures";
 import { formatAsOf } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ export function CitationDialog({ citations, label = "Periksa sumber" }: { citati
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
         <Dialog.Content className="fixed inset-y-0 right-0 z-100 w-[min(100vw,480px)] overflow-y-auto border-l border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
           <div className="flex items-start gap-3"><div className="min-w-0 flex-1"><Dialog.Title className="text-xl font-semibold">Daftar bukti</Dialog.Title><Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">Setiap angka menyertakan penyedia, lokasi data, nama data, dan waktu sumber.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup sumber"><IconClose aria-hidden="true" className="size-4" /></Button></Dialog.Close></div>
-          <div className="mt-4 flex gap-2 rounded-lg border border-attention/30 bg-attention/8 p-3 text-xs leading-5 text-muted-foreground"><IconInfo aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-attention" /><p>Nilai pada prototipe adalah rekaman 11 Sep 2026. Tautan menunjukkan sumber asal, bukan bukti bahwa peristiwa benar-benar terjadi.</p></div>
+          <div className="mt-4 flex gap-2 rounded-lg border border-attention/30 bg-attention/8 p-3 text-xs leading-5 text-muted-foreground"><IconInfo aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-attention" /><p>Nilai pada prototipe adalah rekaman {DATA_AS_OF_LABEL}. Tautan menunjukkan sumber asal, bukan bukti bahwa peristiwa benar-benar terjadi.</p></div>
           <div className="mt-6 space-y-3">
             {unique.map((citation) => {
               const event = eventForCitation(citation);

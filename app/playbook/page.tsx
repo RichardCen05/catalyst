@@ -89,13 +89,13 @@ export default function PlaybookPage() {
           {profile.watchlist.map((symbol) => {
             const company = companies.find((item) => item.symbol === symbol);
             const holding = holdings[symbol];
-            const exposure = holdingExposure(holding, company?.price ?? 0);
-            const pnl = holdingPnl(holding, company?.price ?? 0);
+            const exposure = holdingExposure(holding, company?.price);
+            const pnl = holdingPnl(holding, company?.price);
             return (
               <div key={symbol} className="rounded-lg border border-border bg-background px-3 py-2.5">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-mono text-sm font-semibold text-primary">{symbol}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">@{company?.price.toLocaleString("id-ID")}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{company ? `@${company.price.toLocaleString("id-ID")}` : "harga belum terekam"}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <label className="text-[11px] text-muted-foreground">Lembar
@@ -105,7 +105,7 @@ export default function PlaybookPage() {
                     <input type="number" min={0} step={50} value={holding?.avgCost ?? ""} placeholder="0" onChange={(event) => { const avgCost = Number(event.target.value); if (holding && avgCost >= 0) setHolding(symbol, { shares: holding.shares, avgCost }); }} className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Harga rata-rata ${symbol}`} />
                   </label>
                 </div>
-                {holding ? <p className="mt-2 font-mono text-[10px] text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p> : null}
+                {holding ? (exposure === null || pnl === null ? <p className="mt-2 font-mono text-[10px] text-attention-foreground">Harga penutupan {symbol} tidak ada pada rekaman — eksposur dan laba/rugi tidak dihitung.</p> : <p className="mt-2 font-mono text-[10px] text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p>) : null}
               </div>
             );
           })}

@@ -158,16 +158,21 @@ describe("sitasi tidak pernah berbohong tentang tautan", () => {
     for (const event of flows) {
       expect(event.citations[0].endpoint, event.id).toContain("/v2/foreign-flow/");
     }
+    // Both paths now name the recording that produced the event:
+    // v2_company_corporate-actions_<symbol>.json and
+    // v2_mining_commodities_<name>_price__*.json. The shorter paths this test
+    // used to lock were never called by the bundle.
     const actions = events.filter((event) => event.id.startsWith("filing-corporate-action-"));
     expect(actions.length).toBeGreaterThan(0);
     for (const event of actions) {
-      expect(event.citations[0].endpoint, event.id).toContain("/v2/corporate-actions/");
+      expect(event.citations[0].endpoint, event.id).toContain("/v2/company/corporate-actions/");
       expect(event.citations[0].url, event.id).toBeUndefined();
     }
     const commodities = events.filter((event) => rawById.get(event.id)?.sourceType === "commodity");
     expect(commodities.length).toBeGreaterThan(0);
     for (const event of commodities) {
-      expect(event.citations[0].endpoint, event.id).toBe("/v2/mining-commodities/");
+      expect(event.citations[0].endpoint, event.id).toMatch(/^\/v2\/mining\/commodities\/(Gold|Coal)\/price\/$/);
+      expect(event.citations[0].field, event.id).toBe("name, date, price_usd_per_ton");
     }
   });
 

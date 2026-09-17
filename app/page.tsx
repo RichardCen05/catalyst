@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { agentEngine } from "@/lib/agent/engine";
-import { citations as fixtureCitations, companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { formatAsOf } from "@/lib/utils";
@@ -61,7 +61,14 @@ export default function DashboardPage() {
     .slice(0, 3);
   const pending = insights.filter((item) => item.status === "pending");
   const conflictCount = openCases.filter((item) => item.contradictions.length > 0).length;
-  const citations = [...openCases.flatMap((item) => item.sources), fixtureCitations.market];
+  // The dashboard's own counters read the recorded universe: closes from the
+  // daily recording, names and market caps from the company report overview.
+  // The old single "Ringkasan pasar umum" entry pointed at /v2/close/, an
+  // endpoint this bundle never called.
+  const citations = [
+    ...openCases.flatMap((item) => item.sources),
+    ...companies.flatMap((company) => company.citations),
+  ];
 
   const asOfDate = new Date(DATA_AS_OF);
   const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
@@ -100,7 +107,7 @@ export default function DashboardPage() {
               const Icon = conflict ? IconAttention : IconDocument;
               const openNotes = pending.filter((item) => item.symbol === analysis.company.symbol).length;
               const exposure = holdingExposure(holdings[analysis.company.symbol], analysis.company.price);
-              return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} data-tour-action={analysis.company.symbol === "ANTM" ? "open-antm-case" : undefined} className="group grid gap-3 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-start"><span className={`grid size-9 place-items-center rounded-lg ${conflict ? "bg-danger/10 text-danger" : "bg-primary/10 text-primary"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span>{profile.owned.includes(analysis.company.symbol) ? <span className="rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">Dimiliki</span> : null}{exposure > 0 ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Eksposur Rp{(exposure / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 1 })}M</span> : null}<span className="text-sm font-medium">{analysis.materialChange.whatChanged.replace(`${analysis.company.symbol}: `, "")}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><IconNote aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><dl className="mt-2 space-y-1 text-xs leading-5"><div className="flex gap-2"><dt className="w-[70px] shrink-0 font-mono text-[9px] uppercase tracking-wider text-primary">Pembanding</dt><dd className="line-clamp-1 text-muted-foreground">{analysis.materialChange.baseline}</dd></div><div className="flex gap-2"><dt className="w-[70px] shrink-0 font-mono text-[9px] uppercase tracking-wider text-primary">Alasan</dt><dd className="line-clamp-1 text-muted-foreground">{analysis.materialChange.whyMaterial}</dd></div></dl><p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan riset · {dispositionLabel(analysis.researchDisposition.kind)}</p></div><StatusBadge status={analysis.evidenceState} /></Link>;
+              return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} data-tour-action={analysis.company.symbol === "ANTM" ? "open-antm-case" : undefined} className="group grid gap-3 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-start"><span className={`grid size-9 place-items-center rounded-lg ${conflict ? "bg-danger/10 text-danger" : "bg-primary/10 text-primary"}`}><Icon aria-hidden="true" className="size-4" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{analysis.company.symbol}</span>{profile.owned.includes(analysis.company.symbol) ? <span className="rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">Dimiliki</span> : null}{exposure !== null && exposure > 0 ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Eksposur Rp{(exposure / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 1 })}M</span> : null}<span className="text-sm font-medium">{analysis.materialChange.whatChanged.replace(`${analysis.company.symbol}: `, "")}</span>{openNotes ? <span className="inline-flex items-center gap-1 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground"><IconNote aria-hidden="true" className="size-3" />{openNotes} catatan</span> : null}</div><dl className="mt-2 space-y-1 text-xs leading-5"><div className="flex gap-2"><dt className="w-[70px] shrink-0 font-mono text-[9px] uppercase tracking-wider text-primary">Pembanding</dt><dd className="line-clamp-1 text-muted-foreground">{analysis.materialChange.baseline}</dd></div><div className="flex gap-2"><dt className="w-[70px] shrink-0 font-mono text-[9px] uppercase tracking-wider text-primary">Alasan</dt><dd className="line-clamp-1 text-muted-foreground">{analysis.materialChange.whyMaterial}</dd></div></dl><p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan riset · {dispositionLabel(analysis.researchDisposition.kind)}</p></div><StatusBadge status={analysis.evidenceState} /></Link>;
             })}
           </div>
         </Panel>

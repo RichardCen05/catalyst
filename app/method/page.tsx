@@ -1,4 +1,4 @@
-import { DATA_AS_OF, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { DATA_AS_OF, DATA_AS_OF_LABEL, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
@@ -44,12 +44,14 @@ export default function MethodPage() {
       <Panel className="mt-4">
         <PanelHeader eyebrow="Batas yang diketahui" title="Faktor yang belum diperiksa" />
         <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">{[
-          { icon: IconCode, title: "Data statis", text: "Angka dihitung dari rekaman 11 Sep 2026. Lapisan opsional (model bahasa, pengambilan web, memori GCS) aktif bila dikonfigurasi, dan selalu jatuh ke hasil deterministik bila gagal." },
+          { icon: IconCode, title: "Data statis", text: `Angka dihitung dari rekaman ${DATA_AS_OF_LABEL}. Lapisan opsional (model bahasa, pengambilan web, memori GCS) aktif bila dikonfigurasi, dan selalu jatuh ke hasil deterministik bila gagal.` },
           { icon: IconAttention, title: "Tanpa data intrahari", text: "Grafik memakai harga penutupan dan volume harian. Antrean transaksi tidak tersedia." },
           { icon: IconScales, title: "Tanpa motif", text: "Kode broker ditampilkan sebagai fakta transaksi, bukan atribusi niat." },
+          { icon: IconDraftData, title: "Relevansi adalah peringkat Catalyst", text: "Angka \u201cRelevansi n/100\u201d pada rantai sebab akibat dihitung oleh Catalyst dari tag dan sebaran simbol pada rekaman — bukan skor yang diberikan penyedia data. Pakai sebagai urutan pemeriksaan, bukan sebagai bukti." },
+          { icon: IconSource, title: "Sumber dihitung per angka", text: "Jumlah sumber pada tiap metrik hanya menghitung rekaman yang menghasilkan angka itu. Dua metrik pada satu kartu dapat berbeda jumlah sumbernya." },
           { icon: IconAttention, title: "Tanpa aksi", text: "Hasil berhenti pada bukti, konflik, dan informasi yang belum ada." },
         ].map((item) => <article key={item.title} className="bg-surface p-4"><item.icon aria-hidden="true" className="size-5 text-attention" /><h3 className="mt-3 font-semibold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p></article>)}</div>
-        <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah rekaman 11 Sep 2026 dan bukan kondisi pasar live. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
+        <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah rekaman {DATA_AS_OF_LABEL} dan bukan kondisi pasar live. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
       </Panel>
     </div>
   );

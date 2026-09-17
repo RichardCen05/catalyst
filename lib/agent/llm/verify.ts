@@ -26,6 +26,16 @@ function canonicalNumeral(numeral: string): string {
   return percent ? `${digits}%` : digits;
 }
 
+/**
+ * Every numeral in `text`, de-duplicated, in the same shape the verifier
+ * compares. Callers build the allowed pool from whatever the reader can
+ * already see, so the pattern that decides what counts as a number lives
+ * here rather than being re-typed at each call site.
+ */
+export function extractNumerals(...texts: string[]): string[] {
+  return [...new Set(texts.flatMap((text) => text.match(NUMBER_PATTERN) ?? []))];
+}
+
 export function verifyDraft(draftText: string, evidenceNumbers: string[], _citations: Citation[]): VerificationResult {
   const allowed = new Set(evidenceNumbers.map(canonicalNumeral));
   const found = draftText.match(NUMBER_PATTERN) ?? [];

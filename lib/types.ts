@@ -426,7 +426,7 @@ export interface ChatRequest {
 export interface ChatAnswer {
   text: string;
   refused: boolean;
-  intent: "why-listed" | "event-impact" | "compare" | "missing" | "advice" | "unknown";
+  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "advice" | "unknown";
   hypotheses: HypothesisTrace[];
   citations: Citation[];
   preferenceNote: string;
