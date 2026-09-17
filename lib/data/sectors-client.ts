@@ -120,7 +120,15 @@ export async function fetchSectors<T>(
   recentCallTimestamps.push(now);
   lastCallAt = now;
   const response = await fetch(url, { headers: { Authorization: options.apiKey } });
-  if (!response.ok) throw new Error(`Sectors API ${response.status} on ${path}`);
+  if (!response.ok) {
+    // Carry the API's own reason. A bare "Sectors API 400" told an operator
+    // nothing, and on a non-refillable grant the next move after an opaque
+    // failure is a blind retry — which is the one thing this client exists to
+    // prevent. The body is the API's error text; the key is in a header and
+    // never in it.
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Sectors API ${response.status} on ${path}${detail ? `: ${detail.slice(0, 300)}` : ""}`);
+  }
   const data = (await response.json()) as T;
 
   await appendLedger(date, { path, cost: options.cost, at: new Date().toISOString() });
