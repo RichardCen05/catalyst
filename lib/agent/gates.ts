@@ -1,5 +1,19 @@
 import type { Citation, PillarResult } from "@/lib/types";
 
+/**
+ * The checks that actually run, named once.
+ *
+ * The audit panel printed "3 · sumber, konflik, bahasa" as a literal. Adding
+ * or removing a gate would have left that line claiming a number of checks
+ * the code no longer performs — a claim about the app's own rigour that
+ * nothing verified.
+ */
+export const ACTIVE_GATES = [
+  { key: "citations", label: "sumber", detail: "Setiap angka wajib membawa penyedia, lokasi data, nama data, dan waktu sumber." },
+  { key: "conflict", label: "konflik", detail: "Asal partisipan dominan diperiksa silang dengan arus asing agregat." },
+  { key: "language", label: "bahasa", detail: "Permintaan dan jawaban bernuansa transaksi ditolak." },
+] as const;
+
 export function isCompleteCitation(citation: Citation): boolean {
   return Boolean(citation.provider && citation.endpoint && citation.field && citation.asOf);
 }

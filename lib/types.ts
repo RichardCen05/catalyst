@@ -298,6 +298,20 @@ export interface ResearchCase {
   hypotheses: HypothesisTrace[];
   sources: Citation[];
   missingEvidence: string[];
+  /**
+   * The volume anomaly recomputed over trailing halves of the window.
+   *
+   * Computed in the engine rather than in the component that draws it. The
+   * component used to call `describeSignalStability` itself, which meant three
+   * figures on the case page carried no citations at all — the only numbers on
+   * screen with no source — and the assistant could not answer a question
+   * about them because they existed nowhere in the case it reads.
+   */
+  signalStability: {
+    agreement: string;
+    note: string;
+    windows: MetricValue[];
+  };
   priceSeries: PricePoint[];
   financialContext: FinancialInput[];
   asOf: string;

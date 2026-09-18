@@ -1,5 +1,6 @@
 import type { PricePoint } from "@/lib/types";
 import type { VolumeFloors } from "@/lib/agent/metrics";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 export interface SignalStability {
   /** Robust-z of the latest session against each trailing sub-window. */
@@ -26,9 +27,12 @@ function robustZ(latest: number, baseline: number[]): number | null {
 function statusFor(z: number | null, floors?: VolumeFloors): string {
   if (z === null) return "Data belum cukup";
   // C5: di-thread lewat resolveThresholds agar slider menggerakkan label ini juga.
-  // Default disatukan ke live values mesin (5/2.5), bukan 3/2 lama di file ini.
-  const elevated = typeof floors?.elevated === "number" ? floors.elevated : 2.5;
-  const extreme = typeof floors?.extreme === "number" ? floors.extreme : 5;
+  // The fallbacks read DEFAULT_THRESHOLDS instead of repeating 2.5 and 5 here:
+  // a second copy of a threshold is a threshold that can drift away from the
+  // one the pillars use, and the two would then label the same volume
+  // differently on the same page.
+  const elevated = typeof floors?.elevated === "number" ? floors.elevated : DEFAULT_THRESHOLDS.volumeZFloor;
+  const extreme = typeof floors?.extreme === "number" ? floors.extreme : DEFAULT_THRESHOLDS.volumeExtremeFloor;
   if (z >= extreme) return "Ekstrem";
   if (z >= elevated) return "Meningkat";
   return "Normal";

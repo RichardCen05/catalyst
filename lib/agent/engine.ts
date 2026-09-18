@@ -1,8 +1,10 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, coverageInfo, DATA_AS_OF_LABEL, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, coverageInfo, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
+import { describeSignalStability } from "@/lib/agent/signal-history";
+import { RESEARCH_LIFECYCLE } from "@/lib/agent/lifecycle";
 import {
   calculateConcentration,
   calculateMomentum,
@@ -31,7 +33,7 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
-import { describeCaseSources, explainMetric, matchFieldName, matchMetric } from "@/lib/agent/explain";
+import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
@@ -356,6 +358,11 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     extreme: thresholds.volumeExtremeFloor,
   });
 
+  const stability = describeSignalStability(series, {
+    elevated: thresholds.volumeZFloor,
+    extreme: thresholds.volumeExtremeFloor,
+  });
+
   const startPoint = series.at(-4)!;
   const stockReturn = currentPoint.close / startPoint.close - 1;
   const marketReturn = currentPoint.ihsg / startPoint.ihsg - 1;
@@ -532,6 +539,18 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       metrics: [
         { label: "Peristiwa terhubung", value: String(relatedEvents.length), citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)] },
         { label: "Arah utama", value: catalystDirection === "Supported" ? "Mendukung" : catalystDirection === "Adverse" ? "Berlawanan" : catalystDirection === "Mixed" ? "Bercampur" : "Belum terverifikasi", citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)] },
+        // Already quoted in the case prose as "Relevansi eksposur 90/100" and
+        // drawn on the causal chain as "90/100", but it existed nowhere the
+        // assistant could find it. It is a Catalyst rank, not a provider
+        // score, and its gloss says so.
+        {
+          label: "Relevansi eksposur",
+          value: primaryEvent
+            ? `${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.relevance ?? 0}/100`
+            : "Belum tersedia",
+          detail: `ambang ${thresholds.relevanceFloor}`,
+          citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)],
+        },
       ], citations: catalystCitations.length ? catalystCitations : [citations.empty(symbol)],
       calculation: {
         name: "Uji jalur katalis",
@@ -728,13 +747,17 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     sourcePlan: researchPlan.sourcePlan,
     clarificationGate: researchPlan.clarificationGate,
     clarification,
-    lifecycle: [
-      { key: "mandate", label: "Pertanyaan", state: "complete" },
-      { key: "decompose", label: "Tentukan fokus", state: clarification.required ? "blocked" : "complete" },
-      { key: "source-plan", label: "Pilih sumber", state: clarification.required ? "blocked" : "complete" },
-      { key: "evidence", label: "Uji bukti", state: clarification.required ? "blocked" : "complete" },
-      { key: "review", label: "Tentukan tindakan", state: clarification.required ? "blocked" : "active" },
-    ],
+    // Stage names come from RESEARCH_LIFECYCLE so the method page cannot
+    // describe a different process than the one that runs.
+    lifecycle: RESEARCH_LIFECYCLE.map(({ key, label }) => ({
+      key,
+      label,
+      state: key === "mandate"
+        ? "complete" as const
+        : clarification.required
+          ? "blocked" as const
+          : key === "review" ? "active" as const : "complete" as const,
+    })),
     primaryCausalPath: primaryLink?.path ?? "Belum ada jalur utama yang terverifikasi.",
     researchPlan,
     businessImpact,
@@ -755,6 +778,19 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       institutionalFlows: flows.length,
       hasLeadershipEvent: relatedEvents.some((e) => e.id.startsWith("filing-corporate-action-leadership-")),
     }),
+    // The stability read travels with the case, citations attached. It is the
+    // same robust-z formula as the Volume pillar, sliced differently, so it
+    // reads the same daily recording — and now says so.
+    signalStability: {
+      agreement: stability.agreement,
+      note: stability.note,
+      windows: stability.windowScores.map((window) => ({
+        label: window.label,
+        value: window.robustZ === null ? "Belum tersedia" : window.robustZ.toFixed(2),
+        detail: window.status,
+        citations: dailyCitations,
+      })),
+    },
     priceSeries: series,
     financialContext: fixture.financialContext,
     asOf: company.asOf,
@@ -943,7 +979,8 @@ function isExplainQuestion(question: string): boolean {
  * "Berdasarkan evidence summary yang diberikan" preamble and a denial.
  */
 function provenanceAnswer(analysis: AnalysisCase, question: string): { text: string; citations: Citation[] } {
-  const hit = matchMetric(analysis.pillars, question, extractNumerals);
+  const figures = answerableFigures(analysis);
+  const hit = matchFigure(figures, question, extractNumerals);
   if (!hit) {
     // A column name, not a figure: "what is buy_idr" is answerable and used
     // to land in the menu below.
@@ -963,21 +1000,33 @@ function provenanceAnswer(analysis: AnalysisCase, question: string): { text: str
       };
     }
     // Otherwise name what this case can answer instead of dumping thirteen
-    // endpoint strings at a reader who asked one question.
-    const menu = analysis.pillars
-      .map((pillar) => `${pillar.label}: ${pillar.metrics.map((metric) => `${metric.label} ${metric.value}`).join(", ")}`)
-      .join("\n");
+    // endpoint strings at a reader who asked one question. The menu is built
+    // from the same list the answer path searches, so it can never offer a
+    // figure the assistant cannot then explain.
+    const groups = new Map<string, string[]>();
+    for (const figure of figures) {
+      const entries = groups.get(figure.group) ?? [];
+      entries.push(`${figure.metric.label} ${figure.metric.value}`);
+      groups.set(figure.group, entries);
+    }
+    const menu = [...groups.entries()].map(([group, entries]) => `${group}: ${entries.join(", ")}`).join("\n");
     return {
       text: `Belum jelas angka mana yang dimaksud pada kasus ${analysis.company.symbol}. Angka yang tersedia:\n${menu}\n\nSebut salah satu labelnya atau tempelkan angkanya, dan saya jelaskan artinya, rekaman sumbernya, dan cara hitungnya.`,
       citations: analysis.sources,
     };
   }
-  const { pillar, metric } = hit;
-  const body = explainMetric(pillar, metric);
-  const spread = new Set(pillar.metrics.map((item) => item.citations.length)).size > 1
-    ? "\nJumlah sumber dihitung per angka, bukan per kartu, jadi dua angka pada satu pilar bisa berbeda jumlah rekamannya."
+  // A pillar's substitution line is only offered when the figure belongs to
+  // that pillar; `explainFigure` still slices it to the owning metric.
+  const pillar = analysis.pillars.find((item) => item.label === hit.group);
+  const body = explainFigure(hit, pillar?.calculation?.substitution);
+  const siblings = pillar?.metrics ?? figures.filter((figure) => figure.group === hit.group).map((figure) => figure.metric);
+  const spread = new Set(siblings.map((item) => item.citations.length)).size > 1
+    ? "\nJumlah sumber dihitung per angka, bukan per kartu, jadi dua angka pada satu kartu bisa berbeda jumlah rekamannya."
     : "";
-  return { text: `${body}${spread}`, citations: metric.citations };
+  const pointer = pillar?.calculation
+    ? `\nBlok "Perhitungan dan data" pada pilar ${pillar.label} menampilkan substitusi lengkapnya.`
+    : "";
+  return { text: `${body}${pointer}${spread}`, citations: hit.metric.citations };
 }
 
 async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
@@ -1086,7 +1135,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 
   // A bare metric name is a question about that metric. "hhi" used to reach
   // the why-listed branch and come back with revenue figures.
-  if (analysis && matchMetric(analysis.pillars, request.question, extractNumerals) && question.trim().split(/\s+/).length <= 4) {
+  if (analysis && matchFigure(answerableFigures(analysis), request.question, extractNumerals) && question.trim().split(/\s+/).length <= 4) {
     const provenance = provenanceAnswer(analysis, request.question);
     return {
       text: provenance.text, refused: false, intent: "explain",
@@ -1257,6 +1306,20 @@ async function buildCausalGraph(
       ? `Jalur harus mencapai ${impactLabels[dimension].toLowerCase()} sebelum dianggap material.`
       : `Dampak diuji pada ${impactLabels[dimension].toLowerCase()}.`;
   };
+  /**
+   * Say when the commodity-to-issuer link is an assumption.
+   *
+   * `COMMODITY_EXPOSURE` in lib/agent/contagion.ts is hand-written domain
+   * knowledge: the recordings carry commodity prices and company overviews,
+   * but nothing in them states that a gold price move reaches ANTM. Where a
+   * revenue segment was recorded the path cites its share and the claim is
+   * evidence; where it was not, the link is Catalyst's own mapping and the
+   * chain must not imply the provider supplied it.
+   */
+  const exposureAssumption = (event: MarketEvent): string =>
+    event.sourceType === "commodity" && !(revenueSegments[symbol]?.length)
+      ? ` Kaitan komoditas ke ${symbol} adalah asumsi peta eksposur Catalyst, bukan bagian dari rekaman penyedia: segmen pendapatan ${symbol} belum terekam, jadi porsi pendapatan yang terpapar belum dapat diperiksa.`
+      : "";
   const eligible = linked.filter(({ link }) => link.relevance >= options.minRelevance).sort((a, b) => b.link.relevance - a.link.relevance);
   // Bounded, not fixed: the graph shows at most this many sources so the
   // chain stays readable, and `hiddenRelationshipCount` says exactly how many
@@ -1295,14 +1358,14 @@ async function buildCausalGraph(
       counterEvidence: `Nilai ini berasal dari rekaman ${DATA_AS_OF_LABEL}. Kejadian, waktu, dan cakupan produksi masih perlu diperiksa pada sumber langsung.`, citations: event.citations,
     });
     nodes.push({
-      id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}`,
+      id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}${exposureAssumption(event)}`,
       sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,
       basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event),
       counterEvidence: resolvedLink.rationale.includes("belum") || resolvedLink.rationale.includes("harus") ? resolvedLink.rationale : "Jalur belum mengisolasi faktor pasar dan sektor lain pada jendela yang sama.", citations: resolvedLink.citations,
     });
     edges.push(
       { id: `${sourceId}-to-${mechanismId}`, from: sourceId, to: mechanismId, label: event.category, direction: link.direction, relevance: link.relevance, basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: link.path, expectedObservable: expectedFor(event), alternativeExplanation: "Perubahan pasar atau sektor lain terjadi pada jendela yang sama.", falsificationCondition: `Jalur ditahan bila ${expectedFor(event).toLowerCase()} tidak terlihat setelah ${lagFor(event)}.`, confidenceBasis: `Relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Sumber dan waktu tersedia, tetapi belum merupakan bukti sebab akibat.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: implicationFor(event, "reach"), citations: event.citations },
-      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: "Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.", falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: implicationFor(event, "tested"), citations: link.citations },
+      { id: `${mechanismId}-to-company-${symbol}`, from: mechanismId, to: `company-${symbol}`, label: link.direction, direction: link.direction, relevance: link.relevance, basis: "Causal hypothesis", confidence: confidenceFor(link.relevance), lag: lagFor(event), exposure: `${symbol} · ${link.path}`, expectedObservable: expectedFor(event), alternativeExplanation: `Gerak dapat berasal dari arus pasar, sektor, atau pemicu perusahaan lain yang belum tercakup.${exposureAssumption(event)}`, falsificationCondition: `Hipotesis dibatalkan bila indikator perusahaan tidak muncul atau bergerak berlawanan setelah ${lagFor(event)}.`, confidenceBasis: `Jalur eksposur tertulis dan relevansi ${link.relevance}/100 vs ambang ${graphFloor}. Faktor lain belum sepenuhnya dipisahkan.`, businessImpactDimension: businessDimensionFor(event), businessImpactImplication: implicationFor(event, "tested"), citations: link.citations },
     );
   }
 

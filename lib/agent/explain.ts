@@ -1,4 +1,4 @@
-import type { Citation, MetricValue, PillarResult } from "@/lib/types";
+import type { AnalysisCase, Citation, MetricValue, PillarResult } from "@/lib/types";
 
 /**
  * Turn a citation and a metric into something a reader can actually check.
@@ -37,6 +37,12 @@ const METRIC_GLOSS: Record<string, string> = {
   "Imbal hasil sektor": "rata-rata perubahan harga emiten satu sektor, dibobot kapitalisasi pasar.",
   "Peristiwa terhubung": "jumlah peristiwa terekam yang memiliki jalur dampak ke emiten ini.",
   "Arah utama": "arah dampak peristiwa utama terhadap emiten, menurut jalur eksposur yang terekam.",
+  "Relevansi eksposur": "peringkat yang dihitung Catalyst dari tag dan sebaran simbol pada rekaman, bukan skor yang diberikan penyedia data. Dipakai untuk mengurutkan pemeriksaan terhadap ambang aturan riset, bukan sebagai bukti.",
+  "Paruh awal": "skor anomali volume yang sama, dihitung ulang hanya terhadap separuh awal jendela pembanding. Dipakai untuk menguji apakah sinyalnya bertahan.",
+  "Paruh akhir": "skor anomali volume yang sama, dihitung ulang hanya terhadap separuh akhir jendela pembanding.",
+  "Pembanding penuh": "skor anomali volume terhadap seluruh jendela pembanding — angka acuan yang dibandingkan dengan kedua paruh.",
+  "Harga penutupan": "harga penutupan terakhir pada rekaman, bukan harga live.",
+  "Perubahan harga harian": "perubahan harga penutupan terhadap sesi bursa sebelumnya pada rekaman.",
 };
 
 /** Response keys, in words. A reader who sees `net_foreign_inflow` in a
@@ -139,6 +145,11 @@ const METRIC_FORMULA: Record<string, string> = {
   "Imbal hasil sektor": "Σ (imbal hasil 3 hari emiten sektor × kapitalisasi pasarnya) ÷ Σ kapitalisasi pasar sektor",
   "Peristiwa terhubung": "jumlah peristiwa terekam yang punya jalur dampak ke emiten ini",
   "Arah utama": "arah jalur dampak peristiwa dengan relevansi tertinggi",
+  "Relevansi eksposur": "filing = 95; selain itu 88 dikurangi 6 untuk setiap simbol tambahan yang disebut sumber (minimum 40), +2 bila dimensinya keuangan atau proyeksi, dibatasi 97",
+  "Paruh awal": "0,6745 × (volume terakhir − median paruh awal) ÷ MAD paruh awal",
+  "Paruh akhir": "0,6745 × (volume terakhir − median paruh akhir) ÷ MAD paruh akhir",
+  "Pembanding penuh": "0,6745 × (volume terakhir − median seluruh pembanding) ÷ MAD seluruh pembanding",
+  "Perubahan harga harian": "(harga penutupan terakhir ÷ harga penutupan sesi sebelumnya) − 1",
 };
 
 /** The part of a pillar's substitution line that belongs to one metric, or
@@ -157,7 +168,7 @@ function ownSubstitution(substitution: string, label: string): string | undefine
 const SOLE_SUBSTITUTION_OWNER = new Set(["Skor z tahan pencilan", "Residual setelah beta"]);
 
 /** Metrics that are a recorded value or a label, not a calculation. */
-const METRIC_READ_DIRECTLY = new Set(["Volume terbaru", "Pembanding"]);
+const METRIC_READ_DIRECTLY = new Set(["Volume terbaru", "Pembanding", "Harga penutupan"]);
 
 export function explainMetric(
   pillar: PillarResult,
@@ -214,6 +225,12 @@ const METRIC_ALIASES: Record<string, string[]> = {
   "Imbal hasil sektor": ["imbal hasil sektor", "return sektor", "sector return", "sektor"],
   "Peristiwa terhubung": ["peristiwa terhubung", "jumlah peristiwa", "linked events", "events"],
   "Arah utama": ["arah utama", "arah dampak", "main direction", "direction"],
+  "Relevansi eksposur": ["relevansi", "relevance", "skor relevansi", "90/100"],
+  "Paruh awal": ["paruh awal", "first half", "early half"],
+  "Paruh akhir": ["paruh akhir", "second half", "late half"],
+  "Pembanding penuh": ["pembanding penuh", "full baseline", "seluruh pembanding"],
+  "Harga penutupan": ["harga penutupan", "harga terakhir", "closing price", "last price", "harga saham"],
+  "Perubahan harga harian": ["perubahan harga", "change pct", "daily change", "perubahan harian"],
 };
 
 /** Digits only, percent sign kept — so `27,5%` and `27.5%` are one figure
@@ -281,4 +298,120 @@ export function describeCaseSources(citations: Citation[]): string {
   return `${unique.length} rekaman:\n${plain}\n\nRincian teknis untuk diperiksa: ${unique.map(describeSourceTechnical).join(" | ")}`;
 }
 
-export { METRIC_GLOSS, METRIC_ALIASES, FIELD_GLOSS };
+/**
+ * Every figure the case shows a reader, in one list.
+ *
+ * The rule this enforces: if it is on screen, the assistant can explain it.
+ * Matching used to search the four pillars only, so the three signal-stability
+ * scores, the quarterly financial rows and the price in the case header were
+ * unanswerable — the reader could see them and the assistant would deny they
+ * existed. Both sides now read this list, and `tests/ui-figure-coverage.test.ts`
+ * fails if a displayed figure is missing from it.
+ */
+export interface AnswerableFigure {
+  group: string;
+  metric: MetricValue;
+  /** Per-figure meaning, for figures whose explanation is recorded with them
+   *  (a quarterly row carries its own interpretation). */
+  gloss?: string;
+  formulaOverride?: string;
+  readDirectly?: boolean;
+}
+
+export function answerableFigures(analysis: AnalysisCase): AnswerableFigure[] {
+  return [
+    ...analysis.pillars.flatMap((pillar) =>
+      pillar.metrics.map((metric) => ({ group: pillar.label, metric }))),
+    ...analysis.signalStability.windows.map((metric) => ({ group: "Rekam jejak sinyal", metric })),
+    // A quarterly row explains itself: `interpretation` is recorded next to
+    // the number and is already written for a reader.
+    ...analysis.financialContext.map((row) => ({
+      group: `Data keuangan ${row.period}`,
+      metric: { label: row.label, value: row.value, detail: row.period, citations: row.citations },
+      gloss: row.interpretation,
+      readDirectly: true,
+    })),
+    {
+      group: "Header kasus",
+      metric: {
+        label: "Harga penutupan",
+        value: `Rp${analysis.company.price.toLocaleString("id-ID")}`,
+        citations: analysis.company.citations,
+      },
+      readDirectly: true,
+    },
+    {
+      group: "Header kasus",
+      metric: {
+        label: "Perubahan harga harian",
+        value: `${analysis.company.changePct.toLocaleString("id-ID")}%`,
+        citations: analysis.company.citations,
+      },
+    },
+  ];
+}
+
+/** The figure a question is about, searched across everything on screen. */
+export function matchFigure(
+  figures: AnswerableFigure[],
+  question: string,
+  extractNumerals: (...texts: string[]) => string[],
+): AnswerableFigure | undefined {
+  const lower = question.toLowerCase();
+  // A label the reader typed in full outranks a number inside it. "Imbal hasil
+  // 3 hari" carries a "3", and matching numbers first answered that question
+  // with whichever figure happened to contain a 3.
+  const labelFirst = figures
+    .filter(({ metric }) => lower.includes(metric.label.toLowerCase()))
+    .sort((first, second) => second.metric.label.length - first.metric.label.length);
+  if (labelFirst.length) return labelFirst[0];
+  // A quoted figure has to look like a figure. A lone digit is almost always
+  // part of a phrase ("3 hari", "28 hari"), not a value pasted from the page.
+  const asked = extractNumerals(question).map(canonicalFigure).filter((figure) => figure.replace("%", "").length > 1);
+  if (asked.length) {
+    const byFigure = figures.find(({ metric }) =>
+      extractNumerals(metric.value).map(canonicalFigure).some((figure) => asked.includes(figure)));
+    if (byFigure) return byFigure;
+  }
+  // A full label beats an alias, and the longest match beats a shorter one.
+  // Both orderings fix a real mismatch: "Rasio churn broker teratas (proksi)"
+  // contains "broker teratas", an alias of the top-participant share, so the
+  // churn question was answered with a different figure; and a case carrying
+  // both "Revenue" and "Revenue QoQ" answered the QoQ question with plain
+  // revenue.
+  const labelHits = figures
+    .filter(({ metric }) => lower.includes(metric.label.toLowerCase()))
+    .sort((first, second) => second.metric.label.length - first.metric.label.length);
+  if (labelHits.length) return labelHits[0];
+  const aliasHits = figures
+    .flatMap((figure) =>
+      (METRIC_ALIASES[figure.metric.label] ?? []).filter((alias) => lower.includes(alias)).map((alias) => ({ figure, alias })))
+    .sort((first, second) => second.alias.length - first.alias.length);
+  if (aliasHits.length) return aliasHits[0].figure;
+  return figures.find(({ group }) => lower.includes(group.toLowerCase()));
+}
+
+/** Meaning, source in plain words, arithmetic, then the technical address. */
+export function explainFigure(figure: AnswerableFigure, substitutionSource?: string): string {
+  const { metric, group } = figure;
+  const gloss = figure.gloss ?? METRIC_GLOSS[metric.label];
+  const lines = [`${metric.label}: ${metric.value}${metric.detail ? ` (${metric.detail})` : ""} — ${group}.`];
+  if (gloss) lines.push(`Arti angka ini: ${gloss}`);
+  lines.push(
+    metric.citations.length === 1
+      ? `Dibaca dari 1 rekaman: ${describeSourcePlain(metric.citations[0])}.`
+      : `Dibaca dari ${metric.citations.length} rekaman: ${metric.citations.map(describeSourcePlain).join("; ")}.`,
+  );
+  const formula = figure.formulaOverride ?? METRIC_FORMULA[metric.label];
+  if (formula) {
+    lines.push(`Cara hitung: ${formula}`);
+  } else if (figure.readDirectly || METRIC_READ_DIRECTLY.has(metric.label)) {
+    lines.push("Cara hitung: tidak dihitung — nilai ini dibaca langsung dari rekaman.");
+  }
+  const substitution = substitutionSource && formula ? ownSubstitution(substitutionSource, metric.label) : undefined;
+  if (substitution) lines.push(`Angka yang dimasukkan: ${substitution}`);
+  lines.push(`Rincian teknis untuk diperiksa: ${metric.citations.map(describeSourceTechnical).join(" | ")}`);
+  return lines.join("\n");
+}
+
+export { METRIC_GLOSS, METRIC_ALIASES, METRIC_FORMULA, METRIC_READ_DIRECTLY, FIELD_GLOSS };

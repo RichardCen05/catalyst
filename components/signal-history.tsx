@@ -1,17 +1,18 @@
-"use client";
+import { Database } from "lucide-react";
+import { CitationDialog } from "@/components/citation-dialog";
+import type { ResearchCase } from "@/lib/types";
 
-import { describeSignalStability } from "@/lib/agent/signal-history";
-import { resolveThresholds } from "@/lib/agent/thresholds";
-import { useCatalystStore } from "@/lib/store";
-import type { PricePoint } from "@/lib/types";
-
-/** Stability read over trailing halves of the recorded volume window. */
-export function SignalHistory({ series }: { series: PricePoint[] }) {
-  // C5: slider harus menggerakkan label ini juga, bukan hanya pilar.
-  const playbook = useCatalystStore((s) => s.playbook);
-  const t = resolveThresholds(playbook);
-  const stability = describeSignalStability(series, { elevated: t.volumeZFloor, extreme: t.volumeExtremeFloor });
-  if (!stability.windowScores.length) {
+/**
+ * Stability read over trailing halves of the recorded volume window.
+ *
+ * The figures come from the case, not from a second call to
+ * `describeSignalStability` here. Recomputing them in the component left
+ * three numbers on the page with no citation and no way for the assistant to
+ * answer a question about them, and kept a second copy of the volume
+ * thresholds in client code where it could drift from the pillars'.
+ */
+export function SignalHistory({ stability }: { stability: ResearchCase["signalStability"] }) {
+  if (!stability.windows.length) {
     return (
       <section aria-label="Rekam jejak sinyal" className="mt-4 rounded-[10px] border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground">
         <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Rekam jejak sinyal</p>
@@ -26,15 +27,19 @@ export function SignalHistory({ series }: { series: PricePoint[] }) {
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{stability.agreement}</p>
       </div>
       <div className="grid gap-px bg-border sm:grid-cols-3">
-        {stability.windowScores.map((item) => (
+        {stability.windows.map((item) => (
           <div key={item.label} className="bg-surface px-4 py-3">
             <p className="text-xs font-medium">{item.label}</p>
-            <p className="mt-1 font-mono text-sm">{item.robustZ === null ? "—" : item.robustZ.toFixed(2)}</p>
-            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{item.status}</p>
+            <p className="mt-1 font-mono text-sm">{item.value === "Belum tersedia" ? "—" : item.value}</p>
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{item.detail}</p>
+            <p className="mt-1 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-primary"><Database aria-hidden="true" className="size-2.5" />{item.citations.length} sumber</p>
           </div>
         ))}
       </div>
-      <p className="px-4 py-2 text-[11px] leading-5 text-muted-foreground">{stability.note}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
+        <p className="text-[11px] leading-5 text-muted-foreground">{stability.note}</p>
+        <CitationDialog citations={stability.windows.flatMap((item) => item.citations)} label="Periksa data sumber" />
+      </div>
     </section>
   );
 }

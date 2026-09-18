@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle, CheckCircle2, ClipboardCheck, Database, X } from "lucide-react";
 import type { HypothesisTrace, SymbolCode } from "@/lib/types";
+import { ACTIVE_GATES } from "@/lib/agent/gates";
 import { AgentTrace } from "@/components/agent-trace";
 import { Button } from "@/components/ui/button";
 
@@ -33,7 +34,7 @@ export function AnalysisAudit({ symbol, traces, missingEvidence, sourceCount }: 
           <dl className="mt-5 grid border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-border">
             <div className="py-3 sm:px-3 sm:first:pl-0"><dt className="text-xs text-muted-foreground">Hipotesis diuji</dt><dd className="mt-1 font-mono text-lg font-semibold">{traces.length}</dd></div>
             <div className="border-t border-border py-3 sm:border-t-0 sm:px-3"><dt className="text-xs text-muted-foreground">Sumber terhubung</dt><dd className="mt-1 flex items-center gap-1.5 font-mono text-lg font-semibold"><Database aria-hidden="true" className="size-4 text-primary" />{sourceCount}</dd></div>
-            <div className="border-t border-border py-3 sm:border-t-0 sm:px-3"><dt className="text-xs text-muted-foreground">Pemeriksaan aktif</dt><dd className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-positive"><CheckCircle2 aria-hidden="true" className="size-4" />3 · sumber, konflik, bahasa</dd></div>
+            <div className="border-t border-border py-3 sm:border-t-0 sm:px-3"><dt className="text-xs text-muted-foreground">Pemeriksaan aktif</dt><dd className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-positive"><CheckCircle2 aria-hidden="true" className="size-4" />{ACTIVE_GATES.length} · {ACTIVE_GATES.map((gate) => gate.label).join(", ")}</dd></div>
           </dl>
 
           <div className="mt-4"><AgentTrace traces={traces} /></div>

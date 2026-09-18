@@ -71,7 +71,8 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
 
       <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} />
 
-      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Uji hipotesis</p><h2 id="pillars-title" className="mt-1 text-lg font-semibold">Empat pemeriksaan</h2></div><Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Buka aturan riset<IconCaretRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar) => <EvidenceCard key={pillar.key} pillar={pillar} symbol={symbol} />)}</div></section>
+      <section aria-labelledby="pillars-title" className="mt-4"><div className="mb-3 flex items-end justify-between gap-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Uji hipotesis</p>{/* Counted from the pillars actually rendered below. */}
+              <h2 id="pillars-title" className="mt-1 text-lg font-semibold">{analysis.pillars.length} pemeriksaan</h2></div><Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 text-xs text-primary">Buka aturan riset<IconCaretRight aria-hidden="true" className="size-3.5" /></Link></div><div className="grid gap-3 md:grid-cols-2">{analysis.pillars.map((pillar) => <EvidenceCard key={pillar.key} pillar={pillar} symbol={symbol} />)}</div></section>
 
       <Panel className="mt-4">
         <details className="group">
