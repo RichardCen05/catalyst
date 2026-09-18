@@ -1,5 +1,14 @@
 # Rencana: Data Nyata, Agent AI, dan Deploy GCP
 
+> **Status per 18 September 2026.** Dokumen ini adalah rencana desain, bukan catatan keadaan
+> produksi. Untuk deploy, konfigurasi, log, dan lokasi data yang benar-benar hidup, pakai
+> `docs/DEPLOY.md` — isinya diverifikasi langsung ke proyek `ada-sectors-508410`.
+> Bagian 7 di bawah sudah menyimpang dari kenyataan: bucket `catalyst-recorded` tidak pernah
+> dibuat, `catalyst-memory` kosong dan tidak dipakai (memory jatuh ke
+> `gs://katalis-recorded/catalyst/memory/`), job `catalyst-refresh` dan trigger Cloud Build
+> tidak ada, dan secret `OPERATOR_TOKEN` tidak tercatat di sini.
+
+
 Dokumen kerja untuk Catalyst menuju submission Sectors Hackathon 2026 Track 01.
 Disusun 13 September 2026. Batas submission **30 September 2026, 23:59 WIB** — sisa 17 hari.
 

@@ -20,3 +20,7 @@ test-results/
 .env
 .env.*
 !.env.example
+
+# Browser-tool snapshots and machine-local live tests
+.playwright-mcp/
+tests/zz-live.test.ts

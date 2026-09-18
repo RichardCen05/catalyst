@@ -1,0 +1,169 @@
+- generic:
+  - generic [aria-hidden]:
+    - link:
+      - /url: "#main-content"
+      - text: Lewati navigasi
+    - generic:
+      - paragraph:
+        - strong: Rekaman 11 Sep 2026 · 5 hari lalu
+        - text: / Bukan kondisi pasar live
+    - generic:
+      - generic:
+        - banner:
+          - button
+          - link:
+            - /url: /
+            - generic: Catalyst
+          - generic:
+            - button
+            - button
+            - link:
+              - /url: /copilot
+              - generic: Tanya asisten
+        - main:
+          - generic:
+            - generic:
+              - link:
+                - /url: /cases
+                - text: Kasus
+              - generic:
+                - link:
+                  - /url: /cases/ANTM#clarification-gate
+                  - text: Tentukan fokus
+                - button:
+                  - text: Sumber
+                  - generic: "10"
+                - button: Asisten
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: IDX:ANTM
+                    - generic: Bahan dasar
+                    - generic [aria-hidden]: /
+                    - generic: Bahan dasar
+                  - heading [level=1]: Kasus ANTM
+                  - paragraph: Aneka Tambang Tbk.
+                  - paragraph: Data per 11 Sep 2026, 16.15 WIB
+                - generic:
+                  - paragraph: Rp 3.270
+                  - paragraph: +0.0% · rekaman
+                  - generic: Corroborated
+              - paragraph: Konfirmasi pasar dan dampak bisnis memberi bukti yang saling menguatkan pada jendela pengamatan.
+            - generic:
+              - navigation:
+                - tablist:
+                  - tab [selected]: Ringkasan
+                  - tab: Pasar
+                  - tab: Bisnis
+                  - tab: Tinjau
+              - tabpanel:
+                - generic:
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Pertanyaan riset
+                    - generic: Kasus terbuka
+                  - region:
+                    - generic:
+                      - paragraph: Tindakan riset
+                      - generic:
+                        - heading [level=2]: Lanjutkan riset
+                        - generic: Sementara
+                      - paragraph: Perubahan material memiliki bukti lintas lapisan dan perlu diperiksa lebih lanjut pada realisasi harga.
+                    - generic:
+                      - generic:
+                        - term: Pantau
+                        - definition:
+                          - text: Realisasi harga, imbal hasil, atau pendapatan per unit
+                          - button: Jadikan item pantauan
+                      - generic:
+                        - term: Buka kembali jika
+                        - definition: Buka kembali bila realisasi harga, imbal hasil, atau pendapatan per unit berubah atau bukti penyangkal utama tidak lagi berlaku.
+                  - generic:
+                    - generic:
+                      - text: Apa yang ingin dibuktikan?
+                      - textbox: "Periksa perubahan ANTM: uji apakah pemicu, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya."
+                      - generic:
+                        - button: Simpan dan susun ulang
+                    - region:
+                      - paragraph: PEMICU · KASUS-ANTM-20260911
+                      - heading [level=3]: Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion
+                      - paragraph: Volume 1.40× median 27 sesi. Imbal hasil 3 hari 6,2% dibanding sektor 4,2%.
+                  - region:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: Pilih fokus sebelum lanjut
+                          - heading [level=2]: Hasil bisnis mana yang ingin diuji?
+                          - paragraph: Pertanyaan belum menyebut hasil bisnis yang harus berubah. Pilih satu fokus sebelum Catalyst melanjutkan.
+                      - generic:
+                        - button:
+                          - text: Realisasi harga
+                          - strong: Apakah pemicu perlu diuji terhadap realisasi harga ANTM?
+                          - generic: "Sumber: Utamakan harga acuan komoditas, realisasi harga, pendapatan segmen, dan kontrak penjualan."
+                          - generic: "Indikator: Realisasi harga, imbal hasil, atau pendapatan per unit"
+                        - button:
+                          - text: Volume operasi
+                          - strong: Apakah pemicu perlu diuji terhadap volume operasi ANTM?
+                          - generic: "Sumber: Utamakan laporan produksi, volume penjualan, utilisasi, dan gangguan operasi."
+                          - generic: "Indikator: Produksi, volume penjualan, utilisasi, atau jumlah transaksi"
+                  - group:
+                    - generic: Lihat rincian audit
+                  - region:
+                    - paragraph: Antrean pantauan · 2 pemicu menunggu rekaman baru
+                    - list:
+                      - listitem:
+                        - strong: Buka kembali bila indikator bergerak
+                        - generic: Buka kembali bila realisasi harga, imbal hasil, atau pendapatan per unit berubah atau bukti penyangkal utama tidak lagi berlaku.
+                        - generic: "Menunggu · Tindakan riset: Lanjutkan riset"
+                      - listitem:
+                        - strong: Konfirmasi jalur katalis
+                        - generic: Indikator operasional atau keuangan apa yang harus muncul, dan kapan, bila jalur ini benar?
+                        - generic: "Menunggu · Pilar Katalis: Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion. Jalur utama: Harga komoditas → realisasi harga → margin."
+                  - generic:
+                    - paragraph: Catat hasil setelah riset selesai.
+                    - generic:
+                      - button: Salin ringkasan riset
+                      - button: Salin memo riset
+                      - button: Unduh memo .md
+                      - link:
+                        - /url: /cases/ANTM?tab=review#case-resolution
+                        - text: Buka Tinjau
+        - navigation:
+          - link:
+            - /url: /
+            - text: Hari ini
+          - link:
+            - /url: /cases
+            - text: Kasus
+          - link:
+            - /url: /impact
+            - text: Sebab akibat
+          - link:
+            - /url: /pantau
+            - text: Pantau
+          - link:
+            - /url: /copilot
+            - text: Asisten
+  - alert
+  - dialog [ref=f10e2]:
+    - generic [ref=f10e3]:
+      - paragraph [ref=f10e4]: Pengaturan · 1/2
+      - heading "Siapkan ruang riset" [level=2] [ref=f10e5]
+      - generic "Langkah 1 dari 2" [ref=f10e6]
+    - generic [ref=f10e10]:
+      - heading "Pilih saham komoditas yang dipantau" [level=2] [ref=f10e11]
+      - paragraph [ref=f10e12]: Catalyst berfokus pada emiten tambang dan energi. Perubahan harga komoditas, rupiah, cuaca, produksi, dan aturan dapat ditelusuri ke dampak bisnis.
+      - generic [ref=f10e13]:
+        - button "ANTM Bahan dasar" [active] [pressed] [ref=f10e14] [cursor=pointer]:
+          - generic [ref=f10e15]: ANTM
+          - generic [ref=f10e19]: Bahan dasar
+        - button "PGAS Oil, Gas & Coal" [pressed] [ref=f10e20] [cursor=pointer]:
+          - generic [ref=f10e21]: PGAS
+          - generic [ref=f10e25]: Oil, Gas & Coal
+      - generic [ref=f10e26]:
+        - paragraph [ref=f10e27]: Alur harian
+        - paragraph [ref=f10e28]: Pilih perubahan, tetapkan pertanyaan, lacak sebab akibat, lalu tentukan tindakan riset.
+    - generic [ref=f10e29]:
+      - button "Kembali" [disabled]
+      - button "Lanjut" [ref=f10e30] [cursor=pointer]

@@ -1,0 +1,164 @@
+- generic [box=0,0,1200,1030]:
+  - generic [aria-hidden] [box=0,0,1200,1030]:
+    - link [box=16,-63,125,41]:
+      - /url: "#main-content"
+      - text: Lewati navigasi
+    - generic [box=0,0,1200,36]:
+      - paragraph [box=387,11,445,14]:
+        - strong [box=387,11,244,13]: Rekaman 11 Sep 2026 · 5 hari lalu
+        - text: / Bukan kondisi pasar live
+    - generic [box=0,36,1200,994]:
+      - generic [box=0,36,1200,994]:
+        - banner [box=0,36,1200,56]:
+          - button [box=20,42,44,44]
+          - link [box=76,50,90,28]:
+            - /url: /
+            - generic [box=114,55,52,17]: Catalyst
+          - generic [box=958,42,222,44]:
+            - button [box=958,42,44,44]
+            - button [box=1006,42,44,44]
+            - link [box=1054,44,126,40]:
+              - /url: /copilot
+              - generic [box=1091,56,76,16]: Tanya asisten
+        - main [box=0,92,1200,938]:
+          - generic [box=36,132,1128,802]:
+            - generic [box=36,132,1128,130]:
+              - generic [box=36,132,631,101]:
+                - paragraph [box=36,132,631,14]: Riset saham komoditas IDX
+                - heading [level=1] [box=36,158,631,41]: Apa yang berubah dan apakah penting?
+                - paragraph [box=36,211,631,22]: Perubahan penting pada saham pantauan Anda, beserta pembanding dan alasan untuk memeriksanya.
+              - generic [box=1034,197,130,36]:
+                - button [box=1034,197,130,36]:
+                  - text: Sumber
+                  - generic [box=1127,205,24,20]: "18"
+            - region [box=36,294,1128,42]:
+              - generic [box=53,307,180,16]: 2 perubahan perlu diperiksa
+              - generic [box=253,307,93,16]:
+                - strong [box=253,307,7,16]: "0"
+                - text: konflik terbuka
+              - generic [box=366,307,113,16]:
+                - strong [box=366,307,7,16]: "0"
+                - text: catatan menunggu
+              - generic [box=499,307,215,16]: Rekaman 6 hari lalu — bukan pasar live
+              - generic [box=986,309,161,13]: 11 Sep 2026, 16.15 WIB
+            - generic [box=36,352,1128,485]:
+              - generic [box=36,352,724,485]:
+                - generic [box=37,353,722,71]:
+                  - generic [box=57,369,215,38]:
+                    - paragraph [box=57,369,215,14]: Sejak pemeriksaan terakhir
+                    - heading [level=2] [box=57,389,215,18]: Perubahan yang perlu diperiksa
+                  - link [box=630,369,109,36]:
+                    - /url: /cases
+                    - text: Semua kasus
+                - group [box=37,425,722,61]:
+                  - button [pressed] [box=53,437,71,36]: Semua
+                  - button [box=132,437,73,36]: Dimiliki
+                  - button [box=212,437,70,36]: Konflik
+                - generic [box=37,486,722,351]:
+                  - link [box=37,486,722,176]:
+                    - /url: /cases/ANTM
+                    - generic [box=101,502,502,143]:
+                      - generic [box=101,502,502,68]:
+                        - generic [box=101,502,34,20]: ANTM
+                        - generic [box=143,502,61,20]: Dimiliki
+                        - generic [box=101,530,502,40]: Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion.
+                      - generic [box=101,578,502,44]:
+                        - generic [box=101,578,502,20]:
+                          - term [box=101,578,70,20]: Pembanding
+                          - definition [box=179,578,412,20]: Volume 1.40× median 27 sesi. Imbal hasil 3 hari 6,2% dibanding sektor 4,2%.
+                        - generic [box=101,602,502,20]:
+                          - term [box=101,602,70,20]: Alasan
+                          - definition [box=179,602,343,20]: Relevansi eksposur 90/100 dan jalur mencapai realisasi harga.
+                      - paragraph [box=101,630,502,14]: Tindakan riset · Lanjutkan riset
+                    - generic [box=615,502,128,20]: Corroborated
+                  - link [box=37,661,722,175]:
+                    - /url: /cases/PGAS
+                    - generic [box=101,677,500,143]:
+                      - generic [box=101,677,500,68]:
+                        - generic [box=101,678,34,20]: PGAS
+                        - generic [box=143,677,61,20]: Dimiliki
+                        - generic [box=101,706,500,40]: PGAS Loses Partial Arbitration Award, Ordered to Pay 9 LNG Cargoes to Gunvor.
+                      - generic [box=101,754,500,44]:
+                        - generic [box=101,754,500,20]:
+                          - term [box=101,754,70,20]: Pembanding
+                          - definition [box=179,754,422,20]: Volume 0.90× median 27 sesi. Imbal hasil 3 hari -1,3% dibanding sektor -0,5%.
+                        - generic [box=101,778,500,20]:
+                          - term [box=101,778,70,20]: Alasan
+                          - definition [box=179,778,343,20]: Relevansi eksposur 90/100 dan jalur mencapai realisasi harga.
+                      - paragraph [box=101,806,500,14]: Tindakan riset · Pantau indikator
+                    - generic [box=613,677,130,20]: Mixed Evidence
+              - generic [box=776,352,388,485]:
+                - generic [box=777,353,386,71]:
+                  - generic [box=797,369,218,38]:
+                    - paragraph [box=797,369,218,14]: Pemicu terbaru
+                    - heading [level=2] [box=797,389,218,18]: Peristiwa untuk daftar pantauan
+                  - link [box=1035,369,108,36]:
+                    - /url: /impact
+                    - text: Sebab akibat
+                - generic [box=777,425,386,335]:
+                  - link [box=777,425,386,125]:
+                    - /url: /impact?company=PTBA&event=news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b
+                    - generic [box=793,437,354,14]:
+                      - generic [box=793,437,41,14]: Sectors
+                      - generic [box=1050,437,97,14]: 11 Sep 2026, 16.40
+                    - heading [level=3] [box=793,457,354,60]: BAKN DPR RI Urges Government to Prepare Backup Plan for PT Kereta Cepat Indonesia China Debt Transfer as September 15 Deadline Looms
+                    - paragraph [box=793,521,354,16]: PTBA
+                  - link [box=777,550,386,105]:
+                    - /url: /cases/ANTM#clarification-gate
+                    - generic [box=793,562,354,14]:
+                      - generic [box=793,562,41,14]: Sectors
+                      - generic [box=1050,562,97,14]: 11 Sep 2026, 16.15
+                    - heading [level=3] [box=793,582,354,40]: Arus asing neto ANTM Rp300,0M pada jendela 2026-08-03–2026-09-11
+                    - paragraph [box=793,626,354,16]: ANTM
+                  - link [box=777,655,386,104]:
+                    - /url: /cases/PGAS#clarification-gate
+                    - generic [box=793,667,354,14]:
+                      - generic [box=793,667,41,14]: Sectors
+                      - generic [box=1050,667,97,14]: 11 Sep 2026, 16.15
+                    - heading [level=3] [box=793,688,354,40]: Arus asing neto PGAS Rp-106,2M pada jendela 2026-08-03–2026-09-11
+                    - paragraph [box=793,732,354,16]: PGAS
+            - region [box=36,853,1128,80]:
+              - generic [box=53,870,597,46]:
+                - heading [level=2] [box=53,870,597,22]: Ada perubahan yang ingin diuji?
+                - paragraph [box=53,897,597,20]: Asisten membaca rekaman 11 Sep 2026, sumber, dan catatan dalam konteks daftar pantauan.
+              - link [box=1000,871,147,44]:
+                - /url: /copilot
+                - text: Tanya asisten
+        - navigation [box=0,628,1200,57]:
+          - link [box=8,629,234,56]:
+            - /url: /
+            - text: Hari ini
+          - link [box=246,629,234,56]:
+            - /url: /cases
+            - text: Kasus
+          - link [box=483,629,234,56]:
+            - /url: /impact
+            - text: Sebab akibat
+          - link [box=721,629,234,56]:
+            - /url: /pantau
+            - text: Pantau
+          - link [box=958,629,234,56]:
+            - /url: /copilot
+            - text: Asisten
+  - alert [box=-1,1029,1,1]
+  - dialog [ref=f8e2] [box=264,90,672,506]:
+    - generic [ref=f8e3] [box=265,91,670,97]:
+      - paragraph [ref=f8e4] [box=289,107,622,16]: Pengaturan · 1/2
+      - heading "Siapkan ruang riset" [level=2] [ref=f8e5] [box=289,127,622,28]
+      - generic "Langkah 1 dari 2" [ref=f8e6] [box=289,167,622,4]
+    - generic [ref=f8e10] [box=289,212,622,251]:
+      - heading "Pilih saham komoditas yang dipantau" [level=2] [ref=f8e11] [box=289,212,622,28]
+      - paragraph [ref=f8e12] [box=289,244,576,48]: Catalyst berfokus pada emiten tambang dan energi. Perubahan harga komoditas, rupiah, cuaca, produksi, dan aturan dapat ditelusuri ke dampak bisnis.
+      - generic [ref=f8e13] [box=289,312,622,66]:
+        - button "ANTM Bahan dasar" [active] [pressed] [ref=f8e14] [cursor=pointer] [box=289,312,202,66]:
+          - generic [ref=f8e15] [box=302,325,176,20]: ANTM
+          - generic [ref=f8e19] [box=302,349,176,16]: Bahan dasar
+        - button "PGAS Oil, Gas & Coal" [pressed] [ref=f8e20] [cursor=pointer] [box=499,312,202,66]:
+          - generic [ref=f8e21] [box=512,325,176,20]: PGAS
+          - generic [ref=f8e25] [box=512,349,176,16]: Oil, Gas & Coal
+      - generic [ref=f8e26] [box=289,402,622,61]:
+        - paragraph [ref=f8e27] [box=289,419,622,16]: Alur harian
+        - paragraph [ref=f8e28] [box=289,439,622,24]: Pilih perubahan, tetapkan pertanyaan, lacak sebab akibat, lalu tentukan tindakan riset.
+    - generic [ref=f8e29] [box=265,518,670,77]:
+      - button "Kembali" [disabled] [box=289,535,103,44]
+      - button "Lanjut" [ref=f8e30] [cursor=pointer] [box=819,535,92,44]
