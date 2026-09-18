@@ -122,7 +122,7 @@ export const citations = {
       ? cite(`filing-${symbol}`, "/v2/filings/", "holder_name, holding_before, holding_after, transaction_value", `Keterbukaan ${symbol}`, "IDX", sourceUrl, "Buka pengumuman IDX", "provider")
       : cite(`filing-${symbol}`, "/v2/filings/", "holder_name, holding_before, holding_after, transaction_value", `Keterbukaan ${symbol}`, "Sectors rekaman", SECTORS_FILINGS_DOCS),
   /** Rekaman tanpa tautan asal yang bisa dibaca — jujur tanpa link, bukan link dokumentasi palsu. */
-  external: (eventId: string) => cite(`external-${eventId}`, `fixture://recorded/${eventId}`, "headline, published_at, exposure_tags", "Rekaman tanpa tautan sumber asal", "Sectors rekaman"),
+  external: (eventId: string) => cite(`external-${eventId}`, `fixture://recorded/${eventId}`, "title, publishedAt, tags", "Rekaman tanpa tautan sumber asal", "Sectors rekaman"),
   /** Pengganti jujur saat tidak ada peristiwa terverifikasi — lolos gate, tanpa link palsu. */
   empty: (symbol: string) => cite(`empty-${symbol}`, "/v2/news/", "title", "Belum ada peristiwa terverifikasi", "Sectors rekaman"),
 };
@@ -156,7 +156,10 @@ const eventCitation = (raw: (typeof rawEvents)[number]): Citation => {
         base = cite(
           `news-${raw.id}`,
           raw.sourceType === "filing" ? "/v2/filings/" : "/v2/news/",
-          "title, published_at, symbols, dimensions",
+          // Response keys verbatim: the news recording carries `timestamp` and
+          // a singular `dimension`. This copy still said published_at and
+          // dimensions after the registry above was corrected.
+          "title, timestamp, symbols, dimension",
           "Berita perusahaan Sectors",
           host,
           raw.source,
@@ -164,7 +167,7 @@ const eventCitation = (raw: (typeof rawEvents)[number]): Citation => {
           "provider",
         );
       } else {
-        base = cite(`external-${raw.id}`, `fixture://recorded/${raw.id}`, "headline, published_at, exposure_tags", "Berita terekam dengan tautan sumber asal", host, raw.source, "Buka sumber asal", "provider");
+        base = cite(`external-${raw.id}`, `fixture://recorded/${raw.id}`, "title, publishedAt, tags", "Berita terekam dengan tautan sumber asal", host, raw.source, "Buka sumber asal", "provider");
       }
     } catch {
       base = citations.external(raw.id);
@@ -179,7 +182,7 @@ const eventCitation = (raw: (typeof rawEvents)[number]): Citation => {
     // Recorded as v2_company_corporate-actions_<symbol>.json, and the payload
     // groups actions by kind (agm, dividend, right_issue, stock_split, …)
     // rather than carrying flat action/ex_date/amount columns.
-    base = cite(`news-${raw.id}`, symbol ? `/v2/company/corporate-actions/${symbol}/` : "/v2/company/corporate-actions/", "corporate_actions (agm, dividend, right_issue, stock_split, bonus, warrant)", "Aksi korporasi Sectors", "Sectors rekaman");
+    base = cite(`news-${raw.id}`, symbol ? `/v2/company/corporate-actions/${symbol}/` : "/v2/company/corporate-actions/", "corporate_actions, agm, dividend, right_issue, stock_split, bonus, warrant", "Aksi korporasi Sectors", "Sectors rekaman");
   } else if (raw.sourceType === "commodity") {
     // The recordings are per commodity and per year range
     // (v2_mining_commodities_Gold_price__end_year-2025_start_year-2023.json),

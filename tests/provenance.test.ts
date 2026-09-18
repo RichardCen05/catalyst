@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
 import { citations, demoProfiles, events } from "@/lib/data/fixtures";
+import { glossField } from "@/lib/agent/explain";
 import type { MetricValue, PillarResult } from "@/lib/types";
 
 vi.mock("@/lib/agent/llm/answer", () => ({
@@ -110,6 +111,20 @@ describe("registry sitasi hanya menyebut endpoint dan field yang terekam", () =>
     expect(citations.ihsg.field).toBe("date, price");
     expect(citations.registry.field).toBe("code, is_foreign");
     expect(citations.financial("ANTM").field).toContain("financials_sector_metrics");
+  });
+
+  it("setiap nama kolom pada sitasi punya arti, jadi tidak ada nama basi", () => {
+    // `published_at` / `dimensions` survived in a second copy of the news
+    // citation after the registry was corrected, and `headline,
+    // exposure_tags` described keys the fixture does not have. Requiring a
+    // gloss for every token catches both: a stale name has no meaning to
+    // look up.
+    const every = [...all, ...events.flatMap((event) => event.citations)];
+    for (const citation of every) {
+      for (const token of citation.field.split(",").map((part) => part.trim().replace(/\s*\(.*\)$/, "")).filter(Boolean)) {
+        expect(glossField(token), `${citation.id}/${token}`).not.toBe(token);
+      }
+    }
   });
 
   it("saham publik tidak membawa tautan dokumentasi yang dikarang", () => {

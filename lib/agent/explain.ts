@@ -78,13 +78,18 @@ const FIELD_GLOSS: Record<string, string> = {
   holding_before: "kepemilikan sebelum",
   holding_after: "kepemilikan sesudah",
   transaction_value: "nilai transaksi",
-  headline: "judul",
-  published_at: "waktu publikasi",
-  exposure_tags: "tanda eksposur",
+  publishedAt: "waktu publikasi",
+  tags: "tanda yang diberikan sumber",
   name: "nama komoditas",
   price_usd_per_ton: "harga acuan per ton (USD)",
   body: "isi teks sumber",
   corporate_actions: "daftar aksi korporasi",
+  agm: "rapat umum pemegang saham",
+  dividend: "dividen",
+  right_issue: "penerbitan saham baru (rights issue)",
+  stock_split: "pemecahan saham",
+  bonus: "saham bonus",
+  warrant: "waran",
 };
 
 export function glossField(field: string): string {
