@@ -150,10 +150,20 @@ export const useCatalystStore = create<CatalystState>()(
       openCopilot: (copilotContext) => set({ copilotOpen: true, copilotContext: copilotContext ?? null }),
       clearCopilotContext: () => set({ copilotContext: null }),
       recordFeedback: (input) => set((state) => {
-        const feedback: FeedbackEvent = { ...input, id: `fb-${Date.now()}`, createdAt: new Date().toISOString() };
-        const label = input.action === "show-more" ? "Tampilkan analisis lebih dalam" : input.action === "useful" ? "Sumber ini berguna" : "Kurangi prioritas kasus serupa";
+        const existing = input.targetId ? state.feedback.find((item) => item.targetId === input.targetId) : undefined;
+        const feedback: FeedbackEvent = { ...existing, ...input, id: existing?.id ?? `fb-${Date.now()}`, createdAt: new Date().toISOString() };
+        const label = input.action === "show-more"
+          ? "Tampilkan analisis lebih dalam"
+          : input.action === "show-less"
+            ? "Tampilkan analisis lebih ringkas"
+            : input.action === "useful"
+              ? "Bukti ini berguna"
+              : "Kurangi prioritas bukti serupa";
         const learned: LearnedPreference = { id: `learned-${feedback.id}`, label, explanation: "Dipelajari dari masukan yang dapat dibatalkan.", source: "feedback", active: true };
-        return { feedback: [feedback, ...state.feedback], preferences: [learned, ...state.preferences] };
+        return {
+          feedback: existing ? state.feedback.map((item) => item.id === feedback.id ? feedback : item) : [feedback, ...state.feedback],
+          preferences: [learned, ...state.preferences.filter((item) => item.id !== learned.id)],
+        };
       }),
       recordInsight: (input) => set((state) => {
         const createdAt = new Date().toISOString();

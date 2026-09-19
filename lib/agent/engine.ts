@@ -324,6 +324,9 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
 
+  // User notes stay separate from recorded evidence. They surface as open
+  // hypotheses in the case, never as metrics, citations, or market facts.
+  const userNotes = relevantInsights(context?.userInsights, symbol);
   const thresholds = _resolveThresholds(context?.playbook);
   const series = fixture.priceSeries;
   const brokerEvidence = fixture.broker;
@@ -731,7 +734,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       ...ordered.map((pillar) => `${pillar.label}: ${pillar.protocol.challengingEvidence}`),
       ...(unexplainedDrop ? ["Penurunan tanpa peristiwa terhubung melemahkan narasi yang terlalu yakin; gerak belum punya jalur yang dapat diuji."] : []),
     ],
-    userNotes: [],
+    userNotes,
     unresolvedQuestions: [
       ...ordered.map((pillar) => pillar.protocol.nextQuestion),
       ...contagionCandidates.map((c) =>

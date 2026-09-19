@@ -20,6 +20,7 @@ const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/impact?company=ANTM", heading: "Apa yang mendorong perubahan ini?" },
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Cari jawaban dari bukti" },
+  { url: "/ai-learning", heading: "AI Learning" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },
   { url: "/pantau", heading: "Apa yang berubah di web sejak kemarin?" },
   { url: "/method", heading: "Cara Catalyst menyusun bukti" },

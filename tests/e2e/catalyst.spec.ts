@@ -119,7 +119,7 @@ test("Hari ini memprioritaskan perubahan tanpa informasi berlebih", async ({ pag
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Hari ini", "Kasus", "Sebab akibat", "Pantau", "Asisten"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Hari ini", "Kasus", "Sebab akibat", "Pantau", "Asisten", "AI Learning"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BookOpenCheck, BriefcaseBusiness, ClipboardCheck, Compass, FlaskConical, Moon, RefreshCw, Settings2, Sun, X } from "lucide-react";
+import { BookOpenCheck, BrainCircuit, BriefcaseBusiness, ClipboardCheck, Compass, FlaskConical, Moon, RefreshCw, Settings2, Sun, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const utilityLinks = [
+  { href: "/ai-learning", label: "AI Learning", description: "Masukan, proses pembelajaran, dan memori personal yang sedang dipakai.", icon: BrainCircuit },
   { href: "/playbook", label: "Aturan riset investor", description: "Pembanding, eksposur, aturan, sumber, kondisi pembatal, dan ambang penilaian.", icon: BookOpenCheck },
   { href: "/cases?view=picker", label: "Pilih emiten", description: "Buka kasus atau bandingkan bukti dua emiten.", icon: BriefcaseBusiness },
   { href: "/cases?view=audit", label: "Audit riset", description: "Koreksi pengguna, hasil kasus, dan aturan yang dapat dipakai ulang.", icon: ClipboardCheck },
