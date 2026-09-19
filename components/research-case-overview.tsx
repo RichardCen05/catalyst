@@ -17,7 +17,6 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const setCaseMandate = useCatalystStore((state) => state.setCaseMandate);
   const setCaseClarification = useCatalystStore((state) => state.setCaseClarification);
   const recordInsight = useCatalystStore((state) => state.recordInsight);
-  const insights = useCatalystStore((state) => state.insights);
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const [memoShared, setMemoShared] = useState(false);
@@ -25,7 +24,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
   const triggers = deriveMonitorTriggers(researchCase);
   const mandate = caseMandates[symbol] ?? researchCase.mandate;
   const status = caseStatuses[symbol] ?? researchCase.status;
-  const caseNotes = insights.filter((item) => item.symbol === symbol && item.status !== "dismissed");
+  const caseNotes = researchCase.userNotes;
 
   const saveMandate = () => {
     setCaseMandate(symbol, mandate.trim() || researchCase.mandate);

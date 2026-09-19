@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { agentEngine } from "@/lib/agent/engine";
 import { analyzeRequestSchema } from "@/lib/schemas";
 import { ensureOverlay } from "@/lib/web-watch/queue";
-import type { InvestorResearchPlaybook, UserProfile } from "@/lib/types";
+import type { InvestorResearchPlaybook, UserInsight, UserProfile } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     const analysis = await agentEngine.analyzeCompany(parsed.data.symbol, parsed.data.profile as UserProfile, {
       mandate: parsed.data.mandate,
       clarificationChoice: parsed.data.clarificationChoice,
+      userInsights: parsed.data.userInsights as UserInsight[] | undefined,
       playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
     });
     if (!analysis) return NextResponse.json({ error: "Belum ada bukti yang cukup untuk ticker ini" }, { status: 404 });

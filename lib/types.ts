@@ -404,6 +404,10 @@ export interface FeedbackEvent {
   id: string;
   symbol?: SymbolCode;
   eventId?: string;
+  /** Stable UI target. One target keeps one current feedback signal. */
+  targetId?: string;
+  /** Human-readable target saved with feedback so its origin remains auditable. */
+  targetLabel?: string;
   action: "useful" | "not-useful" | "show-more" | "show-less";
   createdAt: string;
 }

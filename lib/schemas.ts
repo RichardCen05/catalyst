@@ -36,12 +36,24 @@ export const playbookSchema = z.object({
     distributionValueFloor: z.number().min(0).max(1e15).optional(),
   }).optional(),
 });
+export const userInsightSchema = z.object({
+  id: z.string().min(1).max(100),
+  symbol: symbolSchema,
+  pillar: pillarSchema.optional(),
+  category: z.enum(["data-error", "missing-context", "alternative-interpretation"]),
+  note: z.string().trim().min(8).max(800),
+  sourceUrl: z.url().startsWith("https://").optional(),
+  status: z.enum(["pending", "incorporated", "dismissed"]),
+  createdAt: z.string().datetime(),
+  reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
+});
 
 export const analyzeRequestSchema = z.object({
   symbol: symbolSchema,
   profile: profileSchema,
   mandate: z.string().max(600).optional(),
   clarificationChoice: z.string().max(40).optional(),
+  userInsights: z.array(userInsightSchema).max(100).optional(),
   playbook: playbookSchema.optional(),
 });
 export const causalGraphRequestSchema = z.object({
@@ -54,17 +66,6 @@ export const causalGraphRequestSchema = z.object({
   playbook: playbookSchema.optional(),
 });
 export const impactRequestSchema = z.object({ eventId: z.string().min(1), profile: profileSchema, scope: z.enum(["watchlist", "market"]) });
-export const userInsightSchema = z.object({
-  id: z.string().min(1).max(100),
-  symbol: symbolSchema,
-  pillar: pillarSchema.optional(),
-  category: z.enum(["data-error", "missing-context", "alternative-interpretation"]),
-  note: z.string().trim().min(8).max(800),
-  sourceUrl: z.url().startsWith("https://").optional(),
-  status: z.enum(["pending", "incorporated", "dismissed"]),
-  createdAt: z.string().datetime(),
-  reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
-});
 
 export const webWatchImpactSchema = z.object({
   symbol: symbolSchema,

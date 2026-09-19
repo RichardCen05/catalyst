@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BarChart3, BookOpenCheck, Bot, BriefcaseBusiness, Building2, FlaskConical, GitBranch, Radar, Search, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, Bot, BrainCircuit, BriefcaseBusiness, Building2, FlaskConical, GitBranch, Radar, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   IconAgent,
@@ -22,6 +22,7 @@ const actions = [
   { label: "Buka Sebab akibat ANTM", href: "/impact?company=ANTM", icon: GitBranch },
   { label: "Buka Pantau web", href: "/pantau", icon: Radar },
   { label: "Tanya asisten Catalyst", href: "/copilot", icon: Bot },
+  { label: "Buka AI Learning", href: "/ai-learning", icon: BrainCircuit },
   { label: "Edit aturan riset", href: "/playbook", icon: BookOpenCheck },
   { label: "Buka daftar emiten", href: "/companies", icon: Building2 },
   { label: "Baca metode dan batas", href: "/method", icon: FlaskConical },

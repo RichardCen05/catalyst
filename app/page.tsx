@@ -9,6 +9,7 @@ import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { formatAsOf } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { holdingExposure, holdingWeight, portfolioRankScore } from "@/lib/portfolio";
+import { feedbackRankDelta } from "@/lib/learning";
 import { CitationDialog } from "@/components/citation-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -17,7 +18,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { IconArrowRight, IconAttention, IconClock, IconCopilot, IconDocument, IconNote, IconSignal } from "@/components/ui/icons";
 
 export default function DashboardPage() {
-  const { profile, insights, feedback, playbook, holdings, caseMandates, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
+  const { profile, insights, feedback, preferences, playbook, holdings, caseMandates, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
   const [triage, setTriage] = useState<"all" | "owned" | "conflict">("all");
   const prices: Partial<Record<SymbolCode, number>> = Object.fromEntries(
     companies.map((company) => [company.symbol, company.price]),
@@ -25,8 +26,7 @@ export default function DashboardPage() {
   const [analyses, setAnalyses] = useState<Record<string, AnalysisCase>>({});
   const rank = (symbol: SymbolCode) => {
     const base = insights.filter((item) => item.symbol === symbol && item.status === "pending").length * 100
-      + feedback.filter((item) => item.symbol === symbol && (item.action === "useful" || item.action === "show-more")).length * 10
-      - feedback.filter((item) => item.symbol === symbol && (item.action === "not-useful" || item.action === "show-less")).length * 10
+      + feedbackRankDelta(feedback, preferences, symbol)
       + playbook.knownExposures.filter((item) => item.toUpperCase().includes(symbol)).length * 20
       + playbook.falsifiers.filter((item) => item.toUpperCase().includes(symbol)).length * 15;
     // Portfolio weight lifts open positions without inventing market data:

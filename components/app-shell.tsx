@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Radar, Sun, X } from "lucide-react";
+import { BarChart3, Bot, BrainCircuit, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Radar, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
@@ -22,6 +22,7 @@ const navItems = [
   { href: "/impact", label: "Sebab akibat", icon: GitBranch },
   { href: "/pantau", label: "Pantau", icon: Radar },
   { href: "/copilot", label: "Asisten", icon: Bot },
+  { href: "/ai-learning", label: "AI Learning", icon: BrainCircuit },
 ];
 
 const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").then((mod) => mod.OnboardingWizard), { ssr: false });
