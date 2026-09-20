@@ -140,8 +140,12 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
               pushed the composer down on narrow panels. */}
           <p className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
             <span className="shrink-0">Rekaman {RECORD_SHORT}</span>
-            <span aria-hidden="true" className="shrink-0 opacity-50">·</span>
-            <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={contextLabel} className="min-w-0 rounded px-1 text-left hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block truncate">{contextLabel}</span></button>
+            <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
+            <span className="shrink-0 uppercase tracking-wider opacity-70">Kasus</span>
+            {/* A pill with a caret, not bare text: the case is the one thing in
+                this header the reader can change, and as plain mono type it
+                read as a label nobody thought to click. */}
+            <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={`${contextLabel} — klik untuk ganti kasus`} className="flex min-w-0 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-left text-foreground transition-colors hover:border-foreground/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="truncate">{contextLabel}</span><IconCaretDown aria-hidden="true" className="size-3 shrink-0 text-muted-foreground" /></button>
             {copilotContext ? <button type="button" onClick={clearCopilotContext} className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3" /></button> : null}
           </p>
         </div>
@@ -165,7 +169,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       <div ref={streamRef} role="log" aria-live="polite" aria-label="Percakapan asisten" className="flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
         {messages.length === 0 ? (
           <div className="rounded-xl border border-border bg-background p-4">
-            <p className="text-sm font-medium">{copilotContext?.symbol ? `Siap menjawab tentang ${copilotContext.symbol}.` : "Sebut kode emiten, lalu tanyakan buktinya."}</p>
+            <p className="text-sm font-medium">{activeContext?.symbol ? `Siap menjawab tentang ${activeContext.symbol}.` : "Sebut kode emiten, lalu tanyakan buktinya."}</p>
             <ul className="mt-2.5 space-y-1 text-xs leading-5 text-muted-foreground">
               <li>Kenapa emiten ini masuk daftar, dan apa yang berubah.</li>
               <li>Arti sebuah angka, asal rekamannya, dan cara hitungnya.</li>
