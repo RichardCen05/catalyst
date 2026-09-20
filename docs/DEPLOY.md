@@ -15,7 +15,7 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00037-d9g`, created 2026-09-18T00:59:28Z, 100% of traffic | `gcloud run revisions list --service=catalyst-web --region=us-central1` |
+| Serving revision | `catalyst-web-00044-zxl`, deployed 2026-09-21 from commit `5c29d3d` on `main`, 100% of traffic | `gcloud run revisions list --service=catalyst-web --region=us-central1` |
 | Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:1deccf1f…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
