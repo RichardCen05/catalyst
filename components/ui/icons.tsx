@@ -14,6 +14,7 @@ import {
   ArrowSquareOut,
   ArrowUp,
   ArrowUpRight,
+  ArrowsInSimple,
   ArrowsOutSimple,
   Bank,
   Binoculars,
@@ -100,6 +101,7 @@ export const IconCaretDown = icon(CaretDown, "IconCaretDown");
 export const IconCaretRight = icon(CaretRight, "IconCaretRight");
 export const IconExternal = icon(ArrowSquareOut, "IconExternal");
 export const IconExpand = icon(ArrowsOutSimple, "IconExpand");
+export const IconCollapse = icon(ArrowsInSimple, "IconCollapse");
 export const IconUndo = icon(ArrowCounterClockwise, "IconUndo");
 
 /* Evidence state */

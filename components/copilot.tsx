@@ -1,13 +1,15 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useCatalystStore } from "@/lib/store";
+import { useCopilotSession } from "@/lib/copilot-session";
 import { apiUrl } from "@/lib/api-base";
-import { companies, coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import type { ChatAnswer, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
-import { IconCaretDown, IconClose, IconCopilot, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
+import { IconAttention, IconCaretDown, IconClose, IconCollapse, IconCopilot, IconExpand, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
 
 const RECORD_SHORT = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(DATA_AS_OF));
 
@@ -37,61 +39,145 @@ function buildQuickPrompts(profile: UserProfile): string[] {
   return [...new Set(prompts)].slice(0, 4);
 }
 
-interface Message { id: string; role: "user" | "assistant"; text: string; answer?: ChatAnswer }
+/** Answers arrive as one labelled line per fact. Rendering them as a single
+ *  paragraph buried the audit trail in prose, so each label becomes its own
+ *  block and the endpoint line keeps a monospaced, selectable value — that
+ *  line is what a reader takes to the provider. */
+const BLOCK_LABELS = ["Arti angka ini", "Dibaca dari", "Cara hitung", "Angka yang dimasukkan", "Rincian teknis untuk diperiksa"];
+
+interface AnswerBlock { key: string; label?: string; body: string; technical?: boolean }
+
+function answerBlocks(text: string): AnswerBlock[] {
+  return text.split("\n").filter((line) => line.trim()).map((line, index) => {
+    const matched = BLOCK_LABELS.find((label) => line.startsWith(label));
+    const cut = line.indexOf(": ");
+    if (!matched || cut < 0) return { key: `${index}`, body: line };
+    return { key: `${index}`, label: line.slice(0, cut), body: line.slice(cut + 2), technical: matched === "Rincian teknis untuk diperiksa" };
+  });
+}
 
 export function Copilot({ dismissible = false, workspace = false }: { dismissible?: boolean; workspace?: boolean }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { profile, insights, playbook, caseMandates, setCopilotOpen, copilotContext, clearCopilotContext } = useCatalystStore();
-  const [input, setInput] = useState(() => copilotContext?.question ?? "");
+  const { messages, append, input, setInput, returnPath, setReturnPath } = useCopilotSession();
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "intro", role: "assistant", text: "Saya memeriksa tanda pasar dan dampak ke bisnis. Tanyakan perubahan penting, perbandingan emiten, jalur sebab akibat, atau data yang belum tersedia." },
-  ]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const streamRef = useRef<HTMLDivElement>(null);
+  // The context question prefills the composer, but only once per context —
+  // retyping over it must not be undone by the next render.
+  const prefilled = useRef<string | null>(null);
+  const nextId = useRef(0);
+  const openNotes = insights.filter((item) => item.status === "pending").length;
   const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
   const prompts = useMemo(() => buildQuickPrompts(profile), [profile]);
   const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];
+  const contextLabel = copilotContext?.label ?? "Tanpa konteks";
+
+  useEffect(() => {
+    const question = copilotContext?.question ?? "";
+    if (!question || prefilled.current === question) return;
+    prefilled.current = question;
+    setInput(question);
+  }, [copilotContext?.question, setInput]);
+
+  useEffect(() => { if (dismissible) panelRef.current?.focus(); }, [dismissible]);
+
+  useEffect(() => { streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight }); }, [messages.length, loading]);
 
   const submit = async (question: string) => {
     if (!question.trim() || loading) return;
-    setMessages((current) => [...current, { id: `u-${current.length}`, role: "user", text: question.trim() }]);
+    const asked = question.trim();
+    append({ id: `u-${(nextId.current += 1)}`, role: "user", text: asked });
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question.trim(), profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
+      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
-      setMessages((current) => [...current, { id: `a-${current.length}`, role: "assistant", text: answer.text, answer }]);
-    } catch {
-      setMessages((current) => [...current, { id: `e-${current.length}`, role: "assistant", text: "Layanan asisten tidak merespons. Muat ulang lalu coba lagi." }]);
+      append({ id: `a-${(nextId.current += 1)}`, role: "assistant", text: answer.text, answer });
+    } catch (error) {
+      // Name the failure. "Tidak merespons" covered a 500, an offline device
+      // and a malformed body alike, so a reader could not tell whether to
+      // retry or report it.
+      const reason = error instanceof Error && error.message.startsWith("HTTP") ? `layanan menolak permintaan (${error.message})` : "jaringan atau layanan tidak terjangkau";
+      append({ id: `e-${(nextId.current += 1)}`, role: "assistant", failed: true, text: `Pertanyaan tidak terkirim: ${reason}. Rekaman tidak berubah — coba kirim ulang.` });
     } finally { setLoading(false); }
   };
 
   const onSubmit = (event: FormEvent) => { event.preventDefault(); void submit(input); };
 
+  const expand = () => { setReturnPath(pathname); setCopilotOpen(false); router.push("/copilot"); };
+  const collapse = () => { setCopilotOpen(true); router.push(returnPath ?? "/"); setReturnPath(null); };
+
   return (
-    <div role={dismissible ? "dialog" : undefined} aria-label={dismissible ? "Asisten Catalyst" : undefined} className={`flex h-full min-h-0 flex-col bg-surface ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}>
+    <div
+      ref={panelRef}
+      tabIndex={dismissible ? -1 : undefined}
+      role={dismissible ? "dialog" : undefined}
+      aria-label={dismissible ? "Asisten Catalyst" : undefined}
+      onKeyDown={dismissible ? (event) => { if (event.key === "Escape") { event.stopPropagation(); setCopilotOpen(false); } } : undefined}
+      className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}
+    >
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
-        <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Asisten Catalyst</p><p className="truncate font-mono text-[11px] text-muted-foreground">Rekaman {RECORD_SHORT} · {profile.name} · {insights.filter((item) => item.status === "pending").length} catatan terbuka</p></div>
+        <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">Asisten Catalyst</p>
+          {/* One line, truncated: what this answer set is bound to. Wrapping
+              pushed the composer down on narrow panels. */}
+          <p className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+            <span className="shrink-0">Rekaman {RECORD_SHORT}</span>
+            <span aria-hidden="true" className="shrink-0 opacity-50">·</span>
+            <span className="min-w-0 truncate" title={contextLabel}>{contextLabel}</span>
+            {copilotContext ? <button type="button" onClick={clearCopilotContext} className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3" /></button> : null}
+          </p>
+        </div>
+        {dismissible
+          ? <Button variant="ghost" size="icon" onClick={expand} aria-label="Perbesar asisten ke halaman penuh"><IconExpand aria-hidden="true" className="size-4" /></Button>
+          : <Button variant="ghost" size="icon" onClick={collapse} aria-label="Ciutkan asisten ke panel"><IconCollapse aria-hidden="true" className="size-4" /></Button>}
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup asisten"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
       </div>
       <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><IconGate aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
-      {copilotContext ? <div className="flex items-center gap-2 border-b border-border bg-primary/8 px-4 py-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Konteks</span><span className="min-w-0 flex-1 truncate text-xs font-medium">{copilotContext.label}</span><button type="button" onClick={clearCopilotContext} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3.5" /></button></div> : null}
-      <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+
+      <div ref={streamRef} role="log" aria-live="polite" aria-label="Percakapan asisten" className="flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
+        {messages.length === 0 ? (
+          <div className="rounded-xl border border-border bg-background p-4">
+            <p className="text-sm font-medium">{copilotContext?.symbol ? `Siap menjawab tentang ${copilotContext.symbol}.` : "Sebut kode emiten, lalu tanyakan buktinya."}</p>
+            <ul className="mt-2.5 space-y-1 text-xs leading-5 text-muted-foreground">
+              <li>Kenapa emiten ini masuk daftar, dan apa yang berubah.</li>
+              <li>Arti sebuah angka, asal rekamannya, dan cara hitungnya.</li>
+              <li>Dampak sebuah peristiwa ke emiten pantauan Anda.</li>
+              <li>Perbandingan dua emiten yang sama-sama berkasus lengkap.</li>
+              <li>Data yang belum ada pada rekaman {RECORD_SHORT}.</li>
+            </ul>
+            {openNotes ? <p className="mt-2.5 text-xs leading-5 text-muted-foreground">{openNotes} catatan Anda masih terbuka dan dibaca sebagai hipotesis.</p> : null}
+          </div>
+        ) : null}
         {messages.map((message) => <div key={message.id} className={message.role === "user" ? "ml-7" : "mr-2"}>
           <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <IconUser aria-hidden="true" className="size-3" /> : <IconCopilot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Asisten"}</div>
-          <div className={`rounded-xl border p-3 text-sm leading-6 ${message.role === "user" ? "border-primary/25 bg-primary/10" : "border-border bg-background"}`}>
-            {/* Answers are multi-line on purpose — meaning, source, formula,
-                result, then the technical detail. Without pre-line the whole
-                explanation collapsed into one paragraph. */}
-            <p className="whitespace-pre-line">{message.text}</p>
+          <div className={`rounded-xl border p-3 text-sm leading-6 ${message.failed ? "border-danger/35 bg-danger-soft" : message.role === "user" ? "border-primary/25 bg-primary/10" : "border-border bg-background"}`}>
+            {message.failed ? <p className="flex gap-2 text-danger"><IconAttention aria-hidden="true" className="mt-1 size-4 shrink-0" /><span>{message.text}</span></p>
+              : message.role === "user" ? <p className="whitespace-pre-line">{message.text}</p>
+              : <div className="space-y-2">
+                  {answerBlocks(message.text).map((block) => block.label
+                    ? <div key={block.key}>
+                        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{block.label}</p>
+                        <p className={block.technical ? "mt-0.5 select-all break-all font-mono text-[11px] leading-5 text-foreground" : "mt-0.5 text-sm leading-6"}>{block.body}</p>
+                      </div>
+                    : <p key={block.key}>{block.body}</p>)}
+                </div>}
             {message.answer?.llmFallbackNote ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">{message.answer.llmFallbackNote}</p> : null}
             {message.answer ? <details className="mt-3 border-t border-border pt-2"><summary className="flex min-h-8 cursor-pointer items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3" /></summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">Catatan pengguna hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-3"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
           </div>
         </div>)}
-        {loading ? <div className="mr-8 rounded-xl border border-border bg-background p-3 text-sm text-muted-foreground"><span className="inline-flex gap-1" aria-label="Asisten sedang memeriksa data"><span className="animate-pulse">Rencana</span><span>→</span><span className="animate-pulse [animation-delay:120ms]">Cari</span><span>→</span><span className="animate-pulse [animation-delay:240ms]">Periksa</span></span></div> : null}
+        {loading ? <div role="status" className="mr-8 rounded-xl border border-border bg-background p-3 text-sm text-muted-foreground"><span className="inline-flex gap-1"><span className="animate-pulse">Rencana</span><span aria-hidden="true">→</span><span className="animate-pulse [animation-delay:120ms]">Cari</span><span aria-hidden="true">→</span><span className="animate-pulse [animation-delay:240ms]">Periksa</span></span><span className="sr-only">Asisten sedang memeriksa data</span></div> : null}
       </div>
 
-      <div className="border-t border-border p-4">
+      {/* The composer sits above the on-screen keyboard and above the home
+          indicator; without the safe-area padding the send button is under
+          the gesture bar on a fullscreen phone panel. */}
+      <div className="border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))] xl:pb-4">
         <div className="mb-2.5 flex gap-2 overflow-x-auto pb-1">
           {(workspace ? quickPrompts : quickPrompts.slice(0, 3)).map((prompt) => (
             <button key={prompt} onClick={() => void submit(prompt)} className="min-h-9 shrink-0 cursor-pointer rounded-full border border-border px-3.5 text-[12px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{prompt}</button>
@@ -105,13 +191,5 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         <p className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground"><IconExternal aria-hidden="true" className="size-3" />Jawaban menyertakan penyedia, data, dan waktu sumber bila tersedia.</p>
       </div>
     </div>
-  );
-}
-
-function CatalystAvatar() {
-  return (
-    <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-foreground text-background">
-      <IconCopilot className="size-4.5" />
-    </span>
   );
 }

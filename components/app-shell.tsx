@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { BarChart3, Bot, BrainCircuit, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Radar, Sun, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
 import { Copilot } from "@/components/copilot";
@@ -44,6 +44,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
   const copilotPage = pathname.startsWith("/copilot");
   const mobileNavItems = navItems;
+  const copilotTrigger = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+
+  // Closing the panel unmounts it, so focus would land on <body>. Send it back
+  // to the control that opened it, once the button has remounted.
+  useEffect(() => {
+    if (wasOpen.current && !copilotOpen) copilotTrigger.current?.focus();
+    wasOpen.current = copilotOpen;
+  }, [copilotOpen]);
+
+  // Below xl the panel covers the page. Without this the page behind it kept
+  // scrolling under the reader's finger and the panel lost its place.
+  useEffect(() => {
+    if (!copilotOpen || copilotPage || !window.matchMedia("(max-width: 1279px)").matches) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [copilotOpen, copilotPage]);
 
   const nav = (onNavigate?: () => void) => <>
     {navItems.map((item) => {
@@ -85,7 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80 backdrop-blur-[2px]" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-6 flex items-center gap-3"><CatalystLogo /><span className="editorial text-[17px]">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-0.5">{nav(() => setMobileNav(false))}</nav><div className="mt-7"><CommandPalette /></div></aside></div> : null}
-      {!copilotPage && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
+      {!copilotPage && !copilotOpen ? <Button ref={copilotTrigger} onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
       {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <OnboardingWizard />
       <GuidedTour />
