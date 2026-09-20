@@ -22,16 +22,17 @@ describe("ringkasan isi rekaman", () => {
     );
     // The comparison window is the sessions before the last one, which is
     // what the app's own volume score uses.
-    expect(digest?.takeaway).toContain(`${series.length - 1} sesi sebelumnya`);
+    expect(digest?.context.find((entry) => entry.label === "Sesi pembanding")?.value).toBe(`${series.length - 1} sesi`);
   });
 
-  it("arus asing menyimpulkan arah dari tanda nilainya, bukan dari kalimat tetap", () => {
+  it("arus asing menyebut arah dari tanda nilainya, bukan dari kalimat tetap", () => {
     const digest = digestFor(citations.foreign("ANTM"));
     const net = brokerEvidence.ANTM.netForeign;
-    expect(digest?.takeaway).toContain(net >= 0 ? "pembelian asing yang tidak diimbangi" : "penjualan asing yang tidak diimbangi");
-    // The reader is told what the figure does not settle, not just what it is.
-    expect(digest?.takeaway).toContain("tidak menyebut siapa pembelinya");
+    expect(digest?.context.find((entry) => entry.label === "Arah arus asing")?.value).toBe(net >= 0 ? "bersih beli" : "bersih jual");
     expect(digest?.values.find((entry) => entry.label === "Arus asing bersih")?.value.startsWith("−")).toBe(net < 0);
+    // The bound travels with the measurements, so whoever writes the sentence
+    // cannot quietly drop it.
+    expect(digest?.context.some((entry) => entry.label === "Batas arti rekaman")).toBe(true);
   });
 
   it("ringkasan broker memakai porsi pembeli terbesar terhadap kelompok yang dibaca", () => {
@@ -39,9 +40,13 @@ describe("ringkasan isi rekaman", () => {
     const buyers = brokerEvidence.ANTM.buyers.map((participant) => participant.buyIdr ?? participant.value);
     const expected = (Math.max(...buyers) / buyers.reduce((sum, value) => sum + value, 0)) * 100;
     // Stated as rupiah out of a hundred, and read against the app's own
-    // concentration floor rather than left for the reader to judge.
-    expect(digest?.takeaway).toContain(`Rp ${expected.toFixed(2).replace(".", ",")}`);
-    expect(digest?.takeaway).toContain(expected / 100 >= DEFAULT_THRESHOLDS.concentrationFloor ? "Di atas ambang" : "Di bawah ambang");
+    // concentration floor rather than against a fresh opinion.
+    expect(digest?.context.find((entry) => entry.label === "Porsi yang sama dalam rupiah")?.value)
+      .toBe(`Rp ${expected.toFixed(2).replace(".", ",")} dari tiap Rp 100`);
+    expect(digest?.context.find((entry) => entry.label === "Ambang aliran terpusat Catalyst")?.value)
+      .toBe(`${(DEFAULT_THRESHOLDS.concentrationFloor * 100).toFixed(0)}%`);
+    expect(digest?.context.find((entry) => entry.label === "Posisi terhadap ambang")?.value)
+      .toBe(expected / 100 >= DEFAULT_THRESHOLDS.concentrationFloor ? "di atas ambang" : "di bawah ambang");
   });
 
   it("keterbukaan tanpa rekaman mengatakannya, bukan mengarang nol transaksi", () => {
@@ -50,10 +55,11 @@ describe("ringkasan isi rekaman", () => {
     expect(digest?.values).toHaveLength(0);
   });
 
-  it("setiap ringkasan menyebut kenapa bacaannya penting, bukan hanya artinya", () => {
-    // Knowing that foreign buying was 3% of turnover is not a reason to read
-    // the card. Each digest has to say what the reading decides or what
-    // mistake it prevents, or the panel is back to reciting arithmetic.
+  it("tidak ada kalimat tafsir yang ditulis tangan di sini", () => {
+    // The panel's two sentences are written from these measurements at
+    // request time. A verdict hard-coded per feed would drift the moment a
+    // threshold moves, and nothing would fail when it did — so the digest
+    // carries labelled values only, never a finished sentence.
     const every = [
       citations.daily("ANTM"),
       citations.ihsg,
@@ -65,9 +71,13 @@ describe("ringkasan isi rekaman", () => {
     ];
     for (const citation of every) {
       const digest = digestFor(citation);
-      expect(digest?.why, citation.id).toBeDefined();
-      expect(digest?.why.length, citation.id).toBeGreaterThan(40);
-      expect(digest?.why, citation.id).not.toBe(digest?.takeaway);
+      expect(digest, citation.id).toBeDefined();
+      expect(digest?.context.length, citation.id).toBeGreaterThan(0);
+      for (const entry of [...(digest?.values ?? []), ...(digest?.context ?? [])]) {
+        // A sentence is prose; a measurement is a label and a value. Anything
+        // long enough to end in a full stop is a verdict in disguise.
+        expect(entry.value.split(/\s+/).length, `${citation.id}/${entry.label}`).toBeLessThan(16);
+      }
     }
   });
 

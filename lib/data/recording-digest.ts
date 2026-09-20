@@ -11,18 +11,20 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { Citation } from "@/lib/types";
 
 /**
- * What was actually read from a recording, and what it adds up to.
+ * What was actually read from a recording, as measurements — never as prose.
  *
  * A citation used to hand the reader `tanggal, arus asing bersih harian` and
- * stop — column names, and an invitation to go verify the figure themselves
- * from a feed they cannot call. Naming the columns is not the same as saying
- * which rows were read, what the values were, or what they came to.
+ * stop. Naming the columns is not the same as saying which rows were read,
+ * what the values were, or what they come to.
  *
- * So every digest here answers three questions from the recordings in
- * `lib/data/market.generated.ts`: how much was read, which values carried the
- * weight, and what those values mean together. All three are computed, never
- * written by a model — these are the numbers behind a figure on screen, and
- * the one thing worse than an opaque citation is a confident wrong one.
+ * This module answers the first two questions and stops there on purpose.
+ * Every entry below is computed from the recordings in
+ * `lib/data/market.generated.ts` — the span, the values, and the comparisons
+ * a reading turns on, including the app's own thresholds so a card cannot
+ * disagree with the pillar above it. The sentences that interpret them are
+ * written at `lib/agent/llm/reading-explain.ts` from exactly this material:
+ * a table of hand-written verdicts per feed is a table that rots, because it
+ * has to be edited whenever a feed is added and nothing fails when it is not.
  *
  * A feed with no digest renders none. Silence is the honest answer when the
  * recording behind a path is not one this app keeps per symbol.
@@ -33,18 +35,12 @@ export interface RecordingDigest {
   /** The values that carried the figure, already formatted. */
   values: { label: string; value: string }[];
   /**
-   * What those values come to, in words a reader can act on: what the number
-   * means in ordinary terms, and what it still does not prove. "Asing membeli
-   * lebih banyak daripada menjual, setara 3,1%" restated the arithmetic and
-   * left the reader to guess whether 3,1% was a lot.
+   * The comparisons a reading turns on — a ratio against its baseline, a
+   * share against the threshold the app judges it by, the direction of a net,
+   * the limit of what the feed can say. Measurements and stated bounds, so a
+   * sentence written from them cannot drift from the figures on the card.
    */
-  takeaway: string;
-  /**
-   * Why this reading is worth a reader's attention: what it decides in the
-   * case, or what mistake it keeps them from making. Knowing what a number
-   * means is not the same as knowing why anyone put it on screen.
-   */
-  why: string;
+  context: { label: string; value: string }[];
 }
 
 /** Rupiah at the scale a reader can hold in their head. */
@@ -64,12 +60,12 @@ function decimal(value: number, digits = 1): string {
 /**
  * A share as rupiah out of a hundred.
  *
- * "3,1% dari nilai transaksi" is arithmetic; "dari tiap Rp 100 yang berpindah
- * tangan, sekitar Rp 3,10" is a size. Percentages of a total nobody can
- * picture are the reason the old takeaway read as a restatement.
+ * "3,1% dari nilai transaksi" is arithmetic; "Rp 3,09 dari tiap Rp 100" is a
+ * size. Both travel, so whoever writes the sentence can reach for the one a
+ * reader can picture.
  */
-function perHundred(share: number): string {
-  return `Rp ${decimal(Math.abs(share) * 100, 2)}`;
+function perHundred(sharePercent: number): string {
+  return `Rp ${decimal(Math.abs(sharePercent), 2)} dari tiap Rp 100`;
 }
 
 function shortDate(iso: string): string {
@@ -104,8 +100,8 @@ function dailyDigest(symbol: string): RecordingDigest | undefined {
   const series = priceSeries[symbol];
   if (!series?.length) return undefined;
   const last = series[series.length - 1];
-  const previous = series.slice(0, -1).map((point) => point.volume);
-  const ratio = previous.length ? last.volume / median(previous) : undefined;
+  const comparison = series.slice(0, -1).map((point) => point.volume);
+  const ratio = comparison.length ? last.volume / median(comparison) : undefined;
   const move = series[0].close ? (last.close / series[0].close - 1) * 100 : undefined;
   return {
     scope: `${series.length} sesi bursa, ${shortDate(series[0].date)} – ${shortDate(last.date)}`,
@@ -113,17 +109,14 @@ function dailyDigest(symbol: string): RecordingDigest | undefined {
       { label: "Penutupan terakhir", value: formatCurrency(last.close) },
       { label: "Volume terakhir", value: `${formatNumber(last.volume)} lembar` },
     ],
-    takeaway: [
-      // The app's own volume z-score compares the last session against the
-      // sessions before it, so the count here names those comparison
-      // sessions rather than the whole span that was read.
-      ratio
-        ? `Hari terakhir diperdagangkan ${decimal(ratio, 2)}× lebih ramai daripada hari biasanya pada ${previous.length} sesi sebelumnya${ratio >= 1.2 ? " — ada yang berubah pada minat beli-jual" : " — masih dalam kebiasaan jendela ini"}.`
-        : "",
-      move === undefined ? "" : `Harga ${move >= 0 ? "naik" : "turun"} ${decimal(Math.abs(move))}% sepanjang jendela.`,
-      "Ramai atau tidaknya perdagangan belum menyebut siapa yang bertransaksi atau apa sebabnya.",
-    ].filter(Boolean).join(" "),
-    why: "Lonjakan perdagangan biasanya muncul sebelum alasannya terbit. Itu sebabnya Catalyst memakai baris ini untuk memutuskan sebuah perubahan layak diperiksa atau tidak.",
+    context: [
+      // The app's own volume score compares the last session against the
+      // ones before it, so the baseline named here is that comparison set.
+      ...(ratio ? [{ label: "Volume hari terakhir dibanding median pembanding", value: `${decimal(ratio, 2)}×` }] : []),
+      { label: "Sesi pembanding", value: `${comparison.length} sesi` },
+      ...(move === undefined ? [] : [{ label: "Perubahan harga sepanjang jendela", value: `${move >= 0 ? "+" : "−"}${decimal(Math.abs(move))}%` }]),
+      { label: "Batas arti rekaman", value: "ramai atau sepinya perdagangan tidak menyebut siapa yang bertransaksi atau sebabnya" },
+    ],
   };
 }
 
@@ -140,10 +133,10 @@ function ihsgDigest(): RecordingDigest | undefined {
       { label: "IHSG terakhir", value: formatNumber(last.ihsg) },
       { label: "IHSG awal jendela", value: formatNumber(series[0].ihsg) },
     ],
-    takeaway: move === undefined
-      ? "Dipakai sebagai pembanding: gerak harga emiten hanya berarti setelah gerak pasar dikeluarkan."
-      : `Seluruh pasar ${move >= 0 ? "naik" : "turun"} ${decimal(Math.abs(move))}% pada jendela yang sama. Bagian gerak emiten sebesar itu berasal dari pasar, bukan dari emitennya — sisanya yang perlu dijelaskan.`,
-    why: "Tanpa pembanding ini, kenaikan harga yang sebenarnya cuma ikut arus pasar akan terbaca sebagai kabar baik khusus emiten ini.",
+    context: [
+      ...(move === undefined ? [] : [{ label: "Perubahan IHSG sepanjang jendela", value: `${move >= 0 ? "+" : "−"}${decimal(Math.abs(move))}%` }]),
+      { label: "Peran rekaman", value: "pembanding pasar; gerak emiten dinilai setelah gerak pasar dikeluarkan" },
+    ],
   };
 }
 
@@ -159,15 +152,14 @@ function foreignDigest(symbol: string): RecordingDigest | undefined {
       { label: "Arus asing bersih", value: idrShort(evidence.netForeign) },
       { label: "Total nilai transaksi", value: idrShort(evidence.totalMarketValue) },
     ],
-    takeaway: [
-      share === undefined
-        ? `Investor asing ${evidence.netForeign >= 0 ? "membeli" : "menjual"} lebih banyak daripada ${evidence.netForeign >= 0 ? "menjual" : "membeli"} pada jendela ini.`
-        : `Dari tiap Rp 100 yang berpindah tangan pada jendela ini, sekitar ${perHundred(share / 100)} adalah ${
-          evidence.netForeign >= 0 ? "pembelian asing yang tidak diimbangi penjualan asing" : "penjualan asing yang tidak diimbangi pembelian asing"
-        } — selebihnya beli-jual yang saling menutup.`,
-      "Angka ini tidak menyebut siapa pembelinya, alasannya, atau apakah arahnya bertahan setelah jendela ini.",
-    ].join(" "),
-    why: "\"Asing masuk\" sering dipakai sebagai alasan membeli. Menyebut porsinya menunjukkan sebesar apa alasan itu sebenarnya, sebelum dipakai mengambil keputusan.",
+    context: [
+      { label: "Arah arus asing", value: evidence.netForeign >= 0 ? "bersih beli" : "bersih jual" },
+      ...(share === undefined ? [] : [
+        { label: "Porsi arus asing bersih terhadap nilai transaksi", value: `${decimal(Math.abs(share), 2)}%` },
+        { label: "Porsi yang sama dalam rupiah", value: perHundred(share) },
+      ]),
+      { label: "Batas arti rekaman", value: "tidak menyebut siapa pembelinya, alasannya, atau apakah arahnya bertahan" },
+    ],
   };
 }
 
@@ -180,18 +172,22 @@ function brokerDigest(symbol: string): RecordingDigest | undefined {
   const totalBuy = buyers.reduce((sum, participant) => sum + participant.buy, 0);
   const top = buyers.reduce((highest, participant) => (participant.buy > highest.buy ? participant : highest));
   const topShare = totalBuy ? (top.buy / totalBuy) * 100 : 0;
+  const floor = DEFAULT_THRESHOLDS.concentrationFloor * 100;
   return {
-    scope: `${evidence.buyers.length} broker pembeli dan ${evidence.sellers.length} broker penjual teratas`,
+    scope: `${buyers.length} broker pembeli dan ${evidence.sellers.length} broker penjual teratas`,
     values: [
       { label: "Nilai beli 10 broker teratas", value: idrShort(totalBuy) },
       { label: "Pembeli terbesar", value: `${top.code} · ${idrShort(top.buy)}` },
     ],
-    takeaway: `Dari tiap Rp 100 nilai beli kelompok ini, ${perHundred(topShare / 100)} lewat satu broker. ${
-      topShare / 100 >= DEFAULT_THRESHOLDS.concentrationFloor
-        ? `Di atas ambang ${decimal(DEFAULT_THRESHOLDS.concentrationFloor * 100, 0)}% yang dipakai Catalyst untuk menyebut aliran terpusat: sedikit pihak menggerakkan transaksi.`
-        : `Di bawah ambang ${decimal(DEFAULT_THRESHOLDS.concentrationFloor * 100, 0)}% yang dipakai Catalyst untuk menyebut aliran terpusat: pembelian masih tersebar.`
-    } Kode broker bukan identitas pemilik dana — satu broker melayani banyak nasabah.`,
-    why: "Makin terpusat pembeliannya, makin rapuh kenaikannya: bila satu pihak berhenti, penggeraknya ikut hilang. Pembelian yang tersebar lebih sulit dibalik satu pihak.",
+    context: [
+      { label: "Porsi pembeli terbesar", value: `${decimal(topShare)}%` },
+      { label: "Porsi yang sama dalam rupiah", value: perHundred(topShare) },
+      // The card has to read the same way as the pillar above it, so the
+      // comparison uses the app's own floor rather than a fresh opinion.
+      { label: "Ambang aliran terpusat Catalyst", value: `${decimal(floor, 0)}%` },
+      { label: "Posisi terhadap ambang", value: topShare >= floor ? "di atas ambang" : "di bawah ambang" },
+      { label: "Batas arti rekaman", value: "kode broker bukan identitas pemilik dana; satu broker melayani banyak nasabah" },
+    ],
   };
 }
 
@@ -205,10 +201,10 @@ function overviewDigest(symbol: string): RecordingDigest | undefined {
       { label: "Kapitalisasi pasar", value: `Rp ${decimal(company.marketCap)} T` },
       { label: "Harga acuan", value: formatCurrency(company.price) },
     ],
-    takeaway: shares
-      ? `Kapitalisasi dibagi harga memberi sekitar ${decimal(shares / 1e9)} miliar lembar saham beredar. Angka itu jadi pembanding: seberapa besar pembelian pada jendela ini dibanding seluruh saham yang ada.`
-      : "Dipakai sebagai label sektor dan ukuran emiten, bukan sebagai sinyal harga.",
-    why: "Nilai beli sebesar apa pun baru berarti setelah dibandingkan dengan jumlah saham yang benar-benar beredar. Rp 1 T pada emiten kecil dan emiten besar bukan peristiwa yang sama.",
+    context: [
+      ...(shares ? [{ label: "Perkiraan saham beredar", value: `${decimal(shares / 1e9)} miliar lembar` }] : []),
+      { label: "Peran rekaman", value: "penyebut untuk menilai besar pembelian terhadap saham yang beredar" },
+    ],
   };
 }
 
@@ -223,10 +219,14 @@ function financialDigest(symbol: string): RecordingDigest | undefined {
   return {
     scope: `${rows.length} metrik kuartalan, periode ${shortDate(revenue.period)}`,
     values: rows.slice(0, 2).map((row) => ({ label: row.label, value: row.value })),
-    takeaway: change === undefined
-      ? "Dipakai sebagai konteks skala usaha. Laporan kuartalan terbit jauh lebih jarang daripada gerak harga, jadi tidak bisa menjelaskan sesi tertentu."
-      : `${revenue.label} ${change >= 0 ? "naik" : "turun"} ${decimal(Math.abs(change))}% dari kuartal sebelumnya, jadi skala usahanya ${change >= 0 ? "membesar" : "mengecil"} pada periode terakhir. Laporan kuartalan tidak menjelaskan gerak harga pada sesi tertentu.`,
-    why: "Gerak harga yang tidak diikuti perubahan hasil usaha lebih mungkin bersifat sementara. Baris ini yang membedakan kabar yang mengubah bisnis dari kabar yang cuma mengubah harga.",
+    context: [
+      ...(change === undefined ? [] : [{
+        label: `Perubahan ${revenue.label} dari kuartal sebelumnya`,
+        value: `${change >= 0 ? "+" : "−"}${decimal(Math.abs(change))}%`,
+      }]),
+      { label: "Frekuensi terbit", value: "kuartalan, jauh lebih jarang daripada gerak harga harian" },
+      { label: "Batas arti rekaman", value: "tidak menjelaskan gerak harga pada sesi tertentu" },
+    ],
   };
 }
 
@@ -237,8 +237,10 @@ function filingDigest(symbol: string): RecordingDigest | undefined {
     return {
       scope: "Tidak ada keterbukaan pemegang saham terekam untuk emiten ini",
       values: [],
-      takeaway: "Tidak ada yang bisa disimpulkan soal aliran institusi di sini. Kosong berarti tidak ada laporan terekam pada jendela ini, bukan berarti tidak ada transaksi.",
-      why: "Disebutkan apa adanya supaya kekosongan tidak terbaca sebagai bukti bahwa tidak ada yang terjadi.",
+      context: [
+        { label: "Jumlah keterbukaan terekam", value: "0" },
+        { label: "Arti kekosongan", value: "tidak ada laporan terekam pada jendela ini, bukan bukti tidak ada transaksi" },
+      ],
     };
   }
   // A filing without a recorded rupiah value still counts as a filing; it
@@ -254,8 +256,10 @@ function filingDigest(symbol: string): RecordingDigest | undefined {
       { label: "Pelapor terakhir", value: latest.holderName },
       { label: "Nilai transaksi bersih", value: idrShort(net) },
     ],
-    takeaway: `Pemegang saham yang wajib lapor ${net >= 0 ? "menambah" : "mengurangi"} kepemilikan senilai ${idrShort(Math.abs(net))} pada rekaman ini — pihak yang paling dekat dengan perusahaan ${net >= 0 ? "menaruh" : "menarik"} uang sendiri. Hanya transaksi yang wajib dilaporkan ke bursa yang muncul di sini.`,
-    why: "Ini satu-satunya arus dana yang pelakunya wajib menyebut nama. Bobotnya berbeda dari arus broker yang anonim.",
+    context: [
+      { label: "Arah kepemilikan terlapor", value: net >= 0 ? "bertambah" : "berkurang" },
+      { label: "Cakupan pelaporan", value: "hanya transaksi yang wajib dilaporkan ke bursa, dengan nama pelapor" },
+    ],
   };
 }
 

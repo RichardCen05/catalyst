@@ -60,6 +60,10 @@ export const endpointSummaryRequestSchema = z.object({
   claims: z.array(z.object({
     endpoint: z.string().trim().min(1).max(200),
     field: z.string().trim().min(1).max(300),
+    /** Emiten the recording was read for, when the address does not name it
+     *  (the filings feed is one address for the whole market). Checked
+     *  against the recorded companies before it is used. */
+    symbol: z.string().trim().min(2).max(6).optional(),
   })).min(1).max(24),
 });
 

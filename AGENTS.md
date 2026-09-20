@@ -19,3 +19,37 @@ its logs. It is the only document in this repository that is verified against th
 the plans under `docs/` describe intent at the time they were written and drift from what exists.
 
 Deployment is manual — there is no CI trigger. Nothing ships because a branch was pushed.
+
+# No hard-coded values
+
+Nothing a reader sees, and nothing the app decides with, may be typed into the source as a
+literal. Every figure comes from the recordings in `lib/data/market.generated.ts`, every
+threshold from `DEFAULT_THRESHOLDS` in `lib/agent/thresholds.ts`, every citation from the registry
+in `lib/data/fixtures.ts`, and every sentence that interprets those figures is written at request
+time by the model from that same material.
+
+This is not a style preference. A literal in the source is a claim nobody re-checks: it survives
+a data refresh, contradicts the pillar above it when a threshold moves, and fails silently —
+tests still pass while the screen states something the recordings never said. A hand-kept table
+of prose per feed also rots by omission, because adding a feed is not what breaks it.
+
+Specifically, do not:
+
+- write a number a reader will see (price, volume, share, ratio, count, date, window) as a literal
+  in a component, a route, or a helper — compute it from the recordings;
+- write a verdict, interpretation, or explanation sentence per case, per feed, or per metric —
+  hand the measurements to the model (`lib/agent/llm/*`) and let it write the sentence, verified;
+- re-type a threshold, floor, or cut-off that `lib/agent/thresholds.ts` already holds, or invent a
+  new one at a call site — add it to that table, where its provenance is recorded;
+- keep a per-endpoint, per-symbol, or per-sector lookup table of English or Indonesian prose;
+- hard-code a symbol, sector, endpoint, or field name outside `lib/data/fixtures.ts`, which is the
+  registry everything else derives from.
+
+What may be a literal: structural UI copy that is true of every case (a heading, a button label,
+an empty state), field labels, format strings, and the threshold table itself.
+
+When a model writes a user-visible sentence it must be verified before it ships — numerals limited
+to the material it was given, no invented columns, no trading advice, no symbol names in a
+sentence that is cached for every symbol. See `lib/agent/llm/verify.ts` and the guards in
+`lib/agent/llm/reading-explain.ts`. A rejected draft renders nothing; the panel never fills a gap
+with prose it cannot support.

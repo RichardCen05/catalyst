@@ -41,13 +41,14 @@ function eventForCitation(citation: Citation) {
  * threw out) renders nothing at all. An invented description of a recording
  * would be worse than the terse card this replaces.
  */
-type Claim = { endpoint: string; field: string };
+type Claim = { endpoint: string; field: string; symbol?: string };
+type Reading = { summary: string | null; takeaway: string | null; why: string | null };
 
 const claimKey = (claim: Claim) => `${claim.endpoint}\u0000${claim.field}`;
 
-const resolved = new Map<string, string>();
+const resolved = new Map<string, Reading>();
 
-async function fetchSummaries(claims: Claim[]): Promise<Map<string, string>> {
+async function fetchSummaries(claims: Claim[]): Promise<Map<string, Reading>> {
   const missing = claims.filter((claim) => !resolved.has(claimKey(claim)));
   if (missing.length) {
     try {
@@ -57,9 +58,11 @@ async function fetchSummaries(claims: Claim[]): Promise<Map<string, string>> {
         body: JSON.stringify({ claims: missing }),
       });
       if (response.ok) {
-        const payload: { summaries?: { endpoint: string; field: string; summary: string | null }[] } = await response.json();
+        const payload: { summaries?: ({ endpoint: string; field: string } & Reading)[] } = await response.json();
         for (const item of payload.summaries ?? []) {
-          if (item.summary) resolved.set(claimKey(item), item.summary);
+          if (item.summary || item.takeaway || item.why) {
+            resolved.set(claimKey(item), { summary: item.summary, takeaway: item.takeaway, why: item.why });
+          }
         }
       }
     } catch {
@@ -70,14 +73,14 @@ async function fetchSummaries(claims: Claim[]): Promise<Map<string, string>> {
   return new Map(resolved);
 }
 
-function useEndpointSummaries(claims: Claim[]): Map<string, string> {
-  const [summaries, setSummaries] = useState<Map<string, string>>(() => new Map(resolved));
-  const signature = claims.map(claimKey).join("\u0001");
+function useEndpointSummaries(claims: Claim[]): Map<string, Reading> {
+  const [summaries, setSummaries] = useState<Map<string, Reading>>(() => new Map(resolved));
+  const signature = claims.map((claim) => `${claimKey(claim)}\u0000${claim.symbol ?? ""}`).join("\u0001");
   useEffect(() => {
     let active = true;
     fetchSummaries(signature.split("\u0001").map((key) => {
-      const [endpoint, field] = key.split("\u0000");
-      return { endpoint, field };
+      const [endpoint, field, symbol] = key.split("\u0000");
+      return { endpoint, field, symbol: symbol || undefined };
     })).then((next) => {
       if (active) setSummaries(next);
     });
@@ -100,7 +103,7 @@ function useEndpointSummaries(claims: Claim[]): Map<string, string> {
  * news list) still show the columns and the timestamp, which is everything
  * that is true about them.
  */
-function RecordingReadout({ citation }: { citation: Citation }) {
+function RecordingReadout({ citation, reading }: { citation: Citation; reading?: Reading }) {
   const digest = digestFor(citation);
   return (
     <dl className="mt-3 grid gap-2 text-xs">
@@ -110,11 +113,11 @@ function RecordingReadout({ citation }: { citation: Citation }) {
         <div key={entry.label}><dt className="text-muted-foreground">{entry.label}</dt><dd className="mt-0.5 break-words font-mono text-foreground">{entry.value}</dd></div>
       ))}
       <div><dt className="text-muted-foreground">Waktu sumber</dt><dd className="mt-0.5 font-mono text-foreground">{formatAsOf(citation.asOf)} WIB</dd></div>
-      {digest ? <div><dt className="text-muted-foreground">Kesimpulan</dt><dd className="mt-0.5 break-words leading-5 text-foreground">{digest.takeaway}</dd></div> : null}
+      {reading?.takeaway ? <div><dt className="text-muted-foreground">Kesimpulan</dt><dd className="mt-0.5 break-words leading-5 text-foreground">{reading.takeaway}</dd></div> : null}
       {/* What the reading decides, or the mistake it prevents. A reader who
           knows what a figure means still has no reason to care until someone
           says what hangs on it. */}
-      {digest ? <div><dt className="text-muted-foreground">Kenapa ini penting</dt><dd className="mt-0.5 break-words leading-5 text-muted-foreground">{digest.why}</dd></div> : null}
+      {reading?.why ? <div><dt className="text-muted-foreground">Kenapa ini penting</dt><dd className="mt-0.5 break-words leading-5 text-muted-foreground">{reading.why}</dd></div> : null}
     </dl>
   );
 }
@@ -161,7 +164,13 @@ export function CitationDialog({ citations, label = "Periksa sumber" }: { citati
 }
 
 function EvidenceList({ citations: unique }: { citations: Citation[] }) {
-  const summaries = useEndpointSummaries(unique.map((citation) => ({ endpoint: citation.endpoint, field: citation.field })));
+  const summaries = useEndpointSummaries(unique.map((citation) => ({
+    endpoint: citation.endpoint,
+    field: citation.field,
+    // The filings feed is one address for the whole market, so the emiten
+    // travels beside it or that card reads about nobody in particular.
+    symbol: citation.id.match(/-([A-Z]{2,6})$/)?.[1],
+  })));
   return (
     <>
       <div className="flex items-start gap-3"><div className="min-w-0 flex-1"><Dialog.Title className="text-xl font-semibold">Daftar bukti</Dialog.Title><Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">Setiap angka menyebut siapa penyedianya, data apa yang dibaca, dan kapan direkam. Alamat teknisnya ada di balik &ldquo;Rincian teknis&rdquo; untuk diperiksa sendiri.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup sumber"><IconClose aria-hidden="true" className="size-4" /></Button></Dialog.Close></div>
@@ -186,10 +195,10 @@ function EvidenceList({ citations: unique }: { citations: Citation[] }) {
                       which path it was read from; `broker_code, buy_idr` told
                       them neither. The endpoint stays one click away because
                       it is the audit trail, not decoration. */}
-                  {summaries.get(`${citation.endpoint}\u0000${citation.field}`) ? (
-                    <p className="mt-2 text-xs leading-5 text-muted-foreground">{summaries.get(`${citation.endpoint}\u0000${citation.field}`)}</p>
+                  {summaries.get(`${citation.endpoint}\u0000${citation.field}`)?.summary ? (
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">{summaries.get(`${citation.endpoint}\u0000${citation.field}`)?.summary}</p>
                   ) : null}
-                  <RecordingReadout citation={citation} />
+                  <RecordingReadout citation={citation} reading={summaries.get(`${citation.endpoint}\u0000${citation.field}`)} />
                   <TechnicalDetails citation={citation} />
                   {event?.body ? <div className="mt-4"><SourceText body={event.body} span={span} /></div> : null}
                   {citation.url ? <div className="mt-4"><a href={citation.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconExternal aria-hidden="true" className="size-3.5" />{citation.urlLabel ?? "Buka dokumentasi sumber"}</a></div> : null}
