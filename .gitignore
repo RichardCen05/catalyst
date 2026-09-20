@@ -21,6 +21,9 @@ test-results/
 .env.*
 !.env.example
 
+# Agent worktrees — a full second checkout of this repo; never tracked or linted
+.claude/worktrees/
+
 # Browser-tool snapshots and machine-local live tests
 .playwright-mcp/
 tests/zz-live.test.ts
