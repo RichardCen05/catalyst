@@ -139,12 +139,43 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
   await expect(hub).toHaveClass(/draggable/);
   await expect(map.getByRole("button", { name: "Susun ulang" })).toBeVisible();
 
-  // Cards open at a size their headline can be read at — the board is framed
-  // to its column width, never squeezed onto one screen top to bottom.
-  const zoom = await map.locator(".react-flow__viewport").evaluate(
-    (node) => Number(new DOMMatrixReadOnly(getComputedStyle(node).transform).a.toFixed(2)),
-  );
-  expect(zoom).toBeGreaterThanOrEqual(0.5);
+  // The whole board is on screen at a zoom its headlines can be read at: no
+  // scrolling to find out what else is on it, and no wall of grey slabs.
+  const canvas = map.locator(".react-flow");
+  const fits = await canvas.evaluate((node) => {
+    const viewport = node.querySelector(".react-flow__viewport") as HTMLElement;
+    const zoom = new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a;
+    const box = viewport.getBoundingClientRect();
+    const frame = node.getBoundingClientRect();
+    return { zoom, overflowY: box.height - frame.height, overflowX: box.width - frame.width };
+  });
+  expect(fits.zoom).toBeGreaterThanOrEqual(0.5);
+  expect(fits.overflowY).toBeLessThanOrEqual(2);
+  expect(fits.overflowX).toBeLessThanOrEqual(2);
+
+  // It fits because the recordings behind one channel are folded into a card
+  // that names the strongest and counts the rest. Opening one puts them back.
+  const folded = map.locator(".react-flow__node", { hasText: /\+\d+ sumber/ }).first();
+  await expect(folded).toBeVisible();
+  const before = await map.locator(".react-flow__node").count();
+  await folded.locator("button").click();
+  await expect(map.locator(".react-flow__node")).not.toHaveCount(before);
+  await map.getByRole("button", { name: "Ringkas sumber" }).click();
+  await expect(map.locator(".react-flow__node")).toHaveCount(before);
+
+  // Reading a card does not mean leaving the map: the detail panel is docked
+  // inside the canvas, not stacked under it.
+  await hub.locator("button").click();
+  const inspector = map.getByRole("complementary", { name: "Detail terpilih" });
+  await expect(inspector).toBeVisible();
+  const inside = await inspector.evaluate((panel, frame) => {
+    const a = panel.getBoundingClientRect();
+    const b = (frame as HTMLElement).getBoundingClientRect();
+    return a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
+  }, await canvas.elementHandle());
+  expect(inside).toBe(true);
+  await inspector.getByRole("button", { name: "Tutup detail" }).click();
+  await expect(inspector).toHaveCount(0);
 });
 
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {

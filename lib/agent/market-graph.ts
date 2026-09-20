@@ -205,3 +205,95 @@ export function symbolSubgraph(graph: MarketCausalGraph, symbol: SymbolCode): Se
   for (const node of graph.nodes) if (node.symbols.includes(symbol) && node.kind === "company") keep.add(node.id);
   return keep;
 }
+
+/**
+ * Fold a channel's recordings into one stand-in card.
+ *
+ * The merged board draws twenty-five source cards in a single column, which
+ * makes it four times taller than the canvas: every reading starts with a
+ * scroll, and the shape the merge exists to show — many recordings, few
+ * channels, six issuers — is never visible at once. Folding is the only way
+ * to fix that honestly, because the cards genuinely do not fit: forty-one of
+ * them cover more area than the canvas has, at any layout.
+ *
+ * So the recordings behind one channel collapse to one card naming the
+ * strongest of them and counting the rest, and `expanded` swaps that card back
+ * for the real ones a channel at a time. Two exceptions stay whole:
+ *
+ * - **A recording linked to more than one issuer is never folded.** It is the
+ *   connective tissue the board is for, and there is no reading of the map
+ *   where hiding it inside a count is the right call.
+ * - **A channel fed by a single recording is not folded either.** A stand-in
+ *   for one card is the same card with its headline replaced by "1 sumber".
+ *
+ * Nothing about the graph's meaning changes: the stand-in carries the union of
+ * its members' issuers and citations, and its edges are still one per issuer,
+ * so a path through it stays attributable exactly as before.
+ */
+export function collapseSources(graph: MarketCausalGraph, expanded: ReadonlySet<string>): MarketCausalGraph {
+  const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+  const shared = new Set(graph.sharedSourceIds);
+
+  /** source id → the channels it feeds. Two issuers can route one recording
+   *  through different channels, so the group key is the whole set. */
+  const channels = new Map<string, Set<string>>();
+  for (const edge of graph.edges) {
+    if (byId.get(edge.from)?.kind !== "source" || byId.get(edge.to)?.kind !== "mechanism") continue;
+    const set = channels.get(edge.from) ?? new Set<string>();
+    set.add(edge.to);
+    channels.set(edge.from, set);
+  }
+
+  const members = new Map<string, MarketCausalNode[]>();
+  for (const node of graph.nodes) {
+    if (node.kind !== "source" || shared.has(node.id)) continue;
+    const key = [...(channels.get(node.id) ?? [])].sort().join("+");
+    if (!key) continue;
+    members.set(key, [...(members.get(key) ?? []), node]);
+  }
+
+  const folded = new Map<string, string>();
+  const groups: MarketCausalNode[] = [];
+  for (const [key, group] of members) {
+    if (group.length < 2 || expanded.has(key)) continue;
+    const ranked = [...group].sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0) || a.id.localeCompare(b.id));
+    const [strongest] = ranked;
+    const id = `sources-${key}`;
+    for (const node of group) folded.set(node.id, id);
+    groups.push({
+      ...strongest,
+      id,
+      // The strongest headline stays the card's label: a reader should see a
+      // recording, not a number. The count rides along as a badge.
+      detail: ranked.map((node) => `· ${node.label}`).join("\n"),
+      symbols: [...new Set(group.flatMap((node) => node.symbols))],
+      citations: group.reduce<Citation[]>((into, node) => mergeCitations(into, node.citations), []),
+      groupedSourceIds: ranked.map((node) => node.id),
+    });
+  }
+
+  if (groups.length === 0) return graph;
+
+  const nodes = [...graph.nodes.filter((node) => !folded.has(node.id)), ...groups];
+  const edgeByPath = new Map<string, MarketCausalEdge>();
+  for (const edge of graph.edges) {
+    const from = folded.get(edge.from) ?? edge.from;
+    const key = `${edge.symbol}::${from}::${edge.to}`;
+    const existing = edgeByPath.get(key);
+    if (existing && existing.relevance >= edge.relevance) continue;
+    edgeByPath.set(key, from === edge.from ? edge : { ...edge, id: `${from}::${edge.id}`, from });
+  }
+
+  return {
+    ...graph,
+    nodes,
+    edges: [...edgeByPath.values()],
+    hubNodeIds: nodes.filter((node) => node.symbols.length > 1).map((node) => node.id),
+  };
+}
+
+/** Group key for a source card, or null when it is not foldable — what the
+ *  map toggles when a reader opens one of the stand-ins. */
+export function sourceGroupKey(node: MarketCausalNode): string | null {
+  return node.groupedSourceIds?.length ? node.id.slice("sources-".length) : null;
+}

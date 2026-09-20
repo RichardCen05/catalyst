@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildMarketGraph, symbolSubgraph } from "@/lib/agent/market-graph";
-import { layoutMarketGraph, marketNodeSize } from "@/lib/agent/market-layout";
+import { buildMarketGraph, collapseSources, sourceGroupKey, symbolSubgraph } from "@/lib/agent/market-graph";
+import { MAX_COLUMN_ROWS, layoutMarketGraph, marketNodeSize } from "@/lib/agent/market-layout";
 import { agentEngine } from "@/lib/agent/engine";
 import { demoProfiles, events } from "@/lib/data/fixtures";
 import type { SymbolCode } from "@/lib/types";
@@ -140,20 +140,87 @@ describe("buildMarketGraph", () => {
   });
 });
 
+describe("collapseSources", () => {
+  const none: ReadonlySet<string> = new Set();
+
+  it("folds a channel's recordings into one card so the board fits a screen", async () => {
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const folded = collapseSources(graph, none);
+    const before = graph.nodes.filter((node) => node.kind === "source").length;
+    const after = folded.nodes.filter((node) => node.kind === "source").length;
+    expect(after).toBeLessThan(before);
+
+    // Nothing is lost: every folded recording is named by the card standing
+    // in for it.
+    const named = new Set(folded.nodes.flatMap((node) => node.groupedSourceIds ?? []));
+    const kept = new Set(folded.nodes.filter((node) => node.kind === "source").map((node) => node.id));
+    for (const node of graph.nodes.filter((item) => item.kind === "source")) {
+      expect(named.has(node.id) || kept.has(node.id)).toBe(true);
+    }
+  });
+
+  it("never folds a recording linked to two issuers", async () => {
+    // It is the connective tissue the board exists to show; hiding it inside
+    // a count is the one fold that would cost the map its point.
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const folded = collapseSources(graph, none);
+    const shared = folded.nodes.find((node) => node.id === `source-${SHARED_EVENT_ID}`);
+    expect(shared).toBeDefined();
+    expect(shared!.groupedSourceIds).toBeUndefined();
+    expect([...shared!.symbols].sort()).toEqual(["ADRO", "PTBA"]);
+  });
+
+  it("keeps a stand-in attributable: union of issuers, one edge each", async () => {
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const folded = collapseSources(graph, none);
+    const byId = new Map(folded.nodes.map((node) => [node.id, node]));
+    for (const edge of folded.edges) {
+      expect(byId.get(edge.from)!.symbols).toContain(edge.symbol);
+      expect(byId.get(edge.to)!.symbols).toContain(edge.symbol);
+    }
+    const keys = folded.edges.map((edge) => `${edge.symbol}::${edge.from}::${edge.to}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("puts the recordings back when their channel is expanded", async () => {
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const folded = collapseSources(graph, none);
+    const stand = folded.nodes.find((node) => node.groupedSourceIds?.length)!;
+    const key = sourceGroupKey(stand)!;
+
+    const opened = collapseSources(graph, new Set([key]));
+    expect(opened.nodes.some((node) => node.id === stand.id)).toBe(false);
+    for (const id of stand.groupedSourceIds!) {
+      expect(opened.nodes.some((node) => node.id === id)).toBe(true);
+    }
+    expect(sourceGroupKey(graph.nodes.find((node) => node.kind === "source")!)).toBeNull();
+  });
+
+  it("leaves the board whole once every channel is open", async () => {
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const folded = collapseSources(graph, none);
+    const keys = folded.nodes.map(sourceGroupKey).filter((key): key is string => key !== null);
+    const opened = collapseSources(graph, new Set(keys));
+    expect(opened.nodes.map((node) => node.id).sort()).toEqual(graph.nodes.map((node) => node.id).sort());
+    expect(opened.edges).toHaveLength(graph.edges.length);
+  });
+});
+
 describe("layoutMarketGraph", () => {
   it("holds the four semantic columns whatever the ranker does", async () => {
     const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
     const { positions } = layoutMarketGraph(graph);
     expect(positions.size).toBe(graph.nodes.length);
 
-    const columnOf = (kind: string) => {
+    // A column can occupy more than one strip, so what is guaranteed is the
+    // order: every card of a kind sits left of every card of the next kind.
+    const spanOf = (kind: string) => {
       const xs = graph.nodes.filter((node) => node.kind === kind).map((node) => positions.get(node.id)!.x);
-      expect(new Set(xs).size).toBe(1);
-      return xs[0];
+      return { left: Math.min(...xs), right: Math.max(...xs) };
     };
-    expect(columnOf("source")).toBeLessThan(columnOf("mechanism"));
-    expect(columnOf("mechanism")).toBeLessThan(columnOf("company"));
-    expect(columnOf("company")).toBeLessThan(columnOf("business-impact"));
+    expect(spanOf("source").right).toBeLessThan(spanOf("mechanism").left);
+    expect(spanOf("mechanism").right).toBeLessThan(spanOf("company").left);
+    expect(spanOf("company").right).toBeLessThan(spanOf("business-impact").left);
   });
 
   it("never overlaps two cards", async () => {
@@ -180,7 +247,23 @@ describe("layoutMarketGraph", () => {
       expect(at.y + size.height).toBeLessThanOrEqual(layout.height);
       expect(at.x + size.width).toBeLessThanOrEqual(layout.width);
     }
-    expect(layout.columnSpan.width).toBe(layout.width);
+  });
+
+  it("wraps a column that would otherwise run off the bottom", async () => {
+    // Twenty-five recordings in one strip made the board four times taller
+    // than the canvas. Past the row bound the column continues to the right,
+    // which is room the board has.
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
+    const layout = layoutMarketGraph(graph);
+    expect(layout.rows).toBeLessThanOrEqual(MAX_COLUMN_ROWS);
+
+    const sourceX = new Set(
+      graph.nodes.filter((node) => node.kind === "source").map((node) => layout.positions.get(node.id)!.x),
+    );
+    expect(sourceX.size).toBeGreaterThan(1);
+    // Every strip of a column still sits left of the next column.
+    const mechanismX = layout.positions.get(graph.nodes.find((node) => node.kind === "mechanism")!.id)!.x;
+    for (const x of sourceX) expect(x).toBeLessThan(mechanismX);
   });
 
   it("puts a hub beside the issuers it feeds, not at one end of the column", async () => {

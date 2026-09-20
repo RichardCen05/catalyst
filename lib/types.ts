@@ -549,9 +549,16 @@ export interface CausalGraph {
  * issuers happen to share a sector.
  */
 export interface MarketCausalNode extends CausalNode {
-  /** Issuers whose chain this node sits on. Length > 1 only for sources the
-   *  recordings link to more than one symbol. */
+  /** Issuers whose chain this node sits on. Length > 1 only for nodes more
+   *  than one issuer runs through. */
   symbols: SymbolCode[];
+  /**
+   * Set only on a stand-in card that stands for several recordings behind one
+   * transmission channel. The board draws one of these instead of a dozen
+   * source cards so the whole map fits a screen; expanding it swaps the
+   * stand-in for the recordings it names.
+   */
+  groupedSourceIds?: string[];
 }
 
 export interface MarketCausalEdge extends CausalEdge {
