@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
+import { fuzzyIncludes } from "@/lib/text/fuzzy";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { CaseResolution, SymbolCode, AnalysisCase } from "@/lib/types";
@@ -50,12 +51,11 @@ function ResearchCasesContent() {
     const value = query.trim().toLowerCase();
     if (!value || openSlot === null) return [];
     const others = selected.filter((_, index) => index !== openSlot);
-    return companies.filter((company) => company.analyzed && !others.includes(company.symbol) && `${company.symbol} ${company.name} ${company.sector}`.toLowerCase().includes(value)).slice(0, 8);
+    return companies.filter((company) => company.analyzed && !others.includes(company.symbol) && fuzzyIncludes(`${company.symbol} ${company.name} ${company.sector}`, value)).slice(0, 8);
   }, [query, selected, openSlot]);
   const [compared, setCompared] = useState<AnalysisCase[]>([]);
   useEffect(() => {
     let cancelled = false;
-    if (!activeSymbols.length) { setCompared([]); return () => { cancelled = true; }; }
     void Promise.all(activeSymbols.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook }))).then((results) => { if (!cancelled) setCompared(results.filter((item) => item !== null)); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
