@@ -33,6 +33,7 @@ import {
   type FetchOptions,
   type SourceText,
 } from "@/lib/web-watch/fetching";
+import { WEB_WATCH_ENDPOINT } from "@/lib/web-watch/endpoint";
 import { summarizeJsonPayload } from "@/lib/web-watch/json-summary";
 import { claim, release, type RegistryStore } from "@/lib/web-watch/registry";
 import type { MarketEvent } from "@/lib/types";
@@ -105,7 +106,7 @@ export function buildCandidate(
       {
         id: citationId,
         provider: hostOf(fetchedUrl),
-        endpoint: "web-watch",
+        endpoint: WEB_WATCH_ENDPOINT,
         field: "body",
         asOf: nowIso,
         label: state.label,

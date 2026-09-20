@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
 import { citations, demoProfiles, events } from "@/lib/data/fixtures";
 import { glossField } from "@/lib/agent/explain";
+import { endpointTemplate, lookupEndpointClaim } from "@/lib/data/endpoint-registry";
 import type { MetricValue, PillarResult } from "@/lib/types";
 
 vi.mock("@/lib/agent/llm/answer", () => ({
@@ -125,6 +126,32 @@ describe("registry sitasi hanya menyebut endpoint dan field yang terekam", () =>
         expect(glossField(token), `${citation.id}/${token}`).not.toBe(token);
       }
     }
+  });
+
+  it("setiap alamat sitasi bisa dicari di registry, jadi panel tidak minta ringkasan alamat asing", () => {
+    // The evidence panel asks the model to describe a feed by endpoint and
+    // field. The route answers only for pairs this registry already cites, so
+    // a citation missing from it would silently lose its summary — and an
+    // endpoint reaching the model without being here would be a source the
+    // app never called.
+    const every = [...all, ...events.flatMap((event) => event.citations)];
+    for (const citation of every) {
+      expect(lookupEndpointClaim(citation.endpoint, citation.field), `${citation.id}/${citation.endpoint}`).toBeDefined();
+    }
+  });
+
+  it("alamat per emiten runtuh ke satu template, jadi satu feed satu ringkasan", () => {
+    expect(endpointTemplate("/v2/daily/ANTM/")).toBe("/v2/daily/{symbol}/");
+    expect(endpointTemplate("/v2/daily/INCO/")).toBe(endpointTemplate("/v2/daily/ANTM/"));
+    expect(endpointTemplate("/v2/company/report/ANTM/?sections=overview")).toBe("/v2/company/report/{symbol}/?sections=overview");
+    expect(endpointTemplate("fixture://recorded/commodity-gold-20260911")).toBe("fixture://recorded/{id}");
+    expect(endpointTemplate("/v2/brokers/")).toBe("/v2/brokers/");
+  });
+
+  it("alamat yang tidak pernah dipanggil tidak punya klaim untuk diringkas", () => {
+    expect(lookupEndpointClaim("/v2/insider-tips/ANTM/", "date, close")).toBeUndefined();
+    // Right feed, columns it does not return: still not a claim this app made.
+    expect(lookupEndpointClaim("/v2/daily/ANTM/", "date, net_foreign_inflow")).toBeUndefined();
   });
 
   it("saham publik tidak membawa tautan dokumentasi yang dikarang", () => {

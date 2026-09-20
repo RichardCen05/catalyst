@@ -52,6 +52,17 @@ export const userInsightSchema = z.object({
   reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
+/** Lookup keys for the evidence panel's plain-words summaries. One panel asks
+ *  for every feed it shows in a single request; each pair is checked against
+ *  the citation registry before anything is done with it, so the caps here
+ *  only bound the parse. */
+export const endpointSummaryRequestSchema = z.object({
+  claims: z.array(z.object({
+    endpoint: z.string().trim().min(1).max(200),
+    field: z.string().trim().min(1).max(300),
+  })).min(1).max(24),
+});
+
 export const analyzeRequestSchema = z.object({
   symbol: symbolSchema,
   profile: profileSchema,
