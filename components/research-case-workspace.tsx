@@ -3,12 +3,10 @@ import { AlertTriangle, GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
-import { useCatalystStore } from "@/lib/store";
 import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
-import { SignalHistory } from "@/components/signal-history";
 import { ResearchCaseOverview } from "@/components/research-case-overview";
 import { CaseResolutionPanel } from "@/components/case-resolution";
 import { cn } from "@/lib/utils";
@@ -35,9 +33,6 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
   const activePillar = marketPillars.some((item) => item.key === requestedPillar) ? requestedPillar : marketPillars[0]?.key;
   const marketPillar = marketPillars.find((item) => item.key === activePillar) ?? marketPillars[0];
   const catalystPillar = analysis.pillars.find((item) => item.key === "catalyst");
-  const playbook = useCatalystStore((state) => state.playbook);
-  const sectorReturn = analysis.pillars.find((item) => item.key === "momentum")?.metrics.find((metric) => metric.label === "Imbal hasil sektor")?.value;
-  const comparables = playbook.preferredComparables[symbol] ?? [];
   const focusDimension = analysis.researchPlan.focus;
   const focusLabels: Record<string, string[]> = {
     pricing: ["revenue", "realisasi harga", "price", "pendapatan"],
@@ -68,8 +63,6 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
           <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p></header>
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 bg-surface px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-surface-raised")}><span className="block truncate text-sm font-medium">{item.label}</span><span className={cn("mt-1 block truncate font-mono text-[10px]", active && "text-primary")}>{uiLabel(item.status)}</span></Link>; })}</div>
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
-          <SignalHistory stability={analysis.signalStability} />
-          <section aria-label="Banding sektor" className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-border bg-surface px-4 py-3 text-xs"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Banding sektor</span>{sectorReturn ? <span className="text-muted-foreground">Sektor: <strong className="font-mono text-foreground">{sectorReturn}</strong></span> : null}{comparables.length ? <span className="text-muted-foreground">Pembanding: {comparables.map((item, index) => <span key={item}><Link href={`/cases/${item}`} className="font-mono text-primary hover:underline">{item}</Link>{index < comparables.length - 1 ? " · " : ""}</span>)}</span> : <span className="text-muted-foreground">Belum ada pembanding pilihan — atur di <Link href="/playbook" className="text-primary hover:underline">aturan riset</Link>.</span>}</section>
           <p className="mt-3 text-xs text-muted-foreground">Jejak bukti {WINDOW_SESSIONS} hari sekarang ada di <Link href="/" className="text-primary hover:underline">Hari ini</Link>, mode grafik.</p>
         </section> : null}
 

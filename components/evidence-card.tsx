@@ -1,7 +1,6 @@
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
 import type { Citation, PillarResult, SymbolCode } from "@/lib/types";
 import { companies } from "@/lib/data/fixtures";
-import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceFeedback } from "@/components/evidence-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -87,7 +86,7 @@ export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol:
           <div className="mt-4"><CitationDialog citations={pillar.citations} label="Periksa data sumber" /></div>
         </div>
       </details>
-      <div className="flex flex-wrap items-center gap-3 border-t border-border px-4 py-3 sm:px-5"><EvidenceFeedback symbol={symbol} pillar={pillar.key} label={pillar.label} /><AskAgentButton context={{ label: `${symbol} · ${pillar.label}`, question: `Jelaskan bukti ${pillar.label} untuk ${symbol}.`, symbol }} label={`Tanya pilar ${pillar.label}`} /></div>
+      <div className="flex flex-wrap items-center gap-3 border-t border-border px-4 py-3 sm:px-5"><EvidenceFeedback symbol={symbol} pillar={pillar.key} label={pillar.label} /></div>
     </article>
   );
 }

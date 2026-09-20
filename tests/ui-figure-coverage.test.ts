@@ -119,14 +119,6 @@ describe("setiap angka yang tampil bisa dijelaskan asisten", () => {
 });
 
 describe("rekam jejak sinyal membawa sumbernya", () => {
-  it("dihitung di mesin, bukan di komponen", () => {
-    // The component used to call describeSignalStability itself, which is why
-    // these three figures were the only numbers on the page with no citation.
-    const source = readFileSync("components/signal-history.tsx", "utf8");
-    expect(source).not.toMatch(/import[^;]*describeSignalStability|describeSignalStability\(/);
-    expect(source).toContain("stability.windows");
-  });
-
   it("memakai ambang default yang sama dengan pilar ketika tidak dilewatkan", () => {
     // A z-score between the elevated and extreme floors must read "Meningkat"
     // using DEFAULT_THRESHOLDS, not a second copy of 2.5/5 in this module.
