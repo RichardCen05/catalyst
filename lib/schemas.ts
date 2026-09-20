@@ -52,6 +52,23 @@ export const userInsightSchema = z.object({
   reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
+/**
+ * The memory keys `/api/memory` knows how to check.
+ *
+ * The POST body is a zustand `persist` snapshot, not a hand-built payload, so
+ * it carries whatever the store holds at the time. Validating only `playbook`
+ * let a snapshot with a valid-JSON but wrong-shaped `profile` land in GCS, and
+ * the next hydration `setState()`s that straight back into the store. Every key
+ * that already has a schema is checked here; keys with no schema still pass
+ * through, because rejecting unknown keys would stop sync for every client
+ * older than the next store field.
+ */
+export const memoryPatchFieldSchemas = {
+  profile: profileSchema,
+  playbook: playbookSchema,
+  insights: z.array(userInsightSchema).max(100),
+} as const;
+
 /** Lookup keys for the evidence panel's plain-words summaries. One panel asks
  *  for every feed it shows in a single request; each pair is checked against
  *  the citation registry before anything is done with it, so the caps here

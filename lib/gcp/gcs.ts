@@ -29,11 +29,27 @@ const METADATA_TOKEN_URL =
  *  on the link-local metadata host and keep the `Metadata-Flavor` header. */
 export { METADATA_TOKEN_URL };
 
+/**
+ * Upper bound on any single GCS or metadata call.
+ *
+ * Without one, a bucket that accepts the connection and then stops answering
+ * holds the request open until Cloud Run's own 300s request timeout kills it
+ * (docs/DEPLOY.md §1). For `/api/memory` that means the browser's hydration
+ * `.then` never runs, the reader is told nothing, and one wedged read occupies
+ * a container slot for five minutes. Failing closed after a few seconds is the
+ * degradation callers already know how to handle — `{unavailable:true}`.
+ */
+export const GCS_REQUEST_TIMEOUT_MS = 8_000;
+
+function timeoutSignal(): AbortSignal {
+  return AbortSignal.timeout(GCS_REQUEST_TIMEOUT_MS);
+}
+
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
-  const response = await fetch(METADATA_TOKEN_URL, { headers: { "Metadata-Flavor": "Google" } });
+  const response = await fetch(METADATA_TOKEN_URL, { headers: { "Metadata-Flavor": "Google" }, signal: timeoutSignal() });
   if (!response.ok) throw new Error(`metadata token fetch failed: ${response.status}`);
   const body = (await response.json()) as { access_token: string; expires_in: number };
   cachedToken = { value: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
@@ -55,12 +71,12 @@ export interface GcsObject<T> {
 export async function gcsGetJson<T>(bucket: string, objectPath: string): Promise<GcsObject<T> | null> {
   const token = await getAccessToken();
   const metaUrl = `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${encodeURIComponent(objectPath)}`;
-  const metaResponse = await fetch(metaUrl, { headers: { Authorization: `Bearer ${token}` } });
+  const metaResponse = await fetch(metaUrl, { headers: { Authorization: `Bearer ${token}` }, signal: timeoutSignal() });
   if (metaResponse.status === 404) return null;
   if (!metaResponse.ok) throw new Error(`GCS metadata GET failed: ${metaResponse.status}`);
   const meta = (await metaResponse.json()) as { generation: string };
 
-  const mediaResponse = await fetch(`${metaUrl}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
+  const mediaResponse = await fetch(`${metaUrl}?alt=media`, { headers: { Authorization: `Bearer ${token}` }, signal: timeoutSignal() });
   if (!mediaResponse.ok) throw new Error(`GCS media GET failed: ${mediaResponse.status}`);
   return { data: (await mediaResponse.json()) as T, generation: meta.generation };
 }
@@ -83,6 +99,7 @@ export async function gcsPutJson(
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    signal: timeoutSignal(),
   });
   if (response.status === 412) throw new GcsPreconditionFailed();
   if (!response.ok) throw new Error(`GCS PUT failed: ${response.status}`);

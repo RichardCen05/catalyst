@@ -84,7 +84,7 @@ describe("AI Learning view model", () => {
     expect(snapshot.items.find((item) => item.id === "feedback-fb-1")).toMatchObject({
       targetLabel: "ANTM · Konsentrasi",
       status: "active",
-      effectLabel: expect.stringMatching(/prioritas/i),
+      effectLabel: expect.stringMatching(/urutan kasus/i),
     });
     expect(snapshot.items.find((item) => item.id.startsWith("insight-"))?.status).toBe("pending");
     expect(snapshot.items.find((item) => item.id.startsWith("resolution-"))?.status).toBe("accepted");

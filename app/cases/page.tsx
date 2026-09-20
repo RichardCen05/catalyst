@@ -16,6 +16,7 @@ import { IconArrowRight, IconCheck, IconClose, IconExternal, IconNote, IconSearc
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { cn, formatCurrency } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
+import { orderByFeedback } from "@/lib/learning";
 
 type CaseHubView = "active" | "picker" | "audit";
 
@@ -30,7 +31,7 @@ function ResearchCasesContent() {
   // "audit" stays a valid direct-link target (settings drawer, /agent redirect,
   // AI Learning, case resolution) even though it's no longer a tab pill here.
   const activeView = requested === "audit" || views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
-  const { profile, playbook, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
+  const { profile, playbook, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, feedback, preferences, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
   const [query, setQuery] = useState("");
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [selected, setSelected] = useState<Array<SymbolCode | undefined>>(() => {
@@ -62,6 +63,13 @@ function ResearchCasesContent() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSymbols.join(",")]);
+  // The only effect feedback has: evidence marked useful lifts that issuer's
+  // case, evidence marked irrelevant sinks it. Nothing about the case itself
+  // changes — this is the claim lib/learning.ts makes to the reader.
+  const orderedCases = useMemo(
+    () => orderByFeedback(cases, feedback, preferences, (item) => item.company.symbol),
+    [cases, feedback, preferences],
+  );
   const resolutions = Object.entries(caseResolutions).filter((entry): entry is [SymbolCode, CaseResolution] => Boolean(entry[1]));
 
   const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setQuery(""); setOpenSlot(null); };
@@ -89,7 +97,7 @@ function ResearchCasesContent() {
 
       {activeView === "active" ? <Panel>
         <div className="divide-y divide-border">
-          {cases.map((analysis) => {
+          {orderedCases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
             const openCount = analysis.unresolvedQuestions.length;
             return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status === "closed" ? "Selesai" : "Terbuka"}</span>{status !== "closed" && openCount ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{openCount} pertanyaan terbuka</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;

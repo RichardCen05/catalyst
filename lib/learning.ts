@@ -75,22 +75,22 @@ const feedbackCopy: Record<FeedbackEvent["action"], { input: string; learned: st
   useful: {
     input: "Bukti ini berguna",
     learned: "Prioritaskan bukti serupa",
-    effect: "Menambah prioritas kasus sejenis di Dashboard.",
+    effect: "Menaikkan urutan kasus sejenis di daftar Kasus riset.",
   },
   "not-useful": {
     input: "Bukti ini kurang relevan",
     learned: "Kurangi prioritas bukti serupa",
-    effect: "Mengurangi prioritas kasus sejenis di Dashboard.",
+    effect: "Menurunkan urutan kasus sejenis di daftar Kasus riset.",
   },
   "show-more": {
     input: "Minta analisis lebih dalam",
     learned: "Prioritaskan analisis lebih dalam",
-    effect: "Menambah prioritas kasus sejenis di Dashboard.",
+    effect: "Menaikkan urutan kasus sejenis di daftar Kasus riset.",
   },
   "show-less": {
     input: "Minta analisis lebih ringkas",
     learned: "Kurangi prioritas analisis serupa",
-    effect: "Mengurangi prioritas kasus sejenis di Dashboard.",
+    effect: "Menurunkan urutan kasus sejenis di daftar Kasus riset.",
   },
 };
 
@@ -144,11 +144,36 @@ function preferenceFor(feedback: FeedbackEvent, preferences: LearnedPreference[]
   return preferences.find((preference) => preference.id === `learned-${feedback.id}`);
 }
 
-/** Dashboard priority only reads feedback whose paired preference is active. */
+/** Case-list priority only reads feedback whose paired preference is active. */
 export function feedbackRankDelta(feedback: FeedbackEvent[], preferences: LearnedPreference[], symbol: SymbolCode): number {
   return feedback
     .filter((item) => item.symbol === symbol && (preferenceFor(item, preferences)?.active ?? true))
     .reduce((total, item) => total + (item.action === "useful" || item.action === "show-more" ? 10 : -10), 0);
+}
+
+/**
+ * The one place the score above is spent.
+ *
+ * `feedbackCopy` tells the reader that marking evidence useful moves similar
+ * cases up the list. That sentence was false for as long as this function did
+ * not exist: `feedbackRankDelta` was computed, rendered on the AI Learning
+ * page, and consumed by nothing, so the list never moved. Ordering is the only
+ * thing it changes — the figures, the sources, and the materiality verdict on
+ * each row are untouched, which is the promise `learningDetail` makes.
+ *
+ * The sort is stable: rows with no feedback keep the order they arrived in
+ * (watchlist order), so an untouched app looks exactly as it did before.
+ */
+export function orderByFeedback<Row>(
+  rows: Row[],
+  feedback: FeedbackEvent[],
+  preferences: LearnedPreference[],
+  symbolOf: (row: Row) => SymbolCode,
+): Row[] {
+  return rows
+    .map((row, index) => ({ row, index, delta: feedbackRankDelta(feedback, preferences, symbolOf(row)) }))
+    .sort((first, second) => second.delta - first.delta || first.index - second.index)
+    .map((entry) => entry.row);
 }
 
 function resolutionProposal(

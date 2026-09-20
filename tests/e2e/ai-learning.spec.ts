@@ -23,7 +23,7 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await useful.click();
   const detail = page.getByRole("article", { name: "Detail Bukti ini berguna" });
   await expect(detail).toContainText("ANTM · Konsentrasi");
-  await expect(detail).toContainText("Menambah prioritas kasus sejenis di Dashboard.");
+  await expect(detail).toContainText("Menaikkan urutan kasus sejenis di daftar Kasus riset.");
 
   await page.goto("/cases/ANTM?tab=market&pillar=concentration");
   await page.getByRole("button", { name: "Kurang relevan" }).click();

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useCatalystStore } from "@/lib/store";
 import { apiUrl } from "@/lib/api-base";
-import { browserMemoryStore } from "@/lib/memory-store";
 
 const STORAGE_KEY = "catalyst:v1";
 const SYNC_DEBOUNCE_MS = 1500;
@@ -33,8 +32,6 @@ export function MemorySync() {
         if (cancelled || hydratedRemote.current) return;
         const remote = body.data;
         const local = useCatalystStore.getState();
-        // Memory pipeline references browserMemoryStore for profile/state access
-        const localProfile = browserMemoryStore.loadProfile();
         if (remote?.profile?.hasOnboarded && !local.profile.hasOnboarded) {
           hydratedRemote.current = true;
           useCatalystStore.setState(remote as Partial<ReturnType<typeof useCatalystStore.getState>>);
@@ -59,7 +56,21 @@ export function MemorySync() {
         try {
           const parsed = JSON.parse(raw) as { state?: Record<string, unknown> };
           if (!parsed.state) return;
-          void fetch(apiUrl("/api/memory"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.state) });
+          // The result is inspected rather than discarded. A bare
+          // `void fetch(...)` raised an unhandled rejection into the page the
+          // moment the network was down, and a 400 from the schema check was
+          // indistinguishable from a successful save: the browser kept showing
+          // state the bucket had refused. Neither is user-visible yet — the
+          // local snapshot is still authoritative for this browser — but an
+          // operator can now see which writes the backup is missing.
+          void fetch(apiUrl("/api/memory"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.state) })
+            .then((response) => {
+              if (response.ok) return;
+              console.warn(`[memory] backup write rejected (${response.status}); local state kept, server copy is behind`);
+            })
+            .catch((error: unknown) => {
+              console.warn(`[memory] backup write failed: ${error instanceof Error ? error.message : String(error)}`);
+            });
         } catch {
           // malformed local snapshot — skip this sync, try again next change
         }
