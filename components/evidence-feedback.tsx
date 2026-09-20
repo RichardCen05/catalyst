@@ -35,7 +35,7 @@ export function EvidenceFeedback({ symbol, pillar, label }: { symbol: SymbolCode
       >
         <ThumbsDown aria-hidden="true" className="size-3.5" />Kurang relevan
       </button>
-      <span className="basis-full text-[10px] leading-4 text-muted-foreground sm:basis-auto">Mempengaruhi urutan pemeriksaan serupa di Hari ini.</span>
+      <span className="basis-full text-[10px] leading-4 text-muted-foreground sm:basis-auto">Mempengaruhi urutan pemeriksaan serupa di Dashboard.</span>
     </div>
   );
 }

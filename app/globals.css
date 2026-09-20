@@ -114,6 +114,15 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .react-flow__controls-button:hover { background: var(--muted) !important; }
 .react-flow__controls-button svg { fill: currentColor; }
 
+/* React Flow's attribution ships a hard-coded translucent white plate, which
+   reads as a lit slab over the ink theme. The link stays — it is the library's
+   licence term — but it is tinted to the surface it sits on. */
+.react-flow__attribution {
+  background: color-mix(in srgb, var(--surface) 80%, transparent) !important;
+  border-top-left-radius: 6px;
+}
+.react-flow__attribution a { color: var(--muted-foreground) !important; }
+
 .skip-link {
   position: fixed; left: 16px; top: 10px; z-index: 1000; transform: translateY(-180%);
   border-radius: var(--radius-control); background: var(--primary); color: var(--primary-foreground);

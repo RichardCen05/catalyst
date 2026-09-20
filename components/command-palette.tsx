@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/icons";
 
 const actions = [
-  { label: "Buka Hari ini", href: "/", icon: BarChart3 },
+  { label: "Buka Dashboard", href: "/", icon: BarChart3 },
   { label: "Buka Kasus", href: "/cases", icon: BriefcaseBusiness },
   { label: "Buka Sebab akibat ANTM", href: "/impact?company=ANTM", icon: GitBranch },
   { label: "Buka Pantau web", href: "/pantau", icon: Radar },

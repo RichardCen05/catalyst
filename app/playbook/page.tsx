@@ -110,7 +110,7 @@ export default function PlaybookPage() {
             );
           })}
         </div>
-        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Posisi memengaruhi urutan Hari ini (bobot portofolio × materialitas). Harga memakai close rekaman, bukan live.</p>
+        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Posisi memengaruhi urutan kasus di Dashboard (bobot portofolio × materialitas). Harga memakai close rekaman, bukan live.</p>
       </Panel>
 
       <Panel className="mb-4">

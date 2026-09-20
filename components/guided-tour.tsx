@@ -29,13 +29,13 @@ const steps: TourStep[] = [
   {
     id: "today",
     title: "Pilih perubahan yang penting",
-    body: "Mulai setiap hari dari daftar perubahan pada saham yang Anda pantau.",
+    body: "Dashboard menggambar setiap kasus terbuka sebagai satu rantai sebab akibat. Pilih satu emiten untuk membaca kasusnya.",
     action: "Pilih kasus ANTM yang disorot.",
     outcome: "Anda melihat apa yang berubah, pembandingnya, dan alasan kasus ini penting.",
     href: "/",
     selector: '[data-tour-action="open-antm-case"]',
     actionSelector: '[data-tour-action="open-antm-case"]',
-    destination: "Hari ini",
+    destination: "Dashboard",
   },
   {
     id: "clarify",

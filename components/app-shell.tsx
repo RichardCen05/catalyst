@@ -17,7 +17,7 @@ import type { SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Hari ini", icon: BarChart3 },
+  { href: "/", label: "Dashboard", icon: BarChart3 },
   { href: "/cases", label: "Kasus", icon: BriefcaseBusiness },
   { href: "/impact", label: "Sebab akibat", icon: GitBranch },
   { href: "/pantau", label: "Pantau", icon: Radar },

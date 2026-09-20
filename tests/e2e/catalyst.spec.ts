@@ -5,10 +5,11 @@ async function finishSetup(page: Page) {
   await page.goto("/");
   const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Lanjut" }).click();
-  await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  // Setup is one step since the wizard collapsed to a single asset picker;
+  // "Mulai tour" both completes onboarding and opens the guided tour.
+  await dialog.getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang berubah dan apakah penting?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
 async function resolveDefaultClarification(page: Page) {
@@ -52,8 +53,7 @@ test("desktop tutorial centers each action without covering it", async ({ page }
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
-  await setup.getByRole("button", { name: "Lanjut" }).click();
-  await setup.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  await setup.getByRole("button", { name: "Mulai tour" }).click();
 
   await expect(page.getByRole("dialog", { name: "Pilih perubahan yang penting" })).toBeVisible();
   await expectDesktopTourComposition(page, '[data-tour-action="open-antm-case"]');
@@ -70,8 +70,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
-  await setup.getByRole("button", { name: "Lanjut" }).click();
-  await setup.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  await setup.getByRole("button", { name: "Mulai tour" }).click();
 
   await expect(page.getByRole("dialog", { name: "Pilih perubahan yang penting" })).toContainText("Pilih kasus ANTM");
   await expect(page.locator("[data-tour-spotlight]")).toBeVisible();
@@ -106,20 +105,52 @@ test("onboarding is scoped to a discretionary event-driven research ritual", asy
   await expect(setup.getByRole("button", { name: /Position/ })).toHaveCount(0);
 });
 
-test("Hari ini memprioritaskan perubahan tanpa informasi berlebih", async ({ page }) => {
+test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", async ({ page }) => {
   await finishSetup(page);
-  await expect(page.getByRole("heading", { name: "Perubahan yang perlu diperiksa" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Semua kasus dalam satu jalur" })).toBeVisible();
   await expect(page.getByText("Emiten fixture")).toHaveCount(0);
   await expect(page.getByText("Kesehatan asisten")).toHaveCount(0);
-  await expect(page.getByText(/Kereta Cepat/).first()).toBeVisible();
-  await expect(page.getByText("Pembanding", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Alasan", { exact: true }).first()).toBeVisible();
+
+  // Every watchlist chain lands on one canvas, with the four semantic columns
+  // named once in the legend rather than per chain.
+  const map = page.locator('[data-tour="market-map"]');
+  await expect(map.getByRole("group", { name: "Fokus emiten" })).toBeVisible();
+  for (const symbol of ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]) {
+    await expect(map.getByRole("button", { name: symbol, exact: true })).toBeVisible();
+  }
+
+  // The coal print is recorded against both ADRO and PTBA, so it must be one
+  // card carrying both — not two copies in separate chains. This is the whole
+  // reason the dashboard merges the chains instead of listing them.
+  const shared = map.locator('.react-flow__node', { hasText: "Harga Coal acuan" });
+  await expect(shared).toHaveCount(1);
+  await expect(shared).toContainText("2 emiten");
+  await expect(shared).toContainText("ADRO · PTBA");
+
+  // And the chains actually join: a transmission channel is one card that
+  // several issuers run through, not one copy per issuer. Without this the
+  // board is six parallel rows that happen to share a page.
+  const hub = map.locator('.react-flow__node[aria-label^="Mekanisme: realisasi harga"]');
+  await expect(hub).toHaveCount(1);
+  await expect(hub).toContainText("6 emiten");
+  await expect(hub).toContainText("ANTM · INCO · TINS · PGAS · ADRO · PTBA");
+
+  // Cards can be pulled clear of each other, and put back.
+  await expect(hub).toHaveClass(/draggable/);
+  await expect(map.getByRole("button", { name: "Susun ulang" })).toBeVisible();
+
+  // Cards open at a size their headline can be read at — the board is framed
+  // to its column width, never squeezed onto one screen top to bottom.
+  const zoom = await map.locator(".react-flow__viewport").evaluate(
+    (node) => Number(new DOMMatrixReadOnly(getComputedStyle(node).transform).a.toFixed(2)),
+  );
+  expect(zoom).toBeGreaterThanOrEqual(0.5);
 });
 
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Hari ini", "Kasus", "Sebab akibat", "Pantau", "Asisten", "AI Learning"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Dashboard", "Kasus", "Sebab akibat", "Pantau", "Asisten", "AI Learning"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
@@ -250,8 +281,11 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByText(rule, { exact: true })).toBeVisible();
 
+  // The disposition itself lives on the case, not on the dashboard: the board
+  // draws the causal chains and leaves the verdict where its evidence is.
+  await expect(page.getByRole("region", { name: "Tindakan riset" })).toBeVisible();
   await page.goto("/");
-  await expect(page.locator('a[href="/cases/ANTM"]').first()).toContainText("Tindakan riset");
+  await expect(page.locator('a[href="/cases/ANTM"]').first()).toBeVisible();
 });
 
 test("default theme uses the editorial black-cherry tokens", async ({ page }) => {

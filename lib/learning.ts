@@ -75,22 +75,22 @@ const feedbackCopy: Record<FeedbackEvent["action"], { input: string; learned: st
   useful: {
     input: "Bukti ini berguna",
     learned: "Prioritaskan bukti serupa",
-    effect: "Menambah prioritas kasus sejenis di Hari ini.",
+    effect: "Menambah prioritas kasus sejenis di Dashboard.",
   },
   "not-useful": {
     input: "Bukti ini kurang relevan",
     learned: "Kurangi prioritas bukti serupa",
-    effect: "Mengurangi prioritas kasus sejenis di Hari ini.",
+    effect: "Mengurangi prioritas kasus sejenis di Dashboard.",
   },
   "show-more": {
     input: "Minta analisis lebih dalam",
     learned: "Prioritaskan analisis lebih dalam",
-    effect: "Menambah prioritas kasus sejenis di Hari ini.",
+    effect: "Menambah prioritas kasus sejenis di Dashboard.",
   },
   "show-less": {
     input: "Minta analisis lebih ringkas",
     learned: "Kurangi prioritas analisis serupa",
-    effect: "Mengurangi prioritas kasus sejenis di Hari ini.",
+    effect: "Mengurangi prioritas kasus sejenis di Dashboard.",
   },
 };
 

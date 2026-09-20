@@ -1285,7 +1285,16 @@ async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: imp
 async function buildCausalGraph(
   symbol: SymbolCode,
   profile: UserProfile,
-  options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext },
+  options: {
+    scope: "watchlist" | "market";
+    minRelevance: number;
+    context?: AnalysisContext;
+    /** Readability budget for source cards. Defaults to 6 — the single-issuer
+     *  chain's bound. */
+    maxSources?: number;
+    /** Events to keep ahead of the bound when they clear the threshold. */
+    prioritizeEventIds?: string[];
+  },
 ): Promise<CausalGraph | null> {
   // A symbol carries a full case only when its broker summary and quarterly
   // financials were recorded. The other twelve in the universe still have a
@@ -1358,8 +1367,24 @@ async function buildCausalGraph(
   // chain stays readable, and `hiddenRelationshipCount` says exactly how many
   // stayed out. Web-watch accepts can push `linked` well past the fixture
   // count — that is what the bound is for.
-  const MAX_VISIBLE_SOURCES = 6;
-  const visible = eligible.slice(0, MAX_VISIBLE_SOURCES);
+  //
+  // The bound is a readability budget, not a claim about evidence, so the
+  // caller sets it: the single-issuer chain keeps six, the merged market map
+  // on the dashboard affords more because its canvas is larger.
+  const maxVisibleSources = options.maxSources ?? 6;
+  // Relevance alone is the wrong sort key for a merged view. A recording the
+  // provider linked to two watchlist issuers is the only thing that ties two
+  // chains together, and ranked purely by relevance it can fall past the
+  // bound and take the connection with it — which is exactly what the coal
+  // print did to ADRO/PTBA. Callers that care about those connections name
+  // the events here and they are kept whenever they clear the threshold at
+  // all. Order within each group stays by relevance, so the single-issuer
+  // chain (which names none) is byte-for-byte unchanged.
+  const prioritized = new Set(options.prioritizeEventIds ?? []);
+  const ranked = prioritized.size
+    ? [...eligible.filter(({ event }) => prioritized.has(event.id)), ...eligible.filter(({ event }) => !prioritized.has(event.id))]
+    : eligible;
+  const visible = ranked.slice(0, maxVisibleSources);
   const targetImpact = analysis ? analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0] : undefined;
   // Without a recorded business observable the chain must not name one.
   const targetObservable = targetImpact?.label

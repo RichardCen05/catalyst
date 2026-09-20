@@ -4,14 +4,15 @@ async function finishSetup(page: Page) {
   await page.goto("/");
   const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Lanjut" }).click();
-  await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  // Setup is one step since the wizard collapsed to a single asset picker;
+  // "Mulai tour" both completes onboarding and opens the guided tour.
+  await dialog.getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang berubah dan apakah penting?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
 const ROUTES: { url: string; heading: string | RegExp }[] = [
-  { url: "/", heading: "Apa yang berubah dan apakah penting?" },
+  { url: "/", heading: "Apa yang menggerakkan daftar pantauan?" },
   { url: "/cases", heading: "Periksa satu perubahan penting" },
   { url: "/cases/ANTM", heading: /Kasus ANTM/ },
   { url: "/cases/ANTM?tab=market", heading: "Konfirmasi pasar" },

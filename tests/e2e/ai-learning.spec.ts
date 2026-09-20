@@ -3,10 +3,11 @@ import { expect, test, type Page } from "@playwright/test";
 async function finishSetup(page: Page) {
   await page.goto("/");
   const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
-  await dialog.getByRole("button", { name: "Lanjut" }).click();
-  await dialog.getByRole("button", { name: "Masuk dan mulai tur" }).click();
+  // Setup is one step since the wizard collapsed to a single asset picker;
+  // "Mulai tour" both completes onboarding and opens the guided tour.
+  await dialog.getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang berubah dan apakah penting?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
 test("AI Learning traces feedback, correction, and accepted case rule without storing chat", async ({ page }) => {
@@ -22,7 +23,7 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await useful.click();
   const detail = page.getByRole("article", { name: "Detail Bukti ini berguna" });
   await expect(detail).toContainText("ANTM · Konsentrasi");
-  await expect(detail).toContainText("Menambah prioritas kasus sejenis di Hari ini.");
+  await expect(detail).toContainText("Menambah prioritas kasus sejenis di Dashboard.");
 
   await page.goto("/cases/ANTM?tab=market&pillar=concentration");
   await page.getByRole("button", { name: "Kurang relevan" }).click();

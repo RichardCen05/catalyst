@@ -535,6 +535,50 @@ export interface CausalGraph {
   coverage: { analyzed: boolean; missing: string[] };
 }
 
+/**
+ * Every chain in the watchlist, drawn as one graph.
+ *
+ * The dashboard asks a different question from the per-issuer chain: not
+ * "what moved ANTM" but "what is moving the book, and where do two issuers
+ * hang off the same recording". That only shows up once the chains are
+ * merged, so a source recorded against two issuers becomes one node carrying
+ * both symbols rather than two identical cards in separate columns.
+ *
+ * Merging is the only thing this structure adds. It invents no links: a node
+ * reaches two symbols because the recording says so, never because both
+ * issuers happen to share a sector.
+ */
+export interface MarketCausalNode extends CausalNode {
+  /** Issuers whose chain this node sits on. Length > 1 only for sources the
+   *  recordings link to more than one symbol. */
+  symbols: SymbolCode[];
+}
+
+export interface MarketCausalEdge extends CausalEdge {
+  /** The chain this edge was built for. A shared source has one edge per
+   *  issuer, so the fan-out stays attributable. */
+  symbol: SymbolCode;
+}
+
+export interface MarketCausalGraph {
+  symbols: SymbolCode[];
+  nodes: MarketCausalNode[];
+  edges: MarketCausalEdge[];
+  /** Sources that reach more than one issuer — the connective tissue the
+   *  per-issuer chain cannot show. */
+  sharedSourceIds: string[];
+  /** Every node more than one issuer runs through: the shared recordings
+   *  above, plus the transmission channels and business-impact tests the
+   *  chains converge into. These are what make the board a web rather than a
+   *  stack of separate chains. */
+  hubNodeIds: string[];
+  hiddenRelationshipCount: number;
+  /** Watchlist symbols that produced no chain at all, with the reason. */
+  skipped: Array<{ symbol: SymbolCode; reason: string }>;
+  asOf: string;
+  coverage: Record<string, { analyzed: boolean; missing: string[] }>;
+}
+
 export interface MarketDataProvider {
   listCompanies(): Company[];
   getCompany(symbol: string): Company | undefined;
@@ -552,7 +596,7 @@ export interface AgentEngine {
   analyzeCompany(symbol: string, profile: UserProfile, context?: AnalysisContext): Promise<AnalysisCase | null>;
   mapEventImpact(eventId: string, profile: UserProfile, scope: "watchlist" | "market"): MarketEvent | null;
   answerFollowUp(request: ChatRequest): Promise<ChatAnswer>;
-  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext }): Promise<CausalGraph | null>;
+  buildCausalGraph(symbol: string, profile: UserProfile, options: { scope: "watchlist" | "market"; minRelevance: number; context?: AnalysisContext; maxSources?: number; prioritizeEventIds?: string[] }): Promise<CausalGraph | null>;
 }
 
 export interface MemoryStore {
