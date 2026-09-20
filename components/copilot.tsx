@@ -132,31 +132,31 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       onKeyDown={dismissible ? (event) => { if (event.key === "Escape") { event.stopPropagation(); setCopilotOpen(false); } } : undefined}
       className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}
     >
-      <div className="relative flex items-center gap-3 border-b border-border px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
         <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Asisten Catalyst</p>
-          {/* One line, truncated: what this answer set is bound to. Wrapping
-              pushed the composer down on narrow panels. */}
-          <p className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-            <span className="shrink-0">Rekaman {RECORD_SHORT}</span>
-            <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
-            <span className="shrink-0 uppercase tracking-wider opacity-70">Kasus</span>
-            {/* A pill with a caret, not bare text: the case is the one thing in
-                this header the reader can change, and as plain mono type it
-                read as a label nobody thought to click. */}
-            <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={`${contextLabel} — klik untuk ganti kasus`} className="flex min-w-0 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-left text-foreground transition-colors hover:border-foreground/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="truncate">{contextLabel}</span><IconCaretDown aria-hidden="true" className="size-3 shrink-0 text-muted-foreground" /></button>
-            {copilotContext ? <button type="button" onClick={clearCopilotContext} className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3" /></button> : null}
-          </p>
-        </div>
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold">Asisten Catalyst</p>
         {dismissible
           ? <Button variant="ghost" size="icon" onClick={expand} aria-label="Perbesar asisten ke halaman penuh"><IconExpand aria-hidden="true" className="size-4" /></Button>
           : <Button variant="ghost" size="icon" onClick={collapse} aria-label="Ciutkan asisten ke panel"><IconCollapse aria-hidden="true" className="size-4" /></Button>}
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup asisten"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
+      </div>
+
+      {/* The picker gets a row of its own. Sharing the header line with the
+          title and two icon buttons left it 63px for the case name on a 390px
+          panel, so "ANTM · Konsentrasi" truncated to nothing readable — and
+          before that, competing with the recording date, it collapsed to an
+          empty circle. The date is on the banner at the top of every page. */}
+      <div className="relative flex items-center gap-1.5 border-b border-border bg-background px-4 py-2">
+        <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={`${contextLabel} — klik untuk ganti kasus`} className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-left font-mono text-[11px] text-foreground transition-colors hover:border-foreground/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <span className="shrink-0 uppercase tracking-wider text-muted-foreground">Kasus</span>
+          <span className="min-w-0 flex-1 truncate">{contextLabel}</span>
+          <IconCaretDown aria-hidden="true" className="size-3 shrink-0 text-muted-foreground" />
+        </button>
+        {copilotContext ? <button type="button" onClick={clearCopilotContext} className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3.5" /></button> : null}
         {/* Coverage comes from the same table the compare picker reads, so a
             symbol without a full case says so here instead of being offered
             as if it had one. */}
-        {pickerOpen ? <div role="listbox" aria-label="Pilih kasus" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPickerOpen(false); } }} className="absolute inset-x-3 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-panel">
+        {pickerOpen ? <div role="listbox" aria-label="Pilih kasus" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPickerOpen(false); } }} className="absolute inset-x-4 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-panel">
           <button type="button" role="option" aria-selected={!activeContext?.symbol} onClick={() => { setCopilotContext({ label: "Tanpa kasus", question: "" }); setPickerOpen(false); }} className="w-full cursor-pointer rounded-md px-2.5 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-[13px] font-medium">Tanpa kasus</span><span className="block text-[11px] leading-4 text-muted-foreground">Hanya menjawab pertanyaan yang menyebut emitennya sendiri.</span></button>
           {profile.watchlist.map((symbol) => {
             const coverage = coverageInfo[symbol];
