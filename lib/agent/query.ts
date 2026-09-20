@@ -1,31 +1,83 @@
 import { codeMatches, phraseMatches, words } from "@/lib/text/fuzzy";
+import { companies } from "@/lib/data/fixtures";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 /**
- * Robust natural-language symbol + event matching for the copilot.
- * Pure string logic over the recorded symbol list — no new data, no LLM.
+ * Symbol aliases derived from the recorded company registry — never a typed
+ * ticker table. Each symbol's aliases are its code, every multi-word phrase
+ * inside its recorded name (`bank rakyat indonesia` yields `bank rakyat`),
+ * the squashed single token (`aneka tambang` → `anekatambang`), distinctive
+ * single tokens, and the acronym of the name (`Bank Central Asia` → `bca`).
+ * Single tokens shared by more than one recorded name stay out, and ordinary
+ * Indonesian nouns that double as question words stay out as well — `sumber`
+ * is how readers ask for a source, `mana` is one edit from `marga`, so both
+ * would map everyday questions to the wrong issuer. Brand, product, and
+ * pre-rename phrases from the old hand list (indomie, alfamart, adaro, …)
+ * are intentionally gone: no recording carries them.
  */
+const LEGAL_TOKENS = new Set(["pt", "tbk", "persero", "com", "jk"]);
 
-export const SYMBOL_ALIASES: Partial<Record<SymbolCode, string[]>> = {
-  ANTM: ["antm", "aneka tambang", "anekatambang"],
-  INCO: ["inco", "vale", "vale indonesia"],
-  TINS: ["tins", "timah"],
-  BBCA: ["bbca", "bca", "bank central asia"],
-  BBRI: ["bbri", "bri", "bank rakyat"],
-  BMRI: ["bmri", "mandiri", "bank mandiri"],
-  TLKM: ["tlkm", "telkom", "telekomunikasi indonesia"],
-  JSMR: ["jsmr", "jasa marga", "jasamarga"],
-  EXCL: ["excl", "xl", "xlsmart", "excelcom"],
-  GOTO: ["goto", "gojek tokopedia", "gojek", "tokopedia"],
-  BUKA: ["buka", "bukalapak"],
-  EMTK: ["emtk", "elangs", "emtek", "surya citra"],
-  PGAS: ["pgas", "perusahaan gas", "pgn"],
-  ADRO: ["adro", "alumindo", "adaro", "adaro energy"],
-  PTBA: ["ptba", "bukit asam", "bukitasam", "tanjung enim"],
-  ICBP: ["icbp", "indofood cbp", "indomie"],
-  MYOR: ["myor", "mayora"],
-  AMRT: ["amrt", "alfamart", "alfa"],
-};
+/** Ordinary words that happen to sit inside recorded names. Generic question
+ *  vocabulary, not registry — the same kind of list as STOPWORDS below. */
+const GENERIC_NAME_TOKENS = new Set([
+  "aneka", "tambang", "gas", "jasa", "marga", "perusahaan", "negara",
+  "teknologi", "indah", "sukses", "makmur", "sejahtera", "sumber",
+]);
+
+function normalizeName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildSymbolAliases(): Partial<Record<SymbolCode, string[]>> {
+  const tokenOwners = new Map<string, Set<string>>();
+  const prepared = companies.map((company) => {
+    const tokens = normalizeName(company.name)
+      .split(" ")
+      .filter((token) => token && !LEGAL_TOKENS.has(token));
+    for (const token of new Set(tokens)) {
+      let owners = tokenOwners.get(token);
+      if (!owners) {
+        owners = new Set<string>();
+        tokenOwners.set(token, owners);
+      }
+      owners.add(company.symbol);
+    }
+    return { symbol: company.symbol, tokens };
+  });
+  const out = {} as Record<SymbolCode, string[]>;
+  for (const { symbol, tokens } of prepared) {
+    // Multi-word phrases only: single tokens take the distinctive-word path
+    // below, otherwise the shared-word filter never gets a say.
+    const phrases = new Set<string>();
+    for (let start = 0; start < tokens.length; start += 1) {
+      for (let end = start + 2; end <= tokens.length; end += 1) {
+        phrases.add(tokens.slice(start, end).join(" "));
+      }
+    }
+    const aliases = new Set<string>([symbol.toLowerCase(), ...phrases]);
+    const squashed = tokens.join("");
+    if (squashed.length >= 4) aliases.add(squashed);
+    for (const token of tokens) {
+      if (
+        token.length >= 4 &&
+        !GENERIC_NAME_TOKENS.has(token) &&
+        (tokenOwners.get(token)?.size ?? 0) <= 1
+      ) {
+        aliases.add(token);
+      }
+    }
+    const acronym = tokens.map((token) => token[0]).join("");
+    if (acronym.length >= 3) aliases.add(acronym);
+    out[symbol] = [...aliases];
+  }
+  return out;
+}
+
+export const SYMBOL_ALIASES: Partial<Record<SymbolCode, string[]>> = buildSymbolAliases();
 
 const CATEGORY_KEYWORDS: Array<[string[], MarketEvent["category"]]> = [
   [["nikel", "nickel", "batu bara", "batubara", "komoditas", "emas", "timah", "cp nickel", "harga acuan"], "commodity"],

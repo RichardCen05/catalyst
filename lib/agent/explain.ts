@@ -21,32 +21,28 @@ export { phraseMatches };
  * another.
  */
 
-/** What a figure means, for a reader who has never seen the term. */
-const METRIC_GLOSS: Record<string, string> = {
-  "Porsi peserta teratas": "bagian nilai beli yang dikuasai satu broker paling besar. Makin tinggi, makin sedikit pihak yang menggerakkan transaksi.",
-  "HHI": "ukuran seberapa terpusat nilai beli di sedikit broker. Mendekati 0 berarti tersebar rata; 1 berarti satu broker menguasai semuanya.",
-  "Peserta efektif": "jumlah broker yang setara dengan sebaran ini bila semuanya berporsi sama. 5.6 berarti konsentrasinya seperti hanya ada sekitar 6 pembeli.",
-  "Porsi asing": "arus asing bersih dibanding total nilai transaksi pada jendela rekaman. Angka positif berarti asing membeli lebih banyak daripada menjual.",
-  "Saham publik terserap": "seberapa besar nilai beli pada jendela ini dibanding seluruh nilai saham publik yang beredar.",
-  "Aliran institusi bersih": "nilai bersih transaksi pemegang saham institusi yang wajib dilaporkan ke bursa.",
-  "Pemegang terbesar berubah": "pemegang saham yang perubahan kepemilikannya paling besar pada keterbukaan terekam.",
-  "Rasio churn broker teratas (proksi)": "perbandingan beli dan jual pada broker yang sama. Rasio tinggi berarti banyak transaksi bolak-balik, bukan akumulasi bersih.",
-  "Skor z tahan pencilan": "seberapa jauh volume terakhir dari volume biasanya, diukur dengan cara yang tidak mudah ditarik satu hari ekstrem.",
-  "Volume terbaru": "jumlah lembar yang diperdagangkan pada hari terakhir rekaman.",
-  "Pembanding": "jendela hari bursa yang dipakai sebagai pembanding volume.",
-  "Imbal hasil 3 hari": "perubahan harga penutupan selama tiga hari bursa terakhir.",
-  "Imbal hasil IHSG": "perubahan indeks IHSG pada jendela yang sama, sebagai pembanding pasar.",
-  "Residual setelah beta": "bagian gerak harga yang tidak dijelaskan oleh gerak IHSG setelah disesuaikan sensitivitas saham ini terhadap pasar (beta).",
-  "Imbal hasil sektor": "rata-rata perubahan harga emiten satu sektor, dibobot kapitalisasi pasar.",
-  "Peristiwa terhubung": "jumlah peristiwa terekam yang memiliki jalur dampak ke emiten ini.",
-  "Arah utama": "arah dampak peristiwa utama terhadap emiten, menurut jalur eksposur yang terekam.",
-  "Relevansi eksposur": "peringkat yang dihitung Catalyst dari tag dan sebaran simbol pada rekaman, bukan skor yang diberikan penyedia data. Dipakai untuk mengurutkan pemeriksaan terhadap ambang aturan riset, bukan sebagai bukti.",
-  "Paruh awal": "skor anomali volume yang sama, dihitung ulang hanya terhadap separuh awal jendela pembanding. Dipakai untuk menguji apakah sinyalnya bertahan.",
-  "Paruh akhir": "skor anomali volume yang sama, dihitung ulang hanya terhadap separuh akhir jendela pembanding.",
-  "Pembanding penuh": "skor anomali volume terhadap seluruh jendela pembanding — angka acuan yang dibandingkan dengan kedua paruh.",
-  "Harga penutupan": "harga penutupan terakhir pada rekaman, bukan harga live.",
-  "Perubahan harga harian": "perubahan harga penutupan terhadap sesi bursa sebelumnya pada rekaman.",
-};
+/**
+ * What a figure means is written at request time by the model
+ * (lib/agent/llm/metric-gloss.ts), not kept as a table here. The table that
+ * used to sit at this line carried a worked example with a literal figure in
+ * it, under the real number. A rejected or absent draft renders nothing: the
+ * explanation states the value, the recording, and the arithmetic, and simply
+ * omits the meaning line rather than filling it with prose it cannot support.
+ *
+ * What stays without the model is not prose at all: the columns the figure
+ * reads, glossed through FIELD_GLOSS, wrapped in one shape that is true of
+ * every metric. A reader always learns what was measured; only the plain-words
+ * reading of it depends on a draft that passed verification.
+ */
+
+/** The measurement in registry terms — columns, not interpretation. */
+function meaningFromRecording(fields: string, hasFormula: boolean): string | undefined {
+  const glossed = glossField(fields);
+  if (!glossed) return undefined;
+  return hasFormula
+    ? `dihitung dari ${glossed} pada jendela rekaman.`
+    : `nilai ${glossed} yang dibaca langsung dari rekaman.`;
+}
 
 /** Response keys, in words. A reader who sees `net_foreign_inflow` in a
  *  citation should not have to guess what was measured. */
@@ -181,9 +177,10 @@ const METRIC_READ_DIRECTLY = new Set(["Volume terbaru", "Pembanding", "Harga pen
 export function explainMetric(
   pillar: PillarResult,
   metric: MetricValue,
-  options: { includeTechnical?: boolean } = {},
+  options: { includeTechnical?: boolean; gloss?: string } = {},
 ): string {
-  const gloss = METRIC_GLOSS[metric.label];
+  const fields = metric.citations.map((citation) => citation.field).join(", ");
+  const gloss = options.gloss ?? meaningFromRecording(fields, Boolean(METRIC_FORMULA[metric.label]));
   const lines = [`${metric.label}: ${metric.value} (pilar ${pillar.label}).`];
   if (gloss) lines.push(`Arti angka ini: ${gloss}`);
   lines.push(
@@ -437,7 +434,9 @@ export function matchFigure(
 /** Meaning, source in plain words, arithmetic, then the technical address. */
 export function explainFigure(figure: AnswerableFigure, substitutionSource?: string): string {
   const { metric, group } = figure;
-  const gloss = figure.gloss ?? METRIC_GLOSS[metric.label];
+  const fields = metric.citations.map((citation) => citation.field).join(", ");
+  const gloss = figure.gloss
+    ?? meaningFromRecording(fields, Boolean(figure.formulaOverride ?? METRIC_FORMULA[metric.label]));
   const lines = [`${metric.label}: ${metric.value}${metric.detail ? ` (${metric.detail})` : ""} — ${group}.`];
   if (gloss) lines.push(`Arti angka ini: ${gloss}`);
   lines.push(
@@ -457,4 +456,4 @@ export function explainFigure(figure: AnswerableFigure, substitutionSource?: str
   return lines.join("\n");
 }
 
-export { METRIC_GLOSS, METRIC_ALIASES, METRIC_FORMULA, METRIC_READ_DIRECTLY, FIELD_GLOSS };
+export { METRIC_ALIASES, METRIC_FORMULA, METRIC_READ_DIRECTLY, FIELD_GLOSS };

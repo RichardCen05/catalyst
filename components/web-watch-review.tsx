@@ -4,6 +4,7 @@ import { fuzzyIncludes } from "@/lib/text/fuzzy";
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
+import { primarySymbol } from "@/lib/data/fixtures";
 import { operatorHeaders } from "@/lib/operator-token";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -67,7 +68,7 @@ function CandidateCard({
   symbols: SymbolCode[];
   onDecided: () => void;
 }) {
-  const [impacts, setImpacts] = useState<ImpactDraft[]>([{ symbol: symbols[0] ?? "ANTM", direction: "Supported", band: "medium", path: "" }]);
+  const [impacts, setImpacts] = useState<ImpactDraft[]>([{ symbol: symbols[0] ?? primarySymbol, direction: "Supported", band: "medium", path: "" }]);
   const [reason, setReason] = useState("");
   const [dismissReason, setDismissReason] = useState("");
   const [showAccept, setShowAccept] = useState(false);
@@ -181,7 +182,7 @@ function CandidateCard({
           ))}
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Button variant="ghost" disabled={busy} onClick={() => setImpacts([...impacts, { symbol: symbols[0] ?? "ANTM", direction: "Supported", band: "medium", path: "" }])}>
+          <Button variant="ghost" disabled={busy} onClick={() => setImpacts([...impacts, { symbol: symbols[0] ?? primarySymbol, direction: "Supported", band: "medium", path: "" }])}>
             + Tambah emiten
           </Button>
         </div>

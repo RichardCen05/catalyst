@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
-import { companies, events } from "@/lib/data/fixtures";
+import { companies, events, primarySymbol } from "@/lib/data/fixtures";
 import { getSharedShocks, validateLag } from "@/lib/agent/lag-validate";
 import { useCatalystStore } from "@/lib/store";
 import type { CausalGraph, ResearchCase, SymbolCode } from "@/lib/types";
@@ -14,29 +14,31 @@ import { CompetingHypotheses } from "@/components/competing-hypotheses";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
 import { IconArrowRight, IconAttention, IconBranch } from "@/components/ui/icons";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 function ImpactWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { profile, playbook, caseMandates, caseClarifications, caseResolutions, insights, setCaseClarification } = useCatalystStore();
+  const { profile, playbook, caseClarifications, caseResolutions, insights, setCaseClarification } = useCatalystStore();
   // Partially recorded symbols belong here too: they carry a price series and
   // linked sources, so the chain can be drawn as far as the recordings go. The
   // option label says which ones stop short of a business outcome.
   const available = companies.filter((company) => profile.watchlist.includes(company.symbol));
   const requested = (searchParams.get("company") ?? searchParams.get("case"))?.toUpperCase() as SymbolCode | undefined;
-  const symbol = available.some((company) => company.symbol === requested) ? requested! : available[0]?.symbol ?? "ANTM";
+  // Default follows the registry — first analyzed case — never a typed ticker.
+  const fallback = primarySymbol;
+  const symbol = available.some((company) => company.symbol === requested) ? requested! : available[0]?.symbol ?? fallback!;
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
   const [graph, setGraph] = useState<CausalGraph | null | undefined>(undefined);
   // Relevance floor for the chain: lower shows more of the graph (up to the
   // engine's visibility cap), higher thins it to the strongest paths.
-  const [minRelevance, setMinRelevance] = useState(60);
+  const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
   const [reloading, setReloading] = useState(false);
-  const mandate = caseMandates[symbol];
   const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
   const sharedShocks = getSharedShocks(events, profile.watchlist);
   const context = {
-    mandate,
+    mandate: undefined,
     clarificationChoice,
     playbook,
     userInsights: insights,
@@ -47,7 +49,7 @@ function ImpactWorkspace() {
     agentEngine.analyzeCompany(symbol, profile, context).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, mandate, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, clarificationChoice, playbook, insights, resolution]);
   useEffect(() => {
     let cancelled = false;
     // The previous graph stays visible while the new threshold loads, with a
@@ -57,7 +59,7 @@ function ImpactWorkspace() {
     agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance, context }).then((result) => { if (!cancelled) { setGraph(result); setReloading(false); } });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, minRelevance, mandate, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, minRelevance, clarificationChoice, playbook, insights, resolution]);
 
   if (analysis === undefined || graph === undefined) {
     return (
@@ -99,7 +101,7 @@ function ImpactWorkspace() {
         <CausalChain graph={graph} />
 
         {analysis ? <details className="group overflow-hidden rounded-[12px] border border-primary/35 bg-primary/7">
-          <summary data-tour-action={symbol === "ANTM" ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span className="grid size-8 place-items-center rounded-[6px] bg-brand text-white"><IconArrowRight aria-hidden="true" className="size-4" /></span><span>Lihat tindakan riset</span><span className="ml-auto font-mono text-[10px] text-primary">{dispositionLabel(analysis.researchDisposition.kind)}</span></summary>
+          <summary data-tour-action={symbol === primarySymbol ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span className="grid size-8 place-items-center rounded-[6px] bg-brand text-white"><IconArrowRight aria-hidden="true" className="size-4" /></span><span>Lihat tindakan riset</span><span className="ml-auto font-mono text-[10px] text-primary">{dispositionLabel(analysis.researchDisposition.kind)}</span></summary>
           <div className="grid gap-4 border-t border-primary/25 p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:p-5">
             <div><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan untuk {symbol}</p><h2 className="editorial mt-1 text-2xl">{dispositionLabel(analysis.researchDisposition.kind)}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{analysis.researchDisposition.reason}</p></div>
             <dl className="grid gap-px overflow-hidden rounded-[8px] border border-border bg-border sm:grid-cols-2"><div className="bg-surface p-3"><dt className="text-xs font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.monitorObservable}</dd></div><div className="bg-surface p-3"><dt className="text-xs font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.reopenWhen}</dd></div></dl>

@@ -114,9 +114,12 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
   // Every watchlist chain lands on one canvas, with the four semantic columns
   // named once in the legend rather than per chain.
   const map = page.locator('[data-tour="market-map"]');
-  await expect(map.getByRole("group", { name: "Fokus emiten" })).toBeVisible();
+  // Which issuers the board draws is one control, above the canvas — the map
+  // no longer carries a second row of symbol chips saying something else.
+  await expect(map.getByRole("group", { name: "Fokus emiten" })).toHaveCount(0);
+  const boardPicker = page.getByRole("group", { name: "Emiten di papan" });
   for (const symbol of ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]) {
-    await expect(map.getByRole("button", { name: symbol, exact: true })).toBeVisible();
+    await expect(boardPicker.getByRole("button", { name: symbol, exact: true })).toBeVisible();
   }
 
   // The coal print is recorded against both ADRO and PTBA, so it must be one
@@ -212,14 +215,18 @@ test("legacy research utilities converge into the Research Case hub", async ({ p
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
 });
 
-test("Kasus mengubah pertanyaan menjadi rencana dan pemeriksaan bukti", async ({ page }) => {
+test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaan bukti", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM");
 
-  const mandate = "Uji apakah perubahan volume ditopang realisasi harga dan arus yang konsisten.";
-  await page.getByLabel("Apa yang ingin dibuktikan?").fill(mandate);
-  await page.getByRole("button", { name: "Simpan dan susun ulang" }).click();
-  await expect(page.getByText("Pertanyaan tersimpan")).toBeVisible();
+  await expect(page.getByText("Pertanyaan yang diuji", { exact: false })).toBeVisible();
+  await expect(page.getByText(/Periksa perubahan ANTM/)).toBeVisible();
+  await expect(page.getByLabel("Apa yang ingin dibuktikan?")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Simpan dan susun ulang" })).toHaveCount(0);
+  await expect(page.getByText("Langkah 1 · klik satu kartu untuk mulai")).toBeVisible();
+  await page.locator('[data-tour-action="resolve-clarification"]').click();
+  await expect(page.getByText("Langkah 1 selesai", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Lanjut ke Pasar/ })).toBeVisible();
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tahap kasus" })).toBeVisible();
   await page.getByRole("tab", { name: "Pasar" }).click();
@@ -227,35 +234,34 @@ test("Kasus mengubah pertanyaan menjadi rencana dan pemeriksaan bukti", async ({
   await expect(page.getByText("Klaim yang diuji", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti pendukung", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Bukti penyangkal", { exact: true }).first()).toBeVisible();
-  await page.getByText("Batas dan langkah berikutnya", { exact: true }).first().click();
-  await expect(page.getByText("Tidak cukup bila", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Pertanyaan berikutnya", { exact: true }).first()).toBeVisible();
+  // Setiap angka membuka rekamannya sendiri lewat hitungan sumber di bawahnya.
+  await page.getByRole("button", { name: /^\d+ sumber$/ }).first().click();
+  await expect(page.getByRole("dialog")).toContainText("Daftar bukti");
+  await page.getByRole("button", { name: "Tutup sumber" }).click();
 
   await page.getByRole("tab", { name: "Ringkasan" }).click();
   await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
 });
 
-test("editing the mandate visibly replans the case and its business impact test", async ({ page }) => {
+test("memilih fokus merencanakan ulang kasus dan uji dampak bisnisnya", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM");
 
-  const mandate = "Uji apakah pelemahan rupiah menekan margin dan cash flow ANTM.";
-  await page.getByLabel("Apa yang ingin dibuktikan?").fill(mandate);
-  await page.getByRole("button", { name: "Simpan dan susun ulang" }).click();
+  await page.locator('[data-tour-action="resolve-clarification"]').click();
 
   const plan = page.getByRole("region", { name: "Rencana analisis" });
-  await expect(plan.getByText("Fokus · Margin operasi", { exact: true })).toBeVisible();
-  await expect(plan.getByText(/Pemicu mengubah margin operasi ANTM/)).toBeVisible();
+  await expect(plan.getByText("Fokus · Realisasi harga", { exact: true })).toBeVisible();
+  await expect(plan.getByText(/Pemicu mengubah realisasi harga ANTM/)).toBeVisible();
 
   await page.getByRole("tab", { name: "Bisnis" }).click();
   await expect(page.getByRole("heading", { name: "Dampak ke bisnis" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Di mana dampak harus terlihat?" })).toBeVisible();
-  await expect(page.getByText("Margin operasi", { exact: true })).toBeVisible();
+  await expect(page.getByText("Realisasi harga", { exact: true })).toBeVisible();
   await expect(page.getByText("Uji utama", { exact: true })).toBeVisible();
   await expect(page.getByText("Dampak valuasi", { exact: true })).toBeVisible();
 
   await page.goto("/impact?company=ANTM");
-  await expect(page.getByRole("region", { name: "Hipotesis untuk Margin operasi" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Hipotesis untuk Realisasi harga" })).toBeVisible();
 });
 
 test("Research Case tabs keep each investigation layer focused and deep-linkable", async ({ page }) => {
@@ -282,8 +288,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await expect(page.getByRole("heading", { name: "Volume", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Konsentrasi", exact: true })).toHaveCount(0);
 
-  await page.getByText(/Buka timeline \d+ hari/).click();
-  await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Jejak bukti" })).toHaveCount(0);
 
   await caseTabs.getByRole("tab", { name: "Bisnis" }).click();
   await expect(page).toHaveURL(/\/cases\/ANTM\?tab=business$/);
@@ -359,14 +364,42 @@ test("evidence opens Copilot with its company and pillar context", async ({ page
   await expect(copilot).toBeHidden();
 });
 
-test("company analysis aligns events on an evidence timeline", async ({ page }) => {
+test("dashboard chart mode aligns events on an evidence timeline", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/cases/ANTM?tab=market");
-  await page.getByText(/Buka timeline \d+ hari/).click();
+  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  // From "Semua" the first chip click narrows the board to one issuer, which
+  // is the chart that carries events, the table, and the per-symbol export.
+  await page.getByRole("group", { name: "Emiten di papan" }).getByRole("button", { name: "ANTM", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
   await expect(page.getByText("Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion")).toBeVisible();
   await page.getByRole("button", { name: "Tanya jejak ANTM" }).click();
   await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText("ANTM · jejak bukti", { exact: true })).toBeVisible();
+});
+
+test("board reads one issuer or several, in both node and chart mode", async ({ page }) => {
+  await finishSetup(page);
+  const picker = page.getByRole("group", { name: "Emiten di papan" });
+  const openCount = await picker.getByRole("button").count() - 1;
+
+  // Node mode: narrowing the board rebuilds the map from the picked issuers.
+  await picker.getByRole("button", { name: "INCO", exact: true }).click();
+  await expect(page.getByText("1 kasus terbuka di peta")).toBeVisible();
+  await picker.getByRole("button", { name: "TINS", exact: true }).click();
+  await expect(page.getByText("2 kasus terbuka di peta")).toBeVisible();
+
+  // Chart mode keeps that selection and draws one line per issuer.
+  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  await expect(page.getByText(/2 emiten dibanding IHSG/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Unduh CSV" })).toBeVisible();
+
+  // "Semua" is the absence of a filter: every open issuer with a recording.
+  await picker.getByRole("button", { name: /^Semua/ }).click();
+  await expect(page.getByText(new RegExp(`${openCount} emiten dibanding IHSG`, "i"))).toBeVisible();
+
+  // One issuer returns the single-issuer chart, with its events and export.
+  await picker.getByRole("button", { name: "ANTM", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tanya jejak ANTM" })).toBeVisible();
 });
 
 test("user completes setup and opens a four-pillar company case", async ({ page }) => {
@@ -380,8 +413,11 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
   const audit = page.getByRole("dialog", { name: "Audit analisis ANTM" });
   await expect(audit.getByText("Rencana → Cari → Periksa → Ringkas")).toBeVisible();
   await audit.getByRole("button", { name: "Tutup audit" }).click();
-  await page.getByRole("tab", { name: "Pasar" }).click();
-  await page.getByText(/Buka timeline \d+ hari/).click();
+  await page.goto("/");
+  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  // From "Semua" the first chip click narrows the board to one issuer, which
+  // is the chart that carries events, the table, and the per-symbol export.
+  await page.getByRole("group", { name: "Emiten di papan" }).getByRole("button", { name: "ANTM", exact: true }).click();
   await page.getByRole("button", { name: /Perbesar grafik/ }).click();
   await expect(page.getByRole("dialog", { name: "ANTM dibanding IHSG" })).toBeVisible();
   await page.getByRole("button", { name: "Tutup grafik" }).click();

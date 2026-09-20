@@ -23,6 +23,7 @@ import {
   Calculator,
   CaretDown,
   CaretRight,
+  ChartLine,
   ChatTeardropDots,
   Check,
   CheckCircle,
@@ -123,6 +124,7 @@ export const IconInspect = icon(FileMagnifyingGlass, "IconInspect");
 export const IconCalculator = icon(Calculator, "IconCalculator");
 export const IconTable = icon(Table, "IconTable");
 export const IconSignal = icon(Pulse, "IconSignal");
+export const IconChart = icon(ChartLine, "IconChart");
 export const IconGauge = icon(Gauge, "IconGauge");
 export const IconClock = icon(Clock, "IconClock");
 export const IconCode = icon(BracketsCurly, "IconCode");

@@ -17,11 +17,11 @@ import {
   type NodeProps,
   type ReactFlowInstance,
 } from "@xyflow/react";
-import type { ImpactDirection, MarketCausalGraph, MarketCausalNode, SymbolCode } from "@/lib/types";
+import type { ImpactDirection, MarketCausalGraph, MarketCausalNode } from "@/lib/types";
 import { layoutMarketGraph, marketNodeSize } from "@/lib/agent/market-layout";
-import { collapseSources, sourceGroupKey, symbolSubgraph } from "@/lib/agent/market-graph";
+import { collapseSources, sourceGroupKey } from "@/lib/agent/market-graph";
 import { connectedIds } from "@/lib/agent/chain-layout";
-import { events } from "@/lib/data/fixtures";
+import { events, primarySymbol } from "@/lib/data/fixtures";
 import { uiLabel } from "@/lib/ui-labels";
 import { cn } from "@/lib/utils";
 import { AskAgentButton } from "@/components/ask-agent-button";
@@ -188,7 +188,6 @@ export function MarketCausalMap({
   reloading?: boolean;
   toolbar?: React.ReactNode;
 }) {
-  const [focus, setFocus] = useState<SymbolCode | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   // Edge labels appear only on the selected or hovered edge: with forty cards
@@ -207,15 +206,15 @@ export function MarketCausalMap({
   const selected = view.nodes.find((node) => node.id === selectedId) ?? null;
   const selectedEdge = view.edges.find((edge) => edge.id === selectedEdgeId) ?? null;
 
-  /** One highlight rule, three inputs, in priority order: a picked edge, a
-   *  picked node, then the focused issuer. Without it a click and a focus can
-   *  each claim the canvas and the dimming contradicts itself. */
+  /** One highlight rule, two inputs, in priority order: a picked edge, then a
+   *  picked node. Which issuers are on the board at all is the board picker's
+   *  job, one control above the canvas — a second row of symbol chips here
+   *  read as the same control and answered a different question. */
   const highlighted = useMemo(() => {
     if (selectedEdge) return connectedIds(view.edges, [selectedEdge.from, selectedEdge.to]);
     if (selectedId && view.nodes.some((node) => node.id === selectedId)) return connectedIds(view.edges, [selectedId]);
-    if (focus) return symbolSubgraph(view, focus);
     return null;
-  }, [view, selectedId, selectedEdge, focus]);
+  }, [view, selectedId, selectedEdge]);
 
   /**
    * Show the whole board, never a slice of it.
@@ -412,37 +411,7 @@ export function MarketCausalMap({
         <span>Kartu bisa digeser</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3" role="group" aria-label="Fokus emiten">
-        <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Fokus</span>
-        <button
-          type="button"
-          onClick={() => { setFocus(null); closeInspector(); }}
-          aria-pressed={focus === null}
-          className={cn(
-            "min-h-8 cursor-pointer rounded-full border px-3 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            focus === null ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
-          )}
-        >
-          Semua
-        </button>
-        {/* Focus is how one issuer's path is read out of a board where every
-            card can belong to several: it dims everything the issuer does not
-            run through, hubs included. The board itself does not move — all of
-            it is on screen already. */}
-        {view.symbols.map((symbol) => (
-          <button
-            key={symbol}
-            type="button"
-            onClick={() => { setFocus(symbol); closeInspector(); }}
-            aria-pressed={focus === symbol}
-            className={cn(
-              "min-h-8 cursor-pointer rounded-full border px-3 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              focus === symbol ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
-            )}
-          >
-            {symbol}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3" role="group" aria-label="Kontrol peta">
         <button
           type="button"
           onClick={resetLayout}
@@ -564,7 +533,7 @@ export function MarketCausalMap({
           <Link
             key={symbol}
             href={`/cases/${symbol}`}
-            data-tour-action={symbol === "ANTM" ? "open-antm-case" : undefined}
+            data-tour-action={symbol === primarySymbol ? "open-case" : undefined}
             className="inline-flex min-h-8 items-center gap-1 rounded-full border border-border px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {symbol}

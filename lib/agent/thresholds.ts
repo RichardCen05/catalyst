@@ -24,6 +24,9 @@ import type { InvestorResearchPlaybook } from "@/lib/types";
  */
 export const DEFAULT_THRESHOLDS = {
   relevanceFloor: 85,
+  /** Ambang relevansi awal untuk peta sebab akibat: di bawah ini sisi graf
+   *  disembunyikan. Dulu literal `useState(60)` di dua halaman sekaligus. */
+  chainRelevanceFloor: 60,
   concentrationFloor: 0.42,
   volumeZFloor: 2.5,
   volumeExtremeFloor: 5,
@@ -51,6 +54,7 @@ export const DEFAULT_THRESHOLDS = {
  */
 export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "derived" | "convention" | "guess"> = {
   relevanceFloor: "guess",
+  chainRelevanceFloor: "guess",
   concentrationFloor: "guess",
   volumeZFloor: "guess",
   volumeExtremeFloor: "guess",
@@ -62,6 +66,40 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   momentumIdiosyncraticFloor: "guess",
   foreignContradictionShare: "guess",
 };
+
+/**
+ * Jendela pemeriksaan dan bobot relevansi hasil — dulu diketik ulang di lima
+ * call site lib/agent/engine.ts ("1-10 sesi", "1-3 bulan", "0-3 sesi", 100,
+ * 85). Satu nilai diubah di satu tempat, empat tempat lain tetap memakai yang
+ * lama, dan tidak ada tes yang gagal. Angkanya hidup sekali di sini; label
+ * dirakit oleh formatter di bawah supaya teks dan nilai tidak bisa berbeda.
+ *
+ * Status provenance seluruh tabel ini: `guess` — belum pernah diukur.
+ */
+export const OBSERVATION_WINDOWS = {
+  /** Jendela baku untuk indikator operasional, dalam sesi bursa. */
+  defaultSessions: [1, 10],
+  /** Dampak valuasi butuh jendela lebih panjang, dalam bulan. */
+  valuationMonths: [1, 3],
+  /** Perkiraan jeda per jenis peristiwa, dalam sesi bursa. */
+  eventLagSessions: {
+    company: [0, 3],
+    weather: [0, 5],
+    rates: [5, 20],
+    sentiment: [1, 5],
+  } as Record<string, [number, number]>,
+} as const;
+
+/** Bobot relevansi hasil uji pada rantai sebab akibat. */
+export const OUTCOME_RELEVANCE = {
+  primaryTest: 100,
+  supporting: 85,
+} as const;
+
+export const sessionWindowLabel = (range: readonly [number, number] | number[]): string => `${range[0]}-${range[1]} sesi`;
+export const monthWindowLabel = (range: readonly [number, number] | number[]): string => `${range[0]}-${range[1]} bulan`;
+/** Jendela baku dalam kalimat panjang ("1–10 hari bursa"). */
+export const sessionWindowSentence = (range: readonly [number, number] | number[]): string => `${range[0]}\u2013${range[1]} hari bursa`;
 
 export type ResolvedThresholds = {
   [K in keyof typeof DEFAULT_THRESHOLDS]: number;
@@ -78,6 +116,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
   const t = playbook?.thresholds ?? {};
   return {
     relevanceFloor: num(playbook?.relevanceFloor, DEFAULT_THRESHOLDS.relevanceFloor),
+    chainRelevanceFloor: num(t.chainRelevanceFloor, DEFAULT_THRESHOLDS.chainRelevanceFloor),
     concentrationFloor: num(t.concentrationFloor, DEFAULT_THRESHOLDS.concentrationFloor),
     volumeZFloor: num(t.volumeZFloor, DEFAULT_THRESHOLDS.volumeZFloor),
     volumeExtremeFloor: num(t.volumeExtremeFloor, DEFAULT_THRESHOLDS.volumeExtremeFloor),

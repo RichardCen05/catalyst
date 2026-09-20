@@ -21,16 +21,16 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { IconArrowLeft, IconAttention, IconBranch, IconCaretDown, IconCaretRight, IconClock, IconCopilot, IconTable, IconUnknown } from "@/components/ui/icons";
 
 export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol: SymbolCode; workspaceTabs?: boolean }) {
-  const { profile, playbook, caseMandates, caseClarifications, caseResolutions, insights, openCopilot } = useCatalystStore();
+  const { profile, playbook, caseClarifications, caseResolutions, insights, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
-  const mandate = caseMandates[symbol];
   const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
   useEffect(() => {
     let cancelled = false;
     agentEngine.analyzeCompany(symbol, profile, {
-      mandate,
+      // Pertanyaan selalu bawaan engine — input manual dihapus.
+      mandate: undefined,
       clarificationChoice,
       playbook,
       userInsights: insights,
@@ -38,7 +38,7 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
     }).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, mandate, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, clarificationChoice, playbook, insights, resolution]);
   const relatedEvents = events.filter((event) => event.impactLinks.some((link) => link.symbol === symbol));
 
   if (analysis === undefined) return (
@@ -66,7 +66,7 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
         <p className="mt-5 max-w-3xl text-sm leading-6 text-foreground">{analysis.thesis}</p>
       </header>
 
-      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} relatedEvents={relatedEvents} /> : <>
+      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} /> : <>
       <ResearchCaseOverview researchCase={analysis} symbol={symbol} />
 
       <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} />

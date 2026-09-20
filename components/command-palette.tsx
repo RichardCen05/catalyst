@@ -1,5 +1,6 @@
 "use client";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
+import { primarySymbol } from "@/lib/data/fixtures";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ import {
 const actions = [
   { label: "Buka Dashboard", href: "/", icon: BarChart3 },
   { label: "Buka Kasus", href: "/cases", icon: BriefcaseBusiness },
-  { label: "Buka Sebab akibat ANTM", href: "/impact?company=ANTM", icon: GitBranch },
+  { label: `Buka Sebab akibat ${primarySymbol}`, href: `/impact?company=${primarySymbol}`, icon: GitBranch },
   { label: "Buka Pantau web", href: "/pantau", icon: Radar },
   { label: "Tanya asisten Catalyst", href: "/copilot", icon: Bot },
   { label: "Buka AI Learning", href: "/ai-learning", icon: BrainCircuit },

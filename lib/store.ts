@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { demoProfiles } from "@/lib/data/fixtures";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import { buildBasePreferences, buildDefaultPlaybook } from "@/lib/playbook-defaults";
 import type {
   AnswerDepth,
   CaseResolution,
@@ -55,6 +56,7 @@ interface CatalystState {
   setInsightStatus: (id: string, status: UserInsight["status"]) => void;
   setCaseMandate: (symbol: SymbolCode, mandate: string) => void;
   setCaseClarification: (symbol: SymbolCode, choiceId: string) => void;
+  clearCaseClarification: (symbol: SymbolCode) => void;
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
@@ -71,48 +73,11 @@ interface CatalystState {
   resetMemory: () => void;
 }
 
-const basePreferences: LearnedPreference[] = [
-  { id: "pref-order", label: "Mulai dari Konsentrasi", explanation: "Dipilih langsung saat pengaturan awal.", source: "explicit", active: true },
-  { id: "pref-sector", label: "Prioritaskan bahan dasar", explanation: "Berasal dari daftar pantauan aktif.", source: "explicit", active: true },
-];
+/** Both the seeded playbook and the seeded preferences are assembled from the
+ *  recordings in lib/playbook-defaults.ts — never typed per ticker. */
+const basePreferences: LearnedPreference[] = buildBasePreferences(demoProfiles[0]);
 
-export const defaultPlaybook: InvestorResearchPlaybook = {
-  preferredComparables: {
-    ANTM: ["INCO", "TINS"],
-    INCO: ["ANTM"],
-    TINS: ["ANTM"],
-    PGAS: ["ADRO", "PTBA"],
-    ADRO: ["PTBA"],
-    PTBA: ["ADRO"],
-  },
-  materialityRules: ["Prioritaskan perubahan yang dapat memengaruhi volume, margin, atau arus kas."],
-  knownExposures: [
-    "ANTM: harga nikel, volume penjualan, rupiah, dan jam operasi tambang.",
-    "INCO: harga nikel, volume produksi, energi, dan curah hujan.",
-    "TINS: harga timah, volume produksi, cuaca laut, dan regulasi ekspor.",
-    "PGAS: harga gas, volume distribusi, kontrak, dan kebijakan harga.",
-    "ADRO: harga batu bara, stripping ratio, cuaca, dan volume penjualan.",
-    "PTBA: harga batu bara, DMO, biaya angkut, dan volume penjualan.",
-  ],
-  thesisAssumptions: [
-    "ANTM: harga acuan perlu diterjemahkan ke realisasi harga atau pendapatan.",
-    "INCO: harga nikel harus melewati kontrak dan volume produksi sebelum dianggap material.",
-    "TINS: harga timah harus dipisahkan dari perubahan volume dan izin operasi.",
-    "PGAS: perubahan harga perlu diuji terhadap struktur kontrak dan volume distribusi.",
-    "ADRO: harga acuan perlu diuji bersama volume dan biaya produksi.",
-    "PTBA: perubahan harga perlu diuji terhadap DMO dan biaya logistik.",
-  ],
-  trustedSources: ["Data keuangan Sectors dan keterbukaan emiten sebelum berita sekunder."],
-  falsifiers: [
-    "ANTM: hipotesis katalis melemah bila volume penjualan atau realisasi harga tidak ikut berubah.",
-    "INCO: hipotesis melemah bila harga realisasi dan volume produksi tidak mengonfirmasi perubahan nikel.",
-    "TINS: hipotesis melemah bila volume penjualan dan margin tidak berubah setelah harga timah bergerak.",
-    "PGAS: hipotesis melemah bila volume distribusi dan margin tidak berubah pada periode kontrak berikutnya.",
-    "ADRO: hipotesis melemah bila volume penjualan atau margin tidak mengonfirmasi perubahan batu bara.",
-    "PTBA: hipotesis melemah bila realisasi harga dan arus kas tidak bergerak setelah faktor DMO diperhitungkan.",
-  ],
-  relevanceFloor: 85,
-};
+export const defaultPlaybook: InvestorResearchPlaybook = buildDefaultPlaybook();
 
 export const useCatalystStore = create<CatalystState>()(
   persist(
@@ -186,6 +151,11 @@ export const useCatalystStore = create<CatalystState>()(
         return { caseMandates: { ...state.caseMandates, [symbol]: mandate }, caseClarifications };
       }),
       setCaseClarification: (symbol, choiceId) => set((state) => ({ caseClarifications: { ...state.caseClarifications, [symbol]: choiceId } })),
+      clearCaseClarification: (symbol) => set((state) => {
+        const caseClarifications = { ...state.caseClarifications };
+        delete caseClarifications[symbol];
+        return { caseClarifications };
+      }),
       setCaseStatus: (symbol, status) => set((state) => ({ caseStatuses: { ...state.caseStatuses, [symbol]: status } })),
       saveCaseResolution: (symbol, resolution) => set((state) => {
         const resolvedAt = new Date().toISOString();

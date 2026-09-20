@@ -6,7 +6,7 @@ import { useCatalystStore } from "@/lib/store";
 import { useCopilotSession } from "@/lib/copilot-session";
 import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
-import { coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import type { ChatAnswer, SymbolCode, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
@@ -18,7 +18,8 @@ const RECORD_SHORT = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "
  *  topic the record does not contain. Falls back to generic prompts when the
  *  watchlist has no linked event. */
 function buildQuickPrompts(profile: UserProfile): string[] {
-  const first = profile.watchlist[0] ?? "ANTM";
+  const fallback = companies.find((company) => company.analyzed)?.symbol ?? companies[0]?.symbol;
+  const first = profile.watchlist[0] ?? fallback!;
   const watched = new Set(profile.watchlist);
   const top = events.find((event) => event.impactLinks.some((link) => watched.has(link.symbol) && link.direction !== "Unrelated"));
   const prompts = [`Kenapa ${first} masuk daftar hari ini?`];

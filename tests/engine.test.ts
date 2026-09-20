@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
-import { demoProfiles, events } from "@/lib/data/fixtures";
+import { companies, coverageInfo, demoProfiles, events } from "@/lib/data/fixtures";
 import { isCompleteCitation } from "@/lib/agent/gates";
+import { defaultFocusFor, DIMENSION_LABELS } from "@/lib/agent/dimensions";
 
 describe("Catalyst agent engine", async () => {
   it("personalizes explanation order without changing facts or verdict", async () => {
@@ -85,7 +86,9 @@ describe("Catalyst agent engine", async () => {
   it("compares several hypotheses against one business observable", async () => {
     const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
-    expect(graph?.targetObservable).toBe("Realisasi harga");
+    // The observable the graph aims at is the one this symbol's recorded
+    // impact paths land on, not a dimension typed into the test.
+    expect(graph?.targetObservable).toBe(DIMENSION_LABELS[defaultFocusFor("ANTM")]);
     expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
     expect(graph?.competingHypotheses.map((item) => item.rank)).toEqual([1, 2, 3]);
     expect(graph?.competingHypotheses.every((item) =>
@@ -178,7 +181,14 @@ describe("Catalyst agent engine", async () => {
       expect.objectContaining({ key: "market-confirmation", pillarKeys: ["concentration", "volume", "momentum"] }),
       expect.objectContaining({ key: "business-transmission", pillarKeys: ["catalyst"] }),
     ]);
-    expect(demoProfiles[0].watchlist).toEqual(["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]);
+    // The demo watchlist follows the recordings, not a typed row of tickers:
+    // every symbol on it is chartable and sits in a sector the profile prefers.
+    expect(demoProfiles[0].watchlist).toHaveLength(6);
+    expect(demoProfiles[0].watchlist.every((symbol) => {
+      const company = companies.find((item) => item.symbol === symbol);
+      return Boolean(company) && demoProfiles[0].preferredSectors.includes(company!.sector)
+        && (coverageInfo[symbol]?.hasPriceSeries ?? false);
+    })).toBe(true);
   });
 
   it("replans the visible investigation when the mandate changes", async () => {
