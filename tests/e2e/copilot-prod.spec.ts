@@ -44,7 +44,7 @@ async function dismissOnboarding(page: Page) {
   try {
     await expect(setup).toBeVisible({ timeout: 20_000 });
     await setup.getByRole("button", { name: "Mulai tour" }).click();
-    const tour = page.getByRole("dialog", { name: "Pilih perubahan yang penting" });
+    const tour = page.locator("[data-guided-tour-card]");
     await expect(tour).toBeVisible({ timeout: 20_000 });
     await tour.getByRole("button", { name: "Lewati tur" }).click();
   } catch {

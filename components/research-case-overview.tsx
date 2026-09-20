@@ -10,11 +10,10 @@ import { buildInvestmentMemo } from "@/lib/memo";
 import { deriveMonitorTriggers } from "@/lib/monitor";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { cn } from "@/lib/utils";
 
 export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: ResearchCase; symbol: SymbolCode }) {
   const caseStatuses = useCatalystStore((state) => state.caseStatuses);
-  const setCaseClarification = useCatalystStore((state) => state.setCaseClarification);
-  const clearCaseClarification = useCatalystStore((state) => state.clearCaseClarification);
   const recordInsight = useCatalystStore((state) => state.recordInsight);
   const [shared, setShared] = useState(false);
   const [memoShared, setMemoShared] = useState(false);
@@ -106,13 +105,7 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
         </section>
       </div>
 
-      <section id="clarification-gate" aria-label="Penentuan fokus" className={`scroll-mt-24 border-t border-border px-4 py-4 sm:px-5 ${focusLocked ? "bg-attention/6" : "bg-positive/5"}`}>
-        {focusLocked ? <div>
-          <div className="flex items-start gap-3"><PauseCircle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-attention" /><div><p className="font-mono text-[10px] uppercase tracking-wider text-attention-foreground">Langkah 1 · klik satu kartu untuk mulai</p><h2 className="mt-1 text-sm font-semibold">Hasil bisnis mana yang ingin diuji?</h2><p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">{researchCase.clarification.reason} Pilihan ini menentukan indikator di tab Pasar dan Bisnis.</p></div></div>
-          <div className="mt-4 grid gap-2 md:grid-cols-2">{researchCase.clarification.options.map((option, index) => <button key={option.id} type="button" onClick={() => setCaseClarification(symbol, option.id)} data-tour-action={symbol === primarySymbol && index === 0 ? "resolve-clarification" : undefined} className="cursor-pointer rounded-[8px] border border-border bg-surface p-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">{uiLabel(option.label)}</span><strong className="mt-1 block text-sm leading-5">{option.question}</strong><span className="mt-2 block text-xs leading-5 text-muted-foreground">Sumber: {option.sourceConsequence}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Indikator: {option.observable}</span></button>)}</div>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">Sesudah pilih: lanjut ke <strong className="text-foreground">Langkah 2 · tab Pasar</strong>, lalu Bisnis, lalu Tinjau. Rencana analisis terbuka otomatis di bawah.</p>
-        </div> : <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-mono text-[10px] uppercase tracking-wider text-positive">Langkah 1 selesai · fokus sudah dipilih</p><p className="mt-1 text-sm font-medium">{researchCase.clarification.reason}</p></div><button type="button" onClick={() => clearCaseClarification(symbol)} className="min-h-9 self-start rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Ubah fokus</button></div>}
-      </section>
+      <CaseFocusGate researchCase={researchCase} symbol={symbol} className="border-t border-border" />
 
       {focusLocked ? <section aria-label="Rencana analisis" className="border-t border-border bg-background px-4 py-5 opacity-70 sm:px-5">
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Langkah 2 · terkunci</p>
@@ -156,5 +149,24 @@ export function ResearchCaseOverview({ researchCase, symbol }: { researchCase: R
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5"><p className="text-xs text-muted-foreground">Langkah 3 · catat hasil setelah Pasar dan Bisnis selesai.</p><div className="flex flex-wrap items-center gap-2"><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-9 items-center rounded-[6px] border border-border bg-surface px-3 text-xs font-medium hover:bg-muted">Buka Tinjau & putuskan</Link><button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">{shared ? "Ringkasan tersalin" : "Salin ringkasan"}</button><button type="button" onClick={shareMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">{memoShared ? "Memo tersalin" : "Salin memo"}</button><button type="button" onClick={downloadMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">Unduh .md</button></div></div>
     </Panel>
+  );
+}
+
+/** The focus gate is the one part of the case overview the tabbed workspace
+ *  still needs: Pasar and Bisnis stay locked until a focus is chosen, so it
+ *  renders above the tabs there and inside the panel here. */
+export function CaseFocusGate({ researchCase, symbol, className }: { researchCase: ResearchCase; symbol: SymbolCode; className?: string }) {
+  const setCaseClarification = useCatalystStore((state) => state.setCaseClarification);
+  const clearCaseClarification = useCatalystStore((state) => state.clearCaseClarification);
+  const focusLocked = researchCase.clarification.required;
+
+  return (
+    <section id="clarification-gate" aria-label="Penentuan fokus" className={cn("scroll-mt-24 px-4 py-4 sm:px-5", focusLocked ? "bg-attention/6" : "bg-positive/5", className)}>
+      {focusLocked ? <div>
+          <div className="flex items-start gap-3"><PauseCircle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-attention" /><div><p className="font-mono text-[10px] uppercase tracking-wider text-attention-foreground">Langkah 1 · klik satu kartu untuk mulai</p><h2 className="mt-1 text-sm font-semibold">Hasil bisnis mana yang ingin diuji?</h2><p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">{researchCase.clarification.reason} Pilihan ini menentukan indikator di tab Pasar dan Bisnis.</p></div></div>
+          <div className="mt-4 grid gap-2 md:grid-cols-2">{researchCase.clarification.options.map((option, index) => <button key={option.id} type="button" onClick={() => setCaseClarification(symbol, option.id)} data-tour-action={symbol === primarySymbol && index === 0 ? "resolve-clarification" : undefined} className="cursor-pointer rounded-[8px] border border-border bg-surface p-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">{uiLabel(option.label)}</span><strong className="mt-1 block text-sm leading-5">{option.question}</strong><span className="mt-2 block text-xs leading-5 text-muted-foreground">Sumber: {option.sourceConsequence}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Indikator: {option.observable}</span></button>)}</div>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">Sesudah pilih: lanjut ke <strong className="text-foreground">Langkah 2 · tab Pasar</strong>, lalu Bisnis, lalu Tinjau.</p>
+        </div> : <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-mono text-[10px] uppercase tracking-wider text-positive">Langkah 1 selesai · fokus sudah dipilih</p><p className="mt-1 text-sm font-medium">{researchCase.clarification.reason}</p></div><button type="button" onClick={() => clearCaseClarification(symbol)} className="min-h-9 self-start rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Ubah fokus</button></div>}
+    </section>
   );
 }

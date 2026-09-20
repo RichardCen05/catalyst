@@ -8,15 +8,14 @@ import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
-import { ResearchCaseOverview } from "@/components/research-case-overview";
+import { CaseFocusGate } from "@/components/research-case-overview";
 import { CaseResolutionPanel } from "@/components/case-resolution";
 import { cn } from "@/lib/utils";
 import { uiLabel } from "@/lib/ui-labels";
 
-export type ResearchCaseTab = "case" | "market" | "business" | "review";
+export type ResearchCaseTab = "market" | "business" | "review";
 
 const tabLabels: Array<{ value: ResearchCaseTab; label: string }> = [
-  { value: "case", label: "Ringkasan" },
   { value: "market", label: "Pasar" },
   { value: "business", label: "Bisnis" },
   { value: "review", label: "Tinjau" },
@@ -28,7 +27,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab") as ResearchCaseTab | null;
-  const activeTab = tabLabels.some((tab) => tab.value === requestedTab) ? requestedTab as ResearchCaseTab : "case";
+  const activeTab = tabLabels.some((tab) => tab.value === requestedTab) ? requestedTab as ResearchCaseTab : tabLabels[0].value;
   const marketPillars = analysis.pillars.filter((item) => item.key !== "catalyst");
   const requestedPillar = searchParams.get("pillar") as PillarKey | null;
   const activePillar = marketPillars.some((item) => item.key === requestedPillar) ? requestedPillar : marketPillars[0]?.key;
@@ -41,6 +40,8 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
 
   return (
     <div>
+      <CaseFocusGate researchCase={analysis} symbol={symbol} className="mb-4 overflow-hidden rounded-[12px] border border-border" />
+
       <nav aria-label="Bagian kasus" className="sticky top-14 z-30 mb-6 -mx-4 overflow-x-auto border-y border-border bg-background/96 px-4 backdrop-blur sm:-mx-7 sm:px-7 xl:top-0 xl:mx-0 xl:rounded-[10px] xl:border xl:bg-surface xl:px-2">
         <div role="tablist" aria-label="Bagian kasus" className="flex min-w-max">
           {tabLabels.map((tab) => {
@@ -51,8 +52,6 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
       </nav>
 
       <section id={`case-panel-${activeTab}`} role="tabpanel" aria-labelledby={`case-tab-${activeTab}`} tabIndex={0} className="focus:outline-none">
-        {activeTab === "case" ? <ResearchCaseOverview researchCase={analysis} symbol={symbol} /> : null}
-
         {activeTab === "market" && marketPillar ? <section aria-labelledby="market-confirmation-title">
           <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p></header>
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 bg-surface px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-surface-raised")}><span className="block truncate text-sm font-medium">{item.label}</span><span className={cn("mt-1 block truncate font-mono text-[10px]", active && "text-primary")}>{uiLabel(item.status)}</span></Link>; })}</div>

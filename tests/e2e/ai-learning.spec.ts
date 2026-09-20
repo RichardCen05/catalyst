@@ -6,7 +6,7 @@ async function finishSetup(page: Page) {
   // Setup is one step since the wizard collapsed to a single asset picker;
   // "Mulai tour" both completes onboarding and opens the guided tour.
   await dialog.getByRole("button", { name: "Mulai tour" }).click();
-  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
