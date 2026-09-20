@@ -11,7 +11,7 @@ import { CitationDialog } from "@/components/citation-dialog";
 import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconBranch, IconClock, IconCopilot, IconSignal } from "@/components/ui/icons";
+import { IconArrowRight, IconBranch, IconClock, IconSignal } from "@/components/ui/icons";
 
 export default function DashboardPage() {
   const { profile, playbook, insights, caseMandates, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
@@ -51,7 +51,6 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbolKey, profile, minRelevance, caseMandates, caseClarifications, playbook, insights, caseResolutions]);
 
-  const asOfDate = new Date(DATA_AS_OF);
   const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
   const pending = insights.filter((item) => item.status === "pending");
 
@@ -152,17 +151,6 @@ export default function DashboardPage() {
         />
       )}
 
-      <section className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="ask-agent-title">
-        <div>
-          <h2 id="ask-agent-title" className="font-semibold">Ada jalur yang ingin diuji?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Asisten membaca rekaman {asOfDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" })}, sumber, dan catatan dalam konteks daftar pantauan.
-          </p>
-        </div>
-        <Link href="/copilot" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">
-          <IconCopilot aria-hidden="true" className="size-4" />Tanya asisten
-        </Link>
-      </section>
     </div>
   );
 }

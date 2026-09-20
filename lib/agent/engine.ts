@@ -1153,6 +1153,27 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     };
   }
 
+  // Nothing resolved the case: not the question, not the chip, not the route.
+  // A question that named a figure, a field, or asked why a case is listed is
+  // answerable and only missing its subject, so ask which one rather than
+  // answering about whichever case happened to be nearest. This has to run
+  // ahead of the event branch: `namedFigure` is what normally keeps a figure
+  // question away from a loosely matched event, and it needs an analysis,
+  // which does not exist while the case is unresolved. An event phrase the
+  // reader actually typed still wins — that question is about the event. A
+  // question that named nothing recognisable is a different problem and still
+  // gets the menu at the end: the clarifying turn replaces a guess, not the
+  // refusal.
+  if (!primary && !mentions(question, EVENT_PHRASES)
+    && (mentions(question, WHY_PHRASES) || Boolean(matchFieldName(request.question)) || namesAMetric(request.question))) {
+    return {
+      text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
+      refused: false, intent: "clarify", hypotheses: [], citations: [],
+      clarification: { question: request.question, choices: request.profile.watchlist.slice(0, 6) },
+      preferenceNote: personalizedNote(), relatedSymbols: [],
+    };
+  }
+
   // A figure the reader named outranks a loosely matched event. `brp volume
   // terbru nya` names a metric on the page, but `eventFromQuestion` scores
   // token overlap, so it used to be answered with an unrelated event's
@@ -1215,21 +1236,6 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     return {
       ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
-    };
-  }
-
-  // Nothing resolved the case: not the question, not the chip, not the route.
-  // A question that named a figure, a field, or asked why a case is listed is
-  // answerable and only missing its subject, so ask which one rather than
-  // answering about whichever case happened to be nearest. A question that
-  // named nothing recognisable is a different problem and still gets the menu
-  // below — the clarifying turn replaces a guess, not the refusal.
-  if (!primary && (mentions(question, WHY_PHRASES) || Boolean(matchFieldName(request.question)) || namesAMetric(request.question))) {
-    return {
-      text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
-      refused: false, intent: "clarify", hypotheses: [], citations: [],
-      clarification: { question: request.question, choices: request.profile.watchlist.slice(0, 6) },
-      preferenceNote: personalizedNote(), relatedSymbols: [],
     };
   }
 

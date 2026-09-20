@@ -95,6 +95,24 @@ describe("pertanyaan tanpa kasus ditanyakan balik, bukan ditebak", () => {
     expect(resent.citations.length).toBeGreaterThan(0);
   });
 
+  it("pertanyaan angka polos tidak dijawab dari peristiwa yang kebetulan cocok", async () => {
+    // Live regression: "berapa nilai hhi nya" without a case reached the event
+    // branch — `namedFigure` needs an analysis to outrank a loosely matched
+    // event, and there is none — and the rewrite layer answered from that
+    // event's figures with "Nilai HHI tidak tersedia".
+    for (const question of ["berapa nilai hhi nya", "porsi asing berapa", "volume terbaru brp"]) {
+      const answer = await ask(question);
+      expect(answer.intent, question).toBe("clarify");
+      expect(answer.citations, question).toEqual([]);
+      expect(answer.text, question).not.toMatch(/tidak tersedia/i);
+    }
+  });
+
+  it("pertanyaan yang memang tentang peristiwa tetap dijawab sebagai peristiwa", async () => {
+    const answer = await ask("apa dampak berita itu ke pantauan saya");
+    expect(answer.intent).toBe("event-impact");
+  });
+
   it("omong kosong tetap mendapat daftar kemampuan, bukan pertanyaan balik", async () => {
     // The clarifying turn replaces a guess, not the refusal. A question that
     // named nothing recognisable has no case to pick.
