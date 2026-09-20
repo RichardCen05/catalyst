@@ -50,6 +50,27 @@ describe("ringkasan isi rekaman", () => {
     expect(digest?.values).toHaveLength(0);
   });
 
+  it("setiap ringkasan menyebut kenapa bacaannya penting, bukan hanya artinya", () => {
+    // Knowing that foreign buying was 3% of turnover is not a reason to read
+    // the card. Each digest has to say what the reading decides or what
+    // mistake it prevents, or the panel is back to reciting arithmetic.
+    const every = [
+      citations.daily("ANTM"),
+      citations.ihsg,
+      citations.foreign("ANTM"),
+      citations.broker("ANTM"),
+      citations.overview("ANTM"),
+      citations.financial("ANTM"),
+      citations.filing("ANTM"),
+    ];
+    for (const citation of every) {
+      const digest = digestFor(citation);
+      expect(digest?.why, citation.id).toBeDefined();
+      expect(digest?.why.length, citation.id).toBeGreaterThan(40);
+      expect(digest?.why, citation.id).not.toBe(digest?.takeaway);
+    }
+  });
+
   it("feed tanpa rekaman per emiten tidak memaksakan ringkasan", () => {
     // The broker registry is a market-wide list; this app keeps no per-symbol
     // recording of it, so the card shows only what it can support.

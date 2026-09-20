@@ -111,6 +111,10 @@ function RecordingReadout({ citation }: { citation: Citation }) {
       ))}
       <div><dt className="text-muted-foreground">Waktu sumber</dt><dd className="mt-0.5 font-mono text-foreground">{formatAsOf(citation.asOf)} WIB</dd></div>
       {digest ? <div><dt className="text-muted-foreground">Kesimpulan</dt><dd className="mt-0.5 break-words leading-5 text-foreground">{digest.takeaway}</dd></div> : null}
+      {/* What the reading decides, or the mistake it prevents. A reader who
+          knows what a figure means still has no reason to care until someone
+          says what hangs on it. */}
+      {digest ? <div><dt className="text-muted-foreground">Kenapa ini penting</dt><dd className="mt-0.5 break-words leading-5 text-muted-foreground">{digest.why}</dd></div> : null}
     </dl>
   );
 }

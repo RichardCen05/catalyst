@@ -39,6 +39,12 @@ export interface RecordingDigest {
    * left the reader to guess whether 3,1% was a lot.
    */
   takeaway: string;
+  /**
+   * Why this reading is worth a reader's attention: what it decides in the
+   * case, or what mistake it keeps them from making. Knowing what a number
+   * means is not the same as knowing why anyone put it on screen.
+   */
+  why: string;
 }
 
 /** Rupiah at the scale a reader can hold in their head. */
@@ -117,6 +123,7 @@ function dailyDigest(symbol: string): RecordingDigest | undefined {
       move === undefined ? "" : `Harga ${move >= 0 ? "naik" : "turun"} ${decimal(Math.abs(move))}% sepanjang jendela.`,
       "Ramai atau tidaknya perdagangan belum menyebut siapa yang bertransaksi atau apa sebabnya.",
     ].filter(Boolean).join(" "),
+    why: "Lonjakan perdagangan biasanya muncul sebelum alasannya terbit. Itu sebabnya Catalyst memakai baris ini untuk memutuskan sebuah perubahan layak diperiksa atau tidak.",
   };
 }
 
@@ -136,6 +143,7 @@ function ihsgDigest(): RecordingDigest | undefined {
     takeaway: move === undefined
       ? "Dipakai sebagai pembanding: gerak harga emiten hanya berarti setelah gerak pasar dikeluarkan."
       : `Seluruh pasar ${move >= 0 ? "naik" : "turun"} ${decimal(Math.abs(move))}% pada jendela yang sama. Bagian gerak emiten sebesar itu berasal dari pasar, bukan dari emitennya — sisanya yang perlu dijelaskan.`,
+    why: "Tanpa pembanding ini, kenaikan harga yang sebenarnya cuma ikut arus pasar akan terbaca sebagai kabar baik khusus emiten ini.",
   };
 }
 
@@ -159,6 +167,7 @@ function foreignDigest(symbol: string): RecordingDigest | undefined {
         } — selebihnya beli-jual yang saling menutup.`,
       "Angka ini tidak menyebut siapa pembelinya, alasannya, atau apakah arahnya bertahan setelah jendela ini.",
     ].join(" "),
+    why: "\"Asing masuk\" sering dipakai sebagai alasan membeli. Menyebut porsinya menunjukkan sebesar apa alasan itu sebenarnya, sebelum dipakai mengambil keputusan.",
   };
 }
 
@@ -182,6 +191,7 @@ function brokerDigest(symbol: string): RecordingDigest | undefined {
         ? `Di atas ambang ${decimal(DEFAULT_THRESHOLDS.concentrationFloor * 100, 0)}% yang dipakai Catalyst untuk menyebut aliran terpusat: sedikit pihak menggerakkan transaksi.`
         : `Di bawah ambang ${decimal(DEFAULT_THRESHOLDS.concentrationFloor * 100, 0)}% yang dipakai Catalyst untuk menyebut aliran terpusat: pembelian masih tersebar.`
     } Kode broker bukan identitas pemilik dana — satu broker melayani banyak nasabah.`,
+    why: "Makin terpusat pembeliannya, makin rapuh kenaikannya: bila satu pihak berhenti, penggeraknya ikut hilang. Pembelian yang tersebar lebih sulit dibalik satu pihak.",
   };
 }
 
@@ -198,6 +208,7 @@ function overviewDigest(symbol: string): RecordingDigest | undefined {
     takeaway: shares
       ? `Kapitalisasi dibagi harga memberi sekitar ${decimal(shares / 1e9)} miliar lembar saham beredar. Angka itu jadi pembanding: seberapa besar pembelian pada jendela ini dibanding seluruh saham yang ada.`
       : "Dipakai sebagai label sektor dan ukuran emiten, bukan sebagai sinyal harga.",
+    why: "Nilai beli sebesar apa pun baru berarti setelah dibandingkan dengan jumlah saham yang benar-benar beredar. Rp 1 T pada emiten kecil dan emiten besar bukan peristiwa yang sama.",
   };
 }
 
@@ -215,6 +226,7 @@ function financialDigest(symbol: string): RecordingDigest | undefined {
     takeaway: change === undefined
       ? "Dipakai sebagai konteks skala usaha. Laporan kuartalan terbit jauh lebih jarang daripada gerak harga, jadi tidak bisa menjelaskan sesi tertentu."
       : `${revenue.label} ${change >= 0 ? "naik" : "turun"} ${decimal(Math.abs(change))}% dari kuartal sebelumnya, jadi skala usahanya ${change >= 0 ? "membesar" : "mengecil"} pada periode terakhir. Laporan kuartalan tidak menjelaskan gerak harga pada sesi tertentu.`,
+    why: "Gerak harga yang tidak diikuti perubahan hasil usaha lebih mungkin bersifat sementara. Baris ini yang membedakan kabar yang mengubah bisnis dari kabar yang cuma mengubah harga.",
   };
 }
 
@@ -226,6 +238,7 @@ function filingDigest(symbol: string): RecordingDigest | undefined {
       scope: "Tidak ada keterbukaan pemegang saham terekam untuk emiten ini",
       values: [],
       takeaway: "Tidak ada yang bisa disimpulkan soal aliran institusi di sini. Kosong berarti tidak ada laporan terekam pada jendela ini, bukan berarti tidak ada transaksi.",
+      why: "Disebutkan apa adanya supaya kekosongan tidak terbaca sebagai bukti bahwa tidak ada yang terjadi.",
     };
   }
   // A filing without a recorded rupiah value still counts as a filing; it
@@ -242,6 +255,7 @@ function filingDigest(symbol: string): RecordingDigest | undefined {
       { label: "Nilai transaksi bersih", value: idrShort(net) },
     ],
     takeaway: `Pemegang saham yang wajib lapor ${net >= 0 ? "menambah" : "mengurangi"} kepemilikan senilai ${idrShort(Math.abs(net))} pada rekaman ini — pihak yang paling dekat dengan perusahaan ${net >= 0 ? "menaruh" : "menarik"} uang sendiri. Hanya transaksi yang wajib dilaporkan ke bursa yang muncul di sini.`,
+    why: "Ini satu-satunya arus dana yang pelakunya wajib menyebut nama. Bobotnya berbeda dari arus broker yang anonim.",
   };
 }
 
