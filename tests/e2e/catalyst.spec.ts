@@ -140,7 +140,7 @@ test("legacy research utilities converge into the Research Case hub", async ({ p
 
   await page.goto("/companies");
   await expect(page).toHaveURL(/\/cases\?view=picker$/);
-  await expect(page.getByRole("link", { name: "Pilih emiten" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Bandingkan emiten" })).toHaveAttribute("aria-current", "page");
 
   await page.goto("/agent");
   await expect(page).toHaveURL(/\/cases\?view=audit$/);
@@ -271,11 +271,15 @@ test("default theme uses the editorial black-cherry tokens", async ({ page }) =>
 test("Case picker opens a focused inline comparison", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases?view=picker");
-  await page.getByRole("checkbox", { name: "Pilih ANTM untuk dibandingkan" }).check();
-  await page.getByRole("checkbox", { name: "Pilih BBCA untuk dibandingkan" }).check();
+  await page.getByRole("button", { name: "Tambah emiten" }).first().click();
+  await page.getByPlaceholder("Cari emiten").fill("ANTM");
+  await page.getByRole("button", { name: /^ANTM/ }).click();
+  await page.getByRole("button", { name: "Tambah emiten" }).first().click();
+  await page.getByPlaceholder("Cari emiten").fill("BBCA");
+  await page.getByRole("button", { name: /^BBCA/ }).click();
   await expect(page.getByRole("heading", { name: "Bandingkan bukti, bukan skor" })).toBeVisible();
-  await expect(page.getByRole("columnheader", { name: "ANTM" })).toBeVisible();
-  await expect(page.getByRole("columnheader", { name: "BBCA" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: /^ANTM/ })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: /^BBCA/ })).toBeVisible();
 });
 
 test("evidence opens Copilot with its company and pillar context", async ({ page }) => {

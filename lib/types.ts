@@ -342,6 +342,14 @@ export interface InvestorResearchPlaybook {
     contagionCorrelationFloor?: number;
     /** Nilai bersih pelepasan institusi (IDR) minimum sebelum ditandai distribusi. Default 1e11. */
     distributionValueFloor?: number;
+    /** |residual| di bawah ini dilabeli "Mengikuti pasar". Default 0.012. */
+    momentumAlignedFloor?: number;
+    /** |selisih sektor| di bawah ini dilabeli "Dipengaruhi sektor". Default 0.015. */
+    momentumSectorFloor?: number;
+    /** |residual| di atas ini dilabeli "Khusus emiten". Default 0.03. */
+    momentumIdiosyncraticFloor?: number;
+    /** Porsi beli broker asing sebelum arus asing negatif dianggap konflik. Default 0.55. */
+    foreignContradictionShare?: number;
   };
 }
 

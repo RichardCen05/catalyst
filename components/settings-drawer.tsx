@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 const utilityLinks = [
   { href: "/ai-learning", label: "AI Learning", description: "Masukan, proses pembelajaran, dan memori personal yang sedang dipakai.", icon: BrainCircuit },
   { href: "/playbook", label: "Aturan riset investor", description: "Pembanding, eksposur, aturan, sumber, kondisi pembatal, dan ambang penilaian.", icon: BookOpenCheck },
-  { href: "/cases?view=picker", label: "Pilih emiten", description: "Buka kasus atau bandingkan bukti dua emiten.", icon: BriefcaseBusiness },
+  { href: "/cases?view=picker", label: "Bandingkan emiten", description: "Buka kasus atau bandingkan bukti dua emiten.", icon: BriefcaseBusiness },
   { href: "/cases?view=audit", label: "Audit riset", description: "Koreksi pengguna, hasil kasus, dan aturan yang dapat dipakai ulang.", icon: ClipboardCheck },
   { href: "/method", label: "Metode dan batas", description: "Rumus, batas data, pemeriksaan sumber, dan penafian.", icon: FlaskConical },
 ] as const;

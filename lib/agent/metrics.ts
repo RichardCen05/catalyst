@@ -1,3 +1,5 @@
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+
 export interface ConcentrationResult {
   topBuyerShare: number;
   hhi: number;
@@ -63,29 +65,62 @@ export function calculateVolumeSignal(
   const absolute = Math.abs(robustZ);
   // Di-thread lewat resolveThresholds (C5): default dari live values,
   // bukan tebakan plan (3). elevated 2.5, extreme 5.
-  const elevatedFloor = typeof floors?.elevated === "number" ? floors.elevated : 2.5;
-  const extremeFloor = typeof floors?.extreme === "number" ? floors.extreme : 5;
+  // Fallback membaca DEFAULT_THRESHOLDS, bukan mengulang 2.5 dan 5 di sini:
+  // salinan kedua sebuah ambang adalah ambang yang bisa melenceng dari yang
+  // dipakai pilar lain. signal-history.ts sudah memakai pola yang sama.
+  const elevatedFloor = typeof floors?.elevated === "number" ? floors.elevated : DEFAULT_THRESHOLDS.volumeZFloor;
+  const extremeFloor = typeof floors?.extreme === "number" ? floors.extreme : DEFAULT_THRESHOLDS.volumeExtremeFloor;
   return {
     robustZ,
     status: absolute >= extremeFloor ? "Extreme" : absolute >= elevatedFloor ? "Elevated" : "Normal",
   };
 }
 
+export interface MomentumFloors {
+  /** |residual| di bawah ini = Market-aligned; default DEFAULT_THRESHOLDS.momentumAlignedFloor. */
+  aligned?: number;
+  /** |sectorGap| di bawah ini = Sector-led; default DEFAULT_THRESHOLDS.momentumSectorFloor. */
+  sector?: number;
+  /** |residual| di atas ini = Idiosyncratic; default DEFAULT_THRESHOLDS.momentumIdiosyncraticFloor. */
+  idiosyncratic?: number;
+}
+
+/**
+ * Residual = imbal hasil emiten dikurangi bagian yang dijelaskan pasar (beta ×
+ * IHSG). Status "Idiosyncratic" berarti gerak itu TIDAK dijelaskan pasar
+ * maupun sektornya — kontrol confounder kasar, dan satu-satunya label di sini
+ * yang layak dipakai untuk menilai apakah sebuah berita berbarengan dengan
+ * gerak harga (bukan menyebabkannya).
+ *
+ * Ambangnya dulu hardcode 0.012 / 0.015 / 0.03 dan tidak pernah muncul di
+ * ruleTrace, sehingga label momentum tiap kasus ditentukan tiga angka yang
+ * tidak pernah disebut ke siapa pun. Sekarang di-thread lewat
+ * resolveThresholds seperti ambang volume dan konsentrasi.
+ */
 export function calculateMomentum(
   stockReturn: number,
   marketReturn: number,
   beta: number,
   sectorReturn: number,
+  floors?: MomentumFloors,
 ): { residual: number; status: "Market-aligned" | "Sector-led" | "Idiosyncratic" | "Mixed" } {
   const residual = round(stockReturn - beta * marketReturn);
   const sectorGap = stockReturn - sectorReturn;
+  const aligned = typeof floors?.aligned === "number" ? floors.aligned : DEFAULT_THRESHOLDS.momentumAlignedFloor;
+  const sector = typeof floors?.sector === "number" ? floors.sector : DEFAULT_THRESHOLDS.momentumSectorFloor;
+  const idiosyncratic = typeof floors?.idiosyncratic === "number" ? floors.idiosyncratic : DEFAULT_THRESHOLDS.momentumIdiosyncraticFloor;
   let status: "Market-aligned" | "Sector-led" | "Idiosyncratic" | "Mixed" = "Mixed";
-  if (Math.abs(residual) < 0.012) status = "Market-aligned";
-  else if (Math.abs(sectorGap) < 0.015) status = "Sector-led";
-  else if (Math.abs(residual) >= 0.03) status = "Idiosyncratic";
+  if (Math.abs(residual) < aligned) status = "Market-aligned";
+  else if (Math.abs(sectorGap) < sector) status = "Sector-led";
+  else if (Math.abs(residual) >= idiosyncratic) status = "Idiosyncratic";
   return { residual, status };
 }
 
-export function detectFlowContradiction(foreignBrokerBuyerShare: number, netForeign: number): boolean {
-  return foreignBrokerBuyerShare >= 0.55 && netForeign < 0;
+export function detectFlowContradiction(
+  foreignBrokerBuyerShare: number,
+  netForeign: number,
+  share?: number,
+): boolean {
+  const floor = typeof share === "number" ? share : DEFAULT_THRESHOLDS.foreignContradictionShare;
+  return foreignBrokerBuyerShare >= floor && netForeign < 0;
 }

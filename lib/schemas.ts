@@ -34,6 +34,10 @@ export const playbookSchema = z.object({
     contagionDropFloor: z.number().min(0).max(1).optional(),
     contagionCorrelationFloor: z.number().min(0).max(1).optional(),
     distributionValueFloor: z.number().min(0).max(1e15).optional(),
+    momentumAlignedFloor: z.number().min(0).max(1).optional(),
+    momentumSectorFloor: z.number().min(0).max(1).optional(),
+    momentumIdiosyncraticFloor: z.number().min(0).max(1).optional(),
+    foreignContradictionShare: z.number().min(0).max(1).optional(),
   }).optional(),
 });
 export const userInsightSchema = z.object({

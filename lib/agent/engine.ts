@@ -340,7 +340,7 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     .filter((row) => row.origin === "foreign")
     .reduce((total, row) => total + row.value, 0);
   const foreignParticipantShare = foreignParticipantValue / buyerValues.reduce((total, value) => total + value, 0);
-  const conflict = detectFlowContradiction(foreignParticipantShare, brokerEvidence.netForeign);
+  const conflict = detectFlowContradiction(foreignParticipantShare, brokerEvidence.netForeign, thresholds.foreignContradictionShare);
   // Task 6: distribusi institusional dihitung di samping blok concentration.
   // C4: metrik baru hanya diemisikan bila institutionalFlows.length > 0 —
   // jangan pernah menambahkannya tanpa syarat (14 simbol tanpa filings akan 500 via enforceCitations).
@@ -369,7 +369,11 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
   const startPoint = series.at(-4)!;
   const stockReturn = currentPoint.close / startPoint.close - 1;
   const marketReturn = currentPoint.ihsg / startPoint.ihsg - 1;
-  const momentum = calculateMomentum(stockReturn, marketReturn, fixture.beta, fixture.sectorReturn);
+  const momentum = calculateMomentum(stockReturn, marketReturn, fixture.beta, fixture.sectorReturn, {
+    aligned: thresholds.momentumAlignedFloor,
+    sector: thresholds.momentumSectorFloor,
+    idiosyncratic: thresholds.momentumIdiosyncraticFloor,
+  });
   const divergent = flows.length > 0 && detectDistributionDivergence({
     priceReturn: stockReturn,
     netValue: netFlow.netValue,
@@ -678,6 +682,32 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
         kind: "materiality",
         rule: `Ambang relevansi ${custom.relevanceFloor} (bawaan ${_DEFAULTS.relevanceFloor})`,
         effect: `Materialitas ${curMat} (bawaan ${defMat}); keyakinan graf sebab-akibat dihitung ulang terhadap ambang ini`,
+      });
+    }
+    // Ambang momentum dan konflik arus dulu hardcode di metrics.ts, sehingga
+    // label pilar Momentum dan status "Source Conflict" ditentukan angka yang
+    // tidak pernah muncul di audit. Sekarang keduanya ikut ruleTrace dengan
+    // pola yang sama: tampilkan hanya bila pengguna menggeser dari bawaan,
+    // dan sebutkan status bawaannya sebagai pembanding.
+    if ((t?.momentumAlignedFloor !== undefined && t.momentumAlignedFloor !== _DEFAULTS.momentumAlignedFloor) ||
+        (t?.momentumSectorFloor !== undefined && t.momentumSectorFloor !== _DEFAULTS.momentumSectorFloor) ||
+        (t?.momentumIdiosyncraticFloor !== undefined && t.momentumIdiosyncraticFloor !== _DEFAULTS.momentumIdiosyncraticFloor)) {
+      const momentumPillar = pillars.find((p) => p.key === "momentum")!;
+      const defMomentum = calculateMomentum(stockReturn, marketReturn, fixture.beta, fixture.sectorReturn);
+      extra.push({
+        id: `${symbol}-threshold-momentum`,
+        kind: "materiality",
+        rule: `Ambang momentum ${thresholds.momentumAlignedFloor}/${thresholds.momentumSectorFloor}/${thresholds.momentumIdiosyncraticFloor} (bawaan ${_DEFAULTS.momentumAlignedFloor}/${_DEFAULTS.momentumSectorFloor}/${_DEFAULTS.momentumIdiosyncraticFloor})`,
+        effect: `Status momentum ${momentumPillar.status} (bawaan ${defMomentum.status})`,
+      });
+    }
+    if (t?.foreignContradictionShare !== undefined && t.foreignContradictionShare !== _DEFAULTS.foreignContradictionShare) {
+      const defConflict = detectFlowContradiction(foreignParticipantShare, brokerEvidence.netForeign, _DEFAULTS.foreignContradictionShare);
+      extra.push({
+        id: `${symbol}-threshold-foreign-conflict`,
+        kind: "materiality",
+        rule: `Ambang konflik arus asing ${t.foreignContradictionShare} (bawaan ${_DEFAULTS.foreignContradictionShare})`,
+        effect: `Konflik sumber ${conflict ? "ditandai" : "tidak ditandai"} (bawaan ${defConflict ? "ditandai" : "tidak ditandai"})`,
       });
     }
     appliedRules.unshift(...extra);
