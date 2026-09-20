@@ -12,8 +12,9 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { IconArrowRight, IconCheck, IconClose, IconCompanies, IconExternal, IconNote, IconSearch, IconTrash } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { IconArrowRight, IconCheck, IconClose, IconExternal, IconNote, IconSearch, IconTrash } from "@/components/ui/icons";
+import { TickerAvatar } from "@/components/ui/ticker-avatar";
+import { cn, formatCurrency } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 
 type CaseHubView = "active" | "picker" | "audit";
@@ -21,13 +22,14 @@ type CaseHubView = "active" | "picker" | "audit";
 const views: Array<{ value: CaseHubView; label: string }> = [
   { value: "active", label: "Kasus aktif" },
   { value: "picker", label: "Bandingkan emiten" },
-  { value: "audit", label: "Audit" },
 ];
 
 function ResearchCasesContent() {
   const searchParams = useSearchParams();
   const requested = searchParams.get("view") as CaseHubView | null;
-  const activeView = views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
+  // "audit" stays a valid direct-link target (settings drawer, /agent redirect,
+  // AI Learning, case resolution) even though it's no longer a tab pill here.
+  const activeView = requested === "audit" || views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
   const { profile, playbook, caseMandates, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
   const [query, setQuery] = useState("");
   const [openSlot, setOpenSlot] = useState<number | null>(null);
@@ -66,6 +68,7 @@ function ResearchCasesContent() {
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
 
   const compareRows: Array<{ label: string; render: (item: AnalysisCase) => ReactNode }> = [
+    { label: "Harga saham", render: (item) => <span className="flex items-center gap-1.5"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><span className={cn("font-mono text-[11px]", item.company.changePct >= 0 ? "text-positive" : "text-danger")}>{item.company.changePct >= 0 ? "+" : ""}{item.company.changePct.toFixed(1)}%</span></span> },
     { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} /> },
     { label: "Uji bisnis utama", render: (item) => item.businessImpact.find((impact) => impact.status === "Primary test")?.label ?? "—" },
     { label: "Konsentrasi (HHI)", render: (item) => item.pillars.find((pillar) => pillar.key === "concentration")?.metrics.find((metric) => metric.label === "HHI")?.value ?? "—" },
@@ -78,7 +81,7 @@ function ResearchCasesContent() {
 
   return (
     <div data-tour="research-cases">
-      <PageHeader eyebrow="Kasus riset" title="Periksa satu perubahan penting" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
+      <PageHeader eyebrow="Kasus riset" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
 
       <nav aria-label="Bagian kasus" className="mb-4 flex min-w-0 overflow-x-auto border-b border-border">
         {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}{item.value === "audit" && insights.filter((entry) => entry.status === "pending").length ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{insights.filter((entry) => entry.status === "pending").length}</span> : null}</Link>)}
@@ -89,7 +92,7 @@ function ResearchCasesContent() {
           {cases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
             const openCount = analysis.unresolvedQuestions.length;
-            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><IconCompanies aria-hidden="true" className="size-4.5" /></span><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status === "closed" ? "Selesai" : "Terbuka"}</span>{status !== "closed" && openCount ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{openCount} pertanyaan terbuka</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
+            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status === "closed" ? "Selesai" : "Terbuka"}</span>{status !== "closed" && openCount ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{openCount} pertanyaan terbuka</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
           })}
         </div>
       </Panel> : null}
@@ -122,9 +125,10 @@ function ResearchCasesContent() {
                         />
                       </label>
                       {query.trim() ? <div className="absolute z-10 mt-1 max-h-56 w-56 overflow-y-auto rounded-lg border border-border bg-surface text-left shadow-lg">
-                        {searchMatches.length ? searchMatches.map((company) => <button key={company.symbol} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectSlot(index, company.symbol)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"><span className="font-mono font-semibold text-primary">{company.symbol}</span><span className="truncate text-muted-foreground">{company.name}</span></button>) : <p className="px-3 py-2 text-[11px] text-muted-foreground">Tidak ada emiten cocok.</p>}
+                        {searchMatches.length ? searchMatches.map((company) => <button key={company.symbol} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectSlot(index, company.symbol)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"><TickerAvatar symbol={company.symbol} size="sm" /><span className="font-mono font-semibold text-primary">{company.symbol}</span><span className="truncate text-muted-foreground">{company.name}</span></button>) : <p className="px-3 py-2 text-[11px] text-muted-foreground">Tidak ada emiten cocok.</p>}
                       </div> : null}
                     </div> : symbol ? <div className="flex items-center gap-1.5">
+                      <TickerAvatar symbol={symbol} size="sm" />
                       <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="font-mono text-sm font-semibold text-primary hover:underline">{symbol}</button>
                       <button type="button" onClick={() => removeSlot(index)} aria-label={`Hapus ${symbol} dari perbandingan`} className="grid size-4 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"><IconClose aria-hidden="true" className="size-3" /></button>
                     </div> : <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary"><IconSearch aria-hidden="true" className="size-3" />Tambah emiten</button>}
