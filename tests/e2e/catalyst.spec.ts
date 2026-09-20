@@ -114,9 +114,12 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
   // Every watchlist chain lands on one canvas, with the four semantic columns
   // named once in the legend rather than per chain.
   const map = page.locator('[data-tour="market-map"]');
-  await expect(map.getByRole("group", { name: "Fokus emiten" })).toBeVisible();
+  // Which issuers the board draws is one control, above the canvas — the map
+  // no longer carries a second row of symbol chips saying something else.
+  await expect(map.getByRole("group", { name: "Fokus emiten" })).toHaveCount(0);
+  const boardPicker = page.getByRole("group", { name: "Emiten di papan" });
   for (const symbol of ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]) {
-    await expect(map.getByRole("button", { name: symbol, exact: true })).toBeVisible();
+    await expect(boardPicker.getByRole("button", { name: symbol, exact: true })).toBeVisible();
   }
 
   // The coal print is recorded against both ADRO and PTBA, so it must be one
