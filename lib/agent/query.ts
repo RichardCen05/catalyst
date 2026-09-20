@@ -1,3 +1,4 @@
+import { codeMatches, phraseMatches, words } from "@/lib/text/fuzzy";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 /**
@@ -53,6 +54,18 @@ export function findSymbolsRobust(question: string, symbols: SymbolCode[]): Symb
       found.push(symbol);
     }
   }
+  if (found.length) return [...new Set(found)];
+  // Exact matching found nothing, so try again allowing a typo. "ANTMM",
+  // "aneka tamban" and "bukalapk" are the same question as the spelling the
+  // list happens to hold; a reader who mistypes a ticker got told the whole
+  // question could not be mapped to any evidence.
+  const typed = words(normalized).filter((word) => word.length >= 4);
+  for (const symbol of symbols) {
+    const aliases = SYMBOL_ALIASES[symbol] ?? [symbol.toLowerCase()];
+    if (aliases.some((alias) => (alias.includes(" ") ? phraseMatches(normalized, alias) : typed.some((word) => codeMatches(word, alias))))) {
+      found.push(symbol);
+    }
+  }
   // Preserve watchlist order, dedupe.
   return [...new Set(found)];
 }
@@ -89,7 +102,8 @@ export function scoreEventOverlap(question: string, event: MarketEvent, symbols:
 
 export function matchEventForQuestion(question: string, events: MarketEvent[], symbols: SymbolCode[] = []): MarketEvent | undefined {
   const normalized = normalizeQuery(question);
-  const category = CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => normalized.includes(term)))?.[1];
+  const category = (CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => normalized.includes(term)))
+    ?? CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => phraseMatches(normalized, term))))?.[1];
   if (category) {
     const match = events.find((event) => event.category === category);
     if (match) return match;

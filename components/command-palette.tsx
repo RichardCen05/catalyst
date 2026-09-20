@@ -1,4 +1,5 @@
 "use client";
+import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -49,7 +50,9 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const filtered = actions.filter((action) => action.label.toLowerCase().includes(query.toLowerCase()));
+  // A palette that answers "no results" to "casess" is a palette the reader
+  // stops trusting; the action is right there in the list behind the box.
+  const filtered = actions.filter((action) => fuzzyIncludes(action.label, query));
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>

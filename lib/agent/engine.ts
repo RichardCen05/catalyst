@@ -33,7 +33,7 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
-import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure } from "@/lib/agent/explain";
+import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
@@ -987,11 +987,18 @@ const EVENT_PHRASES = ["berita", "dampak", "peristiwa", "news", "impact", "event
 
 const WHY_PHRASES = ["kenapa", "mengapa", "daftar", "why", "listed"];
 
-/** Padded so " vs " matches a real separator rather than any word ending in
- *  "vs", and so a bare "vs" at either end of the question still hits. */
+/**
+ * Padded so " vs " matches a real separator rather than any word ending in
+ * "vs", and so a bare "vs" at either end of the question still hits.
+ *
+ * Exact first, then one or two typos: "dari mna sumbernya" routed to the
+ * why-listed catch-all and answered a question nobody asked. `phraseMatches`
+ * leaves short phrases ("vs", "gap", "why") exact-only, where a single edit
+ * would be a different word.
+ */
 function mentions(question: string, phrases: string[]): boolean {
   const padded = ` ${question} `;
-  return phrases.some((phrase) => padded.includes(phrase));
+  return phrases.some((phrase) => padded.includes(phrase) || phraseMatches(question, phrase));
 }
 
 function isProvenanceQuestion(question: string): boolean {
@@ -1132,8 +1139,14 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     };
   }
 
+  // A figure the reader named outranks a loosely matched event. `brp volume
+  // terbru nya` names a metric on the page, but `eventFromQuestion` scores
+  // token overlap, so it used to be answered with an unrelated event's
+  // impact path. An event phrase the reader actually typed ("berita",
+  // "dampak") still wins — that question is about the event.
+  const namedFigure = analysis ? matchFigure(answerableFigures(analysis), request.question, extractNumerals) : undefined;
   const event = eventFromQuestion(request.question);
-  if (event || mentions(question, EVENT_PHRASES)) {
+  if ((event && !namedFigure) || mentions(question, EVENT_PHRASES)) {
     // No fallback to `listEvents()[0]`. An unmatched question used to be
     // answered about whichever event happened to be newest, with that
     // event's citations attached and nothing in the text saying which event
@@ -1166,9 +1179,12 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     };
   }
 
-  // A bare metric name is a question about that metric. "hhi" used to reach
-  // the why-listed branch and come back with revenue figures.
-  if (analysis && matchFigure(answerableFigures(analysis), request.question, extractNumerals) && question.trim().split(/\s+/).length <= 4) {
+  // A metric name is a question about that metric. "hhi" used to reach the
+  // why-listed branch and come back with revenue figures. The old four-word
+  // ceiling meant the same question phrased naturally — "brp volume terbru
+  // nya dong" — did not qualify, which is the wrong way round: a longer
+  // question names the figure more clearly, not less.
+  if (analysis && namedFigure) {
     const provenance = provenanceAnswer(analysis, request.question);
     return {
       text: provenance.text, refused: false, intent: "explain",

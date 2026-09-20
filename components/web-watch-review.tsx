@@ -1,4 +1,5 @@
 "use client";
+import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
@@ -267,9 +268,7 @@ export function WebWatchReview() {
   const categories = ["semua", "company", "commodity", "rates", "currency", "policy", "weather"];
   const visiblePending = (data?.pending ?? []).filter((candidate) => {
     if (category !== "semua" && candidate.category !== category) return false;
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return `${candidate.title} ${candidate.summary} ${candidate.citations[0]?.provider ?? ""}`.toLowerCase().includes(q);
+    return fuzzyIncludes(`${candidate.title} ${candidate.summary} ${candidate.citations[0]?.provider ?? ""}`, query);
   });
 
   return (

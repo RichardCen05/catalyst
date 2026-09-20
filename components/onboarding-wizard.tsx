@@ -1,4 +1,5 @@
 "use client";
+import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -19,9 +20,7 @@ export function OnboardingWizard() {
   const readySelected = profile.watchlist.filter((item) => readyCompanies.some((company) => company.symbol === item));
   // Local filter over already-loaded fixtures — no network call per keystroke.
   const filteredCompanies = readyCompanies.filter((company) => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return true;
-    return company.symbol.toLowerCase().includes(needle) || company.name.toLowerCase().includes(needle);
+    return fuzzyIncludes(`${company.symbol} ${company.name}`, query);
   });
   const toggleTicker = (symbol: SymbolCode) => {
     if (profile.watchlist.includes(symbol)) {

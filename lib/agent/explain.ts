@@ -1,4 +1,7 @@
+import { phraseMatches } from "@/lib/text/fuzzy";
 import type { AnalysisCase, Citation, MetricValue, PillarResult } from "@/lib/types";
+
+export { phraseMatches };
 
 /**
  * Turn a citation and a metric into something a reader can actually check.
@@ -272,8 +275,16 @@ export function matchMetric(
       (METRIC_ALIASES[metric.label] ?? []).filter((alias) => lower.includes(alias)).map((alias) => ({ pillar, metric, alias })))
     .sort((first, second) => second.alias.length - first.alias.length);
   if (aliasHits.length) return { pillar: aliasHits[0].pillar, metric: aliasHits[0].metric };
-  return pairs.find(({ metric }) => lower.includes(metric.label.toLowerCase()))
+  const exact = pairs.find(({ metric }) => lower.includes(metric.label.toLowerCase()))
     ?? pairs.find(({ pillar }) => lower.includes(pillar.label.toLowerCase()));
+  if (exact) return exact;
+  const fuzzyAliases = pairs
+    .flatMap(({ pillar, metric }) =>
+      (METRIC_ALIASES[metric.label] ?? []).filter((alias) => phraseMatches(lower, alias)).map((alias) => ({ pillar, metric, alias })))
+    .sort((first, second) => second.alias.length - first.alias.length);
+  if (fuzzyAliases.length) return { pillar: fuzzyAliases[0].pillar, metric: fuzzyAliases[0].metric };
+  return pairs.find(({ metric }) => phraseMatches(lower, metric.label))
+    ?? pairs.find(({ pillar }) => phraseMatches(lower, pillar.label));
 }
 
 /**
@@ -285,9 +296,9 @@ export function matchMetric(
  */
 export function matchFieldName(question: string): { field: string; meaning: string } | undefined {
   const lower = question.toLowerCase();
-  const hit = Object.keys(FIELD_GLOSS)
-    .filter((field) => field.includes("_") && lower.includes(field))
-    .sort((first, second) => second.length - first.length)[0];
+  const keys = Object.keys(FIELD_GLOSS).filter((field) => field.includes("_"));
+  const hit = keys.filter((field) => lower.includes(field)).sort((first, second) => second.length - first.length)[0]
+    ?? keys.filter((field) => phraseMatches(lower, field.replace(/_/g, " "))).sort((first, second) => second.length - first.length)[0];
   return hit ? { field: hit, meaning: FIELD_GLOSS[hit] } : undefined;
 }
 
@@ -384,16 +395,29 @@ export function matchFigure(
   // churn question was answered with a different figure; and a case carrying
   // both "Revenue" and "Revenue QoQ" answered the QoQ question with plain
   // revenue.
-  const labelHits = figures
-    .filter(({ metric }) => lower.includes(metric.label.toLowerCase()))
-    .sort((first, second) => second.metric.label.length - first.metric.label.length);
-  if (labelHits.length) return labelHits[0];
   const aliasHits = figures
     .flatMap((figure) =>
       (METRIC_ALIASES[figure.metric.label] ?? []).filter((alias) => lower.includes(alias)).map((alias) => ({ figure, alias })))
     .sort((first, second) => second.alias.length - first.alias.length);
   if (aliasHits.length) return aliasHits[0].figure;
-  return figures.find(({ group }) => lower.includes(group.toLowerCase()));
+  // Nothing matched letter for letter. One dropped or swapped character —
+  // "pesert efektif", "free flaot" — used to end here, in the menu that tells
+  // a reader the figure they are looking at is not available.
+  const fuzzyLabels = figures
+    .filter(({ metric }) => phraseMatches(lower, metric.label))
+    .sort((first, second) => second.metric.label.length - first.metric.label.length);
+  if (fuzzyLabels.length) return fuzzyLabels[0];
+  const fuzzyAliases = figures
+    .flatMap((figure) =>
+      (METRIC_ALIASES[figure.metric.label] ?? []).filter((alias) => phraseMatches(lower, alias)).map((alias) => ({ figure, alias })))
+    .sort((first, second) => second.alias.length - first.alias.length);
+  if (fuzzyAliases.length) return fuzzyAliases[0].figure;
+  // A group name is the weakest signal there is — "Volume" names a pillar
+  // holding four figures, so it loses even to a misspelled metric name.
+  // Matching it before the tolerant passes answered "brp volume terbru nya"
+  // with the pillar's first metric, which is a different number entirely.
+  return figures.find(({ group }) => lower.includes(group.toLowerCase()))
+    ?? figures.find(({ group }) => phraseMatches(lower, group));
 }
 
 /** Meaning, source in plain words, arithmetic, then the technical address. */
