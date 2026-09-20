@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Request } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page, type Request } from "@playwright/test";
 
 /**
  * Browser-level failure injection for the memory pipeline (G7-G9, G23-G25).
@@ -27,19 +27,56 @@ async function finishSetup(page: Page) {
   await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
-/** Count POSTs to /api/memory from the moment this is called. */
-function countMemoryWrites(page: Page) {
+/**
+ * Count POSTs to /api/memory from the moment this is called.
+ *
+ * Accepts a Page or a BrowserContext. A page-level listener dies with the page,
+ * so a write issued during unload (the `pagehide` flush) can be torn down before
+ * the event is delivered; pass `page.context()` when the assertion is about what
+ * a closing tab manages to send.
+ */
+function countMemoryWrites(target: Page | BrowserContext) {
   const seen: Request[] = [];
   const listener = (request: Request) => {
     if (request.method() === "POST" && request.url().includes("/api/memory")) seen.push(request);
   };
-  page.on("request", listener);
+  target.on("request", listener);
   return {
     get count() {
       return seen.length;
     },
-    stop: () => page.off("request", listener),
+    get requests() {
+      return seen;
+    },
+    stop: () => target.off("request", listener),
   };
+}
+
+/**
+ * Record every `navigator.sendBeacon` the page makes, by URL.
+ *
+ * Playwright cannot observe a beacon issued while the tab is closing: the page
+ * reports `sendBeacon` returning true, while context `request` events and
+ * `context.route` both see nothing, because the network channel is torn down
+ * with the target. Hooking the call is the only way to assert what a closing
+ * tab hands to the browser. The body is asserted on the path that stays
+ * observable — see G7c, which drives the same flush with the page still alive.
+ */
+async function recordBeacons(page: Page, context: BrowserContext) {
+  const urls: string[] = [];
+  await context.exposeFunction("__recordBeacon", (url: string) => {
+    urls.push(url);
+  });
+  await page.addInitScript(() => {
+    const real = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = (url: string | URL, data?: BodyInit | null) => {
+      // Synchronous on purpose: an async read of the Blob would not resolve
+      // before the document is gone.
+      (window as unknown as { __recordBeacon: (u: string) => void }).__recordBeacon(String(url));
+      return real(url, data);
+    };
+  });
+  return { get urls() { return urls; } };
 }
 
 /** Let any debounce armed by earlier navigation drain, then start clean. */
@@ -47,24 +84,84 @@ async function quiesce(page: Page) {
   await page.waitForTimeout(SYNC_DEBOUNCE_MS + 600);
 }
 
-test("G7: an edit inside the 1500ms debounce is LOST when the tab closes", async ({ page }) => {
+test("G7: an edit inside the 1500ms debounce is FLUSHED when the tab closes", async ({ page, context }) => {
+  const beacons = await recordBeacons(page, context);
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=market&pillar=concentration");
   await quiesce(page);
 
-  const writes = countMemoryWrites(page);
+  // Context-level, not page-level: a page listener dies with the page.
+  const writes = countMemoryWrites(context);
   await page.getByRole("button", { name: "Berguna" }).click();
   await expect(page.getByRole("button", { name: "Berguna" })).toHaveAttribute("aria-pressed", "true");
   // Well inside the window: the timer has not fired yet.
   await page.waitForTimeout(400);
   expect(writes.count).toBe(0);
-  // Closing the tab here runs the effect cleanup, which clears the timer.
-  // There is no `pagehide`/`visibilitychange` flush, so nothing is sent.
-  await page.close();
+  expect(beacons.urls).toEqual([]);
+
+  // `runBeforeUnload: true` is the real tab close: Chromium runs the document's
+  // unload path, so `pagehide` and `visibilitychange` fire. Playwright's default
+  // (`runBeforeUnload: false`) destroys the target outright and dispatches no
+  // lifecycle event at all — a listener for pagehide, visibilitychange and
+  // beforeunload records nothing — so it cannot tell a flush that works from one
+  // that does not.
+  await page.close({ runBeforeUnload: true });
+  await expect.poll(() => beacons.urls.length, { timeout: 5_000 }).toBe(1);
+  expect(beacons.urls[0]).toContain("/api/memory");
+  // Exactly one write, by either route: the flush clears the pending timer, so
+  // the debounce path cannot send the same snapshot a second time. `writes`
+  // stays at 0 because a closing tab's beacon is invisible to Playwright, not
+  // because nothing was sent.
   expect(writes.count).toBe(0);
-  // Verdict: LOSES. The window is the full SYNC_DEBOUNCE_MS; the UI shows the
-  // feedback as applied (aria-pressed=true) while the server copy never hears
-  // about it. localStorage still holds it, so only the GCS backup diverges.
+  writes.stop();
+  // Verdict: DEGRADES. The edit reaches the server backup on the way out. What
+  // is still not guaranteed is delivery — a beacon is fire-and-forget, so a
+  // bucket that refuses it is never retried and only localStorage is certain.
+});
+
+test("G7c: with sendBeacon missing, the hidden-tab flush falls back to a keepalive fetch", async ({ page, context }) => {
+  // Two reasons to take the fallback branch here. It is the branch a browser
+  // without sendBeacon (or one whose beacon quota is spent) actually runs, and
+  // it is the only flush path whose body Playwright can read: a beacon's
+  // payload is never reported, so `postData()` and `postDataBuffer()` are both
+  // empty for one.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "sendBeacon", { configurable: true, value: undefined });
+  });
+  await finishSetup(page);
+  await page.goto("/cases/ANTM?tab=market&pillar=concentration");
+  await quiesce(page);
+
+  const writes = countMemoryWrites(context);
+  await page.getByRole("button", { name: "Berguna" }).click();
+  await page.waitForTimeout(200);
+  expect(writes.count).toBe(0);
+
+  // Synthetic on purpose. Headless Chromium keeps every page at
+  // visibilityState "visible" — a second tab calling bringToFront() leaves this
+  // one visible — so there is no way to drive a real background here. G7 covers
+  // the browser-driven lifecycle event; this covers what the listener does with
+  // it, with the page still alive so the request stays observable.
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+
+  // The timeout is the assertion. ~1300ms of the debounce is still to run, so a
+  // write seen inside 700ms of the transition came from the flush and cannot
+  // have come from the timer. A generous poll here would pass with no flush at
+  // all — it would simply be waiting for the debounce.
+  await expect.poll(() => writes.count, { timeout: 700, intervals: [50] }).toBe(1);
+  // The flush reads the same localStorage snapshot the timer path reads, so the
+  // edit is in the body, not just in the request count.
+  const posted = writes.requests[0].postData() ?? "";
+  expect(posted).toContain("feedback");
+  expect(JSON.parse(posted)).toHaveProperty("profile");
+
+  // The pending timer was cleared, so the debounce never re-sends it.
+  await page.waitForTimeout(SYNC_DEBOUNCE_MS + 800);
+  expect(writes.count).toBe(1);
+  writes.stop();
 });
 
 test("G7b: the same edit DOES reach the server once the debounce elapses", async ({ page }) => {
