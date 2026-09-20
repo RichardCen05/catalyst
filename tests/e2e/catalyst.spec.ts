@@ -181,7 +181,7 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Dashboard", "Kasus", "Sebab akibat", "Pantau", "Asisten", "AI Learning"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Dashboard", "Kasus", "Sebab akibat", "Pantau", "AI Learning"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
@@ -393,7 +393,7 @@ test("causal map exposes multiple sources and copilot answers through the API", 
   await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("region", { name: /Hipotesis untuk/ })).toBeVisible();
   await expect(page.getByText(/Rp 50 trillion/).first()).toBeVisible();
-  await page.getByRole("link", { name: "Asisten", exact: true }).click();
+  await page.getByRole("button", { name: "Tanya asisten" }).click();
   await page.getByLabel("Tanya Catalyst").fill("Kenapa ANTM masuk daftar hari ini?");
   await page.getByLabel("Tanya Catalyst").press("Enter");
   await expect(page.getByText(/ANTM masuk karena/).first()).toBeVisible();
@@ -500,7 +500,7 @@ test("formula details and source destinations are inspectable", async ({ page })
 
 test("copilot has a dedicated searchable workspace", async ({ page }) => {
   await finishSetup(page);
-  await page.getByRole("navigation", { name: "Navigasi utama" }).getByRole("link", { name: "Asisten", exact: true }).click();
+  await page.goto("/copilot");
   await expect(page.getByRole("heading", { name: "Cari jawaban dari bukti" })).toBeVisible();
   await page.getByLabel("Tanya Catalyst").fill("Data apa yang belum diperiksa untuk ANTM?");
   await page.getByLabel("Tanya Catalyst").press("Enter");

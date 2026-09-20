@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { SettingsDrawer } from "@/components/settings-drawer";
 import { useCatalystStore } from "@/lib/store";
 import { DATA_AS_OF } from "@/lib/data/fixtures";
-import type { SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -21,7 +20,6 @@ const navItems = [
   { href: "/cases", label: "Kasus", icon: BriefcaseBusiness },
   { href: "/impact", label: "Sebab akibat", icon: GitBranch },
   { href: "/pantau", label: "Pantau", icon: Radar },
-  { href: "/copilot", label: "Asisten", icon: Bot },
   { href: "/ai-learning", label: "AI Learning", icon: BrainCircuit },
 ];
 
@@ -45,7 +43,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const copilotOpen = useCatalystStore((state) => state.copilotOpen);
   const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
   const copilotPage = pathname.startsWith("/copilot");
-  const caseSymbol = pathname.match(/^\/cases\/([^/]+)$/)?.[1] as SymbolCode | undefined;
   const mobileNavItems = navItems;
 
   const nav = (onNavigate?: () => void) => <>
@@ -77,10 +74,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-1">
               <Button variant="ghost" size="icon" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Ganti tema"><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" /></Button>
               <SettingsDrawer compact />
-              <Link href="/copilot" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-surface px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Bot aria-hidden="true" className="size-4" /><span className="hidden sm:inline">Tanya asisten</span><span className="sr-only sm:hidden">Buka asisten</span></Link>
             </div>
           </header>
-          <main id="main-content" tabIndex={-1} className="min-w-0 px-4 pb-24 pt-6 focus:outline-none sm:px-7 sm:pt-8 lg:px-9 lg:pt-10 xl:pb-10">{children}</main>
+          <main id="main-content" tabIndex={-1} className="min-w-0 px-4 pb-32 pt-6 focus:outline-none sm:px-7 sm:pt-8 lg:px-9 lg:pt-10 xl:pb-10">{children}</main>
           <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 flex gap-1 overflow-x-auto border-t border-border bg-surface/98 px-2 pb-[env(safe-area-inset-bottom)] xl:hidden">
             {mobileNavItems.map((item) => { const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-14 min-w-16 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[6px] px-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "text-foreground" : "text-muted-foreground")}>{active ? <span aria-hidden="true" className="absolute top-0 h-[2px] w-6 rounded-full bg-brand" /> : null}<item.icon aria-hidden="true" className={cn("size-4", active && "text-primary")} />{item.label}</Link>; })}
           </nav>
@@ -89,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80 backdrop-blur-[2px]" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-6 flex items-center gap-3"><CatalystLogo /><span className="editorial text-[17px]">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-0.5">{nav(() => setMobileNav(false))}</nav><div className="mt-7"><CommandPalette /></div></aside></div> : null}
-      {!copilotPage && !caseSymbol && pathname !== "/" && !pathname.startsWith("/impact") && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
+      {!copilotPage && !copilotOpen ? <Button onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
       {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <OnboardingWizard />
       <GuidedTour />
