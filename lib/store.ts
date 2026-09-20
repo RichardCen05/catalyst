@@ -48,6 +48,7 @@ interface CatalystState {
   finishTour: () => void;
   setCopilotOpen: (open: boolean) => void;
   openCopilot: (context?: CopilotContext) => void;
+  setCopilotContext: (context: CopilotContext | null) => void;
   clearCopilotContext: () => void;
   recordFeedback: (input: Omit<FeedbackEvent, "id" | "createdAt">) => void;
   recordInsight: (input: Omit<UserInsight, "id" | "createdAt" | "status" | "reviewHistory">) => void;
@@ -148,6 +149,7 @@ export const useCatalystStore = create<CatalystState>()(
       finishTour: () => set({ tourOpen: false }),
       setCopilotOpen: (copilotOpen) => set({ copilotOpen }),
       openCopilot: (copilotContext) => set({ copilotOpen: true, copilotContext: copilotContext ?? null }),
+      setCopilotContext: (copilotContext) => set({ copilotContext }),
       clearCopilotContext: () => set({ copilotContext: null }),
       recordFeedback: (input) => set((state) => {
         const existing = input.targetId ? state.feedback.find((item) => item.targetId === input.targetId) : undefined;

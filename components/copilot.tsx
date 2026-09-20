@@ -4,9 +4,10 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCatalystStore } from "@/lib/store";
 import { useCopilotSession } from "@/lib/copilot-session";
+import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
 import { coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
-import type { ChatAnswer, UserProfile } from "@/lib/types";
+import type { ChatAnswer, SymbolCode, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { IconAttention, IconCaretDown, IconClose, IconCollapse, IconCopilot, IconExpand, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
@@ -59,9 +60,10 @@ function answerBlocks(text: string): AnswerBlock[] {
 export function Copilot({ dismissible = false, workspace = false }: { dismissible?: boolean; workspace?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { profile, insights, playbook, caseMandates, setCopilotOpen, copilotContext, clearCopilotContext } = useCatalystStore();
-  const { messages, append, input, setInput, returnPath, setReturnPath } = useCopilotSession();
+  const { profile, insights, playbook, caseMandates, setCopilotOpen, copilotContext, setCopilotContext, clearCopilotContext } = useCatalystStore();
+  const { messages, append, input, setInput, returnPath, setReturnPath, routeSymbol } = useCopilotSession();
   const [loading, setLoading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<HTMLDivElement>(null);
   // The context question prefills the composer, but only once per context —
@@ -72,7 +74,11 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
   const prompts = useMemo(() => buildQuickPrompts(profile), [profile]);
   const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];
-  const contextLabel = copilotContext?.label ?? "Tanpa konteks";
+  // The route is the default, not an override: a case the reader picked or
+  // an evidence button they pressed stays until they clear it.
+  const activeContext = resolveContext(copilotContext, routeSymbol);
+  const contextLabel = activeContext?.label ?? "Tanpa kasus";
+  const bindTo = (symbol: SymbolCode) => setCopilotContext({ label: symbol, question: "", symbol });
 
   useEffect(() => {
     const question = copilotContext?.question ?? "";
@@ -85,18 +91,24 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
 
   useEffect(() => { streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight }); }, [messages.length, loading]);
 
-  const submit = async (question: string) => {
+  // `bound` is the answer to a clarifying turn: the reader's choice must reach
+  // the engine with the original question, before the store has settled.
+  const submit = async (question: string, bound?: SymbolCode) => {
     if (!question.trim() || loading) return;
     const asked = question.trim();
+    const symbol = bound ?? activeContext?.symbol;
     append({ id: `u-${(nextId.current += 1)}`, role: "user", text: asked });
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: copilotContext?.symbol, userInsights: insights, playbook, caseMandate: copilotContext?.symbol ? caseMandates[copilotContext.symbol] : undefined }) });
+      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: symbol, userInsights: insights, playbook, caseMandate: symbol ? caseMandates[symbol] : undefined }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
       append({ id: `a-${(nextId.current += 1)}`, role: "assistant", text: answer.text, answer });
+      // A symbol named in the question outranks the chip inside the engine, so
+      // the chip follows the answer rather than contradicting it.
+      if (answer.questionSymbol && answer.questionSymbol !== symbol) bindTo(answer.questionSymbol);
     } catch (error) {
       // Name the failure. "Tidak merespons" covered a 500, an offline device
       // and a malformed body alike, so a reader could not tell whether to
@@ -120,7 +132,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       onKeyDown={dismissible ? (event) => { if (event.key === "Escape") { event.stopPropagation(); setCopilotOpen(false); } } : undefined}
       className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}
     >
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+      <div className="relative flex items-center gap-3 border-b border-border px-4 py-3">
         <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">Asisten Catalyst</p>
@@ -129,7 +141,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           <p className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
             <span className="shrink-0">Rekaman {RECORD_SHORT}</span>
             <span aria-hidden="true" className="shrink-0 opacity-50">·</span>
-            <span className="min-w-0 truncate" title={contextLabel}>{contextLabel}</span>
+            <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={contextLabel} className="min-w-0 rounded px-1 text-left hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block truncate">{contextLabel}</span></button>
             {copilotContext ? <button type="button" onClick={clearCopilotContext} className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Hapus konteks"><IconClose aria-hidden="true" className="size-3" /></button> : null}
           </p>
         </div>
@@ -137,6 +149,16 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           ? <Button variant="ghost" size="icon" onClick={expand} aria-label="Perbesar asisten ke halaman penuh"><IconExpand aria-hidden="true" className="size-4" /></Button>
           : <Button variant="ghost" size="icon" onClick={collapse} aria-label="Ciutkan asisten ke panel"><IconCollapse aria-hidden="true" className="size-4" /></Button>}
         {dismissible ? <Button variant="ghost" size="icon" onClick={() => setCopilotOpen(false)} aria-label="Tutup asisten"><IconClose aria-hidden="true" className="size-4" /></Button> : null}
+        {/* Coverage comes from the same table the compare picker reads, so a
+            symbol without a full case says so here instead of being offered
+            as if it had one. */}
+        {pickerOpen ? <div role="listbox" aria-label="Pilih kasus" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPickerOpen(false); } }} className="absolute inset-x-3 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-panel">
+          <button type="button" role="option" aria-selected={!activeContext?.symbol} onClick={() => { setCopilotContext({ label: "Tanpa kasus", question: "" }); setPickerOpen(false); }} className="w-full cursor-pointer rounded-md px-2.5 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-[13px] font-medium">Tanpa kasus</span><span className="block text-[11px] leading-4 text-muted-foreground">Hanya menjawab pertanyaan yang menyebut emitennya sendiri.</span></button>
+          {profile.watchlist.map((symbol) => {
+            const coverage = coverageInfo[symbol];
+            return <button key={symbol} type="button" role="option" aria-selected={activeContext?.symbol === symbol} onClick={() => { bindTo(symbol); setPickerOpen(false); }} className="w-full cursor-pointer rounded-md px-2.5 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-[13px] font-medium">{symbol}</span><span className="block text-[11px] leading-4 text-muted-foreground">{coverage?.analyzed ? "Kasus lengkap" : `Belum ada kasus lengkap — ${coverage?.missing.length ? `${coverage.missing.join(", ")} belum ada` : "rekaman belum lengkap"}`}</span></button>;
+          })}
+        </div> : null}
       </div>
       <div className="border-b border-border bg-background px-4 py-2.5 text-xs leading-5 text-muted-foreground"><IconGate aria-hidden="true" className="mr-1.5 inline size-3.5 text-positive" />Fakta, konflik, dan data kosong. Tidak menilai tindakan transaksi.</div>
 
@@ -167,6 +189,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
                       </div>
                     : <p key={block.key}>{block.body}</p>)}
                 </div>}
+            {message.answer?.clarification ? <div className="mt-3 flex flex-wrap gap-2">{message.answer.clarification.choices.map((symbol) => <button key={symbol} type="button" onClick={() => { const clarification = message.answer?.clarification; if (!clarification) return; bindTo(symbol); void submit(clarification.question, symbol); }} className="min-h-9 cursor-pointer rounded-full border border-border px-3.5 text-[12px] font-medium transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{symbol}</button>)}</div> : null}
             {message.answer?.llmFallbackNote ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">{message.answer.llmFallbackNote}</p> : null}
             {message.answer ? <details className="mt-3 border-t border-border pt-2"><summary className="flex min-h-8 cursor-pointer items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3" /></summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded border border-attention/30 bg-attention/8 p-2 text-xs leading-5 text-attention-foreground">Catatan pengguna hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-3"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
           </div>

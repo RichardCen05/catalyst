@@ -241,6 +241,20 @@ const METRIC_ALIASES: Record<string, string[]> = {
   "Perubahan harga harian": ["perubahan harga", "change pct", "daily change", "perubahan harian"],
 };
 
+/**
+ * Does this question name a recorded figure at all?
+ *
+ * `matchMetric` needs an analysis to read labels from, and there is none when
+ * no case is in hand. The alias table alone answers the narrower question the
+ * router needs: is this an answerable question that is only missing its case?
+ * Exact matches only — a tolerant match here would read a metric name into
+ * nonsense and ask the reader to pick a case for a question that has none.
+ */
+export function namesAMetric(question: string): boolean {
+  const lower = question.toLowerCase();
+  return Object.values(METRIC_ALIASES).some((aliases) => aliases.some((alias) => lower.includes(alias)));
+}
+
 /** Digits only, percent sign kept — so `27,5%` and `27.5%` are one figure
  *  and `27,5` is not. */
 export function canonicalFigure(numeral: string): string {

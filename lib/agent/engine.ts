@@ -33,7 +33,7 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
-import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, phraseMatches } from "@/lib/agent/explain";
+import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
@@ -1069,7 +1069,21 @@ function provenanceAnswer(analysis: AnalysisCase, question: string): { text: str
   return { text: `${body}${pointer}${spread}`, citations: hit.metric.citations };
 }
 
+/**
+ * Keep the displayed context on the answer that was actually given.
+ *
+ * `routeFollowUp` already ranks a symbol named in the question above the one
+ * carried by the chip, so asking "PGAS hhi brp" under an ANTM chip answers
+ * about PGAS. Reporting the named symbol lets the chip follow, instead of
+ * labelling a PGAS answer ANTM.
+ */
 async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
+  const answer = await routeFollowUp(request);
+  const named = findSymbols(request.question)[0];
+  return named ? { ...answer, questionSymbol: named } : answer;
+}
+
+async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const guarded = safeLanguage(request.question);
   const symbols = findSymbols(request.question);
   const primary = symbols[0] ?? request.contextSymbol;
@@ -1201,6 +1215,21 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     return {
       ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
+    };
+  }
+
+  // Nothing resolved the case: not the question, not the chip, not the route.
+  // A question that named a figure, a field, or asked why a case is listed is
+  // answerable and only missing its subject, so ask which one rather than
+  // answering about whichever case happened to be nearest. A question that
+  // named nothing recognisable is a different problem and still gets the menu
+  // below — the clarifying turn replaces a guess, not the refusal.
+  if (!primary && (mentions(question, WHY_PHRASES) || Boolean(matchFieldName(request.question)) || namesAMetric(request.question))) {
+    return {
+      text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
+      refused: false, intent: "clarify", hypotheses: [], citations: [],
+      clarification: { question: request.question, choices: request.profile.watchlist.slice(0, 6) },
+      preferenceNote: personalizedNote(), relatedSymbols: [],
     };
   }
 

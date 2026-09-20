@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ChatAnswer } from "@/lib/types";
+import type { ChatAnswer, SymbolCode } from "@/lib/types";
 
 export interface CopilotMessage {
   id: string;
@@ -18,9 +18,13 @@ interface CopilotSession {
   input: string;
   /** Route the reader expanded from, so collapsing returns them there. */
   returnPath: string | null;
+  /** Case resolved from the current URL. Used when nothing more specific was
+   *  set, and derived fresh on every navigation — never persisted. */
+  routeSymbol: SymbolCode | null;
   append: (message: CopilotMessage) => void;
   setInput: (input: string) => void;
   setReturnPath: (returnPath: string | null) => void;
+  setRouteSymbol: (routeSymbol: SymbolCode | null) => void;
   reset: () => void;
 }
 
@@ -37,8 +41,10 @@ export const useCopilotSession = create<CopilotSession>()((set) => ({
   messages: [],
   input: "",
   returnPath: null,
+  routeSymbol: null,
   append: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setInput: (input) => set({ input }),
   setReturnPath: (returnPath) => set({ returnPath }),
+  setRouteSymbol: (routeSymbol) => set({ routeSymbol }),
   reset: () => set({ messages: [], input: "", returnPath: null }),
 }));

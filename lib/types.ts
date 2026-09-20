@@ -452,7 +452,7 @@ export interface ChatRequest {
 export interface ChatAnswer {
   text: string;
   refused: boolean;
-  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "unknown";
+  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "unknown";
   hypotheses: HypothesisTrace[];
   citations: Citation[];
   preferenceNote: string;
@@ -461,6 +461,13 @@ export interface ChatAnswer {
    *  or a 429 — and the deterministic path answered instead. The reader is
    *  told, because that state lasts until tomorrow. */
   llmFallbackNote?: string;
+  /** The symbol the question itself named. Precedence is question, then the
+   *  chip, then the route, so this is what the displayed context must follow
+   *  — otherwise the chip says ANTM while the answer is about PGAS. */
+  questionSymbol?: SymbolCode;
+  /** Set only by the clarify intent: the question as asked, so the reader's
+   *  choice can re-send it with a symbol attached. */
+  clarification?: { question: string; choices: SymbolCode[] };
 }
 
 export interface CopilotContext {
