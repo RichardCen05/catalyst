@@ -30,7 +30,7 @@ function ResearchCasesContent() {
   // "audit" stays a valid direct-link target (settings drawer, /agent redirect,
   // AI Learning, case resolution) even though it's no longer a tab pill here.
   const activeView = requested === "audit" || views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
-  const { profile, playbook, caseMandates, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
+  const { profile, playbook, caseClarifications, caseStatuses, caseResolutions, insights, ruleProposals, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
   const [query, setQuery] = useState("");
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [selected, setSelected] = useState<Array<SymbolCode | undefined>>(() => {
@@ -44,10 +44,10 @@ function ResearchCasesContent() {
   const [cases, setCases] = useState<AnalysisCase[]>([]);
   useEffect(() => {
     let cancelled = false;
-    void Promise.all(profile.watchlist.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))).then((results) => { if (!cancelled) setCases(results.filter((item) => item !== null)); });
+    void Promise.all(profile.watchlist.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: undefined, clarificationChoice: caseClarifications[symbol], playbook, userInsights: insights, resolution: caseResolutions[symbol] }))).then((results) => { if (!cancelled) setCases(results.filter((item) => item !== null)); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, profile.watchlist.join(","), caseMandates, caseClarifications, playbook, insights, caseResolutions]);
+  }, [profile, profile.watchlist.join(","), caseClarifications, playbook, insights, caseResolutions]);
   const activeSymbols = useMemo(() => selected.filter((symbol): symbol is SymbolCode => Boolean(symbol)), [selected]);
   const searchMatches = useMemo(() => {
     const value = query.trim().toLowerCase();
@@ -58,7 +58,7 @@ function ResearchCasesContent() {
   const [compared, setCompared] = useState<AnalysisCase[]>([]);
   useEffect(() => {
     let cancelled = false;
-    void Promise.all(activeSymbols.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: caseMandates[symbol], clarificationChoice: caseClarifications[symbol], playbook }))).then((results) => { if (!cancelled) setCompared(results.filter((item) => item !== null)); });
+    void Promise.all(activeSymbols.map((symbol) => agentEngine.analyzeCompany(symbol, profile, { mandate: undefined, clarificationChoice: caseClarifications[symbol], playbook }))).then((results) => { if (!cancelled) setCompared(results.filter((item) => item !== null)); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSymbols.join(",")]);

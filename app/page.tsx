@@ -14,7 +14,7 @@ import { Panel } from "@/components/ui/panel";
 import { IconArrowRight, IconBranch, IconClock, IconSignal } from "@/components/ui/icons";
 
 export default function DashboardPage() {
-  const { profile, playbook, insights, caseMandates, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
+  const { profile, playbook, insights, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
   // Relevance floor for the whole board: lower draws more of the recorded
   // links, higher thins it to the strongest paths. Same semantics as the
   // per-issuer chain so the two views can be compared.
@@ -36,7 +36,7 @@ export default function DashboardPage() {
     void buildMarketGraph(openSymbols, profile, {
       minRelevance,
       context: (symbol: SymbolCode) => ({
-        mandate: caseMandates[symbol],
+        mandate: undefined,
         clarificationChoice: caseClarifications[symbol],
         playbook,
         userInsights: insights,
@@ -49,7 +49,7 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbolKey, profile, minRelevance, caseMandates, caseClarifications, playbook, insights, caseResolutions]);
+  }, [symbolKey, profile, minRelevance, caseClarifications, playbook, insights, caseResolutions]);
 
   const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
   const pending = insights.filter((item) => item.status === "pending");

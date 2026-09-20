@@ -18,7 +18,7 @@ import { IconArrowRight, IconAttention, IconBranch } from "@/components/ui/icons
 function ImpactWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { profile, playbook, caseMandates, caseClarifications, caseResolutions, insights, setCaseClarification } = useCatalystStore();
+  const { profile, playbook, caseClarifications, caseResolutions, insights, setCaseClarification } = useCatalystStore();
   // Partially recorded symbols belong here too: they carry a price series and
   // linked sources, so the chain can be drawn as far as the recordings go. The
   // option label says which ones stop short of a business outcome.
@@ -31,12 +31,11 @@ function ImpactWorkspace() {
   // engine's visibility cap), higher thins it to the strongest paths.
   const [minRelevance, setMinRelevance] = useState(60);
   const [reloading, setReloading] = useState(false);
-  const mandate = caseMandates[symbol];
   const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
   const sharedShocks = getSharedShocks(events, profile.watchlist);
   const context = {
-    mandate,
+    mandate: undefined,
     clarificationChoice,
     playbook,
     userInsights: insights,
@@ -47,7 +46,7 @@ function ImpactWorkspace() {
     agentEngine.analyzeCompany(symbol, profile, context).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, mandate, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, clarificationChoice, playbook, insights, resolution]);
   useEffect(() => {
     let cancelled = false;
     // The previous graph stays visible while the new threshold loads, with a
@@ -57,7 +56,7 @@ function ImpactWorkspace() {
     agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance, context }).then((result) => { if (!cancelled) { setGraph(result); setReloading(false); } });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, minRelevance, mandate, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, minRelevance, clarificationChoice, playbook, insights, resolution]);
 
   if (analysis === undefined || graph === undefined) {
     return (

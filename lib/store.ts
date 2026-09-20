@@ -55,6 +55,7 @@ interface CatalystState {
   setInsightStatus: (id: string, status: UserInsight["status"]) => void;
   setCaseMandate: (symbol: SymbolCode, mandate: string) => void;
   setCaseClarification: (symbol: SymbolCode, choiceId: string) => void;
+  clearCaseClarification: (symbol: SymbolCode) => void;
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
@@ -186,6 +187,11 @@ export const useCatalystStore = create<CatalystState>()(
         return { caseMandates: { ...state.caseMandates, [symbol]: mandate }, caseClarifications };
       }),
       setCaseClarification: (symbol, choiceId) => set((state) => ({ caseClarifications: { ...state.caseClarifications, [symbol]: choiceId } })),
+      clearCaseClarification: (symbol) => set((state) => {
+        const caseClarifications = { ...state.caseClarifications };
+        delete caseClarifications[symbol];
+        return { caseClarifications };
+      }),
       setCaseStatus: (symbol, status) => set((state) => ({ caseStatuses: { ...state.caseStatuses, [symbol]: status } })),
       saveCaseResolution: (symbol, resolution) => set((state) => {
         const resolvedAt = new Date().toISOString();
