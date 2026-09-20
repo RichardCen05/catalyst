@@ -24,7 +24,9 @@ function ImpactWorkspace() {
   // option label says which ones stop short of a business outcome.
   const available = companies.filter((company) => profile.watchlist.includes(company.symbol));
   const requested = (searchParams.get("company") ?? searchParams.get("case"))?.toUpperCase() as SymbolCode | undefined;
-  const symbol = available.some((company) => company.symbol === requested) ? requested! : available[0]?.symbol ?? "ANTM";
+  // Default follows the registry — first analyzed case — never a typed ticker.
+  const fallback = companies.find((company) => company.analyzed)?.symbol ?? companies[0]?.symbol;
+  const symbol = available.some((company) => company.symbol === requested) ? requested! : available[0]?.symbol ?? fallback!;
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
   const [graph, setGraph] = useState<CausalGraph | null | undefined>(undefined);
   // Relevance floor for the chain: lower shows more of the graph (up to the

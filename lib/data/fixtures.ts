@@ -306,4 +306,7 @@ export const demoProfiles: UserProfile[] = [
     preferredSectors: ["Technology", "Consumer", "Energy"], preferredEventTypes: ["policy", "currency", "rates", "flows", "sentiment"], hasOnboarded: true,
   },
 ];
-export { revenueSegments };
+/** The daily recording itself. A reader can chart any symbol that was
+ *  recorded, even one whose case is still partial — `coverageInfo` says which
+ *  ones those are. */
+export { priceSeries, revenueSegments };

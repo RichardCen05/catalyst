@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookOpenCheck, Check, Save } from "lucide-react";
 import { companies } from "@/lib/data/fixtures";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { useCatalystStore } from "@/lib/store";
 import { holdingExposure, holdingPnl } from "@/lib/portfolio";
 import type { InvestorResearchPlaybook, SymbolCode } from "@/lib/types";
@@ -28,7 +29,7 @@ export default function PlaybookPage() {
   const setRelevanceFloor = useCatalystStore((state) => state.setRelevanceFloor);
   const setThreshold = useCatalystStore((state) => state.setThreshold);
   const resetThreshold = useCatalystStore((state) => state.resetThreshold);
-  const relevanceFloor = playbook.relevanceFloor ?? 85;
+  const relevanceFloor = playbook.relevanceFloor ?? DEFAULT_THRESHOLDS.relevanceFloor;
   const profile = useCatalystStore((state) => state.profile);
   const setWatchlist = useCatalystStore((state) => state.setWatchlist);
   const toggleOwned = useCatalystStore((state) => state.toggleOwned);
@@ -135,12 +136,12 @@ export default function PlaybookPage() {
           <div className="mt-3 grid gap-4">
             {(
               [
-                { key: "concentrationFloor", label: "Ambang konsentrasi", min: 0.1, max: 0.8, step: 0.01, def: 0.42, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit kasus berstatus Concentrated Flow." },
-                { key: "volumeZFloor", label: "Ambang volume (Meningkat)", min: 1, max: 6, step: 0.1, def: 2.5, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Meningkat." },
-                { key: "volumeExtremeFloor", label: "Ambang volume (Ekstrem)", min: 3, max: 10, step: 0.1, def: 5, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Ekstrem." },
-                { key: "contagionDropFloor", label: "Ambang penurunan penularan", min: 0.01, max: 0.15, step: 0.005, def: 0.04, fmt: (v: number) => `${(v * 100).toFixed(1)}%`, hint: "Menaikkan ambang membuat lebih sedikit penurunan diperiksa sebagai penularan." },
-                { key: "contagionCorrelationFloor", label: "Ambang korelasi penularan", min: 0.1, max: 0.9, step: 0.05, def: 0.5, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit co-movement layak diperiksa." },
-                { key: "distributionValueFloor", label: "Ambang nilai distribusi", min: 10000000000, max: 500000000000, step: 10000000000, def: 100000000000, fmt: (v: number) => `Rp${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 0 })}M`, hint: "Menaikkan ambang membuat lebih sedikit pelepasan ditandai distribusi." },
+                { key: "concentrationFloor", label: "Ambang konsentrasi", min: 0.1, max: 0.8, step: 0.01, def: DEFAULT_THRESHOLDS.concentrationFloor, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit kasus berstatus Concentrated Flow." },
+                { key: "volumeZFloor", label: "Ambang volume (Meningkat)", min: 1, max: 6, step: 0.1, def: DEFAULT_THRESHOLDS.volumeZFloor, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Meningkat." },
+                { key: "volumeExtremeFloor", label: "Ambang volume (Ekstrem)", min: 3, max: 10, step: 0.1, def: DEFAULT_THRESHOLDS.volumeExtremeFloor, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Ekstrem." },
+                { key: "contagionDropFloor", label: "Ambang penurunan penularan", min: 0.01, max: 0.15, step: 0.005, def: DEFAULT_THRESHOLDS.contagionDropFloor, fmt: (v: number) => `${(v * 100).toFixed(1)}%`, hint: "Menaikkan ambang membuat lebih sedikit penurunan diperiksa sebagai penularan." },
+                { key: "contagionCorrelationFloor", label: "Ambang korelasi penularan", min: 0.1, max: 0.9, step: 0.05, def: DEFAULT_THRESHOLDS.contagionCorrelationFloor, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit co-movement layak diperiksa." },
+                { key: "distributionValueFloor", label: "Ambang nilai distribusi", min: 10000000000, max: 500000000000, step: 10000000000, def: DEFAULT_THRESHOLDS.distributionValueFloor, fmt: (v: number) => `Rp${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 0 })}M`, hint: "Menaikkan ambang membuat lebih sedikit pelepasan ditandai distribusi." },
               ] as const
             ).map((row) => {
               const cur = (playbook.thresholds?.[row.key] ?? row.def) as number;

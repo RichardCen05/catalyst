@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { AlertTriangle, ChevronDown, GitBranch } from "lucide-react";
+import { AlertTriangle, GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import type { MarketEvent, PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { useCatalystStore } from "@/lib/store";
 import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
-import { PriceChart } from "@/components/price-chart";
 import { SignalHistory } from "@/components/signal-history";
 import { ResearchCaseOverview } from "@/components/research-case-overview";
 import { CaseResolutionPanel } from "@/components/case-resolution";
@@ -24,10 +23,9 @@ const tabLabels: Array<{ value: ResearchCaseTab; label: string }> = [
   { value: "review", label: "Tinjau" },
 ];
 
-export function ResearchCaseWorkspace({ analysis, symbol, relatedEvents }: {
+export function ResearchCaseWorkspace({ analysis, symbol }: {
   analysis: ResearchCase;
   symbol: SymbolCode;
-  relatedEvents: MarketEvent[];
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab") as ResearchCaseTab | null;
@@ -72,7 +70,7 @@ export function ResearchCaseWorkspace({ analysis, symbol, relatedEvents }: {
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
           <SignalHistory stability={analysis.signalStability} />
           <section aria-label="Banding sektor" className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-border bg-surface px-4 py-3 text-xs"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Banding sektor</span>{sectorReturn ? <span className="text-muted-foreground">Sektor: <strong className="font-mono text-foreground">{sectorReturn}</strong></span> : null}{comparables.length ? <span className="text-muted-foreground">Pembanding: {comparables.map((item, index) => <span key={item}><Link href={`/cases/${item}`} className="font-mono text-primary hover:underline">{item}</Link>{index < comparables.length - 1 ? " · " : ""}</span>)}</span> : <span className="text-muted-foreground">Belum ada pembanding pilihan — atur di <Link href="/playbook" className="text-primary hover:underline">aturan riset</Link>.</span>}</section>
-          <details className="group mt-4 rounded-[10px] border border-border bg-surface"><summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary">Buka timeline {WINDOW_SESSIONS} hari<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary><div className="border-t border-border p-3"><PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} /></div></details>
+          <p className="mt-3 text-xs text-muted-foreground">Jejak bukti {WINDOW_SESSIONS} hari sekarang ada di <Link href="/" className="text-primary hover:underline">Hari ini</Link>, mode grafik.</p>
         </section> : null}
 
         {activeTab === "business" && catalystPillar ? <section aria-labelledby="business-transmission-title" data-tour="business-transmission">

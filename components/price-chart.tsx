@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BarChart3, CalendarDays, Expand, X } from "lucide-react";
+import { BarChart3, CalendarDays, Download, Expand, X } from "lucide-react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MarketEvent, PricePoint, SymbolCode } from "@/lib/types";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
-import { formatAsOf, formatNumber } from "@/lib/utils";
+import { downloadTextFile, formatAsOf, formatNumber, toCsv } from "@/lib/utils";
 import { uiLabel } from "@/lib/ui-labels";
 
 function Chart({ data, events, height = 310 }: { data: PricePoint[]; events: MarketEvent[]; height?: number }) {
@@ -24,12 +24,38 @@ export function PriceChart({ data, symbol, events }: { data: PricePoint[]; symbo
     .filter((event, index, values) => values.findIndex((item) => item.id === event.id) === index)
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
     .slice(0, 3);
+
+  // One column table for both the table and the exported file, so a reader who
+  // downloads the recording gets the same columns they were just shown, and a
+  // column added later cannot appear in one and go missing from the other.
+  const markerFor = (date: string) => timelineEvents
+    .map((event, index) => (event.publishedAt.slice(0, 10) === date ? `E${index + 1}` : ""))
+    .filter(Boolean)
+    .join(" ");
+  // `cell` is what the reader sees, `raw` is what the file carries: the id-ID
+  // grouping that makes 5.200 readable on screen is the same string a
+  // spreadsheet in another locale reads as 5,2.
+  const columns: Array<{ label: string; numeric: boolean; cell: (point: PricePoint) => string; raw: (point: PricePoint) => string }> = [
+    { label: "Tanggal", numeric: false, cell: (point) => point.date, raw: (point) => point.date },
+    { label: "Penutupan", numeric: true, cell: (point) => formatNumber(point.close), raw: (point) => String(point.close) },
+    { label: "IHSG", numeric: true, cell: (point) => formatNumber(point.ihsg), raw: (point) => String(point.ihsg) },
+    { label: "Volume", numeric: true, cell: (point) => formatNumber(point.volume), raw: (point) => String(point.volume) },
+    { label: "Peristiwa", numeric: false, cell: (point) => markerFor(point.date), raw: (point) => markerFor(point.date) },
+  ];
+  const exportCsv = () => {
+    if (!data.length) return;
+    const rows = [columns.map((column) => column.label), ...data.map((point) => columns.map((column) => column.raw(point)))];
+    // Name the file from the window it holds, so two downloads of different
+    // windows do not land on the same name.
+    downloadTextFile(`${symbol}-${data[0].date}-${data[data.length - 1].date}.csv`, toCsv(rows), "text/csv");
+  };
+
   return (
     <div data-tour="evidence-timeline" className="rounded-xl border border-border bg-surface shadow-panel">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{data.length} sesi · {symbol} dibanding IHSG</p><h2 className="mt-1 text-base font-semibold">Jejak bukti</h2></div><div className="flex flex-wrap gap-2"><AskAgentButton context={{ label: `${symbol} · jejak bukti`, question: `Jelaskan perubahan utama pada jejak bukti ${symbol}.`, symbol }} label={`Tanya jejak ${symbol}`} /><Button variant="secondary" size="sm" onClick={() => setOpen(true)}><Expand aria-hidden="true" className="size-3.5" />Perbesar grafik</Button></div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{data.length} sesi · {symbol} dibanding IHSG</p><h2 className="mt-1 text-base font-semibold">Jejak bukti</h2></div><div className="flex flex-wrap gap-2"><AskAgentButton context={{ label: `${symbol} · jejak bukti`, question: `Jelaskan perubahan utama pada jejak bukti ${symbol}.`, symbol }} label={`Tanya jejak ${symbol}`} /><Button variant="secondary" size="sm" onClick={exportCsv} disabled={!data.length}><Download aria-hidden="true" className="size-3.5" />Unduh CSV</Button><Button variant="secondary" size="sm" onClick={() => setOpen(true)}><Expand aria-hidden="true" className="size-3.5" />Perbesar grafik</Button></div></div>
       <div className="p-3"><Chart data={data} events={timelineEvents} /></div>
       {timelineEvents.length ? <div className="grid gap-px border-t border-border bg-border sm:grid-cols-3">{timelineEvents.map((event, index) => <article key={event.id} className="bg-surface p-3"><div className="flex items-center justify-between gap-2"><span className="font-mono text-[9px] uppercase tracking-wider text-attention-foreground">E{index + 1} · {uiLabel(event.sourceType)}</span><span className="font-mono text-[9px] text-muted-foreground">{formatAsOf(event.publishedAt)}</span></div><h3 className="mt-1.5 text-xs font-semibold leading-5">{event.title}</h3><div className="mt-2"><CitationDialog citations={event.citations} label="Sumber peristiwa" /></div></article>)}</div> : <div className="flex items-center gap-2 border-t border-border px-4 py-3 text-xs text-muted-foreground"><CalendarDays aria-hidden="true" className="size-4" />Belum ada peristiwa pada grafik.</div>}
-      <details className="border-t border-border px-4 py-3"><summary className="min-h-8 cursor-pointer font-mono text-xs text-primary">Buka tabel data</summary><div className="mt-3 max-h-72 overflow-auto"><table className="w-full text-left text-xs"><caption className="sr-only">Data harga {symbol}, IHSG, dan volume</caption><thead className="sticky top-0 bg-surface text-muted-foreground"><tr><th className="px-2 py-2">Tanggal</th><th className="px-2 py-2 text-right">Penutupan</th><th className="px-2 py-2 text-right">IHSG</th><th className="px-2 py-2 text-right">Volume</th></tr></thead><tbody>{data.map((point) => <tr key={point.date} className="border-t border-border"><td className="px-2 py-2 font-mono">{point.date}</td><td className="px-2 py-2 text-right font-mono">{formatNumber(point.close)}</td><td className="px-2 py-2 text-right font-mono">{formatNumber(point.ihsg)}</td><td className="px-2 py-2 text-right font-mono">{formatNumber(point.volume)}</td></tr>)}</tbody></table></div></details>
+      <details className="border-t border-border px-4 py-3"><summary className="min-h-8 cursor-pointer font-mono text-xs text-primary">Buka tabel data</summary><div className="mt-3 max-h-72 overflow-auto"><table className="w-full text-left text-xs"><caption className="sr-only">Data harga {symbol}, IHSG, dan volume</caption><thead className="sticky top-0 bg-surface text-muted-foreground"><tr>{columns.map((column) => <th key={column.label} className={`px-2 py-2${column.numeric ? " text-right" : ""}`}>{column.label}</th>)}</tr></thead><tbody>{data.map((point) => <tr key={point.date} className="border-t border-border">{columns.map((column) => <td key={column.label} className={`px-2 py-2 font-mono${column.numeric ? " text-right" : ""}`}>{column.cell(point)}</td>)}</tr>)}</tbody></table></div></details>
       <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" /><Dialog.Content className="fixed inset-3 z-100 overflow-auto rounded-xl border border-border bg-surface p-4 shadow-2xl focus:outline-none sm:inset-8"><div className="mb-4 flex items-start gap-3"><div className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><BarChart3 aria-hidden="true" className="size-5" /></div><div className="flex-1"><Dialog.Title className="text-lg font-semibold">{symbol} dibanding IHSG</Dialog.Title><Dialog.Description className="text-sm text-muted-foreground">Indeks 100 pada awal periode. Garis E menandai peristiwa rekaman.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup grafik"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close></div><Chart data={data} events={timelineEvents} height={520} /></Dialog.Content></Dialog.Portal></Dialog.Root>
     </div>
   );

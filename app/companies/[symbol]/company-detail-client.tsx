@@ -66,7 +66,7 @@ export function CompanyDetailClient({ symbol, workspaceTabs = false }: { symbol:
         <p className="mt-5 max-w-3xl text-sm leading-6 text-foreground">{analysis.thesis}</p>
       </header>
 
-      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} relatedEvents={relatedEvents} /> : <>
+      {workspaceTabs ? <ResearchCaseWorkspace analysis={analysis} symbol={symbol} /> : <>
       <ResearchCaseOverview researchCase={analysis} symbol={symbol} />
 
       <PriceChart data={analysis.priceSeries} symbol={symbol} events={relatedEvents} />

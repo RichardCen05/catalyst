@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Citation } from "@/lib/types";
 import { locate } from "@/lib/agent/citations";
 import { glossField } from "@/lib/agent/explain";
@@ -139,17 +139,29 @@ function TechnicalDetails({ citation }: { citation: Citation }) {
   );
 }
 
-export function CitationDialog({ citations, label = "Periksa sumber" }: { citations: Citation[]; label?: string }) {
+/**
+ * `trigger` lets a figure open its own evidence.
+ *
+ * A source count printed beside a number reads like a promise the page never
+ * keeps: the reader is told four recordings back the figure and has no way to
+ * reach them without hunting for the panel button further down the card. The
+ * count itself is the affordance, so a caller may hand in its own control —
+ * the panel it opens carries only that figure's citations, never the pillar
+ * union.
+ */
+export function CitationDialog({ citations, label = "Periksa sumber", trigger }: { citations: Citation[]; label?: string; trigger?: ReactNode }) {
   const unique = [...new Map(citations.map((citation) => [citation.id, citation])).values()];
   const [open, setOpen] = useState(false);
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <Button variant="secondary" size="sm">
-          <IconSource className="size-3.5" />
-          {label}
-          <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{unique.length}</span>
-        </Button>
+        {trigger ?? (
+          <Button variant="secondary" size="sm">
+            <IconSource className="size-3.5" />
+            {label}
+            <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{unique.length}</span>
+          </Button>
+        )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />

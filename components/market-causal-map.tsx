@@ -564,7 +564,7 @@ export function MarketCausalMap({
           <Link
             key={symbol}
             href={`/cases/${symbol}`}
-            data-tour-action={symbol === "ANTM" ? "open-antm-case" : undefined}
+            data-tour-action={symbol === view.symbols[0] ? "open-antm-case" : undefined}
             className="inline-flex min-h-8 items-center gap-1 rounded-full border border-border px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {symbol}

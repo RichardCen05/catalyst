@@ -20,8 +20,13 @@ RAW = ROOT / "data" / "sectors"
 OUT = ROOT / "lib" / "data" / "market.generated.ts"
 
 WINDOW = "__end-2026-09-11_start-2026-08-01"
-SYMBOLS = ["ANTM", "INCO", "TINS", "BBCA", "BBRI", "BMRI", "TLKM", "JSMR", "EXCL",
-           "GOTO", "BUKA", "EMTK", "PGAS", "ADRO", "PTBA", "ICBP", "MYOR", "AMRT"]
+# Universe derived from the company-report recordings on disk — never a typed
+# ticker list. Drop a new v2_company_report_<SYM>__sections-overview.json in
+# data/sectors/ + re-run to extend coverage; no code change needed.
+SYMBOLS = sorted(
+    p.name[len("v2_company_report_"):].split("__sections")[0]
+    for p in RAW.glob("v2_company_report_*__sections-overview.json")
+)
 # Full-case coverage is derived from recording availability: a symbol qualifies
 # when its broker-summary recording exists. Never hand-extend this list without
 # the recording — that would be dummy data.

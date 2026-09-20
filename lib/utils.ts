@@ -22,3 +22,24 @@ export function formatAsOf(value: string) {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta",
   }).format(new Date(value));
 }
+
+/**
+ * RFC 4180 rows. Quoting is unconditional so a value that later grows a comma,
+ * a quote, or a newline cannot silently split a column in the reader's
+ * spreadsheet.
+ */
+export function toCsv(rows: string[][]) {
+  return rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")).join("\r\n");
+}
+
+/** Hand a generated file to the reader without leaving the page. */
+export function downloadTextFile(filename: string, text: string, mimeType: string) {
+  const url = URL.createObjectURL(new Blob([text], { type: `${mimeType};charset=utf-8` }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}

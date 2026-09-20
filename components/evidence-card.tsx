@@ -1,12 +1,41 @@
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
-import type { PillarResult, SymbolCode } from "@/lib/types";
+import type { Citation, PillarResult, SymbolCode } from "@/lib/types";
+import { companies } from "@/lib/data/fixtures";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceFeedback } from "@/components/evidence-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { IconConflict, IconSource } from "@/components/ui/icons";
+
+/**
+ * The source count is the door to the sources.
+ *
+ * Every figure already named how many recordings produced it; the count sat
+ * there as dead text while the only way into the evidence was a button below
+ * the fold that opened the pillar's whole union. Pressing the count now opens
+ * exactly the recordings behind that one figure.
+ */
+function SourceChip({ citations }: { citations: Citation[] }) {
+  return (
+    <CitationDialog
+      citations={citations}
+      trigger={
+        <button type="button" className="mt-1 inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-[5px] border border-transparent px-1.5 font-mono text-[9px] uppercase tracking-wider text-primary transition-colors hover:border-primary/35 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Database aria-hidden="true" className="size-2.5" />
+          {citations.length} sumber
+        </button>
+      }
+    />
+  );
+}
 
 export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol: SymbolCode }) {
+  // Tour anchor follows the first recorded full case, not a typed ticker, so
+  // the spotlight tracks the registry when recordings refresh.
+  const tourSymbol = companies.find((company) => company.analyzed)?.symbol;
+  // Structural split only: the steps and their separator come from the
+  // recorded substitution string, so nothing here can state a figure the
+  // calculation did not produce.
+  const substitutionSteps = pillar.calculation?.substitution.split(";").map((step) => step.trim()).filter(Boolean) ?? [];
   return (
     <article className="min-w-0 max-w-full overflow-hidden rounded-[12px] border border-border bg-surface">
       <header className="px-4 py-4 sm:px-5">
@@ -18,21 +47,43 @@ export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol:
       <section className="border-t border-border px-4 py-5 sm:px-5" aria-labelledby={`claim-${pillar.key}`}>
         <h4 id={`claim-${pillar.key}`} className="text-sm font-semibold">Klaim yang diuji</h4>
         <p className="mt-2 max-w-3xl text-sm leading-6">{pillar.protocol.claim}</p>
-        <div className="mt-5 grid border-y border-border sm:grid-cols-2 sm:divide-x sm:divide-border">
-          <div className="py-4 sm:pr-5"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>
-          <div className="border-t border-border py-4 sm:border-t-0 sm:pl-5"><p className="text-xs font-medium text-attention-foreground">Bukti penyangkal</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.challengingEvidence}</p></div>
+        <div className="mt-5 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-2">
+          <div className="bg-background p-4"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>
+          <div className="bg-background p-4"><p className="text-xs font-medium text-attention-foreground">Bukti penyangkal</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.challengingEvidence}</p></div>
         </div>
-        <details className="group border-b border-border"><summary className="flex min-h-11 cursor-pointer list-none items-center text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Batas dan langkah berikutnya<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary><dl className="grid gap-4 pb-4 text-xs leading-5 sm:grid-cols-2"><div><dt className="font-medium">Tidak cukup bila</dt><dd className="mt-1 text-muted-foreground">{pillar.protocol.insufficientWhen}</dd></div><div><dt className="font-medium">Pertanyaan berikutnya</dt><dd className="mt-1 text-muted-foreground">{pillar.protocol.nextQuestion}</dd></div></dl></details>
       </section>
 
-      <dl className="grid grid-cols-2 border-y border-border bg-background sm:grid-cols-4">
-        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-0 border-r border-border p-3 last:border-r-0"><dt className="truncate text-[11px] text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums">{metric.value}</dd><dd className="mt-1 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-primary"><Database aria-hidden="true" className="size-2.5" />{metric.citations.length} sumber</dd></div>)}
+      {/* Wrapping row, not a fixed grid: a pillar carries three, four or five
+          figures, and a four-column grid left the fifth alone beside an empty
+          cell the width of half the card. The tiles stretch to close the last
+          row instead. */}
+      <dl className="flex flex-wrap gap-px border-y border-border bg-border">
+        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-[45%] flex-1 bg-background p-3 sm:min-w-[150px]"><dt className="truncate text-[11px] text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums">{metric.value}</dd>{metric.detail ? <dd className="mt-0.5 font-mono text-[10px] text-muted-foreground">{metric.detail}</dd> : null}<dd><SourceChip citations={metric.citations} /></dd></div>)}
       </dl>
 
       <details className="group">
-        <summary data-tour-action={symbol === "ANTM" ? "toggle-calculation" : undefined} className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><Calculator aria-hidden="true" className="size-3.5" />Perhitungan dan data<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary>
+        <summary data-tour-action={symbol === tourSymbol ? "toggle-calculation" : undefined} className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><Calculator aria-hidden="true" className="size-3.5" />Perhitungan dan data<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary>
         <div className="border-t border-border bg-background p-4 sm:p-5">
-          {pillar.calculation ? <div><p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{pillar.calculation.name}</p><code className="mt-2 block overflow-x-auto rounded-md border border-border bg-surface p-2.5 text-[11px] leading-5 text-foreground">{pillar.calculation.formula}</code><dl className="mt-3 grid gap-3 text-xs"><div><dt className="text-muted-foreground">Substitusi data</dt><dd className="mt-1 break-words font-mono leading-5">{pillar.calculation.substitution}</dd></div><div><dt className="text-muted-foreground">Hasil perhitungan</dt><dd className="mt-1 font-mono font-semibold text-foreground">{pillar.calculation.result}</dd></div></dl><ul className="mt-3 space-y-1.5 text-xs leading-5 text-muted-foreground">{pillar.calculation.notes.map((note) => <li key={note} className="flex gap-2"><span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-full bg-primary" />{note}</li>)}</ul></div> : null}
+          {pillar.calculation ? <div className="space-y-4">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{pillar.calculation.name}</p>
+              <code className="mt-2 block overflow-x-auto rounded-md border border-border bg-surface p-2.5 text-[11px] leading-5 text-foreground">{pillar.calculation.formula}</code>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Substitusi data</p>
+              {/* One recorded step per row: the substitution used to arrive as
+                  a single unbroken mono line that wrapped mid-term, so the
+                  reader could not tell where one quantity ended. */}
+              <ol className="mt-2 grid gap-px overflow-hidden rounded-md border border-border bg-border">
+                {substitutionSteps.map((step) => <li key={step} className="overflow-x-auto bg-surface p-2.5 font-mono text-[11px] leading-5 text-muted-foreground">{step}</li>)}
+              </ol>
+            </div>
+            <div className="rounded-md border border-primary/25 bg-primary/8 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Hasil perhitungan</p>
+              <p className="mt-1 break-words font-mono text-sm font-semibold text-foreground">{pillar.calculation.result}</p>
+            </div>
+            <ul className="space-y-1.5 text-xs leading-5 text-muted-foreground">{pillar.calculation.notes.map((note) => <li key={note} className="flex gap-2"><span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-full bg-primary" />{note}</li>)}</ul>
+          </div> : null}
           <div className="mt-4"><CitationDialog citations={pillar.citations} label="Periksa data sumber" /></div>
         </div>
       </details>

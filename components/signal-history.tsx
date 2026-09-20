@@ -32,7 +32,15 @@ export function SignalHistory({ stability }: { stability: ResearchCase["signalSt
             <p className="text-xs font-medium">{item.label}</p>
             <p className="mt-1 font-mono text-sm">{item.value === "Belum tersedia" ? "—" : item.value}</p>
             <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{item.detail}</p>
-            <p className="mt-1 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-primary"><Database aria-hidden="true" className="size-2.5" />{item.citations.length} sumber</p>
+            <CitationDialog
+              citations={item.citations}
+              trigger={
+                <button type="button" className="mt-1 inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-[5px] border border-transparent px-1.5 font-mono text-[9px] uppercase tracking-wider text-primary transition-colors hover:border-primary/35 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Database aria-hidden="true" className="size-2.5" />
+                  {item.citations.length} sumber
+                </button>
+              }
+            />
           </div>
         ))}
       </div>

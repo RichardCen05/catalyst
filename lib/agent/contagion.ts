@@ -1,19 +1,35 @@
 import type { Citation, InvestorResearchPlaybook, MarketEvent, PricePoint, SymbolCode } from "@/lib/types";
-import { citations } from "@/lib/data/fixtures";
+import { citations, events } from "@/lib/data/fixtures";
+
+/**
+ * Commodity legs derived from the recorded commodity events — never a typed
+ * ticker list. Each `commodity-<name>-<date>` recording carries its own
+ * impactLinks, so the legs track the registry when recordings refresh.
+ * Legs without a price recording (no commodity event) contribute no links;
+ * same-subsector and shared-event checks in `fundamentallyLinked` still apply.
+ */
+function buildCommodityExposure(): Record<string, string[]> {
+  const legs = new Map<string, Set<string>>();
+  for (const event of events) {
+    if (event.sourceType !== "commodity") continue;
+    const name = event.id.split("-")[1];
+    if (!name) continue;
+    let leg = legs.get(name);
+    if (!leg) {
+      leg = new Set<string>();
+      legs.set(name, leg);
+    }
+    for (const link of event.impactLinks) leg.add(link.symbol);
+  }
+  return Object.fromEntries([...legs].map(([name, symbols]) => [name, [...symbols].sort()]));
+}
+
+export const COMMODITY_EXPOSURE: Record<string, string[]> = buildCommodityExposure();
 
 /**
  * Panik menular — pertanyaan yang dapat difalsifikasi, bukan vonis.
  * Murni dari rekaman: 18 simbol OHLCV + IHSG, jendela sama, sudah dibundel.
  */
-
-export const COMMODITY_EXPOSURE: Record<string, string[]> = {
-  Coal: ["ADRO", "PTBA"],
-  Gold: ["ANTM"],
-  Nickel: ["ANTM", "INCO"],
-  Tin: ["TINS"],
-  CPO: ["ICBP", "MYOR", "AMRT"],
-  Oil: ["PGAS", "ADRO", "PTBA"],
-};
 
 export function returnSeries(closes: number[]): number[] {
   const out: number[] = [];
