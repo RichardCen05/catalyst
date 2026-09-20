@@ -19,6 +19,7 @@ import type {
   CompanyAnalysisFixture,
   FinancialInput,
   MarketEvent,
+  Sector,
   SymbolCode,
   UserProfile,
 } from "@/lib/types";
@@ -292,18 +293,50 @@ export const coverageInfo: Record<string, SymbolCoverage> = Object.fromEntries(
   }),
 );
 
+/**
+ * The registry's first fully-recorded case. Tours, the command palette, and
+ * every default view point here instead of a typed ticker, so a recording
+ * refresh moves them with the data rather than leaving a dead symbol behind.
+ */
+export const primarySymbol: SymbolCode = (companies.find((company) => company.analyzed) ?? companies[0]).symbol;
+
+/**
+ * A demo profile's watchlist follows its own stated sector preference through
+ * the recordings — it is not a typed row of tickers. A refresh that drops a
+ * symbol drops it from the watchlist too, instead of seeding a reader with a
+ * ticker the app can no longer chart. `owned` takes the fully recorded ones,
+ * so the portfolio view opens on cases that have evidence behind them.
+ */
+function watchlistFor(sectors: Sector[], limit: number): SymbolCode[] {
+  const chartable = companies.filter((company) => coverageInfo[company.symbol]?.hasPriceSeries);
+  // Registry order inside each preferred sector: the watchlist reads the way
+  // the recordings are listed, so it stays stable across refreshes.
+  const preferred = sectors.flatMap((sector) => chartable.filter((company) => company.sector === sector));
+  return [...new Set(preferred.map((company) => company.symbol))].slice(0, limit);
+}
+
+function ownedFrom(watchlist: SymbolCode[], limit: number): SymbolCode[] {
+  const analyzed = watchlist.filter((symbol) => coverageInfo[symbol]?.analyzed);
+  return (analyzed.length ? analyzed : watchlist).slice(0, limit);
+}
+
+const flowFirstSectors: Sector[] = ["Basic Materials", "Energy"];
+const catalystFirstSectors: Sector[] = ["Technology", "Consumer", "Energy"];
+const flowFirstWatchlist = watchlistFor(flowFirstSectors, 6);
+const catalystFirstWatchlist = watchlistFor(catalystFirstSectors, 6);
+
 export const demoProfiles: UserProfile[] = [
   {
     id: "flow-first", name: "Raka", description: "Mengutamakan arus, mencari konfirmasi partisipan sebelum membaca peristiwa.",
-    watchlist: ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"], owned: ["ANTM", "PGAS"],
+    watchlist: flowFirstWatchlist, owned: ownedFrom(flowFirstWatchlist, 2),
     config: { horizon: "event", depth: "standard", pillarOrder: ["concentration", "volume", "momentum", "catalyst"] },
-    preferredSectors: ["Basic Materials", "Energy"], preferredEventTypes: ["commodity", "company", "currency", "weather", "policy", "flows"], hasOnboarded: false,
+    preferredSectors: flowFirstSectors, preferredEventTypes: ["commodity", "company", "currency", "weather", "policy", "flows"], hasOnboarded: false,
   },
   {
     id: "catalyst-first", name: "Maya", description: "Mengutamakan katalis, membuka analisis dari jalur dampak dan waktu peristiwa.",
-    watchlist: ["ANTM", "INCO", "GOTO", "PGAS", "ICBP", "AMRT"], owned: ["GOTO", "ICBP"],
+    watchlist: catalystFirstWatchlist, owned: ownedFrom(catalystFirstWatchlist, 2),
     config: { horizon: "position", depth: "forensic", pillarOrder: ["catalyst", "momentum", "volume", "concentration"] },
-    preferredSectors: ["Technology", "Consumer", "Energy"], preferredEventTypes: ["policy", "currency", "rates", "flows", "sentiment"], hasOnboarded: true,
+    preferredSectors: catalystFirstSectors, preferredEventTypes: ["policy", "currency", "rates", "flows", "sentiment"], hasOnboarded: true,
   },
 ];
 /** The daily recording itself. A reader can chart any symbol that was

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BookOpenCheck, Check, Save } from "lucide-react";
-import { companies } from "@/lib/data/fixtures";
+import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { useCatalystStore } from "@/lib/store";
 import { holdingExposure, holdingPnl } from "@/lib/portfolio";
@@ -38,7 +38,7 @@ export default function PlaybookPage() {
   const holdings = useCatalystStore((state) => state.holdings);
   const setHolding = useCatalystStore((state) => state.setHolding);
   const removeHolding = useCatalystStore((state) => state.removeHolding);
-  const [activeSymbol, setActiveSymbol] = useState<SymbolCode>("ANTM");
+  const [activeSymbol, setActiveSymbol] = useState<SymbolCode>(primarySymbol);
   const [saved, setSaved] = useState(false);
   const analyzed = companies.filter((company) => company.analyzed);
   const comparables = playbook.preferredComparables[activeSymbol] ?? [];

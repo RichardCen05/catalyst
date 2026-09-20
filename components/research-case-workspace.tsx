@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { matchesDimension } from "@/lib/agent/dimensions";
+import { primarySymbol, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { AnalysisAudit } from "@/components/analysis-audit";
 import { AnalysisReview } from "@/components/analysis-review";
@@ -34,16 +35,9 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
   const marketPillar = marketPillars.find((item) => item.key === activePillar) ?? marketPillars[0];
   const catalystPillar = analysis.pillars.find((item) => item.key === "catalyst");
   const focusDimension = analysis.researchPlan.focus;
-  const focusLabels: Record<string, string[]> = {
-    pricing: ["revenue", "realisasi harga", "price", "pendapatan"],
-    margin: ["margin", "spread", "biaya"],
-    volume: ["volume", "produksi", "utilisasi", "throughput"],
-    "cash-flow": ["cash flow", "arus kas", "casa", "working capital"],
-    "balance-sheet": ["debt", "utang", "equity", "neraca", "likuiditas"],
-    valuation: ["valuasi", "valuation", "multiple", "qoq", "yoy"],
-  };
-  const focusKeywords = focusLabels[focusDimension] ?? [];
-  const isFocusRow = (label: string) => focusKeywords.some((keyword) => label.toLowerCase().includes(keyword));
+  // Focus vocabulary lives in lib/agent/dimensions.ts — one lexicon, so the
+  // rows highlighted here are the rows the case is actually testing.
+  const isFocusRow = (label: string) => matchesDimension(label, focusDimension);
 
   return (
     <div>
@@ -51,7 +45,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
         <div role="tablist" aria-label="Bagian kasus" className="flex min-w-max">
           {tabLabels.map((tab) => {
             const active = activeTab === tab.value;
-            return <Link key={tab.value} id={`case-tab-${tab.value}`} data-tour-action={tab.value === "market" && symbol === "ANTM" ? "open-market" : tab.value === "business" && symbol === "ANTM" ? "open-business" : undefined} role="tab" aria-selected={active} aria-controls={`case-panel-${tab.value}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=${tab.value}`} className={cn("relative flex min-h-12 items-center px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5", active && "text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-brand sm:after:inset-x-5")}>{tab.label}</Link>;
+            return <Link key={tab.value} id={`case-tab-${tab.value}`} data-tour-action={tab.value === "market" && symbol === primarySymbol ? "open-market" : tab.value === "business" && symbol === primarySymbol ? "open-business" : undefined} role="tab" aria-selected={active} aria-controls={`case-panel-${tab.value}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=${tab.value}`} className={cn("relative flex min-h-12 items-center px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5", active && "text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-brand sm:after:inset-x-5")}>{tab.label}</Link>;
           })}
         </div>
       </nav>
@@ -67,7 +61,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
         </section> : null}
 
         {activeTab === "business" && catalystPillar ? <section aria-labelledby="business-transmission-title" data-tour="business-transmission">
-          <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 2 · dampak bisnis</p><h2 id="business-transmission-title" className="editorial mt-1 text-2xl sm:text-[28px]">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah pemicu dapat mencapai operasi atau keuangan emiten.</p></div><Link href={`/impact?company=${symbol}`} data-tour-action={symbol === "ANTM" ? "open-impact" : undefined} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[6px] border border-primary/35 bg-primary/8 px-3 text-sm font-medium text-primary transition-colors hover:bg-primary/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-4" />Buka peta sebab akibat</Link></header>
+          <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 2 · dampak bisnis</p><h2 id="business-transmission-title" className="editorial mt-1 text-2xl sm:text-[28px]">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah pemicu dapat mencapai operasi atau keuangan emiten.</p></div><Link href={`/impact?company=${symbol}`} data-tour-action={symbol === primarySymbol ? "open-impact" : undefined} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[6px] border border-primary/35 bg-primary/8 px-3 text-sm font-medium text-primary transition-colors hover:bg-primary/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-4" />Buka peta sebab akibat</Link></header>
           <EvidenceCard pillar={catalystPillar} symbol={symbol} />
           <section aria-labelledby="business-impact-title" className="mt-4 overflow-hidden rounded-[12px] border border-border bg-surface">
             <header className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5"><div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Uji dampak bisnis</p><h3 id="business-impact-title" className="editorial mt-1 text-2xl">Di mana dampak harus terlihat?</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Dampak harus terlihat pada operasi atau keuangan, bukan hanya harga pasar.</p></div><CitationDialog citations={analysis.financialContext.flatMap((item) => item.citations)} label="Periksa data keuangan" /></header>

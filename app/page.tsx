@@ -14,6 +14,7 @@ import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
 import { IconArrowRight, IconBranch, IconChart, IconClock, IconGraph, IconSignal } from "@/components/ui/icons";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 type DashboardView = "node" | "chart";
 
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   // Relevance floor for the whole board: lower draws more of the recorded
   // links, higher thins it to the strongest paths. Same semantics as the
   // per-issuer chain so the two views can be compared.
-  const [minRelevance, setMinRelevance] = useState(60);
+  const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
   // Two readings of the same open cases: the map answers what links them, the
   // chart answers what the recorded window did to them.
   const [view, setView] = useState<DashboardView>("node");

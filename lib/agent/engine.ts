@@ -5,6 +5,7 @@ import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import { describeSignalStability } from "@/lib/agent/signal-history";
 import { RESEARCH_LIFECYCLE } from "@/lib/agent/lifecycle";
+import { defaultFocusFor, dimensionFromText, DIMENSION_LABELS, DIMENSION_OBSERVABLES, recordedFocusRanking } from "@/lib/agent/dimensions";
 import {
   calculateConcentration,
   calculateMomentum,
@@ -33,13 +34,14 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
-import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, namesAMetric, phraseMatches } from "@/lib/agent/explain";
+import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
+import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
-import { DEFAULT_THRESHOLDS as _DEFAULTS, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds } from "@/lib/agent/thresholds";
+import { DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
@@ -115,44 +117,18 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
   ];
 }
 
-const impactLabels: Record<BusinessImpactDimension, string> = {
-  volume: "Volume operasi",
-  pricing: "Realisasi harga",
-  margin: "Margin operasi",
-  "cash-flow": "Arus kas operasi",
-  "balance-sheet": "Kapasitas neraca",
-  valuation: "Dampak valuasi",
-};
-
-const impactObservables: Record<BusinessImpactDimension, string> = {
-  volume: "Produksi, volume penjualan, utilisasi, atau jumlah transaksi",
-  pricing: "Realisasi harga, imbal hasil, atau pendapatan per unit",
-  margin: "Margin kotor, margin operasi, selisih, atau biaya per unit",
-  "cash-flow": "Arus kas operasi, modal kerja, atau konversi kas",
-  "balance-sheet": "Utang bersih, ruang likuiditas, rasio modal, atau sumber pendanaan",
-  valuation: "Ekspektasi laba, arus kas, atau selisih valuasi pembanding",
-};
+/** Labels and observables live in lib/agent/dimensions.ts so the workspace
+ *  highlighter and the mandate parser read the same vocabulary. */
+const impactLabels = DIMENSION_LABELS;
+const impactObservables = DIMENSION_OBSERVABLES;
 
 /**
- * Default focus is derived from the company's recorded sector — not a
- * per-symbol table. Explicit mandate keywords always win over the default.
+ * Default focus comes from the recorded impact paths for this symbol — never
+ * a sector table. See `defaultFocusFor` in lib/agent/dimensions.ts. Explicit
+ * mandate keywords always win over the recorded default.
  */
 function sectorDefaultFocus(symbol?: SymbolCode): BusinessImpactDimension {
-  const sector = symbol ? marketDataProvider.getCompany(symbol)?.sector : undefined;
-  switch (sector) {
-    case "Basic Materials":
-    case "Energy":
-      return "pricing";
-    case "Financials":
-      return "margin";
-    case "Technology":
-    case "Infrastructure":
-      return "cash-flow";
-    case "Consumer":
-      return "volume";
-    default:
-      return "volume";
-  }
+  return defaultFocusFor(symbol);
 }
 
 function mandateFocus(mandate: string, symbol?: SymbolCode): BusinessImpactDimension {
@@ -160,34 +136,31 @@ function mandateFocus(mandate: string, symbol?: SymbolCode): BusinessImpactDimen
 }
 
 function explicitMandateFocus(mandate: string): BusinessImpactDimension | undefined {
-  const value = mandate.toLowerCase();
-  if (/margin|spread|biaya per unit/.test(value)) return "margin";
-  if (/cash flow|arus kas|working capital/.test(value)) return "cash-flow";
-  if (/balance sheet|neraca|utang|likuiditas/.test(value)) return "balance-sheet";
-  if (/valuasi|valuation|multiple/.test(value)) return "valuation";
-  if (/realized price|realisasi harga|pricing|harga jual/.test(value)) return "pricing";
-  if (/volume produksi|volume penjualan|utilisasi|throughput/.test(value)) return "volume";
-  return undefined;
+  return dimensionFromText(mandate);
 }
 
 function createClarification(symbol: SymbolCode, mandate: string, choice?: string) {
   const inferred = explicitMandateFocus(mandate);
-  const sectorDefault = sectorDefaultFocus(symbol);
-  const [primary, secondary] = [inferred ?? sectorDefault, "volume" as BusinessImpactDimension];
-  const focusOptions = [inferred, primary, secondary]
+  const recordedDefault = sectorDefaultFocus(symbol);
+  // The two dimensions this symbol's recordings reach most, plus whatever the
+  // mandate or the reader named. A fixed second option used to be typed here,
+  // which offered the same pair for every issuer the record described
+  // differently.
+  const ranked = recordedFocusRanking(symbol);
+  const chosen = choice && (Object.keys(impactLabels) as BusinessImpactDimension[]).find((item) => item === choice);
+  const focusOptions = [inferred, recordedDefault, ...ranked, chosen]
     .filter((item): item is BusinessImpactDimension => Boolean(item))
     .filter((item, index, values) => values.indexOf(item) === index)
     .slice(0, 2);
+  if (chosen && !focusOptions.includes(chosen)) focusOptions.push(chosen);
   const options = focusOptions.map((focus) => ({
     id: focus,
     label: impactLabels[focus],
     question: `Apakah pemicu perlu diuji terhadap ${impactLabels[focus].toLowerCase()} ${symbol}?`,
     focus,
-    sourceConsequence: focus === "pricing"
-      ? "Utamakan harga acuan komoditas, realisasi harga, pendapatan segmen, dan kontrak penjualan."
-      : focus === "volume"
-        ? "Utamakan laporan produksi, volume penjualan, utilisasi, dan gangguan operasi."
-        : `Utamakan data keuangan dan keterbukaan yang menjelaskan ${impactLabels[focus].toLowerCase()}.`,
+    // One sentence shape for every dimension, filled from the dimension's own
+    // observables — not a per-dimension paragraph that only two of six had.
+    sourceConsequence: `Utamakan data dan keterbukaan yang menjelaskan ${impactObservables[focus].toLowerCase()}.`,
     observable: impactObservables[focus],
   }));
   const selected = options.find((option) => option.id === choice) ?? options.find((option) => option.focus === inferred);
@@ -261,8 +234,8 @@ function createResearchPlan(
       { id: `${symbol}-plan-challenge`, claim: "Penjelasan lain lebih kuat daripada pemicu utama.", test: falsifier, state: "challenge" as const },
     ],
     observables: [
-      { dimension: focus, metric: impactObservables[focus], expectedChange: `Bergerak konsisten dengan arah pemicu pada ${symbol}.`, window: focus === "valuation" ? "1-3 bulan" : "1-10 sesi" },
-      ...(focus === "volume" ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: "1-10 sesi" }]),
+      { dimension: focus, metric: impactObservables[focus], expectedChange: `Bergerak konsisten dengan arah pemicu pada ${symbol}.`, window: focus === "valuation" ? monthWindowLabel(OBSERVATION_WINDOWS.valuationMonths) : sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions) },
+      ...(focus === "volume" ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions) }]),
     ],
     sourcePlan: [
       `${trustedSource}: uji ${focusLabel} dan periode pembanding.`,
@@ -1018,7 +991,7 @@ function isExplainQuestion(question: string): boolean {
  * auditable sentence on the page. What the model used to add instead was a
  * "Berdasarkan evidence summary yang diberikan" preamble and a denial.
  */
-function provenanceAnswer(analysis: AnalysisCase, question: string): { text: string; citations: Citation[] } {
+async function provenanceAnswer(analysis: AnalysisCase, question: string): Promise<{ text: string; citations: Citation[] }> {
   const figures = answerableFigures(analysis);
   const hit = matchFigure(figures, question, extractNumerals);
   if (!hit) {
@@ -1058,7 +1031,15 @@ function provenanceAnswer(analysis: AnalysisCase, question: string): { text: str
   // A pillar's substitution line is only offered when the figure belongs to
   // that pillar; `explainFigure` still slices it to the owning metric.
   const pillar = analysis.pillars.find((item) => item.label === hit.group);
-  const body = explainFigure(hit, pillar?.calculation?.substitution);
+  // What the figure means is written at request time and verified; when the
+  // model is off or the draft is rejected, the explanation runs without a
+  // meaning line rather than with a sentence nothing stands behind.
+  const gloss = hit.gloss ?? await resolveMetricGloss({
+    label: hit.metric.label,
+    formula: hit.formulaOverride ?? METRIC_FORMULA[hit.metric.label],
+    fields: hit.metric.citations.map((citation) => citation.field).join(", "),
+  });
+  const body = explainFigure({ ...hit, gloss }, pillar?.calculation?.substitution);
   const siblings = pillar?.metrics ?? figures.filter((figure) => figure.group === hit.group).map((figure) => figure.metric);
   const spread = new Set(siblings.map((item) => item.citations.length)).size > 1
     ? "\nJumlah sumber dihitung per angka, bukan per kartu, jadi dua angka pada satu kartu bisa berbeda jumlah rekamannya."
@@ -1145,7 +1126,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // exactly one correct answer, and it is not an event summary.
   if (analysis && (isProvenanceQuestion(question) || isExplainQuestion(question))) {
     const mode = isProvenanceQuestion(question) ? "provenance" : "explain";
-    const provenance = provenanceAnswer(analysis, request.question);
+    const provenance = await provenanceAnswer(analysis, request.question);
     return {
       text: provenance.text, refused: false, intent: mode,
       hypotheses: openInsightTraces, citations: provenance.citations,
@@ -1220,7 +1201,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // nya dong" — did not qualify, which is the wrong way round: a longer
   // question names the figure more clearly, not less.
   if (analysis && namedFigure) {
-    const provenance = provenanceAnswer(analysis, request.question);
+    const provenance = await provenanceAnswer(analysis, request.question);
     return {
       text: provenance.text, refused: false, intent: "explain",
       hypotheses: openInsightTraces, citations: provenance.citations,
@@ -1367,7 +1348,8 @@ async function buildCausalGraph(
   if (!analysis && !linked.length) return null;
   const graphFloor = relevanceFloorFor(options.context?.playbook);
   const confidenceFor = (relevance: number): "High" | "Medium" | "Low" => relevance >= graphFloor + 5 ? "High" : relevance >= graphFloor - 10 ? "Medium" : "Low";
-  const lagFor = (event: MarketEvent) => event.category === "company" ? "0-3 sesi" : event.category === "weather" ? "0-5 sesi" : event.category === "rates" ? "5-20 sesi" : event.category === "sentiment" ? "1-5 sesi" : "1-10 sesi";
+  // Per-category lag lives in the threshold table, with the default beside it.
+  const lagFor = (event: MarketEvent) => sessionWindowLabel(OBSERVATION_WINDOWS.eventLagSessions[event.category] ?? OBSERVATION_WINDOWS.defaultSessions);
   const expectedFor = (event: MarketEvent) => {
     if (event.category === "company") return "Keterbukaan atau metrik operasional berikutnya bergerak konsisten dengan pemicu.";
     if (event.category === "commodity") return "Realisasi harga, volume penjualan, atau margin berubah pada periode berikutnya.";
@@ -1492,13 +1474,13 @@ async function buildCausalGraph(
     const confidence = outcome.status === "Primary test" && analysis?.evidenceState === "Corroborated" ? "High" : "Medium";
     nodes.push({
       id: nodeId, label: `${outcome.label} · ${outcome.status === "Primary test" ? "Uji utama" : "Pendukung"}`, kind: "business-impact", detail: `${outcome.observable}. ${outcome.implication}`,
-      sourceType: "financial", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? 100 : 85,
-      basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? "1-3 bulan" : "1-10 sesi",
+      sourceType: "financial", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? OUTCOME_RELEVANCE.primaryTest : OUTCOME_RELEVANCE.supporting,
+      basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? monthWindowLabel(OBSERVATION_WINDOWS.valuationMonths) : sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions),
       counterEvidence: `Jalur belum terkonfirmasi bila ${outcome.observable.toLowerCase()} tidak bergerak pada jendela yang dipilih.`, citations: outcome.citations,
     });
     edges.push({
       id: `company-${symbol}-to-${nodeId}`, from: `company-${symbol}`, to: nodeId,
-      label: outcome.status === "Primary test" ? "uji utama" : "pendukung", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? 100 : 85, basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? "1-3 bulan" : "1-10 sesi",
+      label: outcome.status === "Primary test" ? "uji utama" : "pendukung", direction: outcomeDirection, relevance: outcome.status === "Primary test" ? OUTCOME_RELEVANCE.primaryTest : OUTCOME_RELEVANCE.supporting, basis: "Causal hypothesis", confidence, lag: outcome.dimension === "valuation" ? monthWindowLabel(OBSERVATION_WINDOWS.valuationMonths) : sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions),
       exposure: `${symbol} · ${outcome.mechanism}`,
       expectedObservable: outcome.observable,
       alternativeExplanation: "Indikator dapat berubah karena bauran produk, biaya, kontrak, atau faktor sektor lain pada periode yang sama.",

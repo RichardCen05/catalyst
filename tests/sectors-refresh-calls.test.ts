@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { planFor, planRefresh, refreshWindow, REFRESH_WINDOW_DAYS, TOP_BROKERS } from "@/lib/data/sectors-refresh";
+import { RECORDED_SYMBOLS } from "@/lib/data/sectors-refresh";
 
 /**
  * The refresh planner spends a non-refillable grant, so the exact endpoint,
@@ -33,7 +34,9 @@ describe("planFor", () => {
   it("estimates the full six-symbol run at eighteen credits", () => {
     const { symbols, estimatedCost, rejected } = planRefresh();
 
-    expect(symbols).toEqual(["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"]);
+    // The recorded set comes from the generated bundle, so the plan covers
+    // whatever was recorded rather than a list typed into the test.
+    expect(symbols).toEqual([...RECORDED_SYMBOLS]);
     expect(estimatedCost).toBe(18);
     expect(rejected).toEqual([]);
   });

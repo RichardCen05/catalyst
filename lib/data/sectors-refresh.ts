@@ -20,9 +20,13 @@
  * client's GCS ledger and capped by `SECTORS_DAILY_BUDGET`.
  */
 import { BudgetExceededError, fetchSectors, isKnownSymbol } from "@/lib/data/sectors-client";
+import { caseSymbols } from "@/lib/data/market.generated";
 import { gcsPutJson } from "@/lib/gcp/gcs";
 
-export const RECORDED_SYMBOLS = ["ANTM", "BBCA", "BBRI", "TLKM", "GOTO", "PGAS"] as const;
+/** The symbols the bundle already covers — read from the generated recordings
+ *  (`caseSymbols`), never typed here. Adding a recording extends the refresh
+ *  plan on the next build with no code change. */
+export const RECORDED_SYMBOLS = caseSymbols;
 const CACHE_BUCKET = process.env.GCS_CACHE_BUCKET || "katalis-recorded";
 
 export interface RefreshPlan {

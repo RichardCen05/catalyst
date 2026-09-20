@@ -1,10 +1,10 @@
-export type SymbolCode =
-  | "ANTM" | "INCO" | "TINS"
-  | "BBCA" | "BBRI" | "BMRI"
-  | "TLKM" | "JSMR" | "EXCL"
-  | "GOTO" | "BUKA" | "EMTK"
-  | "PGAS" | "ADRO" | "PTBA"
-  | "ICBP" | "MYOR" | "AMRT";
+/**
+ * The universe is generated from the recordings on disk, not typed here.
+ * See lib/data/symbols.generated.ts: a symbol exists because a
+ * company-report recording exists for it.
+ */
+import type { SymbolCode } from "@/lib/data/symbols.generated";
+export type { SymbolCode };
 
 export type Sector =
   | "Basic Materials"
@@ -330,6 +330,8 @@ export interface InvestorResearchPlaybook {
   relevanceFloor?: number;
   /** Ambang yang bisa diatur pengguna. Semua opsional; default ada di lib/agent/thresholds.ts. */
   thresholds?: {
+    /** Ambang relevansi awal peta sebab akibat (0-100). Default 60. */
+    chainRelevanceFloor?: number;
     /** Porsi nilai peserta teratas yang dianggap "Concentrated Flow". Default 0.42. */
     concentrationFloor?: number;
     /** Skor z volume tahan-pencilan minimum sebelum anomali ditandai (Elevated). Default 2.5 (nilai live di metrics.ts:58). */

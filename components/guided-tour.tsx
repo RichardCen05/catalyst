@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Check, Compass, LocateFixed, MousePointerClick } from "lucide-react";
+import { primarySymbol } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 
@@ -25,25 +26,28 @@ interface TargetRect {
   height: number;
 }
 
+/** The tour walks one real recorded case. Which case that is comes from the
+ *  registry, never a typed ticker — a recording refresh moves the tour with
+ *  the data instead of pointing it at a symbol the app no longer covers. */
 const steps: TourStep[] = [
   {
     id: "today",
     title: "Pilih perubahan yang penting",
     body: "Dashboard menggambar setiap kasus terbuka sebagai satu rantai sebab akibat. Pilih satu emiten untuk membaca kasusnya.",
-    action: "Pilih kasus ANTM yang disorot.",
+    action: `Pilih kasus ${primarySymbol} yang disorot.`,
     outcome: "Anda melihat apa yang berubah, pembandingnya, dan alasan kasus ini penting.",
     href: "/",
-    selector: '[data-tour-action="open-antm-case"]',
-    actionSelector: '[data-tour-action="open-antm-case"]',
+    selector: '[data-tour-action="open-case"]',
+    actionSelector: '[data-tour-action="open-case"]',
     destination: "Dashboard",
   },
   {
     id: "clarify",
     title: "Tentukan yang ingin dibuktikan",
     body: "Pertanyaan awal belum cukup spesifik. Pilih hasil bisnis agar Catalyst tidak menebak.",
-    action: "Pilih opsi Realisasi harga.",
+    action: "Pilih satu hasil bisnis yang ingin dibuktikan.",
     outcome: "Sumber dan indikator berikutnya mengikuti pilihan Anda.",
-    href: "/cases/ANTM",
+    href: `/cases/${primarySymbol}`,
     selector: '[data-tour-action="resolve-clarification"]',
     actionSelector: '[data-tour-action="resolve-clarification"]',
     destination: "Kasus",
@@ -54,7 +58,7 @@ const steps: TourStep[] = [
     body: "Kasus sudah merangkum bukti pasar dan dampak bisnis. Sekarang lihat jalur yang menghubungkannya.",
     action: "Pilih Buka sebab akibat.",
     outcome: "Anda melihat penyebab yang bersaing, jalur ke emiten, dan kondisi pembatalnya.",
-    href: "/cases/ANTM",
+    href: `/cases/${primarySymbol}`,
     selector: '[data-tour-action="open-impact"]',
     actionSelector: '[data-tour-action="open-impact"]',
     destination: "Kasus",
@@ -65,7 +69,7 @@ const steps: TourStep[] = [
     body: "Setelah bukti dibaca, Catalyst merangkum apakah kasus perlu dilanjutkan, dipantau, atau dihentikan.",
     action: "Pilih Lihat tindakan riset.",
     outcome: "Ini tindakan riset, bukan saran transaksi.",
-    href: "/impact?company=ANTM",
+    href: `/impact?company=${primarySymbol}`,
     selector: '[data-tour-action="show-next-action"]',
     actionSelector: '[data-tour-action="show-next-action"]',
     destination: "Sebab akibat",
@@ -221,7 +225,11 @@ function GuidedTourContent() {
         <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tur selesai</p>
         <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Ritual harian selesai</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah memilih perubahan, menetapkan pertanyaan, melacak sebab akibat, dan menentukan tindakan riset.</p>
-        <div className="mt-4 rounded-[8px] border border-primary/30 bg-primary/8 p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan riset ANTM</p><p className="mt-1 text-sm font-semibold">Lanjutkan riset</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Pantau realisasi harga dan volume penjualan. Ini bukan saran transaksi.</p></div>
+        {/* The research action itself is written from the recordings on the case's
+            own page. Restating a verdict here would be prose the tour cannot
+            support for whichever case the registry points at, so the card opens
+            the real one instead of repeating a fixed sentence. */}
+        <div className="mt-4 rounded-[8px] border border-primary/30 bg-primary/8 p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan riset {primarySymbol}</p><button type="button" onClick={() => { finishTour(); router.push(`/impact?company=${primarySymbol}`); }} className="mt-1 text-sm font-semibold text-primary hover:underline">Buka tindakan riset</button><p className="mt-1 text-xs leading-5 text-muted-foreground">Catalyst menulisnya dari rekaman kasus ini. Ini bukan saran transaksi.</p></div>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Ulangi alur ini saat ada perubahan baru.</p><Button size="sm" onClick={finishTour}>Selesai<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
       </section>
     </div>

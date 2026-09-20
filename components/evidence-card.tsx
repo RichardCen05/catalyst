@@ -1,6 +1,6 @@
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
 import type { Citation, PillarResult, SymbolCode } from "@/lib/types";
-import { companies } from "@/lib/data/fixtures";
+import { primarySymbol } from "@/lib/data/fixtures";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceFeedback } from "@/components/evidence-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -30,7 +30,6 @@ function SourceChip({ citations }: { citations: Citation[] }) {
 export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol: SymbolCode }) {
   // Tour anchor follows the first recorded full case, not a typed ticker, so
   // the spotlight tracks the registry when recordings refresh.
-  const tourSymbol = companies.find((company) => company.analyzed)?.symbol;
   // Structural split only: the steps and their separator come from the
   // recorded substitution string, so nothing here can state a figure the
   // calculation did not produce.
@@ -61,7 +60,7 @@ export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol:
       </dl>
 
       <details className="group">
-        <summary data-tour-action={symbol === tourSymbol ? "toggle-calculation" : undefined} className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><Calculator aria-hidden="true" className="size-3.5" />Perhitungan dan data<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary>
+        <summary data-tour-action={symbol === primarySymbol ? "toggle-calculation" : undefined} className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><Calculator aria-hidden="true" className="size-3.5" />Perhitungan dan data<ChevronDown aria-hidden="true" className="ml-auto size-3.5 transition-transform group-open:rotate-180" /></summary>
         <div className="border-t border-border bg-background p-4 sm:p-5">
           {pillar.calculation ? <div className="space-y-4">
             <div>

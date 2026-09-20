@@ -21,7 +21,7 @@ import type { ImpactDirection, MarketCausalGraph, MarketCausalNode } from "@/lib
 import { layoutMarketGraph, marketNodeSize } from "@/lib/agent/market-layout";
 import { collapseSources, sourceGroupKey } from "@/lib/agent/market-graph";
 import { connectedIds } from "@/lib/agent/chain-layout";
-import { events } from "@/lib/data/fixtures";
+import { events, primarySymbol } from "@/lib/data/fixtures";
 import { uiLabel } from "@/lib/ui-labels";
 import { cn } from "@/lib/utils";
 import { AskAgentButton } from "@/components/ask-agent-button";
@@ -533,7 +533,7 @@ export function MarketCausalMap({
           <Link
             key={symbol}
             href={`/cases/${symbol}`}
-            data-tour-action={symbol === view.symbols[0] ? "open-antm-case" : undefined}
+            data-tour-action={symbol === primarySymbol ? "open-case" : undefined}
             className="inline-flex min-h-8 items-center gap-1 rounded-full border border-border px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {symbol}

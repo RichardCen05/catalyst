@@ -66,6 +66,30 @@ export interface RawEvent {
 
 export const rawCompanies: RawCompany[] = [
   {
+    "symbol": "ADRO",
+    "name": "Alamtri Resources Indonesia Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 2640,
+    "changePct": -1.12,
+    "marketCap": 76.0,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 7 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "AMRT",
+    "name": "PT Sumber Alfaria Trijaya Tbk.",
+    "sector": "Consumer",
+    "subsector": "Food & Staples Retailing",
+    "price": 1255,
+    "changePct": -3.46,
+    "marketCap": 52.1,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 1.255 pada 2026-09-11; volume terakhir 0.82× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
     "symbol": "ANTM",
     "name": "Aneka Tambang Tbk.",
     "sector": "Basic Materials",
@@ -76,30 +100,6 @@ export const rawCompanies: RawCompany[] = [
     "analyzed": true,
     "evidenceState": "Corroborated",
     "summary": "Close 3.270 pada 2026-09-11; volume terakhir 1.40× median 27 sesi; 5 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "INCO",
-    "name": "Vale Indonesia Tbk",
-    "sector": "Basic Materials",
-    "subsector": "Basic Materials",
-    "price": 4830,
-    "changePct": 0.21,
-    "marketCap": 50.9,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.830 pada 2026-09-11; volume terakhir 1.68× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "TINS",
-    "name": "PT Timah Tbk",
-    "sector": "Basic Materials",
-    "subsector": "Basic Materials",
-    "price": 4740,
-    "changePct": 1.94,
-    "marketCap": 35.3,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.740 pada 2026-09-11; volume terakhir 1.23× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBCA",
@@ -138,28 +138,28 @@ export const rawCompanies: RawCompany[] = [
     "summary": "Close 4.360 pada 2026-09-11; volume terakhir 1.09× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
-    "symbol": "TLKM",
-    "name": "PT Telkom Indonesia (Persero) Tbk",
-    "sector": "Infrastructure",
-    "subsector": "Telecommunication",
-    "price": 2600,
-    "changePct": -1.14,
-    "marketCap": 257.6,
-    "analyzed": true,
-    "evidenceState": "Mixed Evidence",
-    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 8 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "JSMR",
-    "name": "PT Jasa Marga Tbk",
-    "sector": "Infrastructure",
-    "subsector": "Transportation Infrastructure",
-    "price": 2950,
-    "changePct": -1.34,
-    "marketCap": 21.4,
+    "symbol": "BUKA",
+    "name": "PT Bukalapak.com Tbk",
+    "sector": "Technology",
+    "subsector": "Software & IT Services",
+    "price": 107,
+    "changePct": -1.83,
+    "marketCap": 11.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.950 pada 2026-09-11; volume terakhir 0.72× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 107 pada 2026-09-11; volume terakhir 0.77× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "EMTK",
+    "name": "Elang Mahkota Teknologi Tbk",
+    "sector": "Technology",
+    "subsector": "Software & IT Services",
+    "price": 500,
+    "changePct": 0.0,
+    "marketCap": 30.7,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 500 pada 2026-09-11; volume terakhir 1.20× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EXCL",
@@ -186,66 +186,6 @@ export const rawCompanies: RawCompany[] = [
     "summary": "Close 50 pada 2026-09-11; volume terakhir 0.19× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
-    "symbol": "BUKA",
-    "name": "PT Bukalapak.com Tbk",
-    "sector": "Technology",
-    "subsector": "Software & IT Services",
-    "price": 107,
-    "changePct": -1.83,
-    "marketCap": 11.0,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 107 pada 2026-09-11; volume terakhir 0.77× median 27 sesi; 6 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "EMTK",
-    "name": "Elang Mahkota Teknologi Tbk",
-    "sector": "Technology",
-    "subsector": "Software & IT Services",
-    "price": 500,
-    "changePct": 0.0,
-    "marketCap": 30.7,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 500 pada 2026-09-11; volume terakhir 1.20× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "PGAS",
-    "name": "PT Perusahaan Gas Negara Tbk",
-    "sector": "Energy",
-    "subsector": "Oil, Gas & Coal",
-    "price": 1520,
-    "changePct": 0.33,
-    "marketCap": 36.8,
-    "analyzed": true,
-    "evidenceState": "Mixed Evidence",
-    "summary": "Close 1.520 pada 2026-09-11; volume terakhir 0.90× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "ADRO",
-    "name": "Alamtri Resources Indonesia Tbk",
-    "sector": "Energy",
-    "subsector": "Oil, Gas & Coal",
-    "price": 2640,
-    "changePct": -1.12,
-    "marketCap": 76.0,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.640 pada 2026-09-11; volume terakhir 0.89× median 27 sesi; 7 peristiwa terhubung pada jendela ini."
-  },
-  {
-    "symbol": "PTBA",
-    "name": "Bukit Asam Tbk",
-    "sector": "Energy",
-    "subsector": "Oil, Gas & Coal",
-    "price": 3100,
-    "changePct": 0.0,
-    "marketCap": 35.7,
-    "analyzed": false,
-    "evidenceState": "Insufficient Evidence",
-    "summary": "Close 3.100 pada 2026-09-11; volume terakhir 3.54× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
-  },
-  {
     "symbol": "ICBP",
     "name": "Indofood CBP Sukses Makmur Tbk",
     "sector": "Consumer",
@@ -256,6 +196,30 @@ export const rawCompanies: RawCompany[] = [
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
     "summary": "Close 7.125 pada 2026-09-11; volume terakhir 0.42× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "INCO",
+    "name": "Vale Indonesia Tbk",
+    "sector": "Basic Materials",
+    "subsector": "Basic Materials",
+    "price": 4830,
+    "changePct": 0.21,
+    "marketCap": 50.9,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 4.830 pada 2026-09-11; volume terakhir 1.68× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "JSMR",
+    "name": "PT Jasa Marga Tbk",
+    "sector": "Infrastructure",
+    "subsector": "Transportation Infrastructure",
+    "price": 2950,
+    "changePct": -1.34,
+    "marketCap": 21.4,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 2.950 pada 2026-09-11; volume terakhir 0.72× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "MYOR",
@@ -270,20 +234,396 @@ export const rawCompanies: RawCompany[] = [
     "summary": "Close 1.515 pada 2026-09-11; volume terakhir 1.99× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
-    "symbol": "AMRT",
-    "name": "PT Sumber Alfaria Trijaya Tbk.",
-    "sector": "Consumer",
-    "subsector": "Food & Staples Retailing",
-    "price": 1255,
-    "changePct": -3.46,
-    "marketCap": 52.1,
+    "symbol": "PGAS",
+    "name": "PT Perusahaan Gas Negara Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 1520,
+    "changePct": 0.33,
+    "marketCap": 36.8,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 1.520 pada 2026-09-11; volume terakhir 0.90× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "PTBA",
+    "name": "Bukit Asam Tbk",
+    "sector": "Energy",
+    "subsector": "Oil, Gas & Coal",
+    "price": 3100,
+    "changePct": 0.0,
+    "marketCap": 35.7,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 1.255 pada 2026-09-11; volume terakhir 0.82× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.100 pada 2026-09-11; volume terakhir 3.54× median 27 sesi; 4 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "TINS",
+    "name": "PT Timah Tbk",
+    "sector": "Basic Materials",
+    "subsector": "Basic Materials",
+    "price": 4740,
+    "changePct": 1.94,
+    "marketCap": 35.3,
+    "analyzed": false,
+    "evidenceState": "Insufficient Evidence",
+    "summary": "Close 4.740 pada 2026-09-11; volume terakhir 1.23× median 27 sesi; 3 peristiwa terhubung pada jendela ini."
+  },
+  {
+    "symbol": "TLKM",
+    "name": "PT Telkom Indonesia (Persero) Tbk",
+    "sector": "Infrastructure",
+    "subsector": "Telecommunication",
+    "price": 2600,
+    "changePct": -1.14,
+    "marketCap": 257.6,
+    "analyzed": true,
+    "evidenceState": "Mixed Evidence",
+    "summary": "Close 2.600 pada 2026-09-11; volume terakhir 1.04× median 27 sesi; 8 peristiwa terhubung pada jendela ini."
   }
 ];
 
 export const priceSeries: Record<string, PricePoint[]> = {
+  "ADRO": [
+    {
+      "date": "2026-08-03",
+      "close": 2470,
+      "ihsg": 6234,
+      "volume": 17816300
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2520,
+      "ihsg": 6320,
+      "volume": 34062000
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2550,
+      "ihsg": 6351,
+      "volume": 26513000
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2500,
+      "ihsg": 6344,
+      "volume": 18191200
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2540,
+      "ihsg": 6410,
+      "volume": 14412400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2530,
+      "ihsg": 6365,
+      "volume": 18267400
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2530,
+      "ihsg": 6268,
+      "volume": 22808600
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2520,
+      "ihsg": 6374,
+      "volume": 17523900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2470,
+      "ihsg": 6302,
+      "volume": 21270000
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2530,
+      "ihsg": 6402,
+      "volume": 18026800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2570,
+      "ihsg": 6450,
+      "volume": 37379600
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2560,
+      "ihsg": 6394,
+      "volume": 29007800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2560,
+      "ihsg": 6502,
+      "volume": 19575600
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2550,
+      "ihsg": 6526,
+      "volume": 15845700
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2630,
+      "ihsg": 6502,
+      "volume": 52533200
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2610,
+      "ihsg": 6406,
+      "volume": 50134700
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2700,
+      "ihsg": 6522,
+      "volume": 65458300
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2670,
+      "ihsg": 6518,
+      "volume": 33101900
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2840,
+      "ihsg": 6525,
+      "volume": 102100700
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2780,
+      "ihsg": 6600,
+      "volume": 60278400
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2650,
+      "ihsg": 6596,
+      "volume": 125290300
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2740,
+      "ihsg": 6668,
+      "volume": 77055100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2720,
+      "ihsg": 6636,
+      "volume": 40544500
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2700,
+      "ihsg": 6620,
+      "volume": 32017200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 2690,
+      "ihsg": 6686,
+      "volume": 34095200
+    },
+    {
+      "date": "2026-09-09",
+      "close": 2690,
+      "ihsg": 6678,
+      "volume": 68999600
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2670,
+      "ihsg": 6589,
+      "volume": 22343200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2640,
+      "ihsg": 6541,
+      "volume": 28561800
+    }
+  ],
+  "AMRT": [
+    {
+      "date": "2026-08-03",
+      "close": 1325,
+      "ihsg": 6234,
+      "volume": 43707600
+    },
+    {
+      "date": "2026-08-04",
+      "close": 1325,
+      "ihsg": 6320,
+      "volume": 38218300
+    },
+    {
+      "date": "2026-08-05",
+      "close": 1425,
+      "ihsg": 6351,
+      "volume": 68734700
+    },
+    {
+      "date": "2026-08-06",
+      "close": 1400,
+      "ihsg": 6344,
+      "volume": 36788000
+    },
+    {
+      "date": "2026-08-07",
+      "close": 1420,
+      "ihsg": 6410,
+      "volume": 19096000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 1385,
+      "ihsg": 6365,
+      "volume": 37440400
+    },
+    {
+      "date": "2026-08-11",
+      "close": 1395,
+      "ihsg": 6268,
+      "volume": 50177000
+    },
+    {
+      "date": "2026-08-12",
+      "close": 1390,
+      "ihsg": 6374,
+      "volume": 30175500
+    },
+    {
+      "date": "2026-08-13",
+      "close": 1350,
+      "ihsg": 6302,
+      "volume": 35838400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 1370,
+      "ihsg": 6402,
+      "volume": 22066000
+    },
+    {
+      "date": "2026-08-18",
+      "close": 1400,
+      "ihsg": 6450,
+      "volume": 40228000
+    },
+    {
+      "date": "2026-08-19",
+      "close": 1355,
+      "ihsg": 6394,
+      "volume": 36791800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 1375,
+      "ihsg": 6502,
+      "volume": 18249900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 1440,
+      "ihsg": 6526,
+      "volume": 43120200
+    },
+    {
+      "date": "2026-08-24",
+      "close": 1415,
+      "ihsg": 6502,
+      "volume": 27292400
+    },
+    {
+      "date": "2026-08-26",
+      "close": 1380,
+      "ihsg": 6406,
+      "volume": 29307200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 1375,
+      "ihsg": 6522,
+      "volume": 20056500
+    },
+    {
+      "date": "2026-08-28",
+      "close": 1340,
+      "ihsg": 6518,
+      "volume": 48088200
+    },
+    {
+      "date": "2026-08-31",
+      "close": 1335,
+      "ihsg": 6525,
+      "volume": 72131700
+    },
+    {
+      "date": "2026-09-01",
+      "close": 1340,
+      "ihsg": 6600,
+      "volume": 28779900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 1305,
+      "ihsg": 6596,
+      "volume": 36147700
+    },
+    {
+      "date": "2026-09-03",
+      "close": 1325,
+      "ihsg": 6668,
+      "volume": 32300100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 1310,
+      "ihsg": 6636,
+      "volume": 30783000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 1315,
+      "ihsg": 6620,
+      "volume": 18085300
+    },
+    {
+      "date": "2026-09-08",
+      "close": 1310,
+      "ihsg": 6686,
+      "volume": 19926100
+    },
+    {
+      "date": "2026-09-09",
+      "close": 1310,
+      "ihsg": 6678,
+      "volume": 40247100
+    },
+    {
+      "date": "2026-09-10",
+      "close": 1300,
+      "ihsg": 6589,
+      "volume": 23188500
+    },
+    {
+      "date": "2026-09-11",
+      "close": 1255,
+      "ihsg": 6541,
+      "volume": 29331500
+    }
+  ],
   "ANTM": [
     {
       "date": "2026-08-03",
@@ -452,346 +792,6 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3270,
       "ihsg": 6541,
       "volume": 135708200
-    }
-  ],
-  "INCO": [
-    {
-      "date": "2026-08-03",
-      "close": 5200,
-      "ihsg": 6234,
-      "volume": 10413200
-    },
-    {
-      "date": "2026-08-04",
-      "close": 5500,
-      "ihsg": 6320,
-      "volume": 15610600
-    },
-    {
-      "date": "2026-08-05",
-      "close": 5425,
-      "ihsg": 6351,
-      "volume": 14375900
-    },
-    {
-      "date": "2026-08-06",
-      "close": 5450,
-      "ihsg": 6344,
-      "volume": 11906100
-    },
-    {
-      "date": "2026-08-07",
-      "close": 5400,
-      "ihsg": 6410,
-      "volume": 10034800
-    },
-    {
-      "date": "2026-08-10",
-      "close": 5375,
-      "ihsg": 6365,
-      "volume": 8312200
-    },
-    {
-      "date": "2026-08-11",
-      "close": 5250,
-      "ihsg": 6268,
-      "volume": 12177500
-    },
-    {
-      "date": "2026-08-12",
-      "close": 5275,
-      "ihsg": 6374,
-      "volume": 6177900
-    },
-    {
-      "date": "2026-08-13",
-      "close": 5000,
-      "ihsg": 6302,
-      "volume": 11001400
-    },
-    {
-      "date": "2026-08-14",
-      "close": 5225,
-      "ihsg": 6402,
-      "volume": 13555800
-    },
-    {
-      "date": "2026-08-18",
-      "close": 5250,
-      "ihsg": 6450,
-      "volume": 4830900
-    },
-    {
-      "date": "2026-08-19",
-      "close": 5075,
-      "ihsg": 6394,
-      "volume": 10367400
-    },
-    {
-      "date": "2026-08-20",
-      "close": 5250,
-      "ihsg": 6502,
-      "volume": 12527000
-    },
-    {
-      "date": "2026-08-21",
-      "close": 5200,
-      "ihsg": 6526,
-      "volume": 9881100
-    },
-    {
-      "date": "2026-08-24",
-      "close": 5275,
-      "ihsg": 6502,
-      "volume": 9759400
-    },
-    {
-      "date": "2026-08-26",
-      "close": 5200,
-      "ihsg": 6406,
-      "volume": 15526000
-    },
-    {
-      "date": "2026-08-27",
-      "close": 5300,
-      "ihsg": 6522,
-      "volume": 4128900
-    },
-    {
-      "date": "2026-08-28",
-      "close": 5225,
-      "ihsg": 6518,
-      "volume": 6132000
-    },
-    {
-      "date": "2026-08-31",
-      "close": 5250,
-      "ihsg": 6525,
-      "volume": 4992400
-    },
-    {
-      "date": "2026-09-01",
-      "close": 5050,
-      "ihsg": 6600,
-      "volume": 15195100
-    },
-    {
-      "date": "2026-09-02",
-      "close": 4820,
-      "ihsg": 6596,
-      "volume": 36733300
-    },
-    {
-      "date": "2026-09-03",
-      "close": 4950,
-      "ihsg": 6668,
-      "volume": 13681700
-    },
-    {
-      "date": "2026-09-04",
-      "close": 4960,
-      "ihsg": 6636,
-      "volume": 8636800
-    },
-    {
-      "date": "2026-09-07",
-      "close": 4860,
-      "ihsg": 6620,
-      "volume": 13840300
-    },
-    {
-      "date": "2026-09-08",
-      "close": 4900,
-      "ihsg": 6686,
-      "volume": 14380900
-    },
-    {
-      "date": "2026-09-09",
-      "close": 4900,
-      "ihsg": 6678,
-      "volume": 19011200
-    },
-    {
-      "date": "2026-09-10",
-      "close": 4820,
-      "ihsg": 6589,
-      "volume": 19964900
-    },
-    {
-      "date": "2026-09-11",
-      "close": 4830,
-      "ihsg": 6541,
-      "volume": 19973900
-    }
-  ],
-  "TINS": [
-    {
-      "date": "2026-08-03",
-      "close": 3750,
-      "ihsg": 6234,
-      "volume": 51389000
-    },
-    {
-      "date": "2026-08-04",
-      "close": 3820,
-      "ihsg": 6320,
-      "volume": 64537000
-    },
-    {
-      "date": "2026-08-05",
-      "close": 3880,
-      "ihsg": 6351,
-      "volume": 74756700
-    },
-    {
-      "date": "2026-08-06",
-      "close": 3800,
-      "ihsg": 6344,
-      "volume": 62218800
-    },
-    {
-      "date": "2026-08-07",
-      "close": 3860,
-      "ihsg": 6410,
-      "volume": 68559300
-    },
-    {
-      "date": "2026-08-10",
-      "close": 3850,
-      "ihsg": 6365,
-      "volume": 44764500
-    },
-    {
-      "date": "2026-08-11",
-      "close": 3770,
-      "ihsg": 6268,
-      "volume": 43391800
-    },
-    {
-      "date": "2026-08-12",
-      "close": 3840,
-      "ihsg": 6374,
-      "volume": 43406200
-    },
-    {
-      "date": "2026-08-13",
-      "close": 3720,
-      "ihsg": 6302,
-      "volume": 39778400
-    },
-    {
-      "date": "2026-08-14",
-      "close": 3890,
-      "ihsg": 6402,
-      "volume": 134195200
-    },
-    {
-      "date": "2026-08-18",
-      "close": 3900,
-      "ihsg": 6450,
-      "volume": 39461900
-    },
-    {
-      "date": "2026-08-19",
-      "close": 4050,
-      "ihsg": 6394,
-      "volume": 105563700
-    },
-    {
-      "date": "2026-08-20",
-      "close": 3990,
-      "ihsg": 6502,
-      "volume": 55152900
-    },
-    {
-      "date": "2026-08-21",
-      "close": 4030,
-      "ihsg": 6526,
-      "volume": 23066900
-    },
-    {
-      "date": "2026-08-24",
-      "close": 4130,
-      "ihsg": 6502,
-      "volume": 63092700
-    },
-    {
-      "date": "2026-08-26",
-      "close": 4020,
-      "ihsg": 6406,
-      "volume": 42607700
-    },
-    {
-      "date": "2026-08-27",
-      "close": 4080,
-      "ihsg": 6522,
-      "volume": 34089000
-    },
-    {
-      "date": "2026-08-28",
-      "close": 4030,
-      "ihsg": 6518,
-      "volume": 33513500
-    },
-    {
-      "date": "2026-08-31",
-      "close": 4040,
-      "ihsg": 6525,
-      "volume": 24337100
-    },
-    {
-      "date": "2026-09-01",
-      "close": 4090,
-      "ihsg": 6600,
-      "volume": 36482300
-    },
-    {
-      "date": "2026-09-02",
-      "close": 4010,
-      "ihsg": 6596,
-      "volume": 42118400
-    },
-    {
-      "date": "2026-09-03",
-      "close": 4090,
-      "ihsg": 6668,
-      "volume": 37002300
-    },
-    {
-      "date": "2026-09-04",
-      "close": 4420,
-      "ihsg": 6636,
-      "volume": 101765000
-    },
-    {
-      "date": "2026-09-07",
-      "close": 4480,
-      "ihsg": 6620,
-      "volume": 56797200
-    },
-    {
-      "date": "2026-09-08",
-      "close": 4400,
-      "ihsg": 6686,
-      "volume": 36920400
-    },
-    {
-      "date": "2026-09-09",
-      "close": 4600,
-      "ihsg": 6678,
-      "volume": 59499900
-    },
-    {
-      "date": "2026-09-10",
-      "close": 4650,
-      "ihsg": 6589,
-      "volume": 86214100
-    },
-    {
-      "date": "2026-09-11",
-      "close": 4740,
-      "ihsg": 6541,
-      "volume": 55059000
     }
   ],
   "BBCA": [
@@ -1304,344 +1304,344 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "volume": 126557800
     }
   ],
-  "TLKM": [
+  "BUKA": [
     {
       "date": "2026-08-03",
-      "close": 2740,
+      "close": 118,
       "ihsg": 6234,
-      "volume": 112278700
+      "volume": 95160900
     },
     {
       "date": "2026-08-04",
-      "close": 2790,
+      "close": 120,
       "ihsg": 6320,
-      "volume": 90753600
+      "volume": 49917400
     },
     {
       "date": "2026-08-05",
-      "close": 2710,
+      "close": 120,
       "ihsg": 6351,
-      "volume": 109494500
+      "volume": 219226100
     },
     {
       "date": "2026-08-06",
-      "close": 2650,
+      "close": 118,
       "ihsg": 6344,
-      "volume": 138223900
+      "volume": 147682500
     },
     {
       "date": "2026-08-07",
-      "close": 2710,
+      "close": 118,
       "ihsg": 6410,
-      "volume": 66412400
+      "volume": 57365400
     },
     {
       "date": "2026-08-10",
-      "close": 2620,
+      "close": 117,
       "ihsg": 6365,
-      "volume": 93974000
+      "volume": 44875400
     },
     {
       "date": "2026-08-11",
-      "close": 2610,
+      "close": 118,
       "ihsg": 6268,
-      "volume": 84124100
+      "volume": 109452900
     },
     {
       "date": "2026-08-12",
-      "close": 2590,
+      "close": 118,
       "ihsg": 6374,
-      "volume": 120373100
+      "volume": 83259300
     },
     {
       "date": "2026-08-13",
-      "close": 2590,
+      "close": 112,
       "ihsg": 6302,
-      "volume": 76115000
+      "volume": 218155800
     },
     {
       "date": "2026-08-14",
-      "close": 2620,
+      "close": 115,
       "ihsg": 6402,
-      "volume": 80799200
+      "volume": 61442100
     },
     {
       "date": "2026-08-18",
-      "close": 2600,
+      "close": 115,
       "ihsg": 6450,
-      "volume": 80089000
+      "volume": 54168500
     },
     {
       "date": "2026-08-19",
-      "close": 2600,
+      "close": 115,
       "ihsg": 6394,
-      "volume": 45580300
+      "volume": 225152500
     },
     {
       "date": "2026-08-20",
-      "close": 2610,
+      "close": 116,
       "ihsg": 6502,
-      "volume": 86747700
+      "volume": 181926000
     },
     {
       "date": "2026-08-21",
-      "close": 2610,
+      "close": 114,
       "ihsg": 6526,
-      "volume": 72276500
+      "volume": 171081000
     },
     {
       "date": "2026-08-24",
-      "close": 2620,
+      "close": 113,
       "ihsg": 6502,
-      "volume": 46321100
+      "volume": 143979000
     },
     {
       "date": "2026-08-26",
-      "close": 2600,
+      "close": 107,
       "ihsg": 6406,
-      "volume": 82579200
+      "volume": 97757200
     },
     {
       "date": "2026-08-27",
-      "close": 2610,
+      "close": 108,
       "ihsg": 6522,
-      "volume": 115845900
+      "volume": 98697200
     },
     {
       "date": "2026-08-28",
-      "close": 2570,
+      "close": 105,
       "ihsg": 6518,
-      "volume": 78958600
+      "volume": 115363600
     },
     {
       "date": "2026-08-31",
-      "close": 2600,
+      "close": 105,
       "ihsg": 6525,
-      "volume": 204591800
+      "volume": 1883828500
     },
     {
       "date": "2026-09-01",
-      "close": 2610,
+      "close": 113,
       "ihsg": 6600,
-      "volume": 82430900
+      "volume": 370491200
     },
     {
       "date": "2026-09-02",
-      "close": 2590,
+      "close": 112,
       "ihsg": 6596,
-      "volume": 105899600
+      "volume": 61961200
     },
     {
       "date": "2026-09-03",
-      "close": 2600,
+      "close": 114,
       "ihsg": 6668,
-      "volume": 76991100
+      "volume": 159782900
     },
     {
       "date": "2026-09-04",
-      "close": 2610,
+      "close": 115,
       "ihsg": 6636,
-      "volume": 84953700
+      "volume": 70638700
     },
     {
       "date": "2026-09-07",
-      "close": 2610,
+      "close": 113,
       "ihsg": 6620,
-      "volume": 42030200
+      "volume": 60366200
     },
     {
       "date": "2026-09-08",
-      "close": 2650,
+      "close": 114,
       "ihsg": 6686,
-      "volume": 173160300
+      "volume": 72375300
     },
     {
       "date": "2026-09-09",
-      "close": 2660,
+      "close": 114,
       "ihsg": 6678,
-      "volume": 119056300
+      "volume": 217779500
     },
     {
       "date": "2026-09-10",
-      "close": 2630,
+      "close": 109,
       "ihsg": 6589,
-      "volume": 87447500
+      "volume": 131772300
     },
     {
       "date": "2026-09-11",
-      "close": 2600,
+      "close": 107,
       "ihsg": 6541,
-      "volume": 88455300
+      "volume": 84072700
     }
   ],
-  "JSMR": [
+  "EMTK": [
     {
       "date": "2026-08-03",
-      "close": 2770,
+      "close": 520,
       "ihsg": 6234,
-      "volume": 4380700
+      "volume": 47286000
     },
     {
       "date": "2026-08-04",
-      "close": 2760,
+      "close": 530,
       "ihsg": 6320,
-      "volume": 1022100
+      "volume": 60098100
     },
     {
       "date": "2026-08-05",
-      "close": 2800,
+      "close": 530,
       "ihsg": 6351,
-      "volume": 3511500
+      "volume": 40154800
     },
     {
       "date": "2026-08-06",
-      "close": 2750,
+      "close": 530,
       "ihsg": 6344,
-      "volume": 2581900
+      "volume": 62962600
     },
     {
       "date": "2026-08-07",
-      "close": 2790,
+      "close": 530,
       "ihsg": 6410,
-      "volume": 1889000
+      "volume": 44167700
     },
     {
       "date": "2026-08-10",
-      "close": 2770,
+      "close": 515,
       "ihsg": 6365,
-      "volume": 1940800
+      "volume": 75023600
     },
     {
       "date": "2026-08-11",
-      "close": 2740,
+      "close": 505,
       "ihsg": 6268,
-      "volume": 3589400
+      "volume": 43027300
     },
     {
       "date": "2026-08-12",
-      "close": 2760,
+      "close": 510,
       "ihsg": 6374,
-      "volume": 1785800
+      "volume": 24974500
     },
     {
       "date": "2026-08-13",
-      "close": 2740,
+      "close": 500,
       "ihsg": 6302,
-      "volume": 2496200
+      "volume": 35640900
     },
     {
       "date": "2026-08-14",
-      "close": 2730,
+      "close": 505,
       "ihsg": 6402,
-      "volume": 500100
+      "volume": 40820200
     },
     {
       "date": "2026-08-18",
-      "close": 2760,
+      "close": 520,
       "ihsg": 6450,
-      "volume": 1694300
+      "volume": 21840400
     },
     {
       "date": "2026-08-19",
-      "close": 2770,
+      "close": 525,
       "ihsg": 6394,
-      "volume": 3266000
+      "volume": 68442100
     },
     {
       "date": "2026-08-20",
-      "close": 2790,
+      "close": 550,
       "ihsg": 6502,
-      "volume": 1664900
+      "volume": 82409400
     },
     {
       "date": "2026-08-21",
-      "close": 2790,
+      "close": 540,
       "ihsg": 6526,
-      "volume": 2036200
+      "volume": 47671000
     },
     {
       "date": "2026-08-24",
-      "close": 2760,
+      "close": 525,
       "ihsg": 6502,
-      "volume": 2658000
+      "volume": 31003900
     },
     {
       "date": "2026-08-26",
-      "close": 2740,
+      "close": 500,
       "ihsg": 6406,
-      "volume": 1938400
+      "volume": 61787200
     },
     {
       "date": "2026-08-27",
-      "close": 2810,
+      "close": 510,
       "ihsg": 6522,
-      "volume": 2577700
+      "volume": 39160700
     },
     {
       "date": "2026-08-28",
-      "close": 2830,
+      "close": 515,
       "ihsg": 6518,
-      "volume": 3018200
+      "volume": 33662700
     },
     {
       "date": "2026-08-31",
-      "close": 2960,
+      "close": 515,
       "ihsg": 6525,
-      "volume": 8253900
+      "volume": 49869400
     },
     {
       "date": "2026-09-01",
-      "close": 2970,
+      "close": 535,
       "ihsg": 6600,
-      "volume": 4812900
+      "volume": 52530400
     },
     {
       "date": "2026-09-02",
-      "close": 2970,
+      "close": 520,
       "ihsg": 6596,
-      "volume": 3396800
+      "volume": 50870200
     },
     {
       "date": "2026-09-03",
-      "close": 3040,
+      "close": 535,
       "ihsg": 6668,
-      "volume": 3400200
+      "volume": 47833500
     },
     {
       "date": "2026-09-04",
-      "close": 2990,
+      "close": 515,
       "ihsg": 6636,
-      "volume": 3606300
+      "volume": 34794900
     },
     {
       "date": "2026-09-07",
-      "close": 2960,
+      "close": 510,
       "ihsg": 6620,
-      "volume": 1584000
+      "volume": 43367600
     },
     {
       "date": "2026-09-08",
-      "close": 3010,
+      "close": 520,
       "ihsg": 6686,
-      "volume": 1335500
+      "volume": 26460300
     },
     {
       "date": "2026-09-09",
-      "close": 3010,
+      "close": 515,
       "ihsg": 6678,
-      "volume": 1836300
+      "volume": 31399400
     },
     {
       "date": "2026-09-10",
-      "close": 2990,
+      "close": 500,
       "ihsg": 6589,
-      "volume": 1606200
+      "volume": 27456800
     },
     {
       "date": "2026-09-11",
-      "close": 2950,
+      "close": 500,
       "ihsg": 6541,
-      "volume": 1789500
+      "volume": 52096800
     }
   ],
   "EXCL": [
@@ -1984,856 +1984,6 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "volume": 3016900
     }
   ],
-  "BUKA": [
-    {
-      "date": "2026-08-03",
-      "close": 118,
-      "ihsg": 6234,
-      "volume": 95160900
-    },
-    {
-      "date": "2026-08-04",
-      "close": 120,
-      "ihsg": 6320,
-      "volume": 49917400
-    },
-    {
-      "date": "2026-08-05",
-      "close": 120,
-      "ihsg": 6351,
-      "volume": 219226100
-    },
-    {
-      "date": "2026-08-06",
-      "close": 118,
-      "ihsg": 6344,
-      "volume": 147682500
-    },
-    {
-      "date": "2026-08-07",
-      "close": 118,
-      "ihsg": 6410,
-      "volume": 57365400
-    },
-    {
-      "date": "2026-08-10",
-      "close": 117,
-      "ihsg": 6365,
-      "volume": 44875400
-    },
-    {
-      "date": "2026-08-11",
-      "close": 118,
-      "ihsg": 6268,
-      "volume": 109452900
-    },
-    {
-      "date": "2026-08-12",
-      "close": 118,
-      "ihsg": 6374,
-      "volume": 83259300
-    },
-    {
-      "date": "2026-08-13",
-      "close": 112,
-      "ihsg": 6302,
-      "volume": 218155800
-    },
-    {
-      "date": "2026-08-14",
-      "close": 115,
-      "ihsg": 6402,
-      "volume": 61442100
-    },
-    {
-      "date": "2026-08-18",
-      "close": 115,
-      "ihsg": 6450,
-      "volume": 54168500
-    },
-    {
-      "date": "2026-08-19",
-      "close": 115,
-      "ihsg": 6394,
-      "volume": 225152500
-    },
-    {
-      "date": "2026-08-20",
-      "close": 116,
-      "ihsg": 6502,
-      "volume": 181926000
-    },
-    {
-      "date": "2026-08-21",
-      "close": 114,
-      "ihsg": 6526,
-      "volume": 171081000
-    },
-    {
-      "date": "2026-08-24",
-      "close": 113,
-      "ihsg": 6502,
-      "volume": 143979000
-    },
-    {
-      "date": "2026-08-26",
-      "close": 107,
-      "ihsg": 6406,
-      "volume": 97757200
-    },
-    {
-      "date": "2026-08-27",
-      "close": 108,
-      "ihsg": 6522,
-      "volume": 98697200
-    },
-    {
-      "date": "2026-08-28",
-      "close": 105,
-      "ihsg": 6518,
-      "volume": 115363600
-    },
-    {
-      "date": "2026-08-31",
-      "close": 105,
-      "ihsg": 6525,
-      "volume": 1883828500
-    },
-    {
-      "date": "2026-09-01",
-      "close": 113,
-      "ihsg": 6600,
-      "volume": 370491200
-    },
-    {
-      "date": "2026-09-02",
-      "close": 112,
-      "ihsg": 6596,
-      "volume": 61961200
-    },
-    {
-      "date": "2026-09-03",
-      "close": 114,
-      "ihsg": 6668,
-      "volume": 159782900
-    },
-    {
-      "date": "2026-09-04",
-      "close": 115,
-      "ihsg": 6636,
-      "volume": 70638700
-    },
-    {
-      "date": "2026-09-07",
-      "close": 113,
-      "ihsg": 6620,
-      "volume": 60366200
-    },
-    {
-      "date": "2026-09-08",
-      "close": 114,
-      "ihsg": 6686,
-      "volume": 72375300
-    },
-    {
-      "date": "2026-09-09",
-      "close": 114,
-      "ihsg": 6678,
-      "volume": 217779500
-    },
-    {
-      "date": "2026-09-10",
-      "close": 109,
-      "ihsg": 6589,
-      "volume": 131772300
-    },
-    {
-      "date": "2026-09-11",
-      "close": 107,
-      "ihsg": 6541,
-      "volume": 84072700
-    }
-  ],
-  "EMTK": [
-    {
-      "date": "2026-08-03",
-      "close": 520,
-      "ihsg": 6234,
-      "volume": 47286000
-    },
-    {
-      "date": "2026-08-04",
-      "close": 530,
-      "ihsg": 6320,
-      "volume": 60098100
-    },
-    {
-      "date": "2026-08-05",
-      "close": 530,
-      "ihsg": 6351,
-      "volume": 40154800
-    },
-    {
-      "date": "2026-08-06",
-      "close": 530,
-      "ihsg": 6344,
-      "volume": 62962600
-    },
-    {
-      "date": "2026-08-07",
-      "close": 530,
-      "ihsg": 6410,
-      "volume": 44167700
-    },
-    {
-      "date": "2026-08-10",
-      "close": 515,
-      "ihsg": 6365,
-      "volume": 75023600
-    },
-    {
-      "date": "2026-08-11",
-      "close": 505,
-      "ihsg": 6268,
-      "volume": 43027300
-    },
-    {
-      "date": "2026-08-12",
-      "close": 510,
-      "ihsg": 6374,
-      "volume": 24974500
-    },
-    {
-      "date": "2026-08-13",
-      "close": 500,
-      "ihsg": 6302,
-      "volume": 35640900
-    },
-    {
-      "date": "2026-08-14",
-      "close": 505,
-      "ihsg": 6402,
-      "volume": 40820200
-    },
-    {
-      "date": "2026-08-18",
-      "close": 520,
-      "ihsg": 6450,
-      "volume": 21840400
-    },
-    {
-      "date": "2026-08-19",
-      "close": 525,
-      "ihsg": 6394,
-      "volume": 68442100
-    },
-    {
-      "date": "2026-08-20",
-      "close": 550,
-      "ihsg": 6502,
-      "volume": 82409400
-    },
-    {
-      "date": "2026-08-21",
-      "close": 540,
-      "ihsg": 6526,
-      "volume": 47671000
-    },
-    {
-      "date": "2026-08-24",
-      "close": 525,
-      "ihsg": 6502,
-      "volume": 31003900
-    },
-    {
-      "date": "2026-08-26",
-      "close": 500,
-      "ihsg": 6406,
-      "volume": 61787200
-    },
-    {
-      "date": "2026-08-27",
-      "close": 510,
-      "ihsg": 6522,
-      "volume": 39160700
-    },
-    {
-      "date": "2026-08-28",
-      "close": 515,
-      "ihsg": 6518,
-      "volume": 33662700
-    },
-    {
-      "date": "2026-08-31",
-      "close": 515,
-      "ihsg": 6525,
-      "volume": 49869400
-    },
-    {
-      "date": "2026-09-01",
-      "close": 535,
-      "ihsg": 6600,
-      "volume": 52530400
-    },
-    {
-      "date": "2026-09-02",
-      "close": 520,
-      "ihsg": 6596,
-      "volume": 50870200
-    },
-    {
-      "date": "2026-09-03",
-      "close": 535,
-      "ihsg": 6668,
-      "volume": 47833500
-    },
-    {
-      "date": "2026-09-04",
-      "close": 515,
-      "ihsg": 6636,
-      "volume": 34794900
-    },
-    {
-      "date": "2026-09-07",
-      "close": 510,
-      "ihsg": 6620,
-      "volume": 43367600
-    },
-    {
-      "date": "2026-09-08",
-      "close": 520,
-      "ihsg": 6686,
-      "volume": 26460300
-    },
-    {
-      "date": "2026-09-09",
-      "close": 515,
-      "ihsg": 6678,
-      "volume": 31399400
-    },
-    {
-      "date": "2026-09-10",
-      "close": 500,
-      "ihsg": 6589,
-      "volume": 27456800
-    },
-    {
-      "date": "2026-09-11",
-      "close": 500,
-      "ihsg": 6541,
-      "volume": 52096800
-    }
-  ],
-  "PGAS": [
-    {
-      "date": "2026-08-03",
-      "close": 1510,
-      "ihsg": 6234,
-      "volume": 15393200
-    },
-    {
-      "date": "2026-08-04",
-      "close": 1515,
-      "ihsg": 6320,
-      "volume": 28199400
-    },
-    {
-      "date": "2026-08-05",
-      "close": 1505,
-      "ihsg": 6351,
-      "volume": 17831200
-    },
-    {
-      "date": "2026-08-06",
-      "close": 1505,
-      "ihsg": 6344,
-      "volume": 28221800
-    },
-    {
-      "date": "2026-08-07",
-      "close": 1510,
-      "ihsg": 6410,
-      "volume": 17980000
-    },
-    {
-      "date": "2026-08-10",
-      "close": 1510,
-      "ihsg": 6365,
-      "volume": 20588100
-    },
-    {
-      "date": "2026-08-11",
-      "close": 1490,
-      "ihsg": 6268,
-      "volume": 29821300
-    },
-    {
-      "date": "2026-08-12",
-      "close": 1485,
-      "ihsg": 6374,
-      "volume": 26112600
-    },
-    {
-      "date": "2026-08-13",
-      "close": 1475,
-      "ihsg": 6302,
-      "volume": 25697600
-    },
-    {
-      "date": "2026-08-14",
-      "close": 1495,
-      "ihsg": 6402,
-      "volume": 17773500
-    },
-    {
-      "date": "2026-08-18",
-      "close": 1515,
-      "ihsg": 6450,
-      "volume": 32365400
-    },
-    {
-      "date": "2026-08-19",
-      "close": 1505,
-      "ihsg": 6394,
-      "volume": 14895400
-    },
-    {
-      "date": "2026-08-20",
-      "close": 1525,
-      "ihsg": 6502,
-      "volume": 27450600
-    },
-    {
-      "date": "2026-08-21",
-      "close": 1520,
-      "ihsg": 6526,
-      "volume": 18956900
-    },
-    {
-      "date": "2026-08-24",
-      "close": 1540,
-      "ihsg": 6502,
-      "volume": 36377100
-    },
-    {
-      "date": "2026-08-26",
-      "close": 1520,
-      "ihsg": 6406,
-      "volume": 52147400
-    },
-    {
-      "date": "2026-08-27",
-      "close": 1535,
-      "ihsg": 6522,
-      "volume": 26339500
-    },
-    {
-      "date": "2026-08-28",
-      "close": 1510,
-      "ihsg": 6518,
-      "volume": 57344100
-    },
-    {
-      "date": "2026-08-31",
-      "close": 1530,
-      "ihsg": 6525,
-      "volume": 37894200
-    },
-    {
-      "date": "2026-09-01",
-      "close": 1555,
-      "ihsg": 6600,
-      "volume": 48408200
-    },
-    {
-      "date": "2026-09-02",
-      "close": 1535,
-      "ihsg": 6596,
-      "volume": 24552900
-    },
-    {
-      "date": "2026-09-03",
-      "close": 1540,
-      "ihsg": 6668,
-      "volume": 67582000
-    },
-    {
-      "date": "2026-09-04",
-      "close": 1520,
-      "ihsg": 6636,
-      "volume": 25218600
-    },
-    {
-      "date": "2026-09-07",
-      "close": 1520,
-      "ihsg": 6620,
-      "volume": 28201200
-    },
-    {
-      "date": "2026-09-08",
-      "close": 1540,
-      "ihsg": 6686,
-      "volume": 29486400
-    },
-    {
-      "date": "2026-09-09",
-      "close": 1545,
-      "ihsg": 6678,
-      "volume": 21931600
-    },
-    {
-      "date": "2026-09-10",
-      "close": 1515,
-      "ihsg": 6589,
-      "volume": 40942100
-    },
-    {
-      "date": "2026-09-11",
-      "close": 1520,
-      "ihsg": 6541,
-      "volume": 24755500
-    }
-  ],
-  "ADRO": [
-    {
-      "date": "2026-08-03",
-      "close": 2470,
-      "ihsg": 6234,
-      "volume": 17816300
-    },
-    {
-      "date": "2026-08-04",
-      "close": 2520,
-      "ihsg": 6320,
-      "volume": 34062000
-    },
-    {
-      "date": "2026-08-05",
-      "close": 2550,
-      "ihsg": 6351,
-      "volume": 26513000
-    },
-    {
-      "date": "2026-08-06",
-      "close": 2500,
-      "ihsg": 6344,
-      "volume": 18191200
-    },
-    {
-      "date": "2026-08-07",
-      "close": 2540,
-      "ihsg": 6410,
-      "volume": 14412400
-    },
-    {
-      "date": "2026-08-10",
-      "close": 2530,
-      "ihsg": 6365,
-      "volume": 18267400
-    },
-    {
-      "date": "2026-08-11",
-      "close": 2530,
-      "ihsg": 6268,
-      "volume": 22808600
-    },
-    {
-      "date": "2026-08-12",
-      "close": 2520,
-      "ihsg": 6374,
-      "volume": 17523900
-    },
-    {
-      "date": "2026-08-13",
-      "close": 2470,
-      "ihsg": 6302,
-      "volume": 21270000
-    },
-    {
-      "date": "2026-08-14",
-      "close": 2530,
-      "ihsg": 6402,
-      "volume": 18026800
-    },
-    {
-      "date": "2026-08-18",
-      "close": 2570,
-      "ihsg": 6450,
-      "volume": 37379600
-    },
-    {
-      "date": "2026-08-19",
-      "close": 2560,
-      "ihsg": 6394,
-      "volume": 29007800
-    },
-    {
-      "date": "2026-08-20",
-      "close": 2560,
-      "ihsg": 6502,
-      "volume": 19575600
-    },
-    {
-      "date": "2026-08-21",
-      "close": 2550,
-      "ihsg": 6526,
-      "volume": 15845700
-    },
-    {
-      "date": "2026-08-24",
-      "close": 2630,
-      "ihsg": 6502,
-      "volume": 52533200
-    },
-    {
-      "date": "2026-08-26",
-      "close": 2610,
-      "ihsg": 6406,
-      "volume": 50134700
-    },
-    {
-      "date": "2026-08-27",
-      "close": 2700,
-      "ihsg": 6522,
-      "volume": 65458300
-    },
-    {
-      "date": "2026-08-28",
-      "close": 2670,
-      "ihsg": 6518,
-      "volume": 33101900
-    },
-    {
-      "date": "2026-08-31",
-      "close": 2840,
-      "ihsg": 6525,
-      "volume": 102100700
-    },
-    {
-      "date": "2026-09-01",
-      "close": 2780,
-      "ihsg": 6600,
-      "volume": 60278400
-    },
-    {
-      "date": "2026-09-02",
-      "close": 2650,
-      "ihsg": 6596,
-      "volume": 125290300
-    },
-    {
-      "date": "2026-09-03",
-      "close": 2740,
-      "ihsg": 6668,
-      "volume": 77055100
-    },
-    {
-      "date": "2026-09-04",
-      "close": 2720,
-      "ihsg": 6636,
-      "volume": 40544500
-    },
-    {
-      "date": "2026-09-07",
-      "close": 2700,
-      "ihsg": 6620,
-      "volume": 32017200
-    },
-    {
-      "date": "2026-09-08",
-      "close": 2690,
-      "ihsg": 6686,
-      "volume": 34095200
-    },
-    {
-      "date": "2026-09-09",
-      "close": 2690,
-      "ihsg": 6678,
-      "volume": 68999600
-    },
-    {
-      "date": "2026-09-10",
-      "close": 2670,
-      "ihsg": 6589,
-      "volume": 22343200
-    },
-    {
-      "date": "2026-09-11",
-      "close": 2640,
-      "ihsg": 6541,
-      "volume": 28561800
-    }
-  ],
-  "PTBA": [
-    {
-      "date": "2026-08-03",
-      "close": 2320,
-      "ihsg": 6234,
-      "volume": 14504100
-    },
-    {
-      "date": "2026-08-04",
-      "close": 2360,
-      "ihsg": 6320,
-      "volume": 9082700
-    },
-    {
-      "date": "2026-08-05",
-      "close": 2360,
-      "ihsg": 6351,
-      "volume": 13690100
-    },
-    {
-      "date": "2026-08-06",
-      "close": 2350,
-      "ihsg": 6344,
-      "volume": 9337400
-    },
-    {
-      "date": "2026-08-07",
-      "close": 2370,
-      "ihsg": 6410,
-      "volume": 9940400
-    },
-    {
-      "date": "2026-08-10",
-      "close": 2390,
-      "ihsg": 6365,
-      "volume": 10339700
-    },
-    {
-      "date": "2026-08-11",
-      "close": 2350,
-      "ihsg": 6268,
-      "volume": 9427900
-    },
-    {
-      "date": "2026-08-12",
-      "close": 2350,
-      "ihsg": 6374,
-      "volume": 10222900
-    },
-    {
-      "date": "2026-08-13",
-      "close": 2340,
-      "ihsg": 6302,
-      "volume": 5823800
-    },
-    {
-      "date": "2026-08-14",
-      "close": 2360,
-      "ihsg": 6402,
-      "volume": 10351500
-    },
-    {
-      "date": "2026-08-18",
-      "close": 2370,
-      "ihsg": 6450,
-      "volume": 10452300
-    },
-    {
-      "date": "2026-08-19",
-      "close": 2370,
-      "ihsg": 6394,
-      "volume": 9062800
-    },
-    {
-      "date": "2026-08-20",
-      "close": 2400,
-      "ihsg": 6502,
-      "volume": 7825700
-    },
-    {
-      "date": "2026-08-21",
-      "close": 2400,
-      "ihsg": 6526,
-      "volume": 8314400
-    },
-    {
-      "date": "2026-08-24",
-      "close": 2480,
-      "ihsg": 6502,
-      "volume": 33941000
-    },
-    {
-      "date": "2026-08-26",
-      "close": 2420,
-      "ihsg": 6406,
-      "volume": 19885800
-    },
-    {
-      "date": "2026-08-27",
-      "close": 2500,
-      "ihsg": 6522,
-      "volume": 23812700
-    },
-    {
-      "date": "2026-08-28",
-      "close": 2530,
-      "ihsg": 6518,
-      "volume": 37465600
-    },
-    {
-      "date": "2026-08-31",
-      "close": 2560,
-      "ihsg": 6525,
-      "volume": 30232000
-    },
-    {
-      "date": "2026-09-01",
-      "close": 2670,
-      "ihsg": 6600,
-      "volume": 115499100
-    },
-    {
-      "date": "2026-09-02",
-      "close": 2720,
-      "ihsg": 6596,
-      "volume": 93828700
-    },
-    {
-      "date": "2026-09-03",
-      "close": 2890,
-      "ihsg": 6668,
-      "volume": 109723500
-    },
-    {
-      "date": "2026-09-04",
-      "close": 2880,
-      "ihsg": 6636,
-      "volume": 26032000
-    },
-    {
-      "date": "2026-09-07",
-      "close": 3010,
-      "ihsg": 6620,
-      "volume": 92569800
-    },
-    {
-      "date": "2026-09-08",
-      "close": 3000,
-      "ihsg": 6686,
-      "volume": 67132000
-    },
-    {
-      "date": "2026-09-09",
-      "close": 3100,
-      "ihsg": 6678,
-      "volume": 104634100
-    },
-    {
-      "date": "2026-09-10",
-      "close": 3100,
-      "ihsg": 6589,
-      "volume": 81084900
-    },
-    {
-      "date": "2026-09-11",
-      "close": 3100,
-      "ihsg": 6541,
-      "volume": 51290600
-    }
-  ],
   "ICBP": [
     {
       "date": "2026-08-03",
@@ -3002,6 +2152,346 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 7125,
       "ihsg": 6541,
       "volume": 2205300
+    }
+  ],
+  "INCO": [
+    {
+      "date": "2026-08-03",
+      "close": 5200,
+      "ihsg": 6234,
+      "volume": 10413200
+    },
+    {
+      "date": "2026-08-04",
+      "close": 5500,
+      "ihsg": 6320,
+      "volume": 15610600
+    },
+    {
+      "date": "2026-08-05",
+      "close": 5425,
+      "ihsg": 6351,
+      "volume": 14375900
+    },
+    {
+      "date": "2026-08-06",
+      "close": 5450,
+      "ihsg": 6344,
+      "volume": 11906100
+    },
+    {
+      "date": "2026-08-07",
+      "close": 5400,
+      "ihsg": 6410,
+      "volume": 10034800
+    },
+    {
+      "date": "2026-08-10",
+      "close": 5375,
+      "ihsg": 6365,
+      "volume": 8312200
+    },
+    {
+      "date": "2026-08-11",
+      "close": 5250,
+      "ihsg": 6268,
+      "volume": 12177500
+    },
+    {
+      "date": "2026-08-12",
+      "close": 5275,
+      "ihsg": 6374,
+      "volume": 6177900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 5000,
+      "ihsg": 6302,
+      "volume": 11001400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 5225,
+      "ihsg": 6402,
+      "volume": 13555800
+    },
+    {
+      "date": "2026-08-18",
+      "close": 5250,
+      "ihsg": 6450,
+      "volume": 4830900
+    },
+    {
+      "date": "2026-08-19",
+      "close": 5075,
+      "ihsg": 6394,
+      "volume": 10367400
+    },
+    {
+      "date": "2026-08-20",
+      "close": 5250,
+      "ihsg": 6502,
+      "volume": 12527000
+    },
+    {
+      "date": "2026-08-21",
+      "close": 5200,
+      "ihsg": 6526,
+      "volume": 9881100
+    },
+    {
+      "date": "2026-08-24",
+      "close": 5275,
+      "ihsg": 6502,
+      "volume": 9759400
+    },
+    {
+      "date": "2026-08-26",
+      "close": 5200,
+      "ihsg": 6406,
+      "volume": 15526000
+    },
+    {
+      "date": "2026-08-27",
+      "close": 5300,
+      "ihsg": 6522,
+      "volume": 4128900
+    },
+    {
+      "date": "2026-08-28",
+      "close": 5225,
+      "ihsg": 6518,
+      "volume": 6132000
+    },
+    {
+      "date": "2026-08-31",
+      "close": 5250,
+      "ihsg": 6525,
+      "volume": 4992400
+    },
+    {
+      "date": "2026-09-01",
+      "close": 5050,
+      "ihsg": 6600,
+      "volume": 15195100
+    },
+    {
+      "date": "2026-09-02",
+      "close": 4820,
+      "ihsg": 6596,
+      "volume": 36733300
+    },
+    {
+      "date": "2026-09-03",
+      "close": 4950,
+      "ihsg": 6668,
+      "volume": 13681700
+    },
+    {
+      "date": "2026-09-04",
+      "close": 4960,
+      "ihsg": 6636,
+      "volume": 8636800
+    },
+    {
+      "date": "2026-09-07",
+      "close": 4860,
+      "ihsg": 6620,
+      "volume": 13840300
+    },
+    {
+      "date": "2026-09-08",
+      "close": 4900,
+      "ihsg": 6686,
+      "volume": 14380900
+    },
+    {
+      "date": "2026-09-09",
+      "close": 4900,
+      "ihsg": 6678,
+      "volume": 19011200
+    },
+    {
+      "date": "2026-09-10",
+      "close": 4820,
+      "ihsg": 6589,
+      "volume": 19964900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 4830,
+      "ihsg": 6541,
+      "volume": 19973900
+    }
+  ],
+  "JSMR": [
+    {
+      "date": "2026-08-03",
+      "close": 2770,
+      "ihsg": 6234,
+      "volume": 4380700
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2760,
+      "ihsg": 6320,
+      "volume": 1022100
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2800,
+      "ihsg": 6351,
+      "volume": 3511500
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2750,
+      "ihsg": 6344,
+      "volume": 2581900
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2790,
+      "ihsg": 6410,
+      "volume": 1889000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2770,
+      "ihsg": 6365,
+      "volume": 1940800
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2740,
+      "ihsg": 6268,
+      "volume": 3589400
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2760,
+      "ihsg": 6374,
+      "volume": 1785800
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2740,
+      "ihsg": 6302,
+      "volume": 2496200
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2730,
+      "ihsg": 6402,
+      "volume": 500100
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2760,
+      "ihsg": 6450,
+      "volume": 1694300
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2770,
+      "ihsg": 6394,
+      "volume": 3266000
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2790,
+      "ihsg": 6502,
+      "volume": 1664900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2790,
+      "ihsg": 6526,
+      "volume": 2036200
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2760,
+      "ihsg": 6502,
+      "volume": 2658000
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2740,
+      "ihsg": 6406,
+      "volume": 1938400
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2810,
+      "ihsg": 6522,
+      "volume": 2577700
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2830,
+      "ihsg": 6518,
+      "volume": 3018200
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2960,
+      "ihsg": 6525,
+      "volume": 8253900
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2970,
+      "ihsg": 6600,
+      "volume": 4812900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2970,
+      "ihsg": 6596,
+      "volume": 3396800
+    },
+    {
+      "date": "2026-09-03",
+      "close": 3040,
+      "ihsg": 6668,
+      "volume": 3400200
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2990,
+      "ihsg": 6636,
+      "volume": 3606300
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2960,
+      "ihsg": 6620,
+      "volume": 1584000
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3010,
+      "ihsg": 6686,
+      "volume": 1335500
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3010,
+      "ihsg": 6678,
+      "volume": 1836300
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2990,
+      "ihsg": 6589,
+      "volume": 1606200
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2950,
+      "ihsg": 6541,
+      "volume": 1789500
     }
   ],
   "MYOR": [
@@ -3174,174 +2664,684 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "volume": 23467100
     }
   ],
-  "AMRT": [
+  "PGAS": [
     {
       "date": "2026-08-03",
-      "close": 1325,
+      "close": 1510,
       "ihsg": 6234,
-      "volume": 43707600
+      "volume": 15393200
     },
     {
       "date": "2026-08-04",
-      "close": 1325,
+      "close": 1515,
       "ihsg": 6320,
-      "volume": 38218300
+      "volume": 28199400
     },
     {
       "date": "2026-08-05",
-      "close": 1425,
+      "close": 1505,
       "ihsg": 6351,
-      "volume": 68734700
+      "volume": 17831200
     },
     {
       "date": "2026-08-06",
-      "close": 1400,
+      "close": 1505,
       "ihsg": 6344,
-      "volume": 36788000
+      "volume": 28221800
     },
     {
       "date": "2026-08-07",
-      "close": 1420,
+      "close": 1510,
       "ihsg": 6410,
-      "volume": 19096000
+      "volume": 17980000
     },
     {
       "date": "2026-08-10",
-      "close": 1385,
+      "close": 1510,
       "ihsg": 6365,
-      "volume": 37440400
+      "volume": 20588100
     },
     {
       "date": "2026-08-11",
-      "close": 1395,
+      "close": 1490,
       "ihsg": 6268,
-      "volume": 50177000
+      "volume": 29821300
     },
     {
       "date": "2026-08-12",
-      "close": 1390,
+      "close": 1485,
       "ihsg": 6374,
-      "volume": 30175500
+      "volume": 26112600
     },
     {
       "date": "2026-08-13",
-      "close": 1350,
+      "close": 1475,
       "ihsg": 6302,
-      "volume": 35838400
+      "volume": 25697600
     },
     {
       "date": "2026-08-14",
-      "close": 1370,
+      "close": 1495,
       "ihsg": 6402,
-      "volume": 22066000
+      "volume": 17773500
     },
     {
       "date": "2026-08-18",
-      "close": 1400,
+      "close": 1515,
       "ihsg": 6450,
-      "volume": 40228000
+      "volume": 32365400
     },
     {
       "date": "2026-08-19",
-      "close": 1355,
+      "close": 1505,
       "ihsg": 6394,
-      "volume": 36791800
+      "volume": 14895400
     },
     {
       "date": "2026-08-20",
-      "close": 1375,
+      "close": 1525,
       "ihsg": 6502,
-      "volume": 18249900
+      "volume": 27450600
     },
     {
       "date": "2026-08-21",
-      "close": 1440,
+      "close": 1520,
       "ihsg": 6526,
-      "volume": 43120200
+      "volume": 18956900
     },
     {
       "date": "2026-08-24",
-      "close": 1415,
+      "close": 1540,
       "ihsg": 6502,
-      "volume": 27292400
+      "volume": 36377100
     },
     {
       "date": "2026-08-26",
-      "close": 1380,
+      "close": 1520,
       "ihsg": 6406,
-      "volume": 29307200
+      "volume": 52147400
     },
     {
       "date": "2026-08-27",
-      "close": 1375,
+      "close": 1535,
       "ihsg": 6522,
-      "volume": 20056500
+      "volume": 26339500
     },
     {
       "date": "2026-08-28",
-      "close": 1340,
+      "close": 1510,
       "ihsg": 6518,
-      "volume": 48088200
+      "volume": 57344100
     },
     {
       "date": "2026-08-31",
-      "close": 1335,
+      "close": 1530,
       "ihsg": 6525,
-      "volume": 72131700
+      "volume": 37894200
     },
     {
       "date": "2026-09-01",
-      "close": 1340,
+      "close": 1555,
       "ihsg": 6600,
-      "volume": 28779900
+      "volume": 48408200
     },
     {
       "date": "2026-09-02",
-      "close": 1305,
+      "close": 1535,
       "ihsg": 6596,
-      "volume": 36147700
+      "volume": 24552900
     },
     {
       "date": "2026-09-03",
-      "close": 1325,
+      "close": 1540,
       "ihsg": 6668,
-      "volume": 32300100
+      "volume": 67582000
     },
     {
       "date": "2026-09-04",
-      "close": 1310,
+      "close": 1520,
       "ihsg": 6636,
-      "volume": 30783000
+      "volume": 25218600
     },
     {
       "date": "2026-09-07",
-      "close": 1315,
+      "close": 1520,
       "ihsg": 6620,
-      "volume": 18085300
+      "volume": 28201200
     },
     {
       "date": "2026-09-08",
-      "close": 1310,
+      "close": 1540,
       "ihsg": 6686,
-      "volume": 19926100
+      "volume": 29486400
     },
     {
       "date": "2026-09-09",
-      "close": 1310,
+      "close": 1545,
       "ihsg": 6678,
-      "volume": 40247100
+      "volume": 21931600
     },
     {
       "date": "2026-09-10",
-      "close": 1300,
+      "close": 1515,
       "ihsg": 6589,
-      "volume": 23188500
+      "volume": 40942100
     },
     {
       "date": "2026-09-11",
-      "close": 1255,
+      "close": 1520,
       "ihsg": 6541,
-      "volume": 29331500
+      "volume": 24755500
+    }
+  ],
+  "PTBA": [
+    {
+      "date": "2026-08-03",
+      "close": 2320,
+      "ihsg": 6234,
+      "volume": 14504100
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2360,
+      "ihsg": 6320,
+      "volume": 9082700
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2360,
+      "ihsg": 6351,
+      "volume": 13690100
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2350,
+      "ihsg": 6344,
+      "volume": 9337400
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2370,
+      "ihsg": 6410,
+      "volume": 9940400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2390,
+      "ihsg": 6365,
+      "volume": 10339700
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2350,
+      "ihsg": 6268,
+      "volume": 9427900
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2350,
+      "ihsg": 6374,
+      "volume": 10222900
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2340,
+      "ihsg": 6302,
+      "volume": 5823800
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2360,
+      "ihsg": 6402,
+      "volume": 10351500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2370,
+      "ihsg": 6450,
+      "volume": 10452300
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2370,
+      "ihsg": 6394,
+      "volume": 9062800
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2400,
+      "ihsg": 6502,
+      "volume": 7825700
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2400,
+      "ihsg": 6526,
+      "volume": 8314400
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2480,
+      "ihsg": 6502,
+      "volume": 33941000
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2420,
+      "ihsg": 6406,
+      "volume": 19885800
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2500,
+      "ihsg": 6522,
+      "volume": 23812700
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2530,
+      "ihsg": 6518,
+      "volume": 37465600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2560,
+      "ihsg": 6525,
+      "volume": 30232000
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2670,
+      "ihsg": 6600,
+      "volume": 115499100
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2720,
+      "ihsg": 6596,
+      "volume": 93828700
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2890,
+      "ihsg": 6668,
+      "volume": 109723500
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2880,
+      "ihsg": 6636,
+      "volume": 26032000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 3010,
+      "ihsg": 6620,
+      "volume": 92569800
+    },
+    {
+      "date": "2026-09-08",
+      "close": 3000,
+      "ihsg": 6686,
+      "volume": 67132000
+    },
+    {
+      "date": "2026-09-09",
+      "close": 3100,
+      "ihsg": 6678,
+      "volume": 104634100
+    },
+    {
+      "date": "2026-09-10",
+      "close": 3100,
+      "ihsg": 6589,
+      "volume": 81084900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 3100,
+      "ihsg": 6541,
+      "volume": 51290600
+    }
+  ],
+  "TINS": [
+    {
+      "date": "2026-08-03",
+      "close": 3750,
+      "ihsg": 6234,
+      "volume": 51389000
+    },
+    {
+      "date": "2026-08-04",
+      "close": 3820,
+      "ihsg": 6320,
+      "volume": 64537000
+    },
+    {
+      "date": "2026-08-05",
+      "close": 3880,
+      "ihsg": 6351,
+      "volume": 74756700
+    },
+    {
+      "date": "2026-08-06",
+      "close": 3800,
+      "ihsg": 6344,
+      "volume": 62218800
+    },
+    {
+      "date": "2026-08-07",
+      "close": 3860,
+      "ihsg": 6410,
+      "volume": 68559300
+    },
+    {
+      "date": "2026-08-10",
+      "close": 3850,
+      "ihsg": 6365,
+      "volume": 44764500
+    },
+    {
+      "date": "2026-08-11",
+      "close": 3770,
+      "ihsg": 6268,
+      "volume": 43391800
+    },
+    {
+      "date": "2026-08-12",
+      "close": 3840,
+      "ihsg": 6374,
+      "volume": 43406200
+    },
+    {
+      "date": "2026-08-13",
+      "close": 3720,
+      "ihsg": 6302,
+      "volume": 39778400
+    },
+    {
+      "date": "2026-08-14",
+      "close": 3890,
+      "ihsg": 6402,
+      "volume": 134195200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 3900,
+      "ihsg": 6450,
+      "volume": 39461900
+    },
+    {
+      "date": "2026-08-19",
+      "close": 4050,
+      "ihsg": 6394,
+      "volume": 105563700
+    },
+    {
+      "date": "2026-08-20",
+      "close": 3990,
+      "ihsg": 6502,
+      "volume": 55152900
+    },
+    {
+      "date": "2026-08-21",
+      "close": 4030,
+      "ihsg": 6526,
+      "volume": 23066900
+    },
+    {
+      "date": "2026-08-24",
+      "close": 4130,
+      "ihsg": 6502,
+      "volume": 63092700
+    },
+    {
+      "date": "2026-08-26",
+      "close": 4020,
+      "ihsg": 6406,
+      "volume": 42607700
+    },
+    {
+      "date": "2026-08-27",
+      "close": 4080,
+      "ihsg": 6522,
+      "volume": 34089000
+    },
+    {
+      "date": "2026-08-28",
+      "close": 4030,
+      "ihsg": 6518,
+      "volume": 33513500
+    },
+    {
+      "date": "2026-08-31",
+      "close": 4040,
+      "ihsg": 6525,
+      "volume": 24337100
+    },
+    {
+      "date": "2026-09-01",
+      "close": 4090,
+      "ihsg": 6600,
+      "volume": 36482300
+    },
+    {
+      "date": "2026-09-02",
+      "close": 4010,
+      "ihsg": 6596,
+      "volume": 42118400
+    },
+    {
+      "date": "2026-09-03",
+      "close": 4090,
+      "ihsg": 6668,
+      "volume": 37002300
+    },
+    {
+      "date": "2026-09-04",
+      "close": 4420,
+      "ihsg": 6636,
+      "volume": 101765000
+    },
+    {
+      "date": "2026-09-07",
+      "close": 4480,
+      "ihsg": 6620,
+      "volume": 56797200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 4400,
+      "ihsg": 6686,
+      "volume": 36920400
+    },
+    {
+      "date": "2026-09-09",
+      "close": 4600,
+      "ihsg": 6678,
+      "volume": 59499900
+    },
+    {
+      "date": "2026-09-10",
+      "close": 4650,
+      "ihsg": 6589,
+      "volume": 86214100
+    },
+    {
+      "date": "2026-09-11",
+      "close": 4740,
+      "ihsg": 6541,
+      "volume": 55059000
+    }
+  ],
+  "TLKM": [
+    {
+      "date": "2026-08-03",
+      "close": 2740,
+      "ihsg": 6234,
+      "volume": 112278700
+    },
+    {
+      "date": "2026-08-04",
+      "close": 2790,
+      "ihsg": 6320,
+      "volume": 90753600
+    },
+    {
+      "date": "2026-08-05",
+      "close": 2710,
+      "ihsg": 6351,
+      "volume": 109494500
+    },
+    {
+      "date": "2026-08-06",
+      "close": 2650,
+      "ihsg": 6344,
+      "volume": 138223900
+    },
+    {
+      "date": "2026-08-07",
+      "close": 2710,
+      "ihsg": 6410,
+      "volume": 66412400
+    },
+    {
+      "date": "2026-08-10",
+      "close": 2620,
+      "ihsg": 6365,
+      "volume": 93974000
+    },
+    {
+      "date": "2026-08-11",
+      "close": 2610,
+      "ihsg": 6268,
+      "volume": 84124100
+    },
+    {
+      "date": "2026-08-12",
+      "close": 2590,
+      "ihsg": 6374,
+      "volume": 120373100
+    },
+    {
+      "date": "2026-08-13",
+      "close": 2590,
+      "ihsg": 6302,
+      "volume": 76115000
+    },
+    {
+      "date": "2026-08-14",
+      "close": 2620,
+      "ihsg": 6402,
+      "volume": 80799200
+    },
+    {
+      "date": "2026-08-18",
+      "close": 2600,
+      "ihsg": 6450,
+      "volume": 80089000
+    },
+    {
+      "date": "2026-08-19",
+      "close": 2600,
+      "ihsg": 6394,
+      "volume": 45580300
+    },
+    {
+      "date": "2026-08-20",
+      "close": 2610,
+      "ihsg": 6502,
+      "volume": 86747700
+    },
+    {
+      "date": "2026-08-21",
+      "close": 2610,
+      "ihsg": 6526,
+      "volume": 72276500
+    },
+    {
+      "date": "2026-08-24",
+      "close": 2620,
+      "ihsg": 6502,
+      "volume": 46321100
+    },
+    {
+      "date": "2026-08-26",
+      "close": 2600,
+      "ihsg": 6406,
+      "volume": 82579200
+    },
+    {
+      "date": "2026-08-27",
+      "close": 2610,
+      "ihsg": 6522,
+      "volume": 115845900
+    },
+    {
+      "date": "2026-08-28",
+      "close": 2570,
+      "ihsg": 6518,
+      "volume": 78958600
+    },
+    {
+      "date": "2026-08-31",
+      "close": 2600,
+      "ihsg": 6525,
+      "volume": 204591800
+    },
+    {
+      "date": "2026-09-01",
+      "close": 2610,
+      "ihsg": 6600,
+      "volume": 82430900
+    },
+    {
+      "date": "2026-09-02",
+      "close": 2590,
+      "ihsg": 6596,
+      "volume": 105899600
+    },
+    {
+      "date": "2026-09-03",
+      "close": 2600,
+      "ihsg": 6668,
+      "volume": 76991100
+    },
+    {
+      "date": "2026-09-04",
+      "close": 2610,
+      "ihsg": 6636,
+      "volume": 84953700
+    },
+    {
+      "date": "2026-09-07",
+      "close": 2610,
+      "ihsg": 6620,
+      "volume": 42030200
+    },
+    {
+      "date": "2026-09-08",
+      "close": 2650,
+      "ihsg": 6686,
+      "volume": 173160300
+    },
+    {
+      "date": "2026-09-09",
+      "close": 2660,
+      "ihsg": 6678,
+      "volume": 119056300
+    },
+    {
+      "date": "2026-09-10",
+      "close": 2630,
+      "ihsg": 6589,
+      "volume": 87447500
+    },
+    {
+      "date": "2026-09-11",
+      "close": 2600,
+      "ihsg": 6541,
+      "volume": 88455300
     }
   ]
 };
@@ -3950,221 +3950,6 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       }
     ]
   },
-  "TLKM": {
-    "buyers": [
-      {
-        "code": "CC",
-        "origin": "local",
-        "value": 2607839688000,
-        "buyIdr": 2607839688000,
-        "sellIdr": 2255063661000,
-        "netIdr": 352776027000
-      },
-      {
-        "code": "YU",
-        "origin": "foreign",
-        "value": 1977104460000,
-        "buyIdr": 1977104460000,
-        "sellIdr": 1679087717000,
-        "netIdr": 298016743000
-      },
-      {
-        "code": "XL",
-        "origin": "local",
-        "value": 849719953000,
-        "buyIdr": 849719953000,
-        "sellIdr": 627065702000,
-        "netIdr": 222654251000
-      },
-      {
-        "code": "YP",
-        "origin": "foreign",
-        "value": 539042768000,
-        "buyIdr": 539042768000,
-        "sellIdr": 455932625000,
-        "netIdr": 83110143000
-      },
-      {
-        "code": "PD",
-        "origin": "local",
-        "value": 461245789000,
-        "buyIdr": 461245789000,
-        "sellIdr": 369378479000,
-        "netIdr": 91867310000
-      },
-      {
-        "code": "XC",
-        "origin": "local",
-        "value": 409034792000,
-        "buyIdr": 409034792000,
-        "sellIdr": 334046883000,
-        "netIdr": 74987909000
-      },
-      {
-        "code": "NI",
-        "origin": "local",
-        "value": 332347489000,
-        "buyIdr": 332347489000,
-        "sellIdr": 259480983000,
-        "netIdr": 72866506000
-      },
-      {
-        "code": "OD",
-        "origin": "local",
-        "value": 257621101000,
-        "buyIdr": 257621101000,
-        "sellIdr": 181931050000,
-        "netIdr": 75690051000
-      },
-      {
-        "code": "LG",
-        "origin": "local",
-        "value": 184301971000,
-        "buyIdr": 184301971000,
-        "sellIdr": 71492143000,
-        "netIdr": 112809828000
-      },
-      {
-        "code": "SH",
-        "origin": "local",
-        "value": 72408565000,
-        "buyIdr": 72408565000,
-        "sellIdr": 6545595000,
-        "netIdr": 65862970000
-      }
-    ],
-    "sellers": [
-      {
-        "code": "AK",
-        "origin": "foreign",
-        "value": 3934228133000,
-        "buyIdr": 3712252919000,
-        "sellIdr": 3934228133000,
-        "netIdr": -221975214000
-      },
-      {
-        "code": "ZP",
-        "origin": "foreign",
-        "value": 3137180383000,
-        "buyIdr": 2635056438000,
-        "sellIdr": 3137180383000,
-        "netIdr": -502123945000
-      },
-      {
-        "code": "BK",
-        "origin": "foreign",
-        "value": 2206522575000,
-        "buyIdr": 2094969521000,
-        "sellIdr": 2206522575000,
-        "netIdr": -111553054000
-      },
-      {
-        "code": "KZ",
-        "origin": "foreign",
-        "value": 1128200479000,
-        "buyIdr": 551735754000,
-        "sellIdr": 1128200479000,
-        "netIdr": -576464725000
-      },
-      {
-        "code": "BB",
-        "origin": "foreign",
-        "value": 686932448000,
-        "buyIdr": 608803964000,
-        "sellIdr": 686932448000,
-        "netIdr": -78128484000
-      },
-      {
-        "code": "TP",
-        "origin": "foreign",
-        "value": 260836175000,
-        "buyIdr": 177910578000,
-        "sellIdr": 260836175000,
-        "netIdr": -82925597000
-      },
-      {
-        "code": "AG",
-        "origin": "foreign",
-        "value": 214990229000,
-        "buyIdr": 131663371000,
-        "sellIdr": 214990229000,
-        "netIdr": -83326858000
-      },
-      {
-        "code": "SS",
-        "origin": "local",
-        "value": 113209619000,
-        "buyIdr": 59124459000,
-        "sellIdr": 113209619000,
-        "netIdr": -54085160000
-      },
-      {
-        "code": "BQ",
-        "origin": "foreign",
-        "value": 110882566000,
-        "buyIdr": 56008753000,
-        "sellIdr": 110882566000,
-        "netIdr": -54873813000
-      },
-      {
-        "code": "IU",
-        "origin": "local",
-        "value": 20167085000,
-        "buyIdr": 1542702000,
-        "sellIdr": 20167085000,
-        "netIdr": -18624383000
-      }
-    ],
-    "netForeign": -481094325000,
-    "totalMarketValue": 6961866415000,
-    "freeFloatShares": 41259413213.9,
-    "sharesOutstanding": 99062216600.0,
-    "referencePrice": 2600,
-    "windowStart": "2026-06-07",
-    "windowEnd": "2026-09-05",
-    "ownershipSeries": [
-      {
-        "date": "2026-01-30",
-        "foreignPct": 0.39,
-        "localPct": 0.0886
-      },
-      {
-        "date": "2026-02-27",
-        "foreignPct": 0.3893,
-        "localPct": 0.0893
-      },
-      {
-        "date": "2026-03-31",
-        "foreignPct": 0.39,
-        "localPct": 0.0886
-      },
-      {
-        "date": "2026-04-30",
-        "foreignPct": 0.3898,
-        "localPct": 0.0888
-      },
-      {
-        "date": "2026-05-29",
-        "foreignPct": 0.3895,
-        "localPct": 0.0891
-      },
-      {
-        "date": "2026-06-30",
-        "foreignPct": 0.3855,
-        "localPct": 0.0931
-      },
-      {
-        "date": "2026-07-31",
-        "foreignPct": 0.3841,
-        "localPct": 0.0945
-      },
-      {
-        "date": "2026-08-31",
-        "foreignPct": 0.3823,
-        "localPct": 0.0962
-      }
-    ]
-  },
   "GOTO": {
     "buyers": [
       {
@@ -4510,13 +4295,228 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "referencePrice": 1520,
     "windowStart": "2026-06-15",
     "windowEnd": "2026-09-13"
+  },
+  "TLKM": {
+    "buyers": [
+      {
+        "code": "CC",
+        "origin": "local",
+        "value": 2607839688000,
+        "buyIdr": 2607839688000,
+        "sellIdr": 2255063661000,
+        "netIdr": 352776027000
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 1977104460000,
+        "buyIdr": 1977104460000,
+        "sellIdr": 1679087717000,
+        "netIdr": 298016743000
+      },
+      {
+        "code": "XL",
+        "origin": "local",
+        "value": 849719953000,
+        "buyIdr": 849719953000,
+        "sellIdr": 627065702000,
+        "netIdr": 222654251000
+      },
+      {
+        "code": "YP",
+        "origin": "foreign",
+        "value": 539042768000,
+        "buyIdr": 539042768000,
+        "sellIdr": 455932625000,
+        "netIdr": 83110143000
+      },
+      {
+        "code": "PD",
+        "origin": "local",
+        "value": 461245789000,
+        "buyIdr": 461245789000,
+        "sellIdr": 369378479000,
+        "netIdr": 91867310000
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 409034792000,
+        "buyIdr": 409034792000,
+        "sellIdr": 334046883000,
+        "netIdr": 74987909000
+      },
+      {
+        "code": "NI",
+        "origin": "local",
+        "value": 332347489000,
+        "buyIdr": 332347489000,
+        "sellIdr": 259480983000,
+        "netIdr": 72866506000
+      },
+      {
+        "code": "OD",
+        "origin": "local",
+        "value": 257621101000,
+        "buyIdr": 257621101000,
+        "sellIdr": 181931050000,
+        "netIdr": 75690051000
+      },
+      {
+        "code": "LG",
+        "origin": "local",
+        "value": 184301971000,
+        "buyIdr": 184301971000,
+        "sellIdr": 71492143000,
+        "netIdr": 112809828000
+      },
+      {
+        "code": "SH",
+        "origin": "local",
+        "value": 72408565000,
+        "buyIdr": 72408565000,
+        "sellIdr": 6545595000,
+        "netIdr": 65862970000
+      }
+    ],
+    "sellers": [
+      {
+        "code": "AK",
+        "origin": "foreign",
+        "value": 3934228133000,
+        "buyIdr": 3712252919000,
+        "sellIdr": 3934228133000,
+        "netIdr": -221975214000
+      },
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 3137180383000,
+        "buyIdr": 2635056438000,
+        "sellIdr": 3137180383000,
+        "netIdr": -502123945000
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 2206522575000,
+        "buyIdr": 2094969521000,
+        "sellIdr": 2206522575000,
+        "netIdr": -111553054000
+      },
+      {
+        "code": "KZ",
+        "origin": "foreign",
+        "value": 1128200479000,
+        "buyIdr": 551735754000,
+        "sellIdr": 1128200479000,
+        "netIdr": -576464725000
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 686932448000,
+        "buyIdr": 608803964000,
+        "sellIdr": 686932448000,
+        "netIdr": -78128484000
+      },
+      {
+        "code": "TP",
+        "origin": "foreign",
+        "value": 260836175000,
+        "buyIdr": 177910578000,
+        "sellIdr": 260836175000,
+        "netIdr": -82925597000
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 214990229000,
+        "buyIdr": 131663371000,
+        "sellIdr": 214990229000,
+        "netIdr": -83326858000
+      },
+      {
+        "code": "SS",
+        "origin": "local",
+        "value": 113209619000,
+        "buyIdr": 59124459000,
+        "sellIdr": 113209619000,
+        "netIdr": -54085160000
+      },
+      {
+        "code": "BQ",
+        "origin": "foreign",
+        "value": 110882566000,
+        "buyIdr": 56008753000,
+        "sellIdr": 110882566000,
+        "netIdr": -54873813000
+      },
+      {
+        "code": "IU",
+        "origin": "local",
+        "value": 20167085000,
+        "buyIdr": 1542702000,
+        "sellIdr": 20167085000,
+        "netIdr": -18624383000
+      }
+    ],
+    "netForeign": -481094325000,
+    "totalMarketValue": 6961866415000,
+    "freeFloatShares": 41259413213.9,
+    "sharesOutstanding": 99062216600.0,
+    "referencePrice": 2600,
+    "windowStart": "2026-06-07",
+    "windowEnd": "2026-09-05",
+    "ownershipSeries": [
+      {
+        "date": "2026-01-30",
+        "foreignPct": 0.39,
+        "localPct": 0.0886
+      },
+      {
+        "date": "2026-02-27",
+        "foreignPct": 0.3893,
+        "localPct": 0.0893
+      },
+      {
+        "date": "2026-03-31",
+        "foreignPct": 0.39,
+        "localPct": 0.0886
+      },
+      {
+        "date": "2026-04-30",
+        "foreignPct": 0.3898,
+        "localPct": 0.0888
+      },
+      {
+        "date": "2026-05-29",
+        "foreignPct": 0.3895,
+        "localPct": 0.0891
+      },
+      {
+        "date": "2026-06-30",
+        "foreignPct": 0.3855,
+        "localPct": 0.0931
+      },
+      {
+        "date": "2026-07-31",
+        "foreignPct": 0.3841,
+        "localPct": 0.0945
+      },
+      {
+        "date": "2026-08-31",
+        "foreignPct": 0.3823,
+        "localPct": 0.0962
+      }
+    ]
   }
 };
 
 export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
+  "ADRO": [],
+  "AMRT": [],
   "ANTM": [],
-  "INCO": [],
-  "TINS": [],
   "BBCA": [],
   "BBRI": [],
   "BMRI": [
@@ -4547,22 +4547,35 @@ export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
       "price": 4430.0
     }
   ],
-  "TLKM": [],
-  "JSMR": [
+  "BUKA": [
     {
-      "symbol": "JSMR",
-      "holderName": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund",
+      "symbol": "BUKA",
+      "holderName": "Rd Adi Wardhana Sariaatmadja",
       "holderType": "insider",
       "transactionType": "buy",
-      "sharesBefore": 362426800,
-      "sharesAfter": 365685500,
-      "sharesDelta": 3258700,
-      "filedAt": "2026-09-02T19:25:26+07:00",
-      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-02092026-8460-00.pdf-0.pdf",
-      "transactionValue": 9522965100.0,
-      "price": 2922.32
+      "sharesBefore": 772585501,
+      "sharesAfter": 1407585501,
+      "sharesDelta": 635000000,
+      "filedAt": "2026-09-08T16:15:50+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-6401-00.pdf-0.pdf",
+      "transactionValue": 78740000000.0,
+      "price": 124.0
+    },
+    {
+      "symbol": "BUKA",
+      "holderName": "Kreatif Media Karya",
+      "holderType": "insider",
+      "transactionType": "buy",
+      "sharesBefore": 46321746385,
+      "sharesAfter": 47125034185,
+      "sharesDelta": 803287800,
+      "filedAt": "2026-09-07T16:28:10+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-8071-00.pdf-0.pdf",
+      "transactionValue": 101214262800.0,
+      "price": 126.0
     }
   ],
+  "EMTK": [],
   "EXCL": [],
   "GOTO": [
     {
@@ -4644,41 +4657,28 @@ export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
       "price": 23.0
     }
   ],
-  "BUKA": [
+  "ICBP": [],
+  "INCO": [],
+  "JSMR": [
     {
-      "symbol": "BUKA",
-      "holderName": "Rd Adi Wardhana Sariaatmadja",
+      "symbol": "JSMR",
+      "holderName": "M+G Investment Funds (7) - M+G Global Emerging Markets Fund",
       "holderType": "insider",
       "transactionType": "buy",
-      "sharesBefore": 772585501,
-      "sharesAfter": 1407585501,
-      "sharesDelta": 635000000,
-      "filedAt": "2026-09-08T16:15:50+07:00",
-      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-08092026-6401-00.pdf-0.pdf",
-      "transactionValue": 78740000000.0,
-      "price": 124.0
-    },
-    {
-      "symbol": "BUKA",
-      "holderName": "Kreatif Media Karya",
-      "holderType": "insider",
-      "transactionType": "buy",
-      "sharesBefore": 46321746385,
-      "sharesAfter": 47125034185,
-      "sharesDelta": 803287800,
-      "filedAt": "2026-09-07T16:28:10+07:00",
-      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-07092026-8071-00.pdf-0.pdf",
-      "transactionValue": 101214262800.0,
-      "price": 126.0
+      "sharesBefore": 362426800,
+      "sharesAfter": 365685500,
+      "sharesDelta": 3258700,
+      "filedAt": "2026-09-02T19:25:26+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-02092026-8460-00.pdf-0.pdf",
+      "transactionValue": 9522965100.0,
+      "price": 2922.32
     }
   ],
-  "EMTK": [],
-  "PGAS": [],
-  "ADRO": [],
-  "PTBA": [],
-  "ICBP": [],
   "MYOR": [],
-  "AMRT": []
+  "PGAS": [],
+  "PTBA": [],
+  "TINS": [],
+  "TLKM": []
 };
 
 export const financialRows: Record<string, Array<{ label: string; value: string; period: string; interpretation: string; valueNum?: number; history?: Array<{ period: string; value: number }> }>> = {
@@ -5009,115 +5009,6 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "valueNum": -0.020747303445917464
     }
   ],
-  "TLKM": [
-    {
-      "label": "Revenue",
-      "value": "Rp38,7T",
-      "period": "2026-06-30",
-      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
-      "valueNum": 38689000000000,
-      "history": [
-        {
-          "period": "2025-09-30",
-          "value": 36613000000000
-        },
-        {
-          "period": "2025-12-31",
-          "value": 37125000000000
-        },
-        {
-          "period": "2026-03-31",
-          "value": 37189000000000
-        },
-        {
-          "period": "2026-06-30",
-          "value": 38689000000000
-        }
-      ]
-    },
-    {
-      "label": "Operating margin",
-      "value": "28,7%",
-      "period": "2026-06-30",
-      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
-      "valueNum": 0.28731680839515106,
-      "history": [
-        {
-          "period": "2025-09-30",
-          "value": 0.2572310381558463
-        },
-        {
-          "period": "2025-12-31",
-          "value": 0.12923905723905724
-        },
-        {
-          "period": "2026-03-31",
-          "value": 0.2459060474871602
-        },
-        {
-          "period": "2026-06-30",
-          "value": 0.28731680839515106
-        }
-      ]
-    },
-    {
-      "label": "Operating cash flow",
-      "value": "Rp17,6T",
-      "period": "2026-06-30",
-      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
-      "valueNum": 17572000000000,
-      "history": [
-        {
-          "period": "2025-09-30",
-          "value": 17032000000000
-        },
-        {
-          "period": "2025-12-31",
-          "value": 14237000000000
-        },
-        {
-          "period": "2026-03-31",
-          "value": 17290000000000
-        },
-        {
-          "period": "2026-06-30",
-          "value": 17572000000000
-        }
-      ]
-    },
-    {
-      "label": "Total debt / equity",
-      "value": "42,2%",
-      "period": "2026-06-30",
-      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
-      "valueNum": 0.42206780968201235,
-      "history": [
-        {
-          "period": "2025-09-30",
-          "value": 0.345270043609527
-        },
-        {
-          "period": "2025-12-31",
-          "value": 0.3372858499903678
-        },
-        {
-          "period": "2026-03-31",
-          "value": 0.2917591938899942
-        },
-        {
-          "period": "2026-06-30",
-          "value": 0.42206780968201235
-        }
-      ]
-    },
-    {
-      "label": "Revenue QoQ",
-      "value": "4,0%",
-      "period": "2026-06-30",
-      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
-      "valueNum": 0.04033450751566314
-    }
-  ],
   "GOTO": [
     {
       "label": "Revenue",
@@ -5335,27 +5226,136 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
       "interpretation": "Pembanding kuartal sebelumnya (2025-12-31); bukan pertumbuhan tahunan.",
       "valueNum": -0.10344166106966035
     }
+  ],
+  "TLKM": [
+    {
+      "label": "Revenue",
+      "value": "Rp38,7T",
+      "period": "2026-06-30",
+      "interpretation": "Dipakai sebagai konteks skala monetisasi; bukan penentu arah harga.",
+      "valueNum": 38689000000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 36613000000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 37125000000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 37189000000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 38689000000000
+        }
+      ]
+    },
+    {
+      "label": "Operating margin",
+      "value": "28,7%",
+      "period": "2026-06-30",
+      "interpretation": "Menguji apakah perubahan harga jual atau biaya diteruskan ke operasi.",
+      "valueNum": 0.28731680839515106,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.2572310381558463
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.12923905723905724
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.2459060474871602
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.28731680839515106
+        }
+      ]
+    },
+    {
+      "label": "Operating cash flow",
+      "value": "Rp17,6T",
+      "period": "2026-06-30",
+      "interpretation": "Menguji transmisi perubahan ke kas operasi, bukan ke harga saham.",
+      "valueNum": 17572000000000,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 17032000000000
+        },
+        {
+          "period": "2025-12-31",
+          "value": 14237000000000
+        },
+        {
+          "period": "2026-03-31",
+          "value": 17290000000000
+        },
+        {
+          "period": "2026-06-30",
+          "value": 17572000000000
+        }
+      ]
+    },
+    {
+      "label": "Total debt / equity",
+      "value": "42,2%",
+      "period": "2026-06-30",
+      "interpretation": "Memberi konteks ruang neraca saat siklus berubah.",
+      "valueNum": 0.42206780968201235,
+      "history": [
+        {
+          "period": "2025-09-30",
+          "value": 0.345270043609527
+        },
+        {
+          "period": "2025-12-31",
+          "value": 0.3372858499903678
+        },
+        {
+          "period": "2026-03-31",
+          "value": 0.2917591938899942
+        },
+        {
+          "period": "2026-06-30",
+          "value": 0.42206780968201235
+        }
+      ]
+    },
+    {
+      "label": "Revenue QoQ",
+      "value": "4,0%",
+      "period": "2026-06-30",
+      "interpretation": "Pembanding kuartal sebelumnya (2026-03-31); bukan pertumbuhan tahunan.",
+      "valueNum": 0.04033450751566314
+    }
   ]
 };
 
 export const sectorReturns: Record<string, number> = {
+  "Technology": -0.018821,
+  "Basic Materials": 0.041557,
+  "Consumer": -0.021312,
   "Infrastructure": -0.022054,
   "Energy": -0.00472,
-  "Consumer": -0.021312,
-  "Financials": -0.040221,
-  "Basic Materials": 0.041557,
-  "Technology": -0.018821
+  "Financials": -0.040221
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Telecommunication": -0.022203,
-  "Software & IT Services": -0.018821,
-  "Transportation Infrastructure": -0.019934,
-  "Oil, Gas & Coal": -0.00472,
-  "Food & Staples Retailing": -0.041985,
-  "Food & Beverage": -0.012101,
   "Basic Materials": 0.041557,
-  "Banks": -0.040221
+  "Food & Beverage": -0.012101,
+  "Banks": -0.040221,
+  "Oil, Gas & Coal": -0.00472,
+  "Software & IT Services": -0.018821,
+  "Food & Staples Retailing": -0.041985,
+  "Transportation Infrastructure": -0.019934,
+  "Telecommunication": -0.022203
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
@@ -5380,6 +5380,20 @@ export const subsectorContext: Record<string, { totalCompanies: number; medianPe
 };
 
 export const revenueSegments: Record<string, Array<{ segment: string; share: number }>> = {
+  "ADRO": [
+    {
+      "segment": "Sales of Coal",
+      "share": 0.5542
+    },
+    {
+      "segment": "Mining services",
+      "share": 0.4083
+    },
+    {
+      "segment": "Others",
+      "share": 0.0375
+    }
+  ],
   "BBCA": [
     {
       "segment": "Net Interest Income",
@@ -5421,42 +5435,28 @@ export const revenueSegments: Record<string, Array<{ segment: string; share: num
       "segment": "Interconnection revenues",
       "share": 0.0613
     }
-  ],
-  "ADRO": [
-    {
-      "segment": "Sales of Coal",
-      "share": 0.5542
-    },
-    {
-      "segment": "Mining services",
-      "share": 0.4083
-    },
-    {
-      "segment": "Others",
-      "share": 0.0375
-    }
   ]
 };
 
 export const betas: Record<string, number> = {
+  "ADRO": 0.77,
+  "AMRT": 1.08,
   "ANTM": 0.95,
-  "INCO": 1.48,
-  "TINS": 0.46,
   "BBCA": 0.74,
   "BBRI": 0.95,
   "BMRI": 0.71,
-  "TLKM": 0.52,
-  "JSMR": 0.72,
-  "EXCL": 1.43,
-  "GOTO": 0.0,
   "BUKA": 1.55,
   "EMTK": 1.79,
-  "PGAS": 0.66,
-  "ADRO": 0.77,
-  "PTBA": 0.81,
+  "EXCL": 1.43,
+  "GOTO": 0.0,
   "ICBP": 0.13,
+  "INCO": 1.48,
+  "JSMR": 0.72,
   "MYOR": 0.65,
-  "AMRT": 1.08
+  "PGAS": 0.66,
+  "PTBA": 0.81,
+  "TINS": 0.46,
+  "TLKM": 0.52
 };
 
 export const rawEvents: RawEvent[] = [
@@ -5583,29 +5583,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-tlkm-2026-09-11",
-    "title": "Arus asing neto TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11",
-    "summary": "Neto asing Rp-481,1M ≈ 6,9% dari nilai transaksi Rp7,0T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-11T16:15:00+07:00",
-    "sector": "Infrastructure",
-    "impactLinks": [
-      {
-        "symbol": "TLKM",
-        "direction": "Adverse",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
     "id": "flows-foreign-net-goto-2026-09-11",
     "title": "Arus asing neto GOTO Rp5,2M pada jendela 2026-08-03–2026-09-11",
     "summary": "Neto asing Rp5,2M ≈ 15,5% dari nilai transaksi Rp33,6M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
@@ -5644,6 +5621,29 @@ export const rawEvents: RawEvent[] = [
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
         "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-106,2M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-tlkm-2026-09-11",
+    "title": "Arus asing neto TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11",
+    "summary": "Neto asing Rp-481,1M ≈ 6,9% dari nilai transaksi Rp7,0T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-481,1M pada jendela 2026-08-03–2026-09-11. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -5721,29 +5721,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "sentiment-attention-tlkm-2026-09-11",
-    "title": "Lonjakan liputan TLKM: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 20 item TLKM pada 2026-09-05–2026-09-11 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-11T16:15:00+07:00",
-    "sector": "Infrastructure",
-    "impactLinks": [
-      {
-        "symbol": "TLKM",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
     "id": "sentiment-attention-buka-2026-09-11",
     "title": "Lonjakan liputan BUKA: 6 berita 7 hari terakhir (vs 2 pekan sebelumnya)",
     "summary": "Sectors news API mencatat 6 item BUKA pada 2026-09-05–2026-09-11 vs 2 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
@@ -5759,6 +5736,29 @@ export const rawEvents: RawEvent[] = [
         "relevance": 55,
         "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
         "rationale": "Hitungan rekaman Sectors news untuk BUKA: 6 vs 2 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-tlkm-2026-09-11",
+    "title": "Lonjakan liputan TLKM: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item TLKM pada 2026-09-05–2026-09-11 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-11T16:15:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
       }
     ],
     "source": null,
@@ -5929,33 +5929,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
-    "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
-    "summary": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed…",
-    "body": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed hydroxide precipitate (MHP), which contains about 15,000 tons of cobalt, and mechanical completion is now expected by September-October 2026. Mining operations are already 83% complete and HPAL construction 86% complete, with the first ore sale recorded on 28 February 2026. Vale also targets 67,645 tons of nickel matte production for 2026 and a limonite output of 300,000 tons per month (about 9,677 tons per day) as part of the broader output plan. The project is being developed in partnership with Zhejiang Huayou Cobalt Co., Ltd and Ford Motor Co, which support the downstream battery and automotive supply chain.",
-    "category": "commodity",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-10T17:10:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "INCO",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Harga komoditas → realisasi harga → margin",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Partnerships & Agreements, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://market.bisnis.com/read/20260910/192/2003124/vale-inco-kejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
-    "tags": [
-      "Bullish",
-      "Business Expansion",
-      "Commodities",
-      "Partnerships & Agreements",
-      "Production & Operations"
-    ]
-  },
-  {
     "id": "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
     "title": "Indonesian rupiah and IHSG pressured by surge in oil prices amid US-Iran tensions.",
     "summary": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline…",
@@ -5980,6 +5953,33 @@ export const rawEvents: RawEvent[] = [
       "Currency & FX",
       "Market Sentiment",
       "Politics & Regulation"
+    ]
+  },
+  {
+    "id": "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
+    "summary": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed…",
+    "body": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed hydroxide precipitate (MHP), which contains about 15,000 tons of cobalt, and mechanical completion is now expected by September-October 2026. Mining operations are already 83% complete and HPAL construction 86% complete, with the first ore sale recorded on 28 February 2026. Vale also targets 67,645 tons of nickel matte production for 2026 and a limonite output of 300,000 tons per month (about 9,677 tons per day) as part of the broader output plan. The project is being developed in partnership with Zhejiang Huayou Cobalt Co., Ltd and Ford Motor Co, which support the downstream battery and automotive supply chain.",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-10T17:10:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Commodities, Partnerships & Agreements, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://market.bisnis.com/read/20260910/192/2003124/vale-inco-kejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Commodities",
+      "Partnerships & Agreements",
+      "Production & Operations"
     ]
   },
   {
@@ -7628,22 +7628,26 @@ export const rawEvents: RawEvent[] = [
 ];
 
 export const eventIdsBySymbol: Record<string, string[]> = {
+  "ADRO": [
+    "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
+    "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
+    "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
+    "filing-corporate-action-buyback-adro-2026-04-17",
+    "filing-corporate-action-leadership-adro-2026-04-17",
+    "filing-corporate-action-dividend-adro",
+    "commodity-coal-2025-12-15"
+  ],
+  "AMRT": [
+    "news-ari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
+    "news-channel-amrt-midi-hingga-mapi-masuk-radar-analis",
+    "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli"
+  ],
   "ANTM": [
     "flows-foreign-net-antm-2026-09-11",
     "news-pendapatan-antam-total-penjualan-tembus-rp-50-t",
     "news-ubs-sekuritas-hingga-jp-morgan-borong-saham-antm",
     "news-emiten-yang-akuisisi-aset-tambang-di-luar-negeri",
     "commodity-gold-2025-12-01"
-  ],
-  "INCO": [
-    "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
-    "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
-    "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis"
-  ],
-  "TINS": [
-    "news-s-lampaui-target-laba-bersih-melonjak-805-persen",
-    "news-di-katalis-tins-pede-kinerja-akhir-2026-berkilau",
-    "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
   ],
   "BBCA": [
     "flows-foreign-net-bbca-2026-09-11",
@@ -7672,35 +7676,6 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
     "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf"
   ],
-  "TLKM": [
-    "flows-foreign-net-tlkm-2026-09-11",
-    "sentiment-attention-tlkm-2026-09-11",
-    "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
-    "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
-    "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
-    "filing-corporate-action-dividend-tlkm",
-    "filing-corporate-action-buyback-tlkm-2026-06-08",
-    "filing-corporate-action-leadership-tlkm-2026-06-08"
-  ],
-  "JSMR": [
-    "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
-    "news-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
-    "news-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
-    "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf"
-  ],
-  "EXCL": [
-    "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
-    "news-am-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
-    "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini"
-  ],
-  "GOTO": [
-    "flows-foreign-net-goto-2026-09-11",
-    "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
-    "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
-    "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
-    "news-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
-    "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi"
-  ],
   "BUKA": [
     "sentiment-attention-buka-2026-09-11",
     "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
@@ -7715,20 +7690,45 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-bhimata-citra-abadi-ini-alasan-dibalik-divestasi",
     "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing"
   ],
+  "EXCL": [
+    "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
+    "news-am-hari-ini-jumat-28-agustus-2026-excl-inet-hrum",
+    "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini"
+  ],
+  "GOTO": [
+    "flows-foreign-net-goto-2026-09-11",
+    "filing-entstock-from-ksei-lk-10092026-1930-00-pdf-0-pdf",
+    "filing-entstock-from-ksei-lk-09092026-8686-00-pdf-0-pdf",
+    "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
+    "news-stanley-lanjut-borong-saham-goto-rp541-9-miliar",
+    "news-rket-452557-bisnis-ev-toba-masuk-fase-monetisasi"
+  ],
+  "ICBP": [
+    "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
+    "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
+    "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000"
+  ],
+  "INCO": [
+    "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
+    "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+    "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis"
+  ],
+  "JSMR": [
+    "news-a-rp-400-miliar-jsmr-bmas-siapkan-aksi-korporasi",
+    "news-kemas-laba-rp191t-kini-garap-5-proyek-jalan-tol",
+    "news-potensi-investasi-tol-baru-siapkan-dana-rp-12-t",
+    "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf"
+  ],
+  "MYOR": [
+    "news-unaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
+    "news-naik-tipis-arus-kas-operasi-melejit-3158-persen",
+    "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000"
+  ],
   "PGAS": [
     "flows-foreign-net-pgas-2026-09-11",
     "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
     "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
     "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor"
-  ],
-  "ADRO": [
-    "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
-    "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
-    "news-ru-adro-dan-risiko-yang-perlu-dicermati-investor",
-    "filing-corporate-action-buyback-adro-2026-04-17",
-    "filing-corporate-action-leadership-adro-2026-04-17",
-    "filing-corporate-action-dividend-adro",
-    "commodity-coal-2025-12-15"
   ],
   "PTBA": [
     "news-pengalihan-utang-whoosh-indonesia-siapkan-plan-b",
@@ -7736,20 +7736,20 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-ba-ptba-melonjak-218-persen-jadi-rp-2-65-triliun",
     "commodity-coal-2025-12-15"
   ],
-  "ICBP": [
-    "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
-    "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
-    "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000"
+  "TINS": [
+    "news-s-lampaui-target-laba-bersih-melonjak-805-persen",
+    "news-di-katalis-tins-pede-kinerja-akhir-2026-berkilau",
+    "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
   ],
-  "MYOR": [
-    "news-unaan-dana-hasil-ipo-nagita-buat-pelunasan-utang",
-    "news-naik-tipis-arus-kas-operasi-melejit-3158-persen",
-    "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000"
-  ],
-  "AMRT": [
-    "news-ari-ini-79-intip-rekomendasi-saham-mnc-sekuritas",
-    "news-channel-amrt-midi-hingga-mapi-masuk-radar-analis",
-    "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli"
+  "TLKM": [
+    "flows-foreign-net-tlkm-2026-09-11",
+    "sentiment-attention-tlkm-2026-09-11",
+    "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
+    "news-kom-tlkm-tambah-100-mhz-spektrum-untuk-telkomsel",
+    "news-er-ii-2026-telkom-buka-strategi-jaga-pertumbuhan",
+    "filing-corporate-action-dividend-tlkm",
+    "filing-corporate-action-buyback-tlkm-2026-06-08",
+    "filing-corporate-action-leadership-tlkm-2026-06-08"
   ]
 };
 
@@ -7757,7 +7757,7 @@ export const caseSymbols = [
   "ANTM",
   "BBCA",
   "BBRI",
-  "TLKM",
   "GOTO",
-  "PGAS"
+  "PGAS",
+  "TLKM"
 ] as const;

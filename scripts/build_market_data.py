@@ -479,19 +479,50 @@ for symbol in SYMBOLS:
     add_corporate_action_events(symbol, date.fromisoformat(DATES[-1]))
 
 # --------------------------------------------------------------------------- commodity prices
-# Exposure legs for the miners/consumers this app tracks. Only Coal and Gold
-# have a price recording on disk today; the rest are declared here so the
-# mapping is reviewable, and add_commodity_event skips legs with no recording
-# instead of inventing a series. Drop the file in data/sectors/ + re-run to
-# light the leg up — no code change needed.
-COMMODITY_EXPOSURE = {
-    "Coal": ["ADRO", "PTBA"],
+# Which issuers a commodity reaches is read from their own recorded industry
+# and sub-industry ("Coal" / "Coal Production" for ADRO and PTBA), never typed
+# here. A hand-kept table of legs is a claim nothing re-checks: it survives a
+# refresh that drops an issuer, and it keeps asserting an exposure after the
+# recordings stop describing one.
+#
+# ASSUMED_LEGS holds the exceptions, and holds them visibly. A commodity whose
+# price is recorded but whose issuers no recording names — gold is mined by a
+# diversified miner the overview only calls "Metals & Minerals" — would
+# otherwise vanish from the app silently. Each line here is an assumption, not
+# a recording, and is kept short on purpose: a leg earns its way out of this
+# dict by a recording that names it.
+ASSUMED_LEGS = {
     "Gold": ["ANTM"],
     "Nickel": ["ANTM", "INCO"],
     "Tin": ["TINS"],
     "CPO": ["ICBP", "MYOR", "AMRT"],
     "Oil": ["PGAS", "ADRO", "PTBA"],
 }
+
+
+def _industry_terms(symbol):
+    ov = overview[symbol]["overview"]
+    # industry/sub_industry only. sub_sector is the broad family label
+    # ("Oil, Gas & Coal"), so matching it made a gas distributor a coal leg.
+    return " ".join(str(ov.get(key) or "") for key in ("industry", "sub_industry")).lower()
+
+
+def build_commodity_exposure():
+    """Legs the recordings state, plus the declared assumptions above."""
+    legs = {}
+    for name in sorted(set(list(ASSUMED_LEGS) + [
+        p.name[len("v2_mining_commodities_"):].split("_price__")[0]
+        for p in RAW.glob("v2_mining_commodities_*_price__*.json")
+    ])):
+        derived = [s for s in SYMBOLS if name.lower() in _industry_terms(s)]
+        declared = [s for s in ASSUMED_LEGS.get(name, []) if s in SYMBOLS]
+        merged = sorted(set(derived) | set(declared))
+        if merged:
+            legs[name] = merged
+    return legs
+
+
+COMMODITY_EXPOSURE = build_commodity_exposure()
 
 
 def add_commodity_event(name):
@@ -834,6 +865,22 @@ for symbol in SYMBOLS:
     })
 
 # --------------------------------------------------------------------------- emit
+symbol_union = "\n".join(f"  | {fmt(s)}" for s in SYMBOLS)
+
+# The universe as a type, in its own file with no imports. lib/types.ts
+# re-exports it; putting it inside market.generated.ts would make types.ts and
+# that file import each other, and TypeScript then resolves SymbolCode to `any`
+# at every index site without failing the build.
+SYMBOLS_OUT = ROOT / "lib" / "data" / "symbols.generated.ts"
+SYMBOLS_OUT.write_text(
+    "// GENERATED FILE \u2014 do not edit by hand.\n"
+    "// Written by scripts/build_market_data.py from the company-report recordings\n"
+    "// in data/sectors/. A symbol exists here because a recording exists for it.\n\n"
+    "export type SymbolCode =\n" + symbol_union + ";\n",
+    encoding="utf-8",
+)
+
+
 def ts(value, indent=0):
     return json.dumps(value, ensure_ascii=False, indent=2)
 

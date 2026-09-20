@@ -1,6 +1,8 @@
 import { ChevronDown } from "lucide-react";
 import { Panel } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
+import { primarySymbol } from "@/lib/data/fixtures";
+import { OBSERVATION_WINDOWS, sessionWindowSentence } from "@/lib/agent/thresholds";
 
 /**
  * Beginner-facing explainer for the three learning layers.
@@ -66,7 +68,7 @@ const LAYERS: Layer[] = [
     },
     question: "Seberapa sering tebakan Catalyst tepat?",
     analogy: "Seperti ramalan cuaca. BMKG bilang besok 70% hujan; besok langit yang menjawab. Tidak perlu ada yang komplain supaya ketahuan ramalannya terlalu percaya diri.",
-    example: "Catalyst mencatat “volume ANTM akan melampaui ambang dalam 1–10 hari bursa”, lalu memeriksanya sendiri setelah jendela itu lewat. Data volume yang memutuskan, bukan pengguna.",
+    example: `Catalyst mencatat “volume ${primarySymbol} akan melampaui ambang dalam ${sessionWindowSentence(OBSERVATION_WINDOWS.defaultSessions)}”, lalu memeriksanya sendiri setelah jendela itu lewat. Data volume yang memutuskan, bukan pengguna.`,
     changes: "Ambang dan perkiraan jeda waktu yang dipakai Catalyst — setelah Anda menyetujui usulannya.",
     keeps: "Apa yang penting bagi Anda — itu tetap datang dari Anda.",
   },
