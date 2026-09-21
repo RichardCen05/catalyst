@@ -11,6 +11,14 @@ describe("detectLanguage", () => {
   it("returns unknown when nothing decides it", () => {
     expect(detectLanguage("ANTM 27,5%")).toBe("unknown");
   });
+
+  it("reads the interrogative when it is the only grammar word", () => {
+    // "Kenapa ANTM masuk daftar?" carries no other function word. Without the
+    // interrogative the question reads as unknown and an English draft slips
+    // through verification unchallenged.
+    expect(detectLanguage("Kenapa ANTM masuk daftar?")).toBe("id");
+    expect(detectLanguage("Why is ANTM listed?")).toBe("en");
+  });
 });
 
 describe("verifyAnswer", () => {

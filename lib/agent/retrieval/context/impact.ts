@@ -1,4 +1,5 @@
 import { events, companies } from "@/lib/data/fixtures";
+import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle } from "@/lib/agent/retrieval/types";
 import type { SymbolCode } from "@/lib/types";
@@ -11,13 +12,10 @@ import type { SymbolCode } from "@/lib/types";
  * computed over every recorded event, not over a sample, so a question about
  * "semua" can be answered without overclaiming.
  *
- * Mechanism labels come from the engine's own `mechanismLabelFor`, so the
- * sentence names the same mechanism the map draws. The engine is imported
- * inside the function to keep the retrieval layer free of a load-time cycle.
+ * Mechanism labels come from the shared `mechanismLabelFor`, so the
+ * sentence names the same mechanism the map draws.
  */
 export async function buildImpactBundle(): Promise<ContextBundle> {
-  const { mechanismLabelFor } = await import("@/lib/agent/engine");
-
   const mechanisms = new Map<string, Set<SymbolCode>>();
   const touched = new Set<SymbolCode>();
   let linkCount = 0;

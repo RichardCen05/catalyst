@@ -40,6 +40,7 @@ import { generateStructured } from "@/lib/agent/llm/client";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler } from "@/lib/agent/handlers";
+import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
@@ -1434,33 +1435,10 @@ function reportLlmFallback(stage: "answer" | "exposure" | "retrieval", subject: 
  *  data, the label is presentation. */
 type ResolvedExposure = import("@/lib/types").ImpactLink & { mechanismLabel?: string };
 
-const CATEGORY_MECHANISM_LABEL: Record<MarketEvent["category"], string> = {
-  company: "Kinerja emiten ke valuasi",
-  commodity: "Harga komoditas ke margin",
-  rates: "Suku bunga ke margin bunga",
-  currency: "Kurs ke biaya dan pendapatan",
-  policy: "Aturan ke biaya operasi",
-  weather: "Cuaca ke volume operasi",
-  flows: "Arus dana ke likuiditas",
-  sentiment: "Liputan ke perhatian ritel",
-};
-
-/** Title for a mechanism card, in falling order of specificity: the label the
- *  model wrote, the middle leg of an arrow-shaped exposure path, then the
- *  category default. An LLM path is a sentence and carries no arrow, which is
- *  why every card used to read "Jalur eksposur". */
-export function mechanismLabelFor(
-  llmLabel: string | undefined,
-  path: string,
-  category: MarketEvent["category"],
-): string {
-  const clip = (value: string) => value.length <= 60 ? value : `${value.slice(0, 60).replace(/\s+\S*$/, "")}…`;
-  const fromLlm = llmLabel?.trim().replace(/[.;]+$/, "");
-  if (fromLlm) return clip(fromLlm);
-  const fromPath = path.split(/→|->/)[1]?.trim();
-  if (fromPath) return clip(fromPath);
-  return CATEGORY_MECHANISM_LABEL[category] ?? "Jalur eksposur";
-}
+// Mechanism names live in a leaf module so the retrieval corpus can read the
+// same words without importing the whole engine behind the index build.
+// Re-exported here so existing importers keep working.
+export { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 
 async function llmExposure(event: MarketEvent, symbol: SymbolCode, fallback: import("@/lib/types").ImpactLink): Promise<ResolvedExposure> {
   if (agentMode() !== "llm") return fallback;

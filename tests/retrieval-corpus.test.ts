@@ -32,6 +32,35 @@ describe("indeks korpus", () => {
     }
   });
 
+  it("memuat satu entri untuk setiap klaim sumber, supaya asal angka bisa dicari", async () => {
+    // Registry klaim adalah yang boleh dideskripsikan aplikasi; korpus
+    // membawa registry yang sama supaya bisa ditanya.
+    const { listEndpointKeys } = await import("@/lib/agent/retrieval/context/endpoint");
+    const keys = listEndpointKeys();
+    expect(keys.length).toBeGreaterThan(0);
+    for (const key of keys) {
+      const entry = corpus.byId.get(`endpoint:${key}`);
+      expect(entry, key).toBeDefined();
+      expect(entry?.kind).toBe("endpoint");
+    }
+  });
+
+  it("memuat satu entri untuk setiap mekanisme pada peta sebab akibat", async () => {
+    // Satu kartu mekanisme, satu entri yang bisa dicari — keduanya dibaca
+    // dari mechanismLabelFor yang sama supaya tidak bisa berbeda.
+    const { listCausalNodes } = await import("@/lib/agent/retrieval/context/causal-node");
+    const nodes = listCausalNodes();
+    expect(nodes.length).toBeGreaterThan(0);
+    for (const node of nodes) {
+      const entry = corpus.byId.get(`causal-node:${node.slug}`);
+      expect(entry, node.slug).toBeDefined();
+      expect(entry?.kind).toBe("causal-node");
+      for (const symbol of node.owners) {
+        expect(entry?.symbols, `${node.slug} / ${symbol}`).toContain(symbol);
+      }
+    }
+  });
+
   it("mengindeks setiap istilah entri dalam huruf kecil", () => {
     for (const entry of corpus.entries) {
       expect(entry.terms.length, entry.id).toBeGreaterThan(0);

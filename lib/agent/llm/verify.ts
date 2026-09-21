@@ -54,10 +54,13 @@ export function verifyDraft(draftText: string, evidenceNumbers: string[], _citat
  * sentence is simply in the wrong language for the reader who asked. Function
  * words are the cheapest reliable signal, because content words are shared
  * across both languages here — ANTM, HHI, broker, momentum — while grammar
- * words are not.
+ * words are not. Interrogatives count as function words: no English sentence
+ * contains "kenapa", and no Indonesian one contains "why".
  */
-const ID_MARKERS = ["yang", "ini", "itu", "pada", "dari", "dengan", "karena", "untuk", "adalah", "tidak", "dan", "ke", "di"];
-const EN_MARKERS = ["the", "is", "are", "was", "because", "from", "with", "this", "that", "and", "to", "of", "not"];
+const ID_MARKERS = ["yang", "ini", "itu", "pada", "dari", "dengan", "karena", "untuk", "adalah", "tidak", "dan", "ke", "di",
+  "kenapa", "mengapa", "bagaimana", "apakah", "berapa", "kapan", "siapa", "apa"];
+const EN_MARKERS = ["the", "is", "are", "was", "because", "from", "with", "this", "that", "and", "to", "of", "not",
+  "why", "what", "how", "which", "when", "who"];
 
 export function detectLanguage(text: string): "id" | "en" | "unknown" {
   const words = text.toLowerCase().replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);

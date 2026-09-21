@@ -7,6 +7,8 @@ import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
 import { buildEventBundle } from "@/lib/agent/retrieval/context/event";
 import { buildMetricBundle } from "@/lib/agent/retrieval/context/metric";
 import { buildThresholdBundle } from "@/lib/agent/retrieval/context/threshold";
+import { buildCausalNodeBundle, listCausalNodes } from "@/lib/agent/retrieval/context/causal-node";
+import { buildEndpointBundle, listEndpointKeys } from "@/lib/agent/retrieval/context/endpoint";
 import type { CorpusEntry } from "@/lib/agent/retrieval/types";
 
 export interface CorpusIndex {
@@ -81,12 +83,36 @@ function thresholdEntries(): CorpusEntry[] {
   }));
 }
 
+function causalNodeEntries(): CorpusEntry[] {
+  return listCausalNodes().map((node) => ({
+    id: `causal-node:${node.slug}`,
+    kind: "causal-node" as const,
+    symbols: node.owners,
+    view: "impact" as const,
+    terms: termsOf(node.label, "mekanisme", "jalur", "sebab akibat",
+      ...node.owners),
+    load: () => buildCausalNodeBundle(node.slug),
+  }));
+}
+
+function endpointEntries(): CorpusEntry[] {
+  return listEndpointKeys().map((key) => ({
+    id: `endpoint:${key}`,
+    kind: "endpoint" as const,
+    symbols: [],
+    terms: termsOf(key, "sumber", "data", "rekaman", "sumber data"),
+    load: () => buildEndpointBundle(key),
+  }));
+}
+
 export function buildCorpus(): CorpusIndex {
   const entries = [
     ...caseEntries(),
     ...eventEntries(),
     ...metricEntries(),
     ...thresholdEntries(),
+    ...causalNodeEntries(),
+    ...endpointEntries(),
     ...viewEntries(),
   ];
   const byTerm = new Map<string, string[]>();

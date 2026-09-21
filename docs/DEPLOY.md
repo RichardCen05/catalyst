@@ -31,7 +31,9 @@ automatically on push**. Every release is a manual command run by a person with 
 Plain environment variables:
 
 - `AGENT_MODE=llm`
-- `GEMINI_MODEL=gemini-3.5-flash`
+- `GEMINI_MODEL=gemini-3.8-flash`
+- `GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite`
+- `COPILOT_RETRIEVAL=on`
 - `GCS_CACHE_BUCKET=katalis-recorded`
 
 Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`,
@@ -42,6 +44,19 @@ Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`,
 user memory is written there, not to the `catalyst-memory` bucket. The `catalyst-memory` bucket
 exists in `US-CENTRAL1` but is empty and unused; the design plan's `catalyst-recorded` bucket was
 never created.
+
+`GEMINI_MODEL` is the stronger model: one failed-verification retry per question lands here.
+`GEMINI_MODEL_CHEAP` (`gemini-3.5-flash-lite`) composes the first draft of every retrieved
+answer; the code default is the same value, so unsetting it changes nothing, but keeping it
+explicit pins the cost model the rollout was priced on (~$16/month at 200 questions/day).
+
+`COPILOT_RETRIEVAL` gates the retrieval layer (`lib/agent/retrieval/`): the lexical corpus
+index, scored-handler routing, and aggregate answers over the full matching set. When unset
+(or anything but `on`) the `retrieved` handler scores 0 and the copilot behaves exactly as
+before retrieval shipped — scored keyword handlers, menu fallback, no new model calls.
+Flipping it needs no code change, but environment changes only reach a new revision, so flip
+it with `gcloud run services update ... --set-env-vars` (or redeploy with the command in
+section 6) rather than expecting a running revision to pick it up.
 
 ## 3. What a new teammate needs before touching anything
 
@@ -99,7 +114,7 @@ gcloud run deploy catalyst-web \
   --service-account=catalyst-run@ada-sectors-508410.iam.gserviceaccount.com \
   --allow-unauthenticated \
   --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
-  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.5-flash,GCS_CACHE_BUCKET=katalis-recorded \
+  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
   --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
 ```
 

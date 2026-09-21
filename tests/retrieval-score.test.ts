@@ -62,4 +62,20 @@ describe("scoreCorpus", () => {
     const ranked = scoreCorpus("berapa ambang konsentrasi", base);
     expect(ranked.some((row) => row.entry.kind === "threshold")).toBe(true);
   });
+
+  it("menempatkan simpul mekanisme di atas peta untuk pertanyaan yang menyebut mekanismenya", async () => {
+    // Satu kartu mekanisme, satu entri: menyebut labelnya harus mendarat di
+    // simpul itu, bukan di ringkasan seluruh peta.
+    const { listCausalNodes } = await import("@/lib/agent/retrieval/context/causal-node");
+    const nodes = listCausalNodes();
+    expect(nodes.length).toBeGreaterThan(0);
+    const ranked = scoreCorpus(`jalur ${nodes[0].label}`, base);
+    expect(ranked.length).toBeGreaterThan(0);
+    expect(ranked[0].entry.kind).toBe("causal-node");
+  });
+
+  it("menemukan sumber ketika pembaca menanyakan asal angka", () => {
+    const ranked = scoreCorpus("dari mana angka broker ANTM", base);
+    expect(ranked.some((row) => row.entry.kind === "endpoint" || row.entry.kind === "case")).toBe(true);
+  });
 });

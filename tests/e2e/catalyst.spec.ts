@@ -439,6 +439,18 @@ test("causal map exposes multiple sources and copilot answers through the API", 
   await expect(page.getByText(/ANTM masuk karena/).first()).toBeVisible();
 });
 
+test("copilot answers a causal-map question asked from the dashboard", async ({ page }) => {
+  // Retrieval path: needs COPILOT_RETRIEVAL=on in the server's environment
+  // (.env.local when running against pnpm dev). With the flag off the
+  // assistant falls back to the capability menu by design.
+  await finishSetup(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Tanya asisten" }).click();
+  await page.getByLabel("Tanya Catalyst").fill("jelaskan semua kasus dalam satu jalur");
+  await page.getByLabel("Tanya Catalyst").press("Enter");
+  await expect(page.getByText(/belum bisa dipetakan ke bukti/)).toHaveCount(0);
+});
+
 test("causal map labels hypotheses, confidence, lag, and counter-evidence", async ({ page }) => {
   await finishSetup(page);
   await resolveDefaultClarification(page);
