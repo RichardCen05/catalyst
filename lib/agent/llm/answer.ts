@@ -1,5 +1,5 @@
 import { generateStructured } from "@/lib/agent/llm/client";
-import { verifyDraft } from "@/lib/agent/llm/verify";
+import { verifyAnswer } from "@/lib/agent/llm/verify";
 
 export interface LlmAnswerDraft {
   text: string;
@@ -48,7 +48,7 @@ export async function composeAnswerWithLlm(
     contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}`,
     schema: ANSWER_SCHEMA,
   });
-  const verification = verifyDraft(draft.text, input.evidenceNumbers, []);
+  const verification = verifyAnswer(draft.text, input.evidenceNumbers, input.question);
   if (!verification.approved) throw new Error(`Answer rejected by verifier: ${verification.violations.join("; ")}`);
   return draft;
 }
