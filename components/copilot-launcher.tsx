@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type RefObject } from "react";
+import { apiUrl } from "@/lib/api-base";
 import { Blobatar } from "@blobatar/react";
 import { useGaze } from "@blobatar/react/gaze";
 import { ASSISTANT_NAME, buildQuickPrompts } from "@/lib/agent/assistant";
@@ -11,11 +12,15 @@ import { useCatalystStore } from "@/lib/store";
 const TYPE_MS = 42;
 const ERASE_MS = 18;
 const HOLD_MS = 2600;
-/** The pill is one line wide. A longer prompt would type straight past the
- *  clip and take the caret with it, so the line is cut at a word before it
- *  is ever typed — the same cut buildQuickPrompts already makes on a long
- *  headline, one step further in. */
-const LINE_MAX = 38;
+/** The bubble holds two lines. A longer line would type straight past the
+ *  clip and take the caret with it, so it is cut at a word before it is ever
+ *  typed — the same cut buildQuickPrompts already makes on a long headline,
+ *  one step further in. A today fact is written to 20 words, which fits. */
+const LINE_MAX = 78;
+
+/** How many watchlist emiten are greeted. The route caps this too; asking for
+ *  fewer than it allows is the launcher's own restraint, not a limit. */
+const FACT_SYMBOLS = 3;
 
 function fit(line: string): string {
   if (line.length <= LINE_MAX) return line;
@@ -33,14 +38,35 @@ export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButt
   const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
   const prompts = buildQuickPrompts(profile);
   const [typed, setTyped] = useState("");
+  // Today's facts arrive after the first prompts are already typing. They are
+  // optional by design: deterministic mode, a spent budget and a draft the
+  // verifier rejected all answer with nothing, and the bubble then says only
+  // what it already had.
+  const [facts, setFacts] = useState<string[]>([]);
   // The eyes follow the pointer, which is what makes a reader notice the thing
   // is an assistant rather than a badge.
   const { ref: faceRef } = useGaze({ travel: 3, lookAt: "pointer" });
 
+  const watched = profile.watchlist.slice(0, FACT_SYMBOLS).join(",");
+  useEffect(() => {
+    if (!watched) return;
+    const abort = new AbortController();
+    void fetch(apiUrl(`/api/fact?symbols=${encodeURIComponent(watched)}`), { signal: abort.signal })
+      .then((response) => (response.ok ? response.json() : { facts: [] }))
+      .then((body: { facts?: { fact: string }[] }) => setFacts((body.facts ?? []).map((entry) => entry.fact)))
+      .catch(() => undefined);
+    return () => abort.abort();
+  }, [watched]);
+
   // A prompt list is rebuilt on every render, so the effect keys on the lines
   // themselves rather than on the array's identity — otherwise the typewriter
   // restarts from an empty string on every unrelated store update.
-  const key = prompts.map(fit).join("\n");
+  const lines: string[] = [];
+  for (let index = 0; index < Math.max(prompts.length, facts.length); index += 1) {
+    if (prompts[index]) lines.push(prompts[index]);
+    if (facts[index]) lines.push(facts[index]);
+  }
+  const key = lines.map(fit).join("\n");
   useEffect(() => {
     const list = key.split("\n");
     // Reduced motion gets the finished sentence and no cycle: the point of the
@@ -73,21 +99,21 @@ export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButt
       type="button"
       onClick={() => setCopilotOpen(true)}
       aria-label="Tanya asisten"
-      className="group fixed bottom-[4.25rem] right-3 z-30 flex cursor-pointer flex-col items-end gap-2 focus-visible:outline-none xl:bottom-5 xl:right-5"
+      className="group fixed bottom-[4.25rem] right-3 z-30 flex cursor-pointer flex-col items-end gap-2 transition-transform duration-100 active:scale-[0.98] focus-visible:outline-none xl:bottom-5 xl:right-5"
     >
       {/* A speech bubble above the face, with the tail pointing down at it:
           the tail is what says the line is being said by the creature under
           it, and the fixed width keeps the bubble from breathing in and out
           as the sentence types. */}
-      <span className="relative w-[min(17rem,calc(100vw-1.5rem))] rounded-2xl border border-border bg-surface/95 px-3.5 py-2 text-left shadow-2xl backdrop-blur transition-colors group-hover:border-foreground/30 group-hover:bg-surface group-focus-visible:ring-2 group-focus-visible:ring-ring">
+      <span className="panel-chrome relative w-[min(17rem,calc(100vw-1.5rem))] rounded-[18px] rounded-br-[6px] border border-border bg-surface/85 px-4 py-2.5 text-left shadow-2xl backdrop-blur-xl transition-colors group-hover:border-foreground/30 group-focus-visible:ring-2 group-focus-visible:ring-ring">
         {/* Hidden from the accessibility tree on purpose: a caret that changes
             twenty times a second is a live region nobody asked for, and the
             button already carries its name. */}
-        <span aria-hidden="true" className="block truncate text-[13px] leading-5 text-foreground">
+        <span aria-hidden="true" className="block max-h-[2.9em] overflow-hidden text-[13px] leading-[1.45] text-foreground">
           {typed}
           <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-primary align-middle motion-reduce:hidden" />
         </span>
-        <span aria-hidden="true" className="absolute -bottom-[7px] right-5 size-3 rotate-45 border-b border-r border-border bg-surface/95 transition-colors group-hover:border-foreground/30 group-hover:bg-surface" />
+        <span aria-hidden="true" className="panel-chrome absolute -bottom-[7px] right-5 size-3 rotate-45 border-b border-r border-border bg-surface/85 backdrop-blur-xl transition-colors group-hover:border-foreground/30" />
       </span>
       <Blobatar ref={faceRef} name={ASSISTANT_NAME} animate="always" background="circle" size={52} aria-hidden="true" className="mr-1 shrink-0 drop-shadow-lg" />
     </button>

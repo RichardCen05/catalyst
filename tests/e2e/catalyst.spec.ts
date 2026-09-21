@@ -228,7 +228,7 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await expect(page.getByText(/Periksa perubahan ANTM/)).toBeVisible();
   await expect(page.getByLabel("Apa yang ingin dibuktikan?")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Simpan dan susun ulang" })).toHaveCount(0);
-  await expect(page.getByText("Klik satu kartu untuk mulai")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hasil bisnis mana yang ingin diuji?" })).toBeVisible();
   await page.locator('[data-tour-action="resolve-clarification"]').click();
   await expect(page.getByText("Fokus sudah dipilih", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
