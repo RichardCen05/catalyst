@@ -449,12 +449,19 @@ export interface ChatRequest {
   userInsights?: UserInsight[];
   playbook?: InvestorResearchPlaybook;
   caseMandate?: string;
+  /** Recent turns, so a follow-up can resolve what "yang tadi" refers to.
+   *  Client-supplied text that reaches a prompt: bounded by the schema,
+   *  filtered through `safeLanguage` at ingest, and never a source of
+   *  figures. */
+  history?: Array<{ role: "user" | "assistant"; text: string }>;
+  /** The page the reader asked from. A ranking prior, never a filter. */
+  view?: string;
 }
 
 export interface ChatAnswer {
   text: string;
   refused: boolean;
-  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "unknown";
+  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "retrieved" | "unknown";
   hypotheses: HypothesisTrace[];
   citations: Citation[];
   preferenceNote: string;

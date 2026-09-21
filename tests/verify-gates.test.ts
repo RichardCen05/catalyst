@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
+import { safeLanguage } from "@/lib/agent/gates";
 
 describe("detectLanguage", () => {
   it("names Indonesian and English from function words", () => {
@@ -41,5 +42,40 @@ describe("verifyAnswer", () => {
   it("allows an English answer to an English question", () => {
     const result = verifyAnswer("The concentration is high because the same brokers repeat.", [], "Why is ANTM listed today?");
     expect(result.approved).toBe(true);
+  });
+});
+
+describe("safeLanguage mengenali bentuk berimbuhan", () => {
+  it("menolak ajakan transaksi dalam bentuk yang benar-benar dipakai orang", () => {
+    for (const question of [
+      "ANTM bagus untuk dibeli sekarang?",
+      "apakah saya harus membeli ANTM",
+      "sebaiknya dijual atau ditahan",
+      "kapan waktu menjual PGAS",
+      "ANTM beli sekarang?",
+    ]) {
+      expect(safeLanguage(question).refused, question).toBe(true);
+    }
+  });
+
+  it("tidak menolak pertanyaan tentang kolom rekaman yang memuat kata transaksi", () => {
+    // "nilai beli" adalah nama kolom pada rekaman broker. Pembaca yang
+    // menanyakan angka di layarnya tidak sedang meminta saran.
+    for (const question of [
+      "berapa nilai beli broker teratas ANTM",
+      "porsi nilai beli bersih asing",
+      "berapa total pembelian institusi",
+      "bagaimana penjualan kuartal ini",
+    ]) {
+      expect(safeLanguage(question).refused, question).toBe(false);
+    }
+  });
+
+  it("tetap menolak ketika kata transaksi berdiri sendiri tanpa konteks kolom", () => {
+    // "rasio volume jual terhadap beli" sebenarnya pertanyaan data, tetapi
+    // "beli" di ujung kalimat tidak bisa dibedakan dari ajakan secara leksikal.
+    // Menolak pertanyaan data masih bisa dipulihkan pembaca dengan mengganti
+    // kalimat; meloloskan saran transaksi tidak.
+    expect(safeLanguage("rasio volume jual terhadap beli").refused).toBe(true);
   });
 });

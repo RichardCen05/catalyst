@@ -36,8 +36,12 @@ import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exp
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
+import { generateStructured } from "@/lib/agent/llm/client";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
+import { handlerScore, selectHandler } from "@/lib/agent/handlers";
+import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
+import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
@@ -903,6 +907,56 @@ async function rewriteWithLlm(
 }
 
 /**
+ * Compose an answer from retrieved material, cheap model first.
+ *
+ * The cheap model writes an acceptable Indonesian sentence most of the time
+ * and costs a third of Flash. When it does not — a fabricated numeral,
+ * advisory phrasing, or an answer in the wrong language — the retry buys the
+ * stronger model only for the drafts that actually failed, rather than paying
+ * Flash prices for every question to cover the minority that need it.
+ *
+ * A second failure renders the retrieved bundle itself. The panel then says
+ * something true and sourced rather than nothing, and still never says
+ * anything it cannot support.
+ */
+function withModel(model: string): typeof generateStructured {
+  return <T,>(params: Parameters<typeof generateStructured>[0]) =>
+    generateStructured<T>({ ...params, model });
+}
+
+async function composeRetrieved(
+  question: string,
+  retrieved: RetrievedContext,
+): Promise<{ text: string; llmFallbackNote?: string }> {
+  if (agentMode() !== "llm") return { text: retrieved.text };
+  const models = [
+    process.env.GEMINI_MODEL_CHEAP || "gemini-3.5-flash-lite",
+    process.env.GEMINI_MODEL || "gemini-3.8-flash",
+  ];
+  for (const model of models) {
+    try {
+      const draft = await Promise.race([
+        composeAnswerWithLlm(
+          { question, evidenceSummary: retrieved.text, evidenceNumbers: retrieved.figures },
+          withModel(model),
+        ),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
+      ]);
+      return { text: draft.text };
+    } catch (error) {
+      // A budget or rate-limit refusal ends the attempt entirely: the second
+      // model draws on the same daily allowance, so retrying spends quota to
+      // learn the same answer.
+      if (error instanceof LlmBudgetError) {
+        return { text: retrieved.text, llmFallbackNote: budgetNoteFor(error.reason) };
+      }
+      reportLlmFallback("retrieval", `model ${model}, ${retrieved.entryIds.length} entri`, error);
+    }
+  }
+  return { text: retrieved.text };
+}
+
+/**
  * Every figure this case already shows the reader: metric values, pillar
  * summaries, the substitution and result lines under "Perhitungan dan data",
  * and the material-change prose at the top of the card. The verifier treats
@@ -1075,6 +1129,29 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   return named ? { ...answer, questionSymbol: named } : answer;
 }
 
+/**
+ * Retrieval, when the flag allows it.
+ *
+ * Off by default. With the flag off the scored handlers still run, so the
+ * router's corrected precedence ships independently of the retrieval layer and
+ * can be verified on its own.
+ */
+async function retrievalFor(request: ChatRequest): Promise<RetrievedContext | null> {
+  if (process.env.COPILOT_RETRIEVAL !== "on") return null;
+  const view = VIEW_IDS.includes(request.view as ViewId) ? (request.view as ViewId) : undefined;
+  return retrieveContext(request.question, {
+    profile: request.profile,
+    contextSymbol: request.contextSymbol,
+    view,
+    history: request.history ?? [],
+  }).catch((error) => {
+    // Retrieval is an addition to the answer path, never a precondition for
+    // it. A failure here drops to the handlers that shipped before it.
+    console.warn(`[retrieval] failed: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
+  });
+}
+
 async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const guarded = safeLanguage(request.question);
   const symbols = findSymbols(request.question);
@@ -1092,7 +1169,44 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   }
 
   const question = request.question.toLowerCase();
-  if (mentions(question, COMPARE_PHRASES) && symbols.length >= 2) {
+
+  // A figure the reader named outranks a loosely matched event. `brp volume
+  // terbru nya` names a metric on the page, but `eventFromQuestion` scores
+  // token overlap, so it used to be answered with an unrelated event's
+  // impact path.
+  const namedFigure = analysis ? matchFigure(answerableFigures(analysis), request.question, extractNumerals) : undefined;
+  const event = eventFromQuestion(request.question);
+  const retrieved = await retrievalFor(request);
+
+  // Which handler answers is now a comparison, not a sequence.
+  //
+  // The old order let the first matching phrase win, and two of those matches
+  // needed nothing but a word: `mentions(question, EVENT_PHRASES)` fired with
+  // no event resolved and no symbol, and the why-listed branch fired on
+  // "kenapa" as long as a chip had supplied a case. Both then answered about
+  // a subject the question never named.
+  //
+  // Each handler keeps the trigger it shipped with, because each oneanswers a real
+  // question when it fires alone. What closes the holes is competition:
+  // retrieval bids the share of the question its material actually covers, so
+  // "apa dampak peta sebab akibat ke emiten lain" scores far higher as the
+  // causal map than as an arbitrary event, and wins on that basis rather than
+  // because the event handler was crippled.
+  //
+  // With COPILOT_RETRIEVAL off there is no competitor, so behaviour is exactly
+  // what shipped before — which is what makes this safe to land on its own.
+  const winner = selectHandler([
+    { id: "compare", score: handlerScore({ symbolNamedInQuestion: symbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: symbols.length >= 2 && mentions(question, COMPARE_PHRASES) }) },
+    { id: "provenance", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }) },
+    { id: "explain", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }) },
+    { id: "event-impact", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && !namedFigure }) },
+    { id: "missing", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, MISSING_PHRASES), fuzzyPhrase: false, evidenceReady: mentions(question, MISSING_PHRASES) }) },
+    { id: "explain", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure), exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(analysis) && Boolean(namedFigure) }) },
+    { id: "why-listed", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, WHY_PHRASES), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && (mentions(question, WHY_PHRASES) || symbols.length > 0) }) },
+    { id: "retrieved", score: handlerScore({ symbolNamedInQuestion: false, figureNamedInQuestion: false, exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(retrieved), retrievalScore: retrieved?.score ?? 0 }) },
+  ]) ?? { id: "unknown" as const, score: 0 };
+
+  if (winner.id === "compare" && mentions(question, COMPARE_PHRASES) && symbols.length >= 2) {
     const first = await buildAnalysis(symbols[0], request.profile);
     const second = await buildAnalysis(symbols[1], request.profile);
     // Only six symbols carry a full case. A comparison against one of the
@@ -1135,7 +1249,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // resolved to some recorded event and answered with that event's impact
   // path. A question about where a figure came from, or what it means, has
   // exactly one correct answer, and it is not an event summary.
-  if (analysis && (isProvenanceQuestion(question) || isExplainQuestion(question))) {
+  if (analysis && (winner.id === "provenance" || winner.id === "explain") && (isProvenanceQuestion(question) || isExplainQuestion(question))) {
     const mode = isProvenanceQuestion(question) ? "provenance" : "explain";
     const provenance = await provenanceAnswer(analysis, request.question);
     return {
@@ -1166,14 +1280,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     };
   }
 
-  // A figure the reader named outranks a loosely matched event. `brp volume
-  // terbru nya` names a metric on the page, but `eventFromQuestion` scores
-  // token overlap, so it used to be answered with an unrelated event's
-  // impact path. An event phrase the reader actually typed ("berita",
-  // "dampak") still wins — that question is about the event.
-  const namedFigure = analysis ? matchFigure(answerableFigures(analysis), request.question, extractNumerals) : undefined;
-  const event = eventFromQuestion(request.question);
-  if ((event && !namedFigure) || mentions(question, EVENT_PHRASES)) {
+  if (winner.id === "event-impact") {
     // No fallback to `listEvents()[0]`. An unmatched question used to be
     // answered about whichever event happened to be newest, with that
     // event's citations attached and nothing in the text saying which event
@@ -1199,7 +1306,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     return { ...(await rewriteWithLlm(request.question, text, visibleFiguresFor(analysis))), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
-  if (mentions(question, MISSING_PHRASES)) {
+  if (winner.id === "missing") {
     return {
       ...(await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.", visibleFiguresFor(analysis))),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
@@ -1211,7 +1318,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // ceiling meant the same question phrased naturally — "brp volume terbru
   // nya dong" — did not qualify, which is the wrong way round: a longer
   // question names the figure more clearly, not less.
-  if (analysis && namedFigure) {
+  if (analysis && namedFigure && winner.id === "explain") {
     const provenance = await provenanceAnswer(analysis, request.question);
     return {
       text: provenance.text, refused: false, intent: "explain",
@@ -1224,10 +1331,20 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // so "asdfgh" typed on the ANTM case used to return the full why-listed
   // summary — a confident answer to nothing. Require either a why-shaped
   // phrase or a symbol the reader actually named.
-  if (analysis && (mentions(question, WHY_PHRASES) || symbols.length > 0)) {
+  if (analysis && winner.id === "why-listed") {
     return {
       ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
+    };
+  }
+
+  if (winner.id === "retrieved" && retrieved) {
+    const composed = await composeRetrieved(request.question, retrieved);
+    return {
+      text: composed.text, refused: false, intent: "retrieved",
+      hypotheses: openInsightTraces, citations: retrieved.citations,
+      preferenceNote: personalizedNote(), relatedSymbols: retrieved.symbols,
+      ...(composed.llmFallbackNote ? { llmFallbackNote: composed.llmFallbackNote } : {}),
     };
   }
 
@@ -1258,7 +1375,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
  * user's question never reaches the log — Cloud Logging is a different trust
  * boundary from the page that asked it.
  */
-function reportLlmFallback(stage: "answer" | "exposure", subject: string, error: unknown): void {
+function reportLlmFallback(stage: "answer" | "exposure" | "retrieval", subject: string, error: unknown): void {
   const reason = error instanceof Error ? error.message : String(error);
   console.warn(`[llm-fallback] ${stage} ${subject}: ${reason.slice(0, 300)}`);
 }
