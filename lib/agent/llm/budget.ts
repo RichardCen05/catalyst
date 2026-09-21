@@ -19,8 +19,18 @@
  * Two things close the gate:
  *
  *   - the day's call count reaching `LLM_DAILY_CALL_BUDGET`;
- *   - a 429 from the model, which closes the gate for the rest of that day
- *     rather than letting every later request re-learn the same rejection.
+ *   - repeated 429s from the model, which close the gate for the rest of that
+ *     day rather than letting every later request re-learn the same
+ *     rejection.
+ *
+ * A single 429 no longer closes it. That rule was written for a per-key daily
+ * quota, where the first 429 means the allowance is gone and every later call
+ * would meet the same wall. It is wrong for a shared pool — the free tiers
+ * behind `LLM_PROVIDER=openai-compatible` answer 429 when someone else was
+ * busy for a second, and one such second would otherwise cost a full day of
+ * model prose on a perfectly healthy key. The gate closes on
+ * `LLM_RATE_LIMIT_STRIKES` of them instead, which still costs at most that
+ * many wasted calls against a genuinely exhausted quota.
  *
  * Both raise `LlmBudgetError`, which the engine turns into the deterministic
  * answer plus a note the reader can see. Leaving the variable unset means no
@@ -51,7 +61,9 @@ export function budgetNoteFor(reason: LlmBudgetReason): string {
 export interface LlmDayLedger {
   date: string;
   calls: number;
-  /** Set once a 429 lands, so the rest of the day skips the model. */
+  /** How many 429s landed today, across every instance. */
+  rateLimits?: number;
+  /** Set once the strikes run out, so the rest of the day skips the model. */
   rateLimitedAt?: string;
 }
 
@@ -72,22 +84,38 @@ export const gcsBudgetStore: LlmBudgetStore = {
 /** Fallback counter for when the ledger object cannot be read or written. */
 let localDay = "";
 let localCalls = 0;
+let localRateLimits = 0;
 let localRateLimited = false;
 
 function localLedger(date: string): LlmDayLedger {
   if (localDay !== date) {
     localDay = date;
     localCalls = 0;
+    localRateLimits = 0;
     localRateLimited = false;
   }
-  return { date, calls: localCalls, ...(localRateLimited ? { rateLimitedAt: date } : {}) };
+  return { date, calls: localCalls, rateLimits: localRateLimits, ...(localRateLimited ? { rateLimitedAt: date } : {}) };
 }
 
 /** Test seam — resets the in-process counter between cases. */
 export function resetLocalLlmBudget(): void {
   localDay = "";
   localCalls = 0;
+  localRateLimits = 0;
   localRateLimited = false;
+}
+
+/**
+ * How many 429s in a day close the gate. One is right for a per-key quota and
+ * wrong for a shared pool, so the count is configurable rather than assumed.
+ */
+const DEFAULT_RATE_LIMIT_STRIKES = 3;
+
+export function rateLimitStrikes(): number {
+  const raw = process.env.LLM_RATE_LIMIT_STRIKES;
+  if (!raw) return DEFAULT_RATE_LIMIT_STRIKES;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_RATE_LIMIT_STRIKES;
 }
 
 export function dailyBudget(): number | null {
@@ -162,13 +190,20 @@ export async function noteLlmRateLimited(
   now: Date = new Date(),
 ): Promise<void> {
   const date = dayOf(now);
+  const strikes = rateLimitStrikes();
   localLedger(date);
-  localRateLimited = true;
+  localRateLimits += 1;
+  if (localRateLimits >= strikes) localRateLimited = true;
   if (dailyBudget() === null) return;
   try {
     const loaded = await store.load(date);
     const current = loaded?.data ?? { date, calls: 0 };
-    await store.save(date, { ...current, date, rateLimitedAt: now.toISOString() }, loaded?.generation ?? "0");
+    const rateLimits = (current.rateLimits ?? 0) + 1;
+    await store.save(
+      date,
+      { ...current, date, rateLimits, ...(rateLimits >= strikes ? { rateLimitedAt: now.toISOString() } : {}) },
+      loaded?.generation ?? "0",
+    );
   } catch (error) {
     console.warn(`[llm-budget] could not record rate limit: ${error instanceof Error ? error.message : String(error)}`);
   }

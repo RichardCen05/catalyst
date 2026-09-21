@@ -72,8 +72,12 @@ model does both the draft and the retry.
 provider is still Gemini. The Gemini names keep working, which is why the live revision was not
 touched by this change.
 
-A 429 from any provider closes the day's gate identically — `LlmHttpError` carries the status so
-`isRateLimitError` in `lib/agent/llm/budget.ts` recognises it. Rolling back is `LLM_PROVIDER=gemini`
+A 429 from any provider counts against the day's gate identically — `LlmHttpError` carries the
+status so `isRateLimitError` in `lib/agent/llm/budget.ts` recognises it. `LLM_RATE_LIMIT_STRIKES`
+(default 3) decides how many close it. One was right while Gemini's per-key quota was the only
+possibility: the first 429 means the allowance is gone. A shared free pool answers 429 when
+another tenant was busy for a second, so on `openai-compatible` leave the default or raise it;
+on Gemini, setting it to 1 restores the old behaviour. Rolling back is `LLM_PROVIDER=gemini`
 or removing the variable; no redeploy of the image is needed for either direction, only
 `gcloud run services update`.
 

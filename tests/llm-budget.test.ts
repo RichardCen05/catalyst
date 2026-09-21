@@ -109,10 +109,13 @@ describe("reserveLlmCall", () => {
 });
 
 describe("noteLlmRateLimited", () => {
-  it("closes the gate for the rest of the day after a 429", async () => {
+  it("closes the gate for the rest of the day once the strikes run out", async () => {
     vi.stubEnv("LLM_DAILY_CALL_BUDGET", "100");
+    vi.stubEnv("LLM_RATE_LIMIT_STRIKES", "3");
     const store = memoryStore({ date: DATE, calls: 4 });
 
+    await noteLlmRateLimited(store, NOW);
+    await noteLlmRateLimited(store, NOW);
     await noteLlmRateLimited(store, NOW);
     expect(store.current?.rateLimitedAt).toBe(NOW.toISOString());
 
@@ -120,6 +123,31 @@ describe("noteLlmRateLimited", () => {
     // The refused call is not counted — it never reached the model.
     expect(store.current?.calls).toBe(4);
     expect(budgetNoteFor("rate-limit")).toContain("429");
+  });
+
+  /** A shared free pool answers 429 when someone else was busy for a second.
+   *  Closing on the first one would cost a full day of prose on a healthy key. */
+  it("keeps serving the model through a transient 429", async () => {
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "100");
+    vi.stubEnv("LLM_RATE_LIMIT_STRIKES", "3");
+    const store = memoryStore({ date: DATE, calls: 4 });
+
+    await noteLlmRateLimited(store, NOW);
+    expect(store.current?.rateLimits).toBe(1);
+    expect(store.current?.rateLimitedAt).toBeUndefined();
+
+    await expect(reserveLlmCall(store, NOW)).resolves.toBeUndefined();
+    expect(store.current?.calls).toBe(5);
+  });
+
+  it("counts the strikes across instances, not per instance", async () => {
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "100");
+    vi.stubEnv("LLM_RATE_LIMIT_STRIKES", "2");
+    const store = memoryStore({ date: DATE, calls: 0, rateLimits: 1 });
+
+    await noteLlmRateLimited(store, NOW);
+    expect(store.current?.rateLimits).toBe(2);
+    expect(store.current?.rateLimitedAt).toBe(NOW.toISOString());
   });
 
   it("recognises the shapes a 429 arrives in", () => {
