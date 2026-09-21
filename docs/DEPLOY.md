@@ -15,8 +15,8 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00046-r8l`, deployed 2026-09-21 from commit `01373e5` on `feat/alief/wire-ui`, 100% of traffic | `gcloud run revisions list --service=catalyst-web --region=us-central1` |
-| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:4b4e9ff5…` | `gcloud run revisions describe` |
+| Serving revision | `catalyst-web-00048-rwr`, deployed 2026-09-21 from commit `75fd2f3` on `feat/alief/wire-ui`, 100% of traffic | `gcloud run revisions list --service=catalyst-web --region=us-central1` |
+| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:bfb77408…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
@@ -31,14 +31,30 @@ automatically on push**. Every release is a manual command run by a person with 
 Plain environment variables:
 
 - `AGENT_MODE=llm`
+- `LLM_PROVIDER=openai-compatible`
+- `LLM_BASE_URL=https://openrouter.ai/api/v1`
+- `LLM_MODEL=nex-agi/nex-n2.5-mini:free`
+- `LLM_RATE_LIMIT_STRIKES=3`
 - `GEMINI_MODEL=gemini-3.8-flash`
 - `GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite`
 - `COPILOT_RETRIEVAL=on`
 - `GCS_CACHE_BUCKET=katalis-recorded`
 
-Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`,
-`INTERNAL_CRON_SECRET`, `SECTORS_API_KEY`, `OPERATOR_TOKEN`
-(`gcloud secrets list` shows exactly these four).
+Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`, `LLM_API_KEY`,
+`INTERNAL_CRON_SECRET`, `SECTORS_API_KEY`, `OPERATOR_TOKEN` (`gcloud secrets list` shows exactly
+these five).
+
+The revision runs OpenRouter, not Gemini. `GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are still set
+and are inert: `lib/agent/llm/models.ts` reads them only while `LLM_PROVIDER` is `gemini`. They
+are left in place so that removing `LLM_PROVIDER` is a complete rollback on its own.
+`GOOGLE_API_KEY` is likewise still mounted and unused, which is what makes that rollback need no
+redeploy.
+
+Measured before the switch, over 40-request bursts against the real answer path,
+`nex-agi/nex-n2.5-mini:free` produced a verifier-approved answer 26 times out of 40, at p90
+2.3s, with no 429 and no 5xx. The other ~35% fall to the deterministic path — mostly advisory
+phrasing and invented figures that `lib/agent/llm/verify.ts` catches. That rate is the known
+cost of the free tier and has not been compared against Gemini on the same harness.
 
 `GCS_MEMORY_BUCKET` is not set. `lib/memory/gcs-memory.ts` falls back to `katalis-recorded`, so
 user memory is written there, not to the `catalyst-memory` bucket. The `catalyst-memory` bucket
@@ -52,11 +68,11 @@ explicit pins the cost model the rollout was priced on (~$16/month at 200 questi
 
 ## 2b. Switching model provider
 
-The live revision runs the Gemini provider and this section describes it. Nothing below is set
-on the serving revision today; it is what an env change to another vendor requires.
+The live revision runs `openai-compatible` against OpenRouter. This section describes how the
+selection works and how to move it.
 
-`LLM_PROVIDER` selects the provider in `lib/agent/llm/providers.ts`. Unset means `gemini`, which
-is why the live revision needs none of these variables. The other value is `openai-compatible`:
+`LLM_PROVIDER` selects the provider in `lib/agent/llm/providers.ts`. Unset means `gemini`, so
+removing the variable is the rollback. The other value is `openai-compatible`:
 any `/v1/chat/completions` endpoint that honours `response_format: json_schema` with
 `strict: true` — OpenRouter, OpenAI, Groq, Together, vLLM, and Anthropic's OpenAI-compatible
 endpoint. A provider that ignores the schema is not usable: the guards in `lib/agent/llm/verify.ts`
@@ -69,17 +85,29 @@ Gemini id to a vendor that has never heard of it. `LLM_MODEL_CHEAP` is optional;
 model does both the draft and the retry.
 
 `LLM_MODEL` and `LLM_MODEL_CHEAP` also override `GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` while the
-provider is still Gemini. The Gemini names keep working, which is why the live revision was not
-touched by this change.
+provider is still Gemini, so a Gemini deployment can be renamed without touching anything else.
 
 A 429 from any provider counts against the day's gate identically — `LlmHttpError` carries the
 status so `isRateLimitError` in `lib/agent/llm/budget.ts` recognises it. `LLM_RATE_LIMIT_STRIKES`
 (default 3) decides how many close it. One was right while Gemini's per-key quota was the only
 possibility: the first 429 means the allowance is gone. A shared free pool answers 429 when
 another tenant was busy for a second, so on `openai-compatible` leave the default or raise it;
-on Gemini, setting it to 1 restores the old behaviour. Rolling back is `LLM_PROVIDER=gemini`
-or removing the variable; no redeploy of the image is needed for either direction, only
-`gcloud run services update`.
+on Gemini, setting it to 1 restores the old behaviour. Rolling back is `LLM_PROVIDER=gemini` or removing the
+variable; no redeploy of the image is needed for either direction, only
+`gcloud run services update`:
+
+```bash
+gcloud run services update catalyst-web --region=us-central1 --project=ada-sectors-508410 \
+  --remove-env-vars=LLM_PROVIDER
+```
+
+Switching the other way, or to a different model, uses `--update-env-vars` and
+`--update-secrets`. Never the `--set-` variants: those replace the whole list and would drop
+`AGENT_MODE`, `COPILOT_RETRIEVAL`, `GCS_CACHE_BUCKET` and the other four secrets.
+
+A provider change also needs the image to carry the provider code. Moving to a provider on an
+image built before commit `fc5a247` sets variables that nothing reads, and the app keeps calling
+Gemini while the configuration says otherwise.
 
 `COPILOT_RETRIEVAL` gates the retrieval layer (`lib/agent/retrieval/`): the lexical corpus
 index, scored-handler routing, and aggregate answers over the full matching set. When unset
