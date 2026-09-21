@@ -41,6 +41,23 @@ export const DEFAULT_THRESHOLDS = {
   momentumIdiosyncraticFloor: 0.03,
   /** Porsi nilai beli broker asing sebelum arus asing negatif dianggap konflik sumber. */
   foreignContradictionShare: 0.55,
+  /** Skor minimum sebelum sebuah handler boleh menjawab. Di bawah ini Copilot
+   *  menampilkan menu kemampuannya, bukan jawaban. */
+  handlerScoreFloor: 0.35,
+  /** Skor minimum satu entri rekaman agar ikut diambil sama sekali. Lebih
+   *  rendah daripada handlerScoreFloor: entri dikumpulkan dulu, gabungannya
+   *  yang dinilai. */
+  retrievalScoreFloor: 0.18,
+  /** Entri yang dimuat untuk pertanyaan non-agregat. */
+  retrievalTopK: 6,
+  /** Batas teks bukti yang masuk prompt, dalam karakter. Nilai inilah yang
+   *  menentukan biaya token masuk per pertanyaan. */
+  retrievalContextCharCap: 6000,
+  /** Giliran percakapan terakhir yang dikirim ke model. */
+  copilotHistoryTurns: 6,
+  /** Batas entri memo analisis per instance, supaya Map tingkat modul pada
+   *  instance Cloud Run berumur panjang tidak tumbuh tanpa henti. */
+  retrievalMemoMaxEntries: 64,
 } as const;
 
 /**
@@ -65,6 +82,16 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   momentumSectorFloor: "guess",
   momentumIdiosyncraticFloor: "guess",
   foreignContradictionShare: "guess",
+  // Dua ambang di bawah memutuskan apakah pembaca menerima jawaban sama
+  // sekali, jadi keduanya keputusan — bukan penjaga kapasitas.
+  handlerScoreFloor: "guess",
+  retrievalScoreFloor: "guess",
+  // Sisanya menjaga ukuran, bukan menilai bukti: berapa entri dimuat, berapa
+  // karakter masuk prompt, berapa giliran diingat, berapa entri disimpan.
+  retrievalTopK: "convention",
+  retrievalContextCharCap: "convention",
+  copilotHistoryTurns: "convention",
+  retrievalMemoMaxEntries: "convention",
 };
 
 /**
@@ -127,6 +154,17 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     momentumSectorFloor: num(t.momentumSectorFloor, DEFAULT_THRESHOLDS.momentumSectorFloor),
     momentumIdiosyncraticFloor: num(t.momentumIdiosyncraticFloor, DEFAULT_THRESHOLDS.momentumIdiosyncraticFloor),
     foreignContradictionShare: num(t.foreignContradictionShare, DEFAULT_THRESHOLDS.foreignContradictionShare),
+    // Nilai lapisan retrieval selalu jatuh ke default: playbook pembaca tidak
+    // memuatnya, dan memang tidak seharusnya. Ambang konsentrasi adalah
+    // pendapat tentang pasar; berapa karakter yang masuk prompt bukan.
+    // Keduanya tetap lewat sini supaya satu objek ini benar-benar berisi
+    // setiap ambang yang dibaca mesin, seperti yang dijanjikan namanya.
+    handlerScoreFloor: DEFAULT_THRESHOLDS.handlerScoreFloor,
+    retrievalScoreFloor: DEFAULT_THRESHOLDS.retrievalScoreFloor,
+    retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
+    retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
+    copilotHistoryTurns: DEFAULT_THRESHOLDS.copilotHistoryTurns,
+    retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
   };
 }
 
