@@ -69,7 +69,7 @@ function rejectionFor(text: string, symbol: string, allowed: string[]): string |
   if (!text) return "kalimat kosong";
   const violations = verifyDraft(text, allowed, []).violations;
   if (violations.length) return violations.join("; ");
-  const tickers = text.match(/\b[A-Z]{4}\b/g) ?? [];
+  const tickers: string[] = text.match(/\b[A-Z]{4}\b/g) ?? [];
   if (!tickers.includes(symbol)) return `kalimat tidak menyebut ${symbol}`;
   if (tickers.some((ticker) => ticker !== symbol)) return "kalimat menyebut emiten lain";
   if (PLUMBING.test(text)) return "kalimat menjelaskan pipa, bukan rekamannya";
