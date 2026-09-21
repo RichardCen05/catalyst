@@ -446,9 +446,13 @@ test("copilot answers a causal-map question asked from the dashboard", async ({ 
   await finishSetup(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Tanya asisten" }).click();
-  await page.getByLabel("Tanya Catalyst").fill("jelaskan semua kasus dalam satu jalur");
-  await page.getByLabel("Tanya Catalyst").press("Enter");
-  await expect(page.getByText(/belum bisa dipetakan ke bukti/)).toHaveCount(0);
+  const panel = page.getByRole("dialog", { name: "Asisten Catalyst" });
+  await panel.getByLabel("Tanya Catalyst").fill("jelaskan semua kasus dalam satu jalur");
+  await panel.getByLabel("Tanya Catalyst").press("Enter");
+  const log = panel.getByRole("log", { name: "Percakapan asisten" });
+  await expect(log.getByText("jelaskan semua kasus dalam satu jalur")).toBeVisible();
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 120_000 });
+  await expect(panel.getByText(/belum bisa dipetakan ke bukti/)).toHaveCount(0);
 });
 
 test("causal map labels hypotheses, confidence, lag, and counter-evidence", async ({ page }) => {
