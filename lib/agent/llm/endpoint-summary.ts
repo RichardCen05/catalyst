@@ -67,7 +67,7 @@ export async function summarizeEndpointWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<EndpointSummaryDraft> {
   const draft = await call<EndpointSummaryDraft>({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Alamat: ${input.endpoint}`,

@@ -104,7 +104,7 @@ export async function explainReadingWithLlm(
   ].join("\n");
 
   const draft = await call<ReadingExplanation>({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: material,
     schema: EXPLAIN_SCHEMA,

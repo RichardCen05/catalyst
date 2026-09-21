@@ -45,7 +45,7 @@ export async function assessExposureWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<ExposureAssessment> {
   const result = await call<ExposureAssessment>({
-    model: process.env.GEMINI_MODEL_FLASH || process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL_FLASH || process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Emiten: ${input.symbol}`,

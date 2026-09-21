@@ -57,7 +57,7 @@ export async function parseMandateWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<MandatePlan> {
   const result = await call<MandatePlan>({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: `Ticker: ${input.symbol}\nMandate: ${input.mandate}`,
     schema: MANDATE_SCHEMA,

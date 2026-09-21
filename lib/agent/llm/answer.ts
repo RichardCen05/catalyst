@@ -43,7 +43,7 @@ export async function composeAnswerWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<LlmAnswerDraft> {
   const draft = await call<LlmAnswerDraft>({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}`,
     schema: ANSWER_SCHEMA,

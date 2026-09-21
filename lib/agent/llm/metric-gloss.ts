@@ -62,7 +62,7 @@ export async function describeMetricWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<string> {
   const draft = await call<MetricGlossDraft>({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Nama angka: ${input.label}`,
