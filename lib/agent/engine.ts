@@ -1,5 +1,5 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, coverageInfo, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
@@ -40,6 +40,8 @@ import { generateStructured } from "@/lib/agent/llm/client";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler } from "@/lib/agent/handlers";
+import { lruMemo } from "@/lib/agent/retrieval/memo";
+import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
@@ -296,7 +298,32 @@ function createResearchDisposition(
   };
 }
 
+/**
+ * Cases, kept for as long as the recordings behind them stay the same.
+ *
+ * `buildAnalysis` is synchronous and was rebuilt in full on every request —
+ * twice per comparison. Nothing about it depends on the request beyond the
+ * symbol and the watchlist, so the work was pure repetition.
+ *
+ * No GCS layer sits behind this. A round trip to object storage costs more
+ * than recomputing a synchronous function, so a remote cache here would be a
+ * pessimisation wearing an optimisation's name.
+ */
+const analysisMemo = lruMemo<string, AnalysisCase | null>(_DEFAULTS.retrievalMemoMaxEntries);
+
 function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
+  // A context carries user notes and a playbook, both of which change the
+  // result. Those requests skip the memo rather than poisoning it for the
+  // requests that carry neither.
+  if (context) return buildAnalysisUncached(symbol, profile, context);
+  const key = `${symbol}|${DATA_AS_OF}|${[...profile.watchlist].sort().join(",")}`;
+  if (analysisMemo.has(key)) return analysisMemo.get(key) ?? null;
+  const built = buildAnalysisUncached(symbol, profile);
+  analysisMemo.set(key, built);
+  return built;
+}
+
+function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context?: AnalysisContext): AnalysisCase | null {
   const company = marketDataProvider.getCompany(symbol);
   const fixture = analysisFixtures[symbol];
   if (!company || !fixture) return null;
@@ -927,6 +954,7 @@ function withModel(model: string): typeof generateStructured {
 async function composeRetrieved(
   question: string,
   retrieved: RetrievedContext,
+  cacheable: boolean,
 ): Promise<{ text: string; llmFallbackNote?: string }> {
   if (agentMode() !== "llm") return { text: retrieved.text };
   const models = [
@@ -934,6 +962,14 @@ async function composeRetrieved(
     process.env.GEMINI_MODEL || "gemini-3.8-flash",
   ];
   for (const model of models) {
+    // Only a first turn is cacheable. A follow-up's meaning depends on turns
+    // the key does not carry, so "dan yang satunya?" would otherwise be served
+    // an answer written for a different conversation.
+    const key = cacheable ? answerCacheKey(question, retrieved.text, model) : null;
+    if (key) {
+      const hit = await readAnswerCache(key);
+      if (hit?.text) return { text: hit.text };
+    }
     try {
       const draft = await Promise.race([
         composeAnswerWithLlm(
@@ -942,6 +978,7 @@ async function composeRetrieved(
         ),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
       ]);
+      if (key) await writeAnswerCache(key, { text: draft.text });
       return { text: draft.text };
     } catch (error) {
       // A budget or rate-limit refusal ends the attempt entirely: the second
@@ -1339,7 +1376,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   }
 
   if (winner.id === "retrieved" && retrieved) {
-    const composed = await composeRetrieved(request.question, retrieved);
+    const composed = await composeRetrieved(request.question, retrieved, !(request.history ?? []).length);
     return {
       text: composed.text, refused: false, intent: "retrieved",
       hypotheses: openInsightTraces, citations: retrieved.citations,
