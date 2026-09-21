@@ -1,4 +1,5 @@
 import { generateStructured } from "@/lib/agent/llm/client";
+import { strongModel } from "@/lib/agent/llm/models";
 import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
 import type { RecordingDigest } from "@/lib/data/recording-digest";
 
@@ -91,7 +92,7 @@ export async function writeTodayFactWithLlm(
   ].join("\n");
 
   const draft = await call<TodayFact>({
-    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: material,
     schema: FACT_SCHEMA,

@@ -37,6 +37,7 @@ import { extractNumerals } from "@/lib/agent/llm/verify";
 import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { generateStructured } from "@/lib/agent/llm/client";
+import { cheapModel, strongModel } from "@/lib/agent/llm/models";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler } from "@/lib/agent/handlers";
@@ -954,8 +955,8 @@ async function composeRetrieved(
 ): Promise<{ text: string; llmFallbackNote?: string }> {
   if (agentMode() !== "llm") return { text: retrieved.readerText };
   const models = [
-    process.env.GEMINI_MODEL_CHEAP || "gemini-3.5-flash-lite",
-    process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    cheapModel(),
+    strongModel(),
   ];
   for (const model of models) {
     // Only a first turn is cacheable. A follow-up's meaning depends on turns

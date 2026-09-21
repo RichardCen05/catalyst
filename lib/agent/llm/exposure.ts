@@ -1,4 +1,5 @@
 import { generateStructured } from "@/lib/agent/llm/client";
+import { strongModel } from "@/lib/agent/llm/models";
 import type { ImpactDirection } from "@/lib/types";
 
 const DIRECTIONS: ImpactDirection[] = ["Supported", "Adverse", "Mixed", "Unrelated", "Unverified"];
@@ -45,7 +46,7 @@ export async function assessExposureWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<ExposureAssessment> {
   const result = await call<ExposureAssessment>({
-    model: process.env.GEMINI_MODEL_FLASH || process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Emiten: ${input.symbol}`,

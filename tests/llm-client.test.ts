@@ -103,3 +103,63 @@ describe("generateStructured", () => {
     expect(generateContent).not.toHaveBeenCalled();
   });
 });
+
+/** Several OpenAI-compatible models fence their JSON. Dropping the panel to
+ *  the deterministic path over the packaging of an otherwise valid answer
+ *  would be a regression the reader cannot see the cause of. */
+describe("generateStructured across providers", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetModules();
+    // The cases above leave module mocks registered; resetModules alone keeps
+    // them, so the budget seam would still be the stub that always refuses.
+    vi.doUnmock("@/lib/agent/llm/budget");
+    vi.doUnmock("@google/genai");
+    process.env = { ...originalEnv };
+    delete process.env.LLM_DAILY_CALL_BUDGET;
+    process.env.LLM_PROVIDER = "openai-compatible";
+    process.env.LLM_BASE_URL = "https://example.invalid/v1";
+    process.env.LLM_API_KEY = "test-key";
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("parses a fenced answer from an openai-compatible provider", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ choices: [{ message: { content: '```json\n{"sentence":"halo"}\n```' }, finish_reason: "stop" }] }),
+      }),
+    );
+    const { generateStructured } = await import("@/lib/agent/llm/client");
+    await expect(
+      generateStructured({ model: "vendor/model", systemInstruction: "sys", contents: "hi", schema: {} }),
+    ).resolves.toEqual({ sentence: "halo" });
+  });
+
+  it("closes the day's gate on a 429 from a non-Google provider", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 429, statusText: "Too Many Requests", json: async () => ({}) }),
+    );
+    const noteLlmRateLimited = vi.fn().mockResolvedValue(undefined);
+    vi.doMock("@/lib/agent/llm/budget", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("@/lib/agent/llm/budget")>()),
+      noteLlmRateLimited,
+    }));
+    const { generateStructured } = await import("@/lib/agent/llm/client");
+    await expect(
+      generateStructured({ model: "vendor/model", systemInstruction: "sys", contents: "hi", schema: {} }),
+    ).rejects.toMatchObject({ name: "LlmBudgetError", reason: "rate-limit" });
+    expect(noteLlmRateLimited).toHaveBeenCalled();
+  });
+});

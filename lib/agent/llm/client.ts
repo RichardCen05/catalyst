@@ -1,19 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
 import { isRateLimitError, LlmBudgetError, noteLlmRateLimited, reserveLlmCall } from "@/lib/agent/llm/budget";
+import { getLlmProvider } from "@/lib/agent/llm/providers";
 
-export function getGenAiClient(): GoogleGenAI {
-  if (process.env.GOOGLE_GENAI_USE_ENTERPRISE === "true") {
-    const project = process.env.GOOGLE_CLOUD_PROJECT;
-    const location = process.env.GOOGLE_CLOUD_LOCATION;
-    if (!project || !location) {
-      throw new Error("GOOGLE_GENAI_USE_ENTERPRISE=true requires GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION");
-    }
-    return new GoogleGenAI({ vertexai: true, project, location });
-  }
-  const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) throw new Error("GOOGLE_API_KEY is not set (and GOOGLE_GENAI_USE_ENTERPRISE is not true)");
-  return new GoogleGenAI({ apiKey });
-}
+export { getGenAiClient } from "@/lib/agent/llm/providers";
 
 export interface StructuredCallParams {
   model: string;
@@ -36,25 +24,38 @@ export interface StructuredCallParams {
 const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
 
 /**
+ * Providers that honour a JSON schema still differ on the wrapper: Gemini
+ * returns bare JSON, while several OpenAI-compatible models fence it. The
+ * fence is stripped rather than parsed, because rejecting a well-formed answer
+ * over its packaging would drop the panel to the deterministic path for a
+ * reason the reader cannot see. Anything past the fence is still the model's
+ * own JSON, and the guards above verify it unchanged.
+ */
+function unwrapJson(text: string): string {
+  const trimmed = text.trim();
+  const fenced = /^```(?:json)?\s*\n([\s\S]*?)\n?```$/.exec(trimmed);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+
+/**
  * Every model call in the app goes through here, which is why the daily
- * ceiling is enforced here and not at each of the three call sites. The
- * reservation happens before the request leaves: a call that fails still
- * spent quota.
+ * ceiling is enforced here and not at each of the call sites. The reservation
+ * happens before the request leaves: a call that fails still spent quota.
+ *
+ * Which vendor actually answers is `LLM_PROVIDER`'s business, not this
+ * function's — see providers.ts.
  */
 export async function generateStructured<T>(params: StructuredCallParams): Promise<T> {
   await reserveLlmCall();
-  const client = getGenAiClient();
-  let response;
+  const provider = getLlmProvider();
+  let text: string;
   try {
-    response = await client.models.generateContent({
+    text = await provider.generate({
       model: params.model,
+      systemInstruction: params.systemInstruction,
       contents: params.contents,
-      config: {
-        systemInstruction: params.systemInstruction,
-        responseMimeType: "application/json",
-        responseJsonSchema: params.schema,
-        maxOutputTokens: params.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
-      },
+      schema: params.schema,
+      maxOutputTokens: params.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
     });
   } catch (error) {
     // A 429 closes the gate for the rest of the day instead of letting every
@@ -65,11 +66,5 @@ export async function generateStructured<T>(params: StructuredCallParams): Promi
     }
     throw error;
   }
-  const finishReason = response.candidates?.[0]?.finishReason;
-  if (finishReason === "MAX_TOKENS") {
-    throw new Error(`Gemini response truncated at the output ceiling (finishReason=MAX_TOKENS, model=${params.model})`);
-  }
-  const text = response.text;
-  if (!text) throw new Error("Gemini returned no text");
-  return JSON.parse(text) as T;
+  return JSON.parse(unwrapJson(text)) as T;
 }

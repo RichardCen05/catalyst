@@ -1,6 +1,7 @@
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { generateStructured } from "@/lib/agent/llm/client";
+import { strongModel } from "@/lib/agent/llm/models";
 import { verifyDraft } from "@/lib/agent/llm/verify";
 import { glossField } from "@/lib/agent/explain";
 
@@ -62,7 +63,7 @@ export async function describeMetricWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<string> {
   const draft = await call<MetricGlossDraft>({
-    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Nama angka: ${input.label}`,

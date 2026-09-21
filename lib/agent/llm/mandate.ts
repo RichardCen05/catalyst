@@ -1,4 +1,5 @@
 import { generateStructured } from "@/lib/agent/llm/client";
+import { strongModel } from "@/lib/agent/llm/models";
 import type { BusinessImpactDimension } from "@/lib/types";
 
 const DIMENSIONS: BusinessImpactDimension[] = ["volume", "pricing", "margin", "cash-flow", "balance-sheet", "valuation"];
@@ -57,7 +58,7 @@ export async function parseMandateWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<MandatePlan> {
   const result = await call<MandatePlan>({
-    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: `Ticker: ${input.symbol}\nMandate: ${input.mandate}`,
     schema: MANDATE_SCHEMA,

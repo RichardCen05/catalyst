@@ -1,4 +1,5 @@
 import { generateStructured } from "@/lib/agent/llm/client";
+import { strongModel } from "@/lib/agent/llm/models";
 import { verifyDraft } from "@/lib/agent/llm/verify";
 import { glossField } from "@/lib/agent/explain";
 
@@ -67,7 +68,7 @@ export async function summarizeEndpointWithLlm(
   call: typeof generateStructured = generateStructured,
 ): Promise<EndpointSummaryDraft> {
   const draft = await call<EndpointSummaryDraft>({
-    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: [
       `Alamat: ${input.endpoint}`,

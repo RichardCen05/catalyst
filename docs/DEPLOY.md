@@ -50,6 +50,33 @@ never created.
 answer; the code default is the same value, so unsetting it changes nothing, but keeping it
 explicit pins the cost model the rollout was priced on (~$16/month at 200 questions/day).
 
+## 2b. Switching model provider
+
+The live revision runs the Gemini provider and this section describes it. Nothing below is set
+on the serving revision today; it is what an env change to another vendor requires.
+
+`LLM_PROVIDER` selects the provider in `lib/agent/llm/providers.ts`. Unset means `gemini`, which
+is why the live revision needs none of these variables. The other value is `openai-compatible`:
+any `/v1/chat/completions` endpoint that honours `response_format: json_schema` with
+`strict: true` — OpenRouter, OpenAI, Groq, Together, vLLM, and Anthropic's OpenAI-compatible
+endpoint. A provider that ignores the schema is not usable: the guards in `lib/agent/llm/verify.ts`
+reject free prose, so the panel renders the deterministic text instead.
+
+`openai-compatible` additionally requires `LLM_BASE_URL` (no trailing slash) and `LLM_API_KEY`
+(a Secret Manager secret, never a plain env var), plus `LLM_MODEL`. The model id is not optional
+for a non-Gemini provider: `lib/agent/llm/models.ts` refuses to guess one rather than send a
+Gemini id to a vendor that has never heard of it. `LLM_MODEL_CHEAP` is optional; without it one
+model does both the draft and the retry.
+
+`LLM_MODEL` and `LLM_MODEL_CHEAP` also override `GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` while the
+provider is still Gemini. The Gemini names keep working, which is why the live revision was not
+touched by this change.
+
+A 429 from any provider closes the day's gate identically — `LlmHttpError` carries the status so
+`isRateLimitError` in `lib/agent/llm/budget.ts` recognises it. Rolling back is `LLM_PROVIDER=gemini`
+or removing the variable; no redeploy of the image is needed for either direction, only
+`gcloud run services update`.
+
 `COPILOT_RETRIEVAL` gates the retrieval layer (`lib/agent/retrieval/`): the lexical corpus
 index, scored-handler routing, and aggregate answers over the full matching set. When unset
 (or anything but `on`) the `retrieved` handler scores 0 and the copilot behaves exactly as
