@@ -37,8 +37,14 @@ async function finishSetup(page: Page) {
  */
 function countMemoryWrites(target: Page | BrowserContext) {
   const seen: Request[] = [];
+  // When each write was observed, so a test can assert that one beat the
+  // debounce without having to race it with a short poll timeout.
+  const seenAt: number[] = [];
   const listener = (request: Request) => {
-    if (request.method() === "POST" && request.url().includes("/api/memory")) seen.push(request);
+    if (request.method() === "POST" && request.url().includes("/api/memory")) {
+      seen.push(request);
+      seenAt.push(Date.now());
+    }
   };
   target.on("request", listener);
   return {
@@ -47,6 +53,9 @@ function countMemoryWrites(target: Page | BrowserContext) {
     },
     get requests() {
       return seen;
+    },
+    get firstSeenAt() {
+      return seenAt[0];
     },
     stop: () => target.off("request", listener),
   };
@@ -133,6 +142,7 @@ test("G7c: with sendBeacon missing, the hidden-tab flush falls back to a keepali
   await quiesce(page);
 
   const writes = countMemoryWrites(context);
+  const editedAt = Date.now();
   await page.getByRole("button", { name: "Berguna" }).click();
   await page.waitForTimeout(200);
   expect(writes.count).toBe(0);
@@ -147,11 +157,12 @@ test("G7c: with sendBeacon missing, the hidden-tab flush falls back to a keepali
     document.dispatchEvent(new Event("visibilitychange"));
   });
 
-  // The timeout is the assertion. ~1300ms of the debounce is still to run, so a
-  // write seen inside 700ms of the transition came from the flush and cannot
-  // have come from the timer. A generous poll here would pass with no flush at
-  // all — it would simply be waiting for the debounce.
-  await expect.poll(() => writes.count, { timeout: 700, intervals: [50] }).toBe(1);
+  // The poll is generous so that a slow dev server cannot make this flaky. What
+  // discriminates is the recorded timestamp below, not the timeout: the write
+  // has to have been issued before the debounce could possibly have fired, and
+  // with no flush there is nothing that can issue one that early.
+  await expect.poll(() => writes.count, { timeout: 5_000, intervals: [25] }).toBe(1);
+  expect(writes.firstSeenAt - editedAt).toBeLessThan(SYNC_DEBOUNCE_MS);
   // The flush reads the same localStorage snapshot the timer path reads, so the
   // edit is in the body, not just in the request count.
   const posted = writes.requests[0].postData() ?? "";
