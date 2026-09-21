@@ -164,8 +164,49 @@ function ownSubstitution(substitution: string, label: string): string | undefine
   // metric's in full even though it never names it — the volume z-score reads
   // "0,6745 × (…) / …". Matching on the label would drop it.
   if (segments.length === 1) return SOLE_SUBSTITUTION_OWNER.has(label) ? segments[0] : undefined;
+  // Whole label before first word: "Porsi peserta teratas" and "Porsi asing"
+  // share a first word, and a first-word match handed the top-participant
+  // share whichever of the two the concentration line happened to list first.
+  const whole = label.toLowerCase();
+  const exact = segments.find((segment) => segment.toLowerCase().startsWith(whole));
+  if (exact) return exact;
   const key = label.split(" ")[0].toLowerCase();
-  return segments.find((segment) => segment.toLowerCase().startsWith(key));
+  const candidates = segments.filter((segment) => segment.toLowerCase().startsWith(key));
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+/**
+ * How one figure on a card was produced, for the card to render.
+ *
+ * The "Perhitungan dan data" block used to show the pillar's headline
+ * arithmetic once — one formula line, one substitution list — while the row
+ * of tiles above it carried five separate figures. A reader looking at
+ * "Peserta efektif 7.1" had no way to learn that it is 1 ÷ HHI, because the
+ * only derivation on screen belonged to the pillar, not to that tile.
+ *
+ * Nothing new is written here: the formula comes from the same per-metric
+ * registry the assistant answers from, and the substitution slice from the
+ * recorded calculation, so the block and the chat can never state different
+ * derivations for the same figure.
+ */
+export interface MetricDerivation {
+  /** How this figure is computed, in words. Absent when it is read, not computed. */
+  formula?: string;
+  /** The recorded numbers that went into it, when the pillar's calculation names them. */
+  substitution?: string;
+  /** True when the figure is copied from a recording rather than derived. */
+  readDirectly: boolean;
+}
+
+export function metricDerivation(pillar: PillarResult, metric: MetricValue): MetricDerivation {
+  const formula = METRIC_FORMULA[metric.label];
+  return {
+    formula,
+    substitution: pillar.calculation && formula
+      ? ownSubstitution(pillar.calculation.substitution, metric.label)
+      : undefined,
+    readDirectly: METRIC_READ_DIRECTLY.has(metric.label),
+  };
 }
 
 /** Metrics whose pillar substitution line is theirs alone. */

@@ -309,6 +309,8 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
     { netForeign: brokerEvidence.netForeign, totalMarketValue: brokerEvidence.totalMarketValue },
     { freeFloatShares: brokerEvidence.freeFloatShares, referencePrice: brokerEvidence.referencePrice },
   );
+  const totalBuyValue = buyerValues.reduce((total, value) => total + value, 0);
+  const topBuyerValue = buyerValues.length ? Math.max(...buyerValues) : 0;
   const foreignParticipantValue = brokerEvidence.buyers
     .filter((row) => row.origin === "foreign")
     .reduce((total, row) => total + row.value, 0);
@@ -450,7 +452,16 @@ function buildAnalysis(symbol: SymbolCode, profile: UserProfile, context?: Analy
       calculation: {
         name: "Konsentrasi partisipan",
         formula: "HHI = Σsᵢ²; partisipan efektif = 1 / HHI; saham publik terserap = Σ nilai akumulasi / (saham publik × harga referensi)",
-        substitution: `HHI = ${buyerValues.map((value) => `(${compact(value)}/${compact(buyerValues.reduce((sum, item) => sum + item, 0))})²`).join(" + ")}; saham publik = ${compact(buyerValues.reduce((sum, item) => sum + item, 0))} / (${compact(brokerEvidence.freeFloatShares)} × ${compact(brokerEvidence.referencePrice)})`,
+        // One named segment per tile above, because the card reads them back
+        // that way: a segment that names no figure, or names one the row does
+        // not carry, leaves that tile with a formula and no numbers under it.
+        substitution: [
+          `Porsi peserta teratas = ${compact(topBuyerValue)} / ${compact(totalBuyValue)}`,
+          `HHI = ${buyerValues.map((value) => `(${compact(value)}/${compact(totalBuyValue)})²`).join(" + ")}`,
+          `Peserta efektif = 1 / ${concentration.hhi.toFixed(3)}`,
+          `Porsi asing = ${compact(brokerEvidence.netForeign)} / ${compact(brokerEvidence.totalMarketValue)}`,
+          `Saham publik terserap = ${compact(totalBuyValue)} / (${compact(brokerEvidence.freeFloatShares)} × ${compact(brokerEvidence.referencePrice)})`,
+        ].join("; "),
         result: `HHI ${concentration.hhi.toFixed(3)} · ${concentration.effectiveBuyers.toFixed(1)} partisipan efektif · ${percent(concentration.floatAbsorbed, 2)} saham publik`,
         notes: ["Porsi dihitung dari nilai sisi akumulasi pada jendela rekaman.", "Asal broker diperiksa silang dengan arus asing agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
       },

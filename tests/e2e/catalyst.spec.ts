@@ -223,10 +223,12 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await expect(page.getByText(/Periksa perubahan ANTM/)).toBeVisible();
   await expect(page.getByLabel("Apa yang ingin dibuktikan?")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Simpan dan susun ulang" })).toHaveCount(0);
-  await expect(page.getByText("Langkah 1 · klik satu kartu untuk mulai")).toBeVisible();
+  await expect(page.getByText("Klik satu kartu untuk mulai")).toBeVisible();
   await page.locator('[data-tour-action="resolve-clarification"]').click();
-  await expect(page.getByText("Langkah 1 selesai", { exact: false })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Lanjut ke Pasar/ })).toBeVisible();
+  await expect(page.getByText("Fokus sudah dipilih", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
+  // Rincian audit sits in the review tab now, next to the decision it supports.
+  await page.goto("/cases/ANTM?tab=review");
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tahap kasus" })).toBeVisible();
   await page.getByRole("tab", { name: "Pasar" }).click();
@@ -239,7 +241,6 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await expect(page.getByRole("dialog")).toContainText("Daftar bukti");
   await page.getByRole("button", { name: "Tutup sumber" }).click();
 
-  await page.getByRole("tab", { name: "Ringkasan" }).click();
   await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
 });
 
@@ -270,11 +271,12 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await page.goto("/cases/ANTM");
 
   const caseTabs = page.getByRole("tablist", { name: "Bagian kasus" });
-  await expect(caseTabs.getByRole("tab")).toHaveText(["Ringkasan", "Pasar", "Bisnis", "Tinjau"]);
-  await expect(caseTabs.getByRole("tab", { name: "Ringkasan" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "Pertanyaan riset" })).toBeVisible();
+  await expect(caseTabs.getByRole("tab")).toHaveText(["Pasar", "Bisnis", "Tinjau"]);
+  await expect(caseTabs.getByRole("tab", { name: "Pasar" })).toHaveAttribute("aria-selected", "true");
+  // The focus gate sits above the tabs, so it stays reachable from every tab.
+  await expect(page.getByRole("region", { name: "Penentuan fokus" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toBeVisible();
 
   await caseTabs.getByRole("tab", { name: "Pasar" }).click();
   await expect(page).toHaveURL(/\/cases\/ANTM\?tab=market$/);
@@ -313,7 +315,7 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await page.reload();
   await expect(page.getByLabel("Aturan materialitas")).toHaveValue(rule);
 
-  await page.goto("/cases/ANTM");
+  await page.goto("/cases/ANTM?tab=review");
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByText(rule, { exact: true })).toBeVisible();
 

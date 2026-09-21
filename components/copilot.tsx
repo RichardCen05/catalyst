@@ -6,40 +6,17 @@ import { useCatalystStore } from "@/lib/store";
 import { useCopilotSession } from "@/lib/copilot-session";
 import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
-import { companies, coverageInfo, DATA_AS_OF, events } from "@/lib/data/fixtures";
-import type { ChatAnswer, SymbolCode, UserProfile } from "@/lib/types";
+import { coverageInfo, DATA_AS_OF } from "@/lib/data/fixtures";
+import { ASSISTANT_NAME, buildQuickPrompts } from "@/lib/agent/assistant";
+import type { ChatAnswer, SymbolCode } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
-import { IconAttention, IconCaretDown, IconClose, IconCollapse, IconCopilot, IconExpand, IconExternal, IconGate, IconSend, IconUser } from "@/components/ui/icons";
+import { Blobatar } from "@blobatar/react";
+import { useGaze } from "@blobatar/react/gaze";
+import { happy, sad, thinking } from "blobatar/expression";
+import { IconAttention, IconCaretDown, IconClose, IconCollapse, IconExpand, IconExternal, IconGate, IconSend } from "@/components/ui/icons";
 
 const RECORD_SHORT = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(DATA_AS_OF));
-
-/** Quick prompts name a real recorded event touching the watchlist — never a
- *  topic the record does not contain. Falls back to generic prompts when the
- *  watchlist has no linked event. */
-function buildQuickPrompts(profile: UserProfile): string[] {
-  const fallback = companies.find((company) => company.analyzed)?.symbol ?? companies[0]?.symbol;
-  const first = profile.watchlist[0] ?? fallback!;
-  const watched = new Set(profile.watchlist);
-  const top = events.find((event) => event.impactLinks.some((link) => watched.has(link.symbol) && link.direction !== "Unrelated"));
-  const prompts = [`Kenapa ${first} masuk daftar hari ini?`];
-  if (top) {
-    const headline = top.title.length > 72 ? `${top.title.slice(0, 72)}…` : top.title;
-    prompts.push(`${headline} — berdampak ke pantauan saya?`);
-  } else {
-    prompts.push("Peristiwa apa yang berdampak ke daftar pantauan saya?");
-  }
-  // Only symbols with a full case can be compared. The old prompt used
-  // watchlist[1] blindly and suggested "Bandingkan ANTM dan INCO" — INCO has
-  // no broker or quarterly recording, so the suggestion the app offered was
-  // one it then had to refuse.
-  const comparable = profile.watchlist.filter((symbol) => coverageInfo[symbol]?.analyzed && symbol !== first);
-  prompts.push(comparable[0] ? `Bandingkan ${first} dan ${comparable[0]}.` : "Data apa yang belum diperiksa?");
-  // A figure on screen is the question readers actually ask next.
-  prompts.push(`Apa itu HHI dan dari mana angkanya untuk ${first}?`);
-  prompts.push("Data apa yang belum diperiksa?");
-  return [...new Set(prompts)].slice(0, 4);
-}
 
 /** Answers arrive as one labelled line per fact. Rendering them as a single
  *  paragraph buried the audit trail in prose, so each label becomes its own
@@ -80,6 +57,15 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const activeContext = resolveContext(copilotContext, routeSymbol);
   const contextLabel = activeContext?.label ?? "Tanpa kasus";
   const bindTo = (symbol: SymbolCode) => setCopilotContext({ label: symbol, question: "", symbol });
+  // The face answers with the panel. It thinks while the engine works, and
+  // afterwards it holds the outcome of the last turn — a refused question
+  // keeps a sad face until the next one lands, so the state is visible
+  // without re-reading the thread.
+  const lastMessage = messages[messages.length - 1];
+  const mood = loading ? thinking : lastMessage?.failed ? sad : lastMessage?.role === "assistant" && lastMessage.answer ? happy : undefined;
+  // Only the header face is large enough for the eyes to read as eyes, so
+  // it is the only one given the pointer-tracking layer.
+  const { ref: faceRef } = useGaze({ travel: 3, lookAt: "pointer" });
 
   useEffect(() => {
     const question = copilotContext?.question ?? "";
@@ -129,13 +115,13 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       ref={panelRef}
       tabIndex={dismissible ? -1 : undefined}
       role={dismissible ? "dialog" : undefined}
-      aria-label={dismissible ? "Asisten Catalyst" : undefined}
+      aria-label={dismissible ? ASSISTANT_NAME : undefined}
       onKeyDown={dismissible ? (event) => { if (event.key === "Escape") { event.stopPropagation(); setCopilotOpen(false); } } : undefined}
       className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}
     >
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary"><IconCopilot aria-hidden="true" className="size-5" /></div>
-        <p className="min-w-0 flex-1 truncate text-sm font-semibold">Asisten Catalyst</p>
+        <Blobatar ref={faceRef} name={ASSISTANT_NAME} animate="always" expression={mood} background="squircle" size={36} aria-hidden="true" className="shrink-0" />
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold">{ASSISTANT_NAME}</p>
         {dismissible
           ? <Button variant="ghost" size="icon" onClick={expand} aria-label="Perbesar asisten ke halaman penuh"><IconExpand aria-hidden="true" className="size-4" /></Button>
           : <Button variant="ghost" size="icon" onClick={collapse} aria-label="Ciutkan asisten ke panel"><IconCollapse aria-hidden="true" className="size-4" /></Button>}
@@ -182,7 +168,9 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           </div>
         ) : null}
         {messages.map((message) => <div key={message.id} className={message.role === "user" ? "ml-7" : "mr-2"}>
-          <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user" ? <IconUser aria-hidden="true" className="size-3" /> : <IconCopilot aria-hidden="true" className="size-3" />}{message.role === "user" ? "Anda" : "Asisten"}</div>
+          <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{message.role === "user"
+              ? <Blobatar name={profile.name} animate="hover" background="circle" size={20} aria-hidden="true" className="shrink-0" />
+              : <Blobatar name={ASSISTANT_NAME} animate="hover" background="circle" size={20} expression={message.failed ? sad : undefined} aria-hidden="true" className="shrink-0" />}{message.role === "user" ? "Anda" : "Asisten"}</div>
           <div className={`rounded-xl border p-3 text-sm leading-6 ${message.failed ? "border-danger/35 bg-danger-soft" : message.role === "user" ? "border-primary/25 bg-primary/10" : "border-border bg-background"}`}>
             {message.failed ? <p className="flex gap-2 text-danger"><IconAttention aria-hidden="true" className="mt-1 size-4 shrink-0" /><span>{message.text}</span></p>
               : message.role === "user" ? <p className="whitespace-pre-line">{message.text}</p>

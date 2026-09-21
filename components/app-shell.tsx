@@ -4,11 +4,12 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BarChart3, Bot, BrainCircuit, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Radar, Sun, X } from "lucide-react";
+import { BarChart3, BrainCircuit, BriefcaseBusiness, FlaskConical, GitBranch, Menu, Moon, Radar, Sun, X } from "lucide-react";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { CatalystLogo } from "@/components/logo";
 import { CommandPalette } from "@/components/command-palette";
 import { Copilot } from "@/components/copilot";
+import { CopilotLauncher } from "@/components/copilot-launcher";
 import { Button } from "@/components/ui/button";
 import { SettingsDrawer } from "@/components/settings-drawer";
 import { useCatalystStore } from "@/lib/store";
@@ -56,7 +57,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mobileNav, setMobileNav] = useState(false);
   const copilotOpen = useCatalystStore((state) => state.copilotOpen);
-  const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
   const copilotPage = pathname.startsWith("/copilot");
   const mobileNavItems = navItems;
   const copilotTrigger = useRef<HTMLButtonElement>(null);
@@ -118,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80 backdrop-blur-[2px]" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-6 flex items-center gap-3"><CatalystLogo /><span className="editorial text-[17px]">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-0.5">{nav(() => setMobileNav(false))}</nav><div className="mt-7"><CommandPalette /></div></aside></div> : null}
-      {!copilotPage && !copilotOpen ? <Button ref={copilotTrigger} onClick={() => setCopilotOpen(true)} className="fixed bottom-[4.25rem] right-3 z-30 shadow-2xl xl:bottom-5 xl:right-5"><Bot aria-hidden="true" className="size-4" />Tanya asisten</Button> : null}
+      {!copilotPage && !copilotOpen ? <CopilotLauncher triggerRef={copilotTrigger} /> : null}
       {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <Suspense fallback={null}><RouteContextProbe /></Suspense>
       <OnboardingWizard />
