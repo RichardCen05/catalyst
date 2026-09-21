@@ -1,6 +1,6 @@
 import { companies, events, DATA_AS_OF } from "@/lib/data/fixtures";
 import { METRIC_ALIASES, METRIC_FORMULA } from "@/lib/agent/explain";
-import { DEFAULT_THRESHOLDS, THRESHOLD_PROVENANCE } from "@/lib/agent/thresholds";
+import { DEFAULT_THRESHOLDS, PILLAR_LABELS, THRESHOLD_PROVENANCE } from "@/lib/agent/thresholds";
 import { normalizeQuery, SYMBOL_ALIASES } from "@/lib/agent/query";
 import { viewEntries } from "@/lib/agent/retrieval/context";
 import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
@@ -72,8 +72,11 @@ function thresholdEntries(): CorpusEntry[] {
     view: "method" as const,
     // The camelCase name split into words is how a reader would say it aloud;
     // the raw key is how it appears in the repository. Both reach the entry.
+    // The key is English and the reader's question is not, so the pillar's own
+    // Indonesian name joins the terms whenever the key belongs to one.
     terms: termsOf(key, key.replace(/([A-Z])/g, " $1"), "ambang", "threshold", "batas",
-      THRESHOLD_PROVENANCE[key]),
+      THRESHOLD_PROVENANCE[key],
+      Object.entries(PILLAR_LABELS).find(([pillar]) => key.startsWith(pillar))?.[1] ?? ""),
     load: () => buildThresholdBundle(key),
   }));
 }

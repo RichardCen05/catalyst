@@ -25,7 +25,9 @@ export async function buildCasesBundle(): Promise<ContextBundle> {
     title: "Cakupan kasus",
     body,
     figures: extractNumerals(body),
-    citations: [],
+    // Counted from the recorded registry, so the answer carries the sources
+    // those recordings arrived with rather than presenting a bare figure.
+    citations: [...new Map(analysed.flatMap((company) => company.citations).map((citation) => [citation.id, citation])).values()],
     symbols: analysed.map((company) => company.symbol),
   };
 }

@@ -47,7 +47,9 @@ export async function buildImpactBundle(): Promise<ContextBundle> {
     title: "Peta sebab akibat",
     body,
     figures: extractNumerals(body),
-    citations: [],
+    // Every mechanism counted here comes from a recorded event's impact
+    // links, so the event citations travel with the count.
+    citations: [...new Map(events.flatMap((event) => event.citations).map((citation) => [citation.id, citation])).values()].slice(0, 12),
     symbols: [...touched],
   };
 }

@@ -4,6 +4,7 @@ import { normalizeQuery } from "@/lib/agent/query";
 import { getCorpus } from "@/lib/agent/retrieval/corpus";
 import type { ScoredEntry } from "@/lib/agent/retrieval/score";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
+import type { Citation } from "@/lib/types";
 
 /**
  * The ways a reader asks about more than one thing.
@@ -12,7 +13,11 @@ import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types"
  * "list" inside "listed" are not plural askings, and "kenapa ANTM listed
  * hari ini" is emphatically a singular question.
  */
-const AGGREGATE_WORDS = ["semua", "seluruh", "seluruhnya", "berapa", "total", "all", "every", "list"];
+// "berapa" alone asks how much, not how many: "berapa ambang konsentrasi" is
+// a question about one number, and answering it with all eighteen thresholds
+// is the wrong kind of answer. Only "berapa banyak" is plural, and it lives in
+// the phrase list below.
+const AGGREGATE_WORDS = ["semua", "seluruh", "seluruhnya", "total", "all", "every", "list"];
 const AGGREGATE_PHRASES = ["mana saja", "apa saja", "siapa saja", "berapa banyak", "daftar lengkap", "how many"];
 
 export function isAggregateQuestion(question: string): boolean {
@@ -54,6 +59,7 @@ export async function aggregateBundle(
 
   const header = `Pertanyaan ini mencakup banyak hal. Yang cocok pada rekaman: ${coverage}.`;
   const lines = [header];
+  const collected = new Map<string, Citation>();
   let used = header.length;
   let listed = 0;
 
@@ -66,6 +72,10 @@ export async function aggregateBundle(
     lines.push(line);
     used += line.length;
     listed += 1;
+    // An aggregate counted over recordings must carry those recordings'
+    // sources. Summarising many cases is not a reason to drop the citations
+    // every one of them arrived with.
+    for (const citation of bundle.citations) collected.set(citation.id, citation);
   }
 
   if (listed < matched) {
@@ -79,7 +89,7 @@ export async function aggregateBundle(
     title: "Ringkasan agregat",
     body,
     figures: extractNumerals(body),
-    citations: [],
+    citations: [...collected.values()],
     symbols: [],
   };
 }

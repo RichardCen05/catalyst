@@ -47,7 +47,7 @@ import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
-import { DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
+import { PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
@@ -865,12 +865,7 @@ function relevantInsights(insights: UserInsight[] | undefined, symbol?: SymbolCo
 }
 
 function insightTraces(insights: UserInsight[]): HypothesisTrace[] {
-  const pillarLabels: Record<string, string> = {
-    concentration: "Konsentrasi",
-    volume: "Volume",
-    momentum: "Momentum",
-    catalyst: "Katalis",
-  };
+  const pillarLabels = PILLAR_LABELS;
   return insights.map((insight) => ({
     id: insight.id,
     hypothesis: `Catatan pengguna meminta pemeriksaan ulang${insight.pillar ? ` pada pilar ${pillarLabels[insight.pillar] ?? insight.pillar}` : ""}.`,
@@ -956,7 +951,7 @@ async function composeRetrieved(
   retrieved: RetrievedContext,
   cacheable: boolean,
 ): Promise<{ text: string; llmFallbackNote?: string }> {
-  if (agentMode() !== "llm") return { text: retrieved.text };
+  if (agentMode() !== "llm") return { text: retrieved.readerText };
   const models = [
     process.env.GEMINI_MODEL_CHEAP || "gemini-3.5-flash-lite",
     process.env.GEMINI_MODEL || "gemini-3.8-flash",
@@ -985,12 +980,12 @@ async function composeRetrieved(
       // model draws on the same daily allowance, so retrying spends quota to
       // learn the same answer.
       if (error instanceof LlmBudgetError) {
-        return { text: retrieved.text, llmFallbackNote: budgetNoteFor(error.reason) };
+        return { text: retrieved.readerText, llmFallbackNote: budgetNoteFor(error.reason) };
       }
       reportLlmFallback("retrieval", `model ${model}, ${retrieved.entryIds.length} entri`, error);
     }
   }
-  return { text: retrieved.text };
+  return { text: retrieved.readerText };
 }
 
 /**
@@ -1321,7 +1316,10 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // question that named nothing recognisable is a different problem and still
   // gets the menu at the end: the clarifying turn replaces a guess, not the
   // refusal.
-  if (!primary && !mentions(question, EVENT_PHRASES)
+  // Retrieval outranking this means the question was answerable without a
+  // case after all — "apa saja yang ada di daftar pantauan saya" contains
+  // "daftar", which is a why-phrase, but it is not a question about one case.
+  if (winner.id !== "retrieved" && !primary && !mentions(question, EVENT_PHRASES)
     && (mentions(question, WHY_PHRASES) || Boolean(matchFieldName(request.question)) || namesAMetric(request.question))) {
     return {
       text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,

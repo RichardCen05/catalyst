@@ -5,7 +5,12 @@ import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types"
 import type { Citation, SymbolCode } from "@/lib/types";
 
 export interface RetrievedContext {
+  /** What the model is given. Headings help it keep entries apart. */
   text: string;
+  /** What the reader is shown when no model wrote an answer — on a closed
+   *  budget, a 429, or two failed verifications. The same material without
+   *  the markdown scaffolding, which the panel renders literally. */
+  readerText: string;
   figures: string[];
   citations: Citation[];
   symbols: SymbolCode[];
@@ -50,6 +55,7 @@ export async function retrieveContext(
   if (!bundles.length) return null;
 
   const parts: string[] = [];
+  const readerParts: string[] = [];
   const kept: ContextBundle[] = [];
   let used = 0;
   for (const bundle of bundles) {
@@ -58,6 +64,10 @@ export async function retrieveContext(
     // ranked behind it.
     if (used + part.length > DEFAULT_THRESHOLDS.retrievalContextCharCap) continue;
     parts.push(part);
+    // The reader's copy carries the same words with no "##": the panel prints
+    // what it is given, so a heading marker reaches the screen as literal
+    // punctuation in front of a sentence.
+    readerParts.push(`${bundle.title}: ${bundle.body}`);
     kept.push(bundle);
     used += part.length;
   }
@@ -65,6 +75,7 @@ export async function retrieveContext(
 
   return {
     text: parts.join("\n\n"),
+    readerText: readerParts.join("\n\n"),
     figures: [...new Set(kept.flatMap((bundle) => bundle.figures))],
     citations: [...new Map(
       kept.flatMap((bundle) => bundle.citations).map((citation) => [citation.id, citation]),

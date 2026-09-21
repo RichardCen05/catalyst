@@ -69,6 +69,21 @@ export const DEFAULT_THRESHOLDS = {
  *   convention — penjaga kualitas data, bukan ambang keputusan
  *   guess      — nilai awal yang dipilih manusia; kandidat Lapis 3
  */
+/**
+ * Nama pilar dalam bahasa pembaca.
+ *
+ * Dulu tabel lokal di dalam `insightTraces` (lib/agent/engine.ts), tidak
+ * terlihat dari mana pun. Indeks korpus membutuhkan nama yang sama supaya
+ * "berapa ambang konsentrasi" menemukan `concentrationFloor` — kunci ambang
+ * ditulis dalam bahasa Inggris, pertanyaan pembaca tidak.
+ */
+export const PILLAR_LABELS: Record<string, string> = {
+  concentration: "Konsentrasi",
+  volume: "Volume",
+  momentum: "Momentum",
+  catalyst: "Katalis",
+};
+
 export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "derived" | "convention" | "guess"> = {
   relevanceFloor: "guess",
   chainRelevanceFloor: "guess",

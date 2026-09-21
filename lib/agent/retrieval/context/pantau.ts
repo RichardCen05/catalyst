@@ -20,7 +20,9 @@ export async function buildPantauBundle(context: RequestContext): Promise<Contex
     title: "Daftar pantauan",
     body,
     figures: extractNumerals(body),
-    citations: [],
+    // Counted from the recorded registry, so the answer carries the sources
+    // those recordings arrived with rather than presenting a bare figure.
+    citations: [...new Map(rows.flatMap((company) => company.citations).map((citation) => [citation.id, citation])).values()],
     symbols: rows.map((company) => company.symbol),
   };
 }
