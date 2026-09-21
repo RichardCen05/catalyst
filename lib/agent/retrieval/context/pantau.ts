@@ -1,0 +1,26 @@
+import { companies, coverageInfo } from "@/lib/data/fixtures";
+import { extractNumerals } from "@/lib/agent/llm/verify";
+import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
+
+/** The reader's watchlist, and what each row is missing. */
+export async function buildPantauBundle(context: RequestContext): Promise<ContextBundle> {
+  const watchlist = context.profile.watchlist;
+  const rows = companies.filter((company) => watchlist.includes(company.symbol));
+  const body = [
+    `Daftar pantauan memuat ${rows.length} dari ${companies.length} emiten terekam.`,
+    ...rows.map((company) => {
+      const coverage = coverageInfo[company.symbol];
+      const gaps = coverage?.missing.length ? ` Belum ada: ${coverage.missing.join(", ")}.` : "";
+      return `- ${company.symbol} (${company.name}), sektor ${company.sector}. Kasus lengkap: ${coverage?.analyzed ? "ya" : "belum"}.${gaps}`;
+    }),
+  ].join("\n");
+  return {
+    id: "view:pantau",
+    kind: "view",
+    title: "Daftar pantauan",
+    body,
+    figures: extractNumerals(body),
+    citations: [],
+    symbols: rows.map((company) => company.symbol),
+  };
+}
