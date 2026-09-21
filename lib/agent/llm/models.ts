@@ -23,8 +23,22 @@ function providerId(): string {
   return process.env.LLM_PROVIDER?.trim() || DEFAULT_PROVIDER_ID;
 }
 
-function resolve(names: (string | undefined)[], geminiDefault: string, envHint: string): string {
-  const named = names.find((value) => value && value.trim());
+/**
+ * The GEMINI_ names are read only while the provider is Gemini.
+ *
+ * A deployment that has run on Gemini still has GEMINI_MODEL and
+ * GEMINI_MODEL_CHEAP set. Reading them under another provider sends a Gemini
+ * id to a vendor that answers 404, and the operator sees it as the new
+ * provider being broken rather than as a leftover variable — so switching
+ * provider would mean remembering to unset two variables that have nothing to
+ * do with the new one.
+ */
+function geminiNames(names: (string | undefined)[]): (string | undefined)[] {
+  return providerId() === DEFAULT_PROVIDER_ID ? names : [];
+}
+
+function resolve(neutral: string | undefined, gemini: string | undefined, geminiDefault: string, envHint: string): string {
+  const named = [neutral, ...geminiNames([gemini])].find((value) => value && value.trim());
   if (named) return named.trim();
   if (providerId() === DEFAULT_PROVIDER_ID) return geminiDefault;
   throw new Error(`LLM_PROVIDER="${providerId()}" requires ${envHint} to name a model`);
@@ -32,12 +46,14 @@ function resolve(names: (string | undefined)[], geminiDefault: string, envHint: 
 
 /** The model that writes the answer, and retries one that failed verification. */
 export function strongModel(): string {
-  return resolve([process.env.LLM_MODEL, process.env.GEMINI_MODEL], GEMINI_DEFAULT_STRONG, "LLM_MODEL");
+  return resolve(process.env.LLM_MODEL, process.env.GEMINI_MODEL, GEMINI_DEFAULT_STRONG, "LLM_MODEL");
 }
 
 /** The cheaper model that composes a first draft. Falls back to the strong one. */
 export function cheapModel(): string {
-  const named = [process.env.LLM_MODEL_CHEAP, process.env.GEMINI_MODEL_CHEAP].find((value) => value && value.trim());
+  const named = [process.env.LLM_MODEL_CHEAP, ...geminiNames([process.env.GEMINI_MODEL_CHEAP])].find(
+    (value) => value && value.trim(),
+  );
   if (named) return named.trim();
   if (providerId() === DEFAULT_PROVIDER_ID) return GEMINI_DEFAULT_CHEAP;
   // No cheap tier named: one model does both jobs rather than refusing.

@@ -171,3 +171,36 @@ describe("model resolution", () => {
     expect(cheapModel()).toBe("vendor/model");
   });
 });
+
+/**
+ * A deployment switching away from Gemini still carries GEMINI_MODEL and
+ * GEMINI_MODEL_CHEAP. Reading either one under another provider sends a
+ * Gemini id to a vendor that answers 404.
+ */
+describe("model resolution ignores the Gemini names under another provider", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = { ...originalEnv };
+    process.env.LLM_PROVIDER = "openai-compatible";
+    process.env.GEMINI_MODEL = "gemini-3.8-flash";
+    process.env.GEMINI_MODEL_CHEAP = "gemini-3.5-flash-lite";
+    delete process.env.LLM_MODEL;
+    delete process.env.LLM_MODEL_CHEAP;
+  });
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("refuses rather than inheriting GEMINI_MODEL", async () => {
+    const { strongModel } = await import("@/lib/agent/llm/models");
+    expect(() => strongModel()).toThrow(/requires LLM_MODEL/);
+  });
+
+  it("does not let GEMINI_MODEL_CHEAP become the draft model", async () => {
+    process.env.LLM_MODEL = "vendor/model";
+    const { cheapModel } = await import("@/lib/agent/llm/models");
+    expect(cheapModel()).toBe("vendor/model");
+  });
+});
