@@ -9,13 +9,18 @@ import { Button } from "@/components/ui/button";
 
 interface TourStep {
   id: string;
-  title: string;
-  body: string;
-  action: string;
-  outcome: string;
+  /** A step that reads on its own from the highlight it points at carries no
+   *  heading or lead — the card then names itself by its action line. */
+  title?: string;
+  body?: string;
+  /** A step whose highlight already states what to do carries no prompt block. */
+  action?: string;
+  outcome?: string;
   href: string;
   selector: string;
-  actionSelector: string;
+  /** Omitted on a step that only asks the reader to look: the card then offers
+   *  its own continue control instead of waiting for a click on the highlight. */
+  actionSelector?: string;
   destination: string;
 }
 
@@ -32,8 +37,6 @@ interface TargetRect {
 const steps: TourStep[] = [
   {
     id: "today",
-    title: "Pilih perubahan yang penting",
-    body: "Dashboard menggambar setiap kasus terbuka sebagai satu rantai sebab akibat. Pilih satu emiten untuk membaca kasusnya.",
     action: `Pilih kasus ${primarySymbol} yang disorot.`,
     outcome: "Anda melihat apa yang berubah, pembandingnya, dan alasan kasus ini penting.",
     href: "/",
@@ -64,6 +67,16 @@ const steps: TourStep[] = [
     destination: "Kasus",
   },
   {
+    id: "chain",
+    title: "Lihat rantainya lebih dulu",
+    body: "Peta ini menyusun pemicu, jalur perantara, dan emiten dalam satu rantai. Baca dulu bentuknya sebelum menentukan tindakan.",
+    action: "Telusuri rantai dari pemicu sampai emiten.",
+    outcome: "Anda tahu lewat jalur mana pemicu sampai ke emiten sebelum menilai kasusnya.",
+    href: `/impact?company=${primarySymbol}`,
+    selector: '[data-tour="causal-chain"]',
+    destination: "Sebab akibat",
+  },
+  {
     id: "action",
     title: "Tentukan tindakan riset",
     body: "Setelah bukti dibaca, Catalyst merangkum apakah kasus perlu dilanjutkan, dipantau, atau dihentikan.",
@@ -78,8 +91,6 @@ const steps: TourStep[] = [
     id: "watch",
     title: "Awasi web setiap hari",
     body: "Regulator, portal pasar, dan cuaca BMKG dibaca terjadwal tiap hari bursa pukul 17.30 WIB. Yang berubah masuk antrean untuk Anda petakan ke emiten.",
-    action: "Buka halaman Pantau.",
-    outcome: "Kandidat baru menunggu review — bukan vonis otomatis.",
     href: "/pantau",
     selector: '[data-tour="review-queue"]',
     actionSelector: '[data-tour="review-queue"]',
@@ -105,6 +116,9 @@ function GuidedTourContent() {
   const revealedStep = useRef<string | null>(null);
   const normalizedStart = useRef(false);
   const current = steps[step];
+  /** A step with no heading or lead is a single meta line: centre it against the
+   *  badge so the header row does not leave the dead space a two-line block fills. */
+  const compact = !current.title && !current.body;
 
   const advance = useCallback(() => {
     if (step === steps.length - 1) setComplete(true);
@@ -132,9 +146,11 @@ function GuidedTourContent() {
   }, []);
 
   useEffect(() => {
+    const actionSelector = current.actionSelector;
+    if (!actionSelector) return;
     const onAction = (event: MouseEvent) => {
       const origin = event.target;
-      if (!(origin instanceof Element) || !origin.closest(current.actionSelector)) return;
+      if (!(origin instanceof Element) || !origin.closest(actionSelector)) return;
       window.setTimeout(advance, 180);
     };
     document.addEventListener("click", onAction, true);
@@ -225,11 +241,6 @@ function GuidedTourContent() {
         <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tur selesai</p>
         <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Ritual harian selesai</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah memilih perubahan, menetapkan pertanyaan, melacak sebab akibat, dan menentukan tindakan riset.</p>
-        {/* The research action itself is written from the recordings on the case's
-            own page. Restating a verdict here would be prose the tour cannot
-            support for whichever case the registry points at, so the card opens
-            the real one instead of repeating a fixed sentence. */}
-        <div className="mt-4 rounded-[8px] border border-primary/30 bg-primary/8 p-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan riset {primarySymbol}</p><button type="button" onClick={() => { finishTour(); router.push(`/impact?company=${primarySymbol}`); }} className="mt-1 text-sm font-semibold text-primary hover:underline">Buka tindakan riset</button><p className="mt-1 text-xs leading-5 text-muted-foreground">Catalyst menulisnya dari rekaman kasus ini. Ini bukan saran transaksi.</p></div>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Ulangi alur ini saat ada perubahan baru.</p><Button size="sm" onClick={finishTour}>Selesai<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
       </section>
     </div>
@@ -238,26 +249,26 @@ function GuidedTourContent() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[120]" aria-live="polite">
       {targetRect ? <div data-tour-spotlight className="fixed rounded-[10px] border-2 border-primary bg-primary/5 shadow-[0_0_0_9999px_rgba(8,5,7,0.76)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none" style={targetRect} /> : <div className="absolute inset-0 bg-background/72" />}
-      <section ref={coachRef} data-guided-tour-card role="dialog" aria-modal="false" aria-labelledby="guided-tour-title" className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[56dvh] max-w-lg overflow-y-auto rounded-[12px] border border-border bg-surface p-4 shadow-2xl sm:bottom-6 md:inset-x-auto md:bottom-auto md:mx-0 md:max-h-none md:overflow-visible" style={desktopPosition}>
-        <div className="flex items-start gap-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-[6px] bg-brand text-white"><Compass aria-hidden="true" className="size-4" /></span>
+      <section ref={coachRef} data-guided-tour-card role="dialog" aria-modal="false" aria-labelledby={current.title ? "guided-tour-title" : "guided-tour-action"} className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[56dvh] max-w-lg overflow-y-auto rounded-[12px] border border-border bg-surface p-4 shadow-2xl sm:bottom-6 md:inset-x-auto md:bottom-auto md:mx-0 md:max-h-none md:overflow-visible" style={desktopPosition}>
+        <div className={`flex gap-3 ${compact ? "items-center" : "items-start"}`}>
+          <span className={`grid shrink-0 place-items-center rounded-[6px] bg-brand text-white ${compact ? "size-7" : "size-8"}`}><Compass aria-hidden="true" className={compact ? "size-3.5" : "size-4"} /></span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah {step + 1}/{steps.length}</p><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{current.destination}</p></div>
-            <h2 id="guided-tour-title" className="editorial mt-1.5 text-lg">{current.title}</h2>
-            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{current.body}</p>
+            {current.title ? <h2 id="guided-tour-title" className="editorial mt-1.5 text-lg">{current.title}</h2> : null}
+            {current.body ? <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{current.body}</p> : null}
           </div>
         </div>
 
-        <div className="mt-3 rounded-[8px] border border-primary/30 bg-primary/8 p-2.5">
+        {current.action ? <div className={`rounded-[8px] border border-primary/30 bg-primary/8 p-2.5 ${compact ? "mt-2.5" : "mt-3"}`}>
           <p className="flex items-center gap-2 text-xs font-semibold text-foreground"><MousePointerClick aria-hidden="true" className="size-4 text-primary" />Lakukan sekarang</p>
-          <p className="mt-1 text-sm leading-5">{current.action}</p>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{current.outcome}</p>
-        </div>
+          <p id="guided-tour-action" className="mt-1 text-sm leading-5">{current.action}</p>
+          {current.outcome ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{current.outcome}</p> : null}
+        </div> : null}
 
         <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
-          <div className="grid w-24 shrink-0 grid-cols-4 gap-1" aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
+          <div className="grid w-24 shrink-0 gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
           <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
-          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p>}
+          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : current.actionSelector ? <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
         </div>
       </section>
     </div>

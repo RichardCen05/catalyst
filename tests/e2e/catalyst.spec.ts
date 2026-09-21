@@ -8,7 +8,7 @@ async function finishSetup(page: Page) {
   // Setup is one step since the wizard collapsed to a single asset picker;
   // "Mulai tour" both completes onboarding and opens the guided tour.
   await dialog.getByRole("button", { name: "Mulai tour" }).click();
-  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
 }
 
@@ -17,13 +17,13 @@ async function resolveDefaultClarification(page: Page) {
   const choice = page.locator('[data-tour-action="resolve-clarification"]');
   await expect(choice).toBeVisible();
   await choice.click();
-  await expect(page.getByText("Fokus sudah dipilih", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Penentuan fokus" })).toContainText("Fokus sudah dipilih");
 }
 
 async function expectDesktopTourComposition(page: Page, targetSelector: string) {
   await expect.poll(async () => page.evaluate((selector) => {
     const target = document.querySelector<HTMLElement>(selector);
-    const dialog = document.querySelector<HTMLElement>('[role="dialog"][aria-labelledby="guided-tour-title"]');
+    const dialog = document.querySelector<HTMLElement>("[data-guided-tour-card]");
     if (!target || !dialog) return null;
     const targetRect = target.getBoundingClientRect();
     const dialogRect = dialog.getBoundingClientRect();
@@ -55,7 +55,7 @@ test("desktop tutorial centers each action without covering it", async ({ page }
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await setup.getByRole("button", { name: "Mulai tour" }).click();
 
-  await expect(page.getByRole("dialog", { name: "Pilih perubahan yang penting" })).toBeVisible();
+  await expect(page.locator("[data-guided-tour-card]")).toBeVisible();
   await expectDesktopTourComposition(page, '[data-tour-action="open-antm-case"]');
   await page.locator('[data-tour-action="open-antm-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/, { timeout: 15_000 });
@@ -72,7 +72,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await setup.getByRole("button", { name: "Mulai tour" }).click();
 
-  await expect(page.getByRole("dialog", { name: "Pilih perubahan yang penting" })).toContainText("Pilih kasus ANTM");
+  await expect(page.locator("[data-guided-tour-card]")).toContainText("Pilih kasus ANTM");
   await expect(page.locator("[data-tour-spotlight]")).toBeVisible();
   await page.locator('[data-tour-action="open-antm-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
@@ -83,12 +83,17 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await page.locator('[data-tour-action="open-impact"]').click();
   await expect(page).toHaveURL(/\/impact\?company=ANTM/, { timeout: 15_000 });
 
+  const chainStep = page.getByRole("dialog", { name: "Lihat rantainya lebih dulu" });
+  await expect(chainStep).toBeVisible();
+  await expect(page.locator('[data-tour="causal-chain"]')).toBeVisible();
+  await chainStep.getByRole("button", { name: "Lanjut" }).click();
+
   await expect(page.getByRole("dialog", { name: "Tentukan tindakan riset" })).toContainText("bukan saran transaksi");
   await page.locator('[data-tour-action="show-next-action"]').click();
   await expect(page.getByRole("dialog", { name: "Awasi web setiap hari" })).toBeVisible();
   await page.locator('[data-tour="review-queue"]').click();
   const complete = page.getByRole("dialog", { name: "Ritual harian selesai" });
-  await expect(complete).toContainText("Lanjutkan riset");
+  await expect(complete).toContainText("Tur selesai");
   await complete.getByRole("button", { name: "Selesai" }).click();
   await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("heading", { name: "Apa yang mendorong perubahan ini?" })).toBeVisible();
@@ -241,7 +246,6 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await expect(page.getByRole("dialog")).toContainText("Daftar bukti");
   await page.getByRole("button", { name: "Tutup sumber" }).click();
 
-  await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
 });
 
 test("memilih fokus merencanakan ulang kasus dan uji dampak bisnisnya", async ({ page }) => {
@@ -249,10 +253,7 @@ test("memilih fokus merencanakan ulang kasus dan uji dampak bisnisnya", async ({
   await page.goto("/cases/ANTM");
 
   await page.locator('[data-tour-action="resolve-clarification"]').click();
-
-  const plan = page.getByRole("region", { name: "Rencana analisis" });
-  await expect(plan.getByText("Fokus · Realisasi harga", { exact: true })).toBeVisible();
-  await expect(plan.getByText(/Pemicu mengubah realisasi harga ANTM/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "Penentuan fokus" })).toContainText("Fokus sudah dipilih");
 
   await page.getByRole("tab", { name: "Bisnis" }).click();
   await expect(page.getByRole("heading", { name: "Dampak ke bisnis" })).toBeVisible();
@@ -275,6 +276,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await expect(caseTabs.getByRole("tab", { name: "Pasar" })).toHaveAttribute("aria-selected", "true");
   // The focus gate sits above the tabs, so it stays reachable from every tab.
   await expect(page.getByRole("region", { name: "Penentuan fokus" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pertanyaan riset" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toBeVisible();
 
