@@ -16,6 +16,8 @@ export async function POST(request: Request) {
       userInsights: parsed.data.userInsights as UserInsight[] | undefined,
       playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
       caseMandate: parsed.data.caseMandate,
+      history: parsed.data.history,
+      view: parsed.data.view,
     });
     return NextResponse.json({ answer, mode: "recorded" });
   } catch {

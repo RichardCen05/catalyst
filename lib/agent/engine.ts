@@ -1167,6 +1167,20 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 }
 
 /**
+ * Conversation turns the model is allowed to see.
+ *
+ * `safeLanguage` guards `request.question` and nothing else, so history is a
+ * way into the prompt that the question-level guard never sees. A turn
+ * carrying transactional language is dropped rather than refusing the whole
+ * conversation: the reader already said it, refusing everything after is
+ * punishment rather than protection, and dropping the turn removes it from
+ * the prompt just as completely.
+ */
+function safeHistory(history: ChatRequest["history"]): Array<{ role: "user" | "assistant"; text: string }> {
+  return (history ?? []).filter((turn) => !safeLanguage(turn.text).refused);
+}
+
+/**
  * Retrieval, when the flag allows it.
  *
  * Off by default. With the flag off the scored handlers still run, so the
@@ -1180,7 +1194,7 @@ async function retrievalFor(request: ChatRequest): Promise<RetrievedContext | nu
     profile: request.profile,
     contextSymbol: request.contextSymbol,
     view,
-    history: request.history ?? [],
+    history: safeHistory(request.history),
   }).catch((error) => {
     // Retrieval is an addition to the answer path, never a precondition for
     // it. A failure here drops to the handlers that shipped before it.

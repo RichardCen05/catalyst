@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VIEW_IDS } from "@/lib/agent/retrieval/types";
 
 const symbolSchema = z.string().trim().min(4).max(5).transform((value) => value.toUpperCase());
 const pillarSchema = z.enum(["concentration", "volume", "momentum", "catalyst"]);
@@ -131,6 +132,21 @@ export const refreshRunSchema = z.object({
   dryRun: z.boolean().default(true),
   symbols: z.array(z.string().trim().min(4).max(5)).max(6).optional(),
 });
+/**
+ * Conversation turns, bounded at the boundary.
+ *
+ * This is client-supplied text that reaches a prompt, which is the same
+ * surface `lib/data/endpoint-registry.ts` was written to close for the
+ * evidence panel: free text in a prompt is both an injection vector and free
+ * model time for whoever pastes into it. The engine filters each turn through
+ * `safeLanguage` on the way in, and the retrieval layer never lets a turn
+ * contribute a figure. The caps here are what stop the volume.
+ */
+const historyTurnSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  text: z.string().trim().min(1).max(600),
+});
+
 export const chatRequestSchema = z.object({
   question: z.string().trim().min(2).max(500),
   profile: profileSchema,
@@ -138,4 +154,6 @@ export const chatRequestSchema = z.object({
   userInsights: z.array(userInsightSchema).max(100).optional(),
   playbook: playbookSchema.optional(),
   caseMandate: z.string().max(600).optional(),
+  history: z.array(historyTurnSchema).max(12).optional(),
+  view: z.enum(VIEW_IDS as unknown as [string, ...string[]]).optional(),
 });

@@ -8,6 +8,8 @@ import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
 import { coverageInfo, DATA_AS_OF } from "@/lib/data/fixtures";
 import { ASSISTANT_NAME, buildQuickPrompts } from "@/lib/agent/assistant";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import { VIEW_IDS } from "@/lib/agent/retrieval/types";
 import type { ChatAnswer, SymbolCode } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CitationDialog } from "@/components/citation-dialog";
@@ -15,6 +17,22 @@ import { Blobatar } from "@blobatar/react";
 import { useGaze } from "@blobatar/react/gaze";
 import { happy, sad, thinking } from "blobatar/expression";
 import { IconAttention, IconCaretDown, IconClose, IconCollapse, IconExpand, IconSend } from "@/components/ui/icons";
+
+/**
+ * Which page the reader asked from.
+ *
+ * Sent as a ranking prior, never a filter: a reader on the dashboard asking
+ * about the causal map still reaches it. Anything unrecognised is simply
+ * omitted, so a new route adds no prior rather than an incorrect one.
+ */
+function viewFromPath(pathname: string): string | undefined {
+  if (pathname === "/") return "dashboard";
+  const first = pathname.split("/").filter(Boolean)[0];
+  if (!first) return undefined;
+  if (first === "cases") return pathname.split("/").filter(Boolean).length > 1 ? "case" : "cases";
+  if (first === "companies") return pathname.split("/").filter(Boolean).length > 1 ? "company" : "companies";
+  return VIEW_IDS.includes(first as (typeof VIEW_IDS)[number]) ? first : undefined;
+}
 
 const RECORD_SHORT = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(DATA_AS_OF));
 
@@ -107,7 +125,15 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: symbol, userInsights: insights, playbook, caseMandate: symbol ? caseMandates[symbol] : undefined }) });
+      // The turns already on screen, so a follow-up can resolve what "yang
+      // tadi" refers to. Failed sends are excluded: an error notice is not a
+      // conversational turn, and feeding it back would have the model explain
+      // its own plumbing.
+      const history = messages
+        .filter((message) => !message.failed)
+        .slice(-DEFAULT_THRESHOLDS.copilotHistoryTurns)
+        .map((message) => ({ role: message.role, text: message.text }));
+      const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: symbol, userInsights: insights, playbook, caseMandate: symbol ? caseMandates[symbol] : undefined, history, view: viewFromPath(pathname) }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = await response.json();
       const answer = body.answer as ChatAnswer;
