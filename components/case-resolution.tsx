@@ -56,7 +56,7 @@ export function CaseResolutionPanel({ researchCase, symbol }: { researchCase: Re
             <div className="bg-background p-3"><dt className="font-mono text-[10px] uppercase tracking-wider text-primary">Asumsi yang keliru</dt><dd className="mt-1 text-sm leading-6 text-muted-foreground">{stored.wrongAssumption || "Belum ada asumsi keliru yang dicatat."}</dd></div>
             <div className="bg-background p-3 sm:col-span-2"><dt className="font-mono text-[10px] uppercase tracking-wider text-primary">Aturan yang dapat dipakai ulang</dt><dd className="mt-1 text-sm leading-6">{stored.reusableRule}</dd></div>
           </dl>
-          <div className="mt-4 flex flex-wrap items-center gap-2"><Button variant="secondary" size="sm" onClick={() => { setCaseStatus(symbol, "open"); setSavedNow(false); }}><RotateCcw aria-hidden="true" className="size-3.5" />Buka kembali kasus</Button><Link href="/cases?view=audit" className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Buka memori hasil</Link></div>
+          <div className="mt-4 flex flex-wrap items-center gap-2"><Button variant="secondary" size="sm" onClick={() => { setCaseStatus(symbol, "open"); setSavedNow(false); }}><RotateCcw aria-hidden="true" className="size-3.5" />Buka kembali kasus</Button><Link href="/ai-learning?section=tinjauan" className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">Tinjau usulan aturan</Link></div>
         </div>
       ) : (
         <form onSubmit={submit} className="p-4 sm:p-5">

@@ -22,6 +22,7 @@ const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Cari jawaban dari bukti" },
   { url: "/ai-learning", heading: "AI Learning" },
+  { url: "/ai-learning?section=tinjauan", heading: "Koreksi yang perlu diperiksa" },
   { url: "/ai-learning?section=pasar", heading: "Apa yang sudah ditagih" },
   { url: "/ai-learning?section=memori", heading: "Apa yang sedang disimpan" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },
@@ -67,7 +68,7 @@ test("reject path stays out of playbook", async ({ page }) => {
   await resolution.getByLabel("Aturan yang dapat dipakai ulang").fill(`Aturan tolak ${marker}.`);
   await resolution.getByRole("button", { name: "Simpan hasil dan tutup kasus" }).click();
   await expect(resolution.getByText(/Hasil tersimpan/)).toBeVisible();
-  await page.goto("/cases?view=audit");
+  await page.goto("/ai-learning?section=tinjauan");
   const proposal = page.locator("article", { hasText: marker }).first();
   await expect(proposal).toBeVisible();
   await proposal.getByRole("button", { name: "Tolak" }).click();

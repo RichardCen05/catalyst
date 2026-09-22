@@ -29,6 +29,7 @@ export async function buildAiLearningBundle(): Promise<ContextBundle> {
     `Lapis yang diajar pembaca: ${taughtByReader.map((layer) => layer.name).join(", ")}. Lapis yang diajar rekaman pasar: ${taughtByMarket.map((layer) => layer.name).join(", ")}.`,
     `Halaman ini memuat kotak "Ajari Catalyst": pembaca memilih satu saham, menulis apa yang ingin diajarkan, dan boleh melampirkan satu tautan referensi. Ajaran itu tersimpan sebagai hipotesis terbuka pada saham tersebut.`,
     `Riwayatnya ditampilkan sebagai garis waktu per hari, dan dapat disaring menurut jenis (${LEARNING_FILTERS.join(", ")}) maupun menurut kode saham.`,
+    `Bagian "Tinjauan dan usulan" memuat dua antrean keputusan: koreksi pengguna yang belum diperiksa, dan usulan aturan yang dibuat saat sebuah kasus ditutup. Usulan aturan tidak pernah masuk sendiri ke aturan riset — pembaca menerima atau menolaknya, dan yang diterima ditulis ke aturan materialitas atau kondisi pembatal.`,
     `Isi memori milik pembaca tersimpan di peramban, jadi tidak ikut terbaca di sini.`,
   ].join("\n");
 
