@@ -1,7 +1,16 @@
 import { normalizeQuery } from "@/lib/agent/query";
+import { CHROME_NAV } from "@/lib/data/chrome.generated";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { buildImpactBundle } from "@/lib/agent/retrieval/context/impact";
-import { buildPantauBundle } from "@/lib/agent/retrieval/context/pantau";
 import { buildCasesBundle } from "@/lib/agent/retrieval/context/cases";
+import { buildDashboardBundle } from "@/lib/agent/retrieval/context/dashboard";
+import { buildMethodBundle } from "@/lib/agent/retrieval/context/method";
+import { buildPlaybookBundle } from "@/lib/agent/retrieval/context/playbook";
+import { buildWebWatchBundle } from "@/lib/agent/retrieval/context/web-watch";
+import { buildCopilotBundle } from "@/lib/agent/retrieval/context/copilot";
+import { buildAiLearningBundle } from "@/lib/agent/retrieval/context/ai-learning";
+import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
 import type { CorpusEntry, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
 
 /**
@@ -38,14 +47,57 @@ const VIEWS: ViewSpec[] = [
   {
     id: "view:pantau",
     view: "pantau",
-    vocabulary: ["daftar pantauan", "pantauan", "pantau", "watchlist", "emiten pantauan"],
-    load: (context) => buildPantauBundle(context),
+    vocabulary: ["pantau web", "sumber web", "antrean review", "review", "sumber yang diawasi", "feed"],
+    load: () => buildWebWatchBundle(),
   },
   {
     id: "view:cases",
     view: "cases",
     vocabulary: ["kasus", "daftar kasus", "cakupan", "kasus lengkap", "semua kasus", "riset"],
     load: () => buildCasesBundle(),
+  },
+  {
+    id: "view:dashboard",
+    view: "dashboard",
+    vocabulary: ["dashboard", "papan", "beranda", "halaman utama", "kasus terbuka", "peta node"],
+    load: (context) => buildDashboardBundle(context),
+  },
+  {
+    id: "view:method",
+    view: "method",
+    vocabulary: ["metode", "batas", "cara kerja", "lapisan", "pilar", "ambang", "keterbatasan"],
+    load: () => buildMethodBundle(),
+  },
+  {
+    id: "view:playbook",
+    view: "playbook",
+    // The watchlist lives on this page, so its words belong to this page.
+    vocabulary: ["aturan riset", "playbook", "preferensi", "posisi", "portofolio",
+      "daftar pantauan", "pantauan", "watchlist", "emiten pantauan"],
+    load: (context) => buildPlaybookBundle(context),
+  },
+  {
+    id: "view:ai-learning",
+    view: "ai-learning",
+    vocabulary: ["ai learning", "belajar", "memori", "lapis", "kalibrasi", "preferensi yang dipelajari"],
+    load: () => buildAiLearningBundle(),
+  },
+  {
+    id: "view:copilot",
+    view: "copilot",
+    vocabulary: ["asisten", "copilot", "tanya", "kemampuan", "bisa jawab apa"],
+    load: () => buildCopilotBundle(),
+  },
+  {
+    // The case page is one emiten's case, so it answers about the case the
+    // reader has open. With no case open there is nothing page-specific to
+    // say, and the per-symbol entries already cover a named one.
+    id: "view:case",
+    view: "case",
+    vocabulary: ["halaman kasus", "kasus ini", "isi kasus"],
+    load: (context) => (context.contextSymbol
+      ? buildCaseBundle(context.contextSymbol)
+      : buildCasesBundle()),
   },
 ];
 
@@ -63,13 +115,67 @@ function termsOf(phrases: string[]): string[] {
   return [...out];
 }
 
+/**
+ * Every way the app itself names a page.
+ *
+ * The sidebar and the command palette are where a reader learns what to call
+ * a page, so those labels are the page's vocabulary whether or not anyone
+ * remembered to type them into the list above. Generated, so a renamed menu
+ * item renames the term with it.
+ */
+function navVocabulary(view: ViewId): string[] {
+  return CHROME_NAV.filter((item) => item.view === view).map((item) => item.label);
+}
+
 export function viewEntries(): CorpusEntry[] {
   return VIEWS.map((spec) => ({
     id: spec.id,
     kind: "view" as const,
     symbols: [],
     view: spec.view,
-    terms: termsOf(spec.vocabulary),
-    load: spec.load,
+    terms: termsOf([...spec.vocabulary, ...navVocabulary(spec.view)]),
+    load: (context) => loadSpec(spec, context),
   }));
+}
+
+/**
+ * One page's material, for callers that know which page they want.
+ *
+ * A chrome block belongs to a page and has to be able to say what that page
+ * holds. Returning null for a page with no builder keeps that a visible gap
+ * rather than an invented answer.
+ */
+type Bundle = import("@/lib/agent/retrieval/types").ContextBundle;
+
+/**
+ * One page's bundle, built once per distinct reader per page.
+ *
+ * Several panels on a page can be retrieved for one question, and each of
+ * them wants its page's material. Without this the dashboard would rebuild
+ * its market graph once per matched panel, for a single answer. Everything a
+ * builder reads is either a recording — constant for the lifetime of the
+ * process — or one of the context fields in the key below.
+ */
+const viewMemo = lruMemo<string, Bundle>(DEFAULT_THRESHOLDS.retrievalMemoMaxEntries);
+
+function viewMemoKey(view: ViewId, context: RequestContext): string {
+  const profile = context.profile;
+  return [view, profile.id, context.contextSymbol ?? "", profile.watchlist.join(","), profile.owned.join(",")].join("|");
+}
+
+async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle> {
+  const key = viewMemoKey(spec.view, context);
+  const cached = viewMemo.get(key);
+  if (cached) return cached;
+  const bundle = await spec.load(context);
+  viewMemo.set(key, bundle);
+  return bundle;
+}
+
+export async function loadViewBundle(
+  view: ViewId,
+  context: RequestContext,
+): Promise<Bundle | null> {
+  const spec = VIEWS.find((candidate) => candidate.view === view);
+  return spec ? loadSpec(spec, context) : null;
 }

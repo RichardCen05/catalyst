@@ -1,5 +1,5 @@
 import { companies, coverageInfo, events } from "@/lib/data/fixtures";
-import type { UserProfile } from "@/lib/types";
+import type { UserInsight, UserProfile } from "@/lib/types";
 
 /** The assistant's name is also the seed its face is generated from: the same
  *  string always renders the same blobatar, so the panel heading, the dialog
@@ -32,4 +32,17 @@ export function buildQuickPrompts(profile: UserProfile): string[] {
   prompts.push(`Apa itu HHI dan dari mana angkanya untuk ${first}?`);
   prompts.push("Data apa yang belum diperiksa?");
   return [...new Set(prompts)].slice(0, 4);
+}
+
+/**
+ * One chip per emiten a reader has an open note on, never one per note.
+ *
+ * The chip asks to re-check the notes for an emiten, so two pending notes on
+ * the same emiten produce the same question. Mapping over the notes emitted
+ * that question twice: two identical chips, and React given two children with
+ * the same key. Keyed by emiten because that is what the question is about.
+ */
+export function buildInsightPrompts(insights: UserInsight[], limit: number): string[] {
+  const symbols = [...new Set(insights.filter((item) => item.status === "pending").map((item) => item.symbol))];
+  return symbols.slice(0, limit).map((symbol) => `Periksa ulang catatan saya untuk ${symbol}.`);
 }

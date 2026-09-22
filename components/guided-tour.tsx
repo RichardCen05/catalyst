@@ -45,17 +45,6 @@ const steps: TourStep[] = [
     destination: "Dashboard",
   },
   {
-    id: "clarify",
-    title: "Tentukan yang ingin dibuktikan",
-    body: "Pertanyaan awal belum cukup spesifik. Pilih hasil bisnis agar Catalyst tidak menebak.",
-    action: "Pilih satu hasil bisnis yang ingin dibuktikan.",
-    outcome: "Sumber dan indikator berikutnya mengikuti pilihan Anda.",
-    href: `/cases/${primarySymbol}`,
-    selector: '[data-tour-action="resolve-clarification"]',
-    actionSelector: '[data-tour-action="resolve-clarification"]',
-    destination: "Kasus",
-  },
-  {
     id: "impact",
     title: "Lacak penyebab dan dampaknya",
     body: "Kasus sudah merangkum bukti pasar dan dampak bisnis. Sekarang lihat jalur yang menghubungkannya.",

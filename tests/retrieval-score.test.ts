@@ -7,10 +7,38 @@ import type { RequestContext } from "@/lib/agent/retrieval/types";
 const base: RequestContext = { profile: demoProfiles[0], history: [] };
 
 describe("scoreCorpus", () => {
-  it("menemukan peta sebab akibat untuk pertanyaan yang diajukan dari dasbor", () => {
-    // Pertanyaan pada tangkapan layar yang memicu pekerjaan ini. Dijawab
-    // dengan penolakan karena tidak menyebut satu pun kode emiten.
-    const ranked = scoreCorpus("jelaskan semua kasus dalam satu jalur", { ...base, view: "dashboard" });
+  it("mengenali judul panel yang dikutip pembaca dari layar", () => {
+    // Pertanyaan pada tangkapan layar yang memicu pekerjaan ini. "Semua kasus
+    // dalam satu jalur" adalah judul peta di Dashboard, dan dulu dijawab
+    // dengan cakupan kasus karena "semua kasus" kebetulan cocok ke sana.
+    const ranked = scoreCorpus("apa maksud dari Semua kasus dalam satu jalur", { ...base, view: "dashboard" });
+    expect(ranked.length).toBeGreaterThan(0);
+    expect(ranked[0].entry.kind).toBe("chrome");
+    expect(ranked[0].entry.id).toBe("chrome:dashboard:semua-kasus-dalam-satu-jalur");
+    // Judul yang cocok utuh harus mengungguli entri yang hanya berbagi dua kata.
+    const cases = ranked.findIndex((row) => row.entry.id === "view:cases");
+    expect(cases === -1 || ranked[0].score > ranked[cases].score).toBe(true);
+  });
+
+  it("menjawab nama halaman dengan halamannya, bukan dengan tombol yang senama", () => {
+    // "Pantau" ada di menu dan juga di dalam tombol "Pantau indikator".
+    // Keduanya cocok sama kuat pada kata; halaman itulah yang ditanyakan,
+    // karena halaman menerangkan panelnya dan panel tidak menerangkan
+    // halamannya.
+    const ranked = scoreCorpus("halaman Pantau isinya apa", { ...base, view: "dashboard" });
+    expect(ranked[0].entry.id).toBe("view:pantau");
+  });
+
+  it("tidak membiarkan kata penunjuk memutuskan halaman mana yang dimaksud", () => {
+    // "halaman" pernah menjadi istilah milik Dashboard lewat kosakata
+    // "halaman utama", sehingga separuh generik pertanyaan mengalahkan
+    // separuh spesifiknya.
+    const ranked = scoreCorpus("halaman Pantau isinya apa", { ...base, view: "dashboard" });
+    expect(ranked.some((row) => row.entry.id === "view:dashboard")).toBe(false);
+  });
+
+  it("menemukan peta sebab akibat untuk pertanyaan tentang jalur", () => {
+    const ranked = scoreCorpus("jelaskan peta sebab akibat", { ...base, view: "dashboard" });
     expect(ranked.length).toBeGreaterThan(0);
     expect(ranked.slice(0, 3).some((row) => row.entry.view === "impact" || row.entry.id === "view:cases")).toBe(true);
   });

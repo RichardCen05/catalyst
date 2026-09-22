@@ -4,10 +4,28 @@ import { chatRequestSchema } from "@/lib/schemas";
 import { ensureOverlay } from "@/lib/web-watch/queue";
 import type { InvestorResearchPlaybook, SymbolCode, UserInsight, UserProfile } from "@/lib/types";
 
+/**
+ * Three outcomes, three statuses.
+ *
+ * One `try` around both the parse and the answer reported every engine
+ * failure as `Body request tidak dapat dibaca` with `400`, so a fault inside
+ * the engine reached the reader as "your question was rejected" and the panel
+ * told them to send it again. Separated so the status names what happened:
+ * `400` only when the body really is unreadable or invalid, `500` when the
+ * request was fine and this service was not.
+ */
 export async function POST(request: Request) {
+  let payload: unknown;
   try {
-    const parsed = chatRequestSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ error: "Pertanyaan atau profil tidak valid", details: parsed.error.flatten() }, { status: 400 });
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Body request tidak dapat dibaca" }, { status: 400 });
+  }
+
+  const parsed = chatRequestSchema.safeParse(payload);
+  if (!parsed.success) return NextResponse.json({ error: "Pertanyaan atau profil tidak valid", details: parsed.error.flatten() }, { status: 400 });
+
+  try {
     await ensureOverlay().catch(() => []);
     const answer = await agentEngine.answerFollowUp({
       question: parsed.data.question,
@@ -20,7 +38,10 @@ export async function POST(request: Request) {
       view: parsed.data.view,
     });
     return NextResponse.json({ answer, mode: "recorded" });
-  } catch {
-    return NextResponse.json({ error: "Body request tidak dapat dibaca" }, { status: 400 });
+  } catch (error) {
+    // Logged rather than returned: the message can name internals, and the
+    // reader's copy is written by the panel from the status alone.
+    console.error(`[chat] answer failed: ${error instanceof Error ? error.message : String(error)}`);
+    return NextResponse.json({ error: "Jawaban gagal disusun" }, { status: 500 });
   }
 }

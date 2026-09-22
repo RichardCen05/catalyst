@@ -85,6 +85,30 @@ export class LlmHttpError extends Error {
   }
 }
 
+/**
+ * Whether the model should think before answering, when the gateway exposes
+ * that as a request field.
+ *
+ * Unset sends nothing, which is what every vendor that has no such field
+ * needs: an unknown key is a 400 on the strict ones. It is opt-in for that
+ * reason, not because thinking is usually wrong.
+ *
+ * It is worth turning off on the free reasoning models. Measured on one
+ * exposure call: thinking on costs 543-966 completion tokens and 6.6-18.2s,
+ * thinking off costs 87-102 and 1.3-2.5s for an answer of the same quality —
+ * and this app asks for a single short JSON object, not a proof. The long
+ * form also leaves far more room for the run-away generation that ends in
+ * `finish_reason=length`, which costs the reader the model's sentence
+ * entirely.
+ */
+function reasoningField(): Record<string, unknown> | undefined {
+  const raw = process.env.LLM_REASONING?.trim().toLowerCase();
+  if (!raw) return undefined;
+  if (raw === "off" || raw === "false" || raw === "none") return { enabled: false };
+  if (raw === "low" || raw === "medium" || raw === "high") return { effort: raw };
+  throw new Error(`LLM_REASONING="${raw}" is not one of: off, low, medium, high`);
+}
+
 interface ChatCompletion {
   choices?: { message?: { content?: string | null }; finish_reason?: string }[];
   error?: { message?: string; code?: number };
@@ -97,6 +121,7 @@ const openAiCompatibleProvider: LlmProvider = {
     if (!baseUrl) throw new Error("LLM_PROVIDER=openai-compatible requires LLM_BASE_URL");
     const apiKey = process.env.LLM_API_KEY;
     if (!apiKey) throw new Error("LLM_PROVIDER=openai-compatible requires LLM_API_KEY");
+    const reasoning = reasoningField();
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -107,6 +132,7 @@ const openAiCompatibleProvider: LlmProvider = {
       body: JSON.stringify({
         model: request.model,
         max_tokens: request.maxOutputTokens,
+        ...(reasoning ? { reasoning } : {}),
         messages: [
           { role: "system", content: request.systemInstruction },
           { role: "user", content: request.contents },
@@ -127,7 +153,10 @@ const openAiCompatibleProvider: LlmProvider = {
     }
     const choice = body.choices?.[0];
     if (choice?.finish_reason === "length") {
-      throw new Error(`Response truncated at the output ceiling (finish_reason=length, model=${request.model})`);
+      // Naming the ceiling matters: the usual cause is not a prompt too large
+      // for it but a model that did not stop, and the two want opposite
+      // fixes. See LLM_REASONING above.
+      throw new Error(`Response truncated at the output ceiling (finish_reason=length, model=${request.model}, max_tokens=${request.maxOutputTokens})`);
     }
     const text = choice?.message?.content;
     if (!text) throw new Error(`${request.model} returned no text`);

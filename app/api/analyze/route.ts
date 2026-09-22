@@ -12,7 +12,6 @@ export async function POST(request: Request) {
     await ensureOverlay().catch(() => []);
     const analysis = await agentEngine.analyzeCompany(parsed.data.symbol, parsed.data.profile as UserProfile, {
       mandate: parsed.data.mandate,
-      clarificationChoice: parsed.data.clarificationChoice,
       userInsights: parsed.data.userInsights as UserInsight[] | undefined,
       playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
     });

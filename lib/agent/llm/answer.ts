@@ -1,5 +1,6 @@
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { verifyAnswer } from "@/lib/agent/llm/verify";
 
 export interface LlmAnswerDraft {
@@ -48,6 +49,7 @@ export async function composeAnswerWithLlm(
     systemInstruction: SYSTEM_INSTRUCTION,
     contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}`,
     schema: ANSWER_SCHEMA,
+    maxOutputTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
   });
   const verification = verifyAnswer(draft.text, input.evidenceNumbers, input.question);
   if (!verification.approved) throw new Error(`Answer rejected by verifier: ${verification.violations.join("; ")}`);

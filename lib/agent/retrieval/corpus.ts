@@ -9,6 +9,7 @@ import { buildMetricBundle } from "@/lib/agent/retrieval/context/metric";
 import { buildThresholdBundle } from "@/lib/agent/retrieval/context/threshold";
 import { buildCausalNodeBundle, listCausalNodes } from "@/lib/agent/retrieval/context/causal-node";
 import { buildEndpointBundle, listEndpointKeys } from "@/lib/agent/retrieval/context/endpoint";
+import { buildChromeBundle, listChromeBlocks, pageLabel } from "@/lib/agent/retrieval/context/chrome";
 import type { CorpusEntry } from "@/lib/agent/retrieval/types";
 
 export interface CorpusIndex {
@@ -105,6 +106,31 @@ function endpointEntries(): CorpusEntry[] {
   }));
 }
 
+/**
+ * Every group of words a reader can read on a screen.
+ *
+ * Without these the assistant could match a question only against recordings,
+ * so "apa maksud dari Semua kasus dalam satu jalur" — a heading quoted off
+ * the dashboard — landed on whichever bundle happened to share two of its
+ * words. The heading is now a thing that can be asked about, and it outranks
+ * a coincidence because the phrase matches whole.
+ */
+function chromeEntries(): CorpusEntry[] {
+  return listChromeBlocks().map((block) => ({
+    id: block.id,
+    kind: "chrome" as const,
+    symbols: [],
+    view: block.view,
+    // Names only. The sentence under a heading is material for the answer,
+    // not a way to find the block: it is long, ordinary prose, and indexing
+    // it let an empty state outrank a recording on words like "kasus" and
+    // "sudah" that the reader did not mean as a pointer to anything.
+    terms: termsOf(block.heading, block.eyebrow ?? "",
+      ...(block.actions ?? []), ...(block.labels ?? []), pageLabel(block.view) ?? ""),
+    load: () => buildChromeBundle(block.id),
+  }));
+}
+
 export function buildCorpus(): CorpusIndex {
   const entries = [
     ...caseEntries(),
@@ -113,6 +139,7 @@ export function buildCorpus(): CorpusIndex {
     ...thresholdEntries(),
     ...causalNodeEntries(),
     ...endpointEntries(),
+    ...chromeEntries(),
     ...viewEntries(),
   ];
   const byTerm = new Map<string, string[]>();

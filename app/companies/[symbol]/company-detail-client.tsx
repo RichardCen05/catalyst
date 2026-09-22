@@ -16,24 +16,22 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { IconArrowLeft, IconBranch, IconClock, IconCopilot, IconUnknown } from "@/components/ui/icons";
 
 export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
-  const { profile, playbook, caseClarifications, caseResolutions, insights, openCopilot } = useCatalystStore();
+  const { profile, playbook, caseResolutions, insights, openCopilot } = useCatalystStore();
   const company = companies.find((item) => item.symbol === symbol)!;
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
-  const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
   useEffect(() => {
     let cancelled = false;
     agentEngine.analyzeCompany(symbol, profile, {
       // Pertanyaan selalu bawaan engine — input manual dihapus.
       mandate: undefined,
-      clarificationChoice,
       playbook,
       userInsights: insights,
       resolution,
     }).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, playbook, insights, resolution]);
 
   if (analysis === undefined) return (
     <div>
@@ -50,7 +48,7 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconArrowLeft aria-hidden="true" className="size-4" />Kasus</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={analysis.clarification.required ? `/cases/${symbol}#clarification-gate` : `/impact?company=${symbol}`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconBranch aria-hidden="true" className="size-3.5" />{analysis.clarification.required ? "Tentukan fokus" : "Sebab akibat"}</Link><CitationDialog citations={analysis.sources} label="Sumber" /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Kasus · ${symbol}`, question: `Lanjutkan pemeriksaan perubahan ${symbol} dari pertanyaan riset dan hal yang belum terjawab.`, symbol })}><IconCopilot aria-hidden="true" className="size-3.5" />Asisten</Button></div></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconArrowLeft aria-hidden="true" className="size-4" />Kasus</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?company=${symbol}`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconBranch aria-hidden="true" className="size-3.5" />Sebab akibat</Link><CitationDialog citations={analysis.sources} label="Sumber" /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Kasus · ${symbol}`, question: `Lanjutkan pemeriksaan perubahan ${symbol} dari pertanyaan riset dan hal yang belum terjawab.`, symbol })}><IconCopilot aria-hidden="true" className="size-3.5" />Asisten</Button></div></div>
 
       <header className="mb-6 border-b border-border pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">

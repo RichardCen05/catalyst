@@ -157,21 +157,29 @@ describe("Catalyst agent engine", async () => {
     expect(researchCase?.researchDisposition.reopenWhen).toBeTruthy();
   });
 
-  it("blocks an ambiguous mandate until the user chooses a clarification branch", async () => {
+  it("tests both recorded focus dimensions when the mandate names none", async () => {
     const ambiguous = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
       mandate: "Cari tahu apa yang terjadi pada ANTM.",
     });
-    expect(ambiguous?.clarification.required).toBe(true);
-    expect(ambiguous?.clarification.options).toHaveLength(2);
-    expect(ambiguous?.lifecycle.find((item) => item.key === "decompose")?.state).toBe("blocked");
+    // No gate: the reader never picks. Both dimensions run, and every stage
+    // stays open so nothing waits on an answer that is no longer asked.
+    expect(ambiguous?.researchPlan.focuses).toHaveLength(2);
+    expect(ambiguous?.lifecycle.every((item) => item.state !== "blocked")).toBe(true);
+    // Each focus keeps its own primary hypothesis, so a combined case can
+    // still say which dimension a claim belongs to.
+    const primaries = ambiguous?.researchPlan.hypothesisTree.filter((item) => item.state === "primary") ?? [];
+    expect(primaries).toHaveLength(2);
+    expect(ambiguous?.businessImpact.filter((item) => item.status === "Primary test").map((item) => item.dimension))
+      .toEqual(ambiguous?.researchPlan.focuses);
+  });
 
-    const resolved = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
-      mandate: "Cari tahu apa yang terjadi pada ANTM.",
-      clarificationChoice: "pricing",
+  it("puts an explicitly named focus first and still carries the recorded second", async () => {
+    const named = await agentEngine.analyzeCompany("ANTM", demoProfiles[0], {
+      mandate: "Uji apakah harga jual ANTM berubah.",
     });
-    expect(resolved?.clarification.required).toBe(false);
-    expect(resolved?.clarification.selectedOptionId).toBe("pricing");
-    expect(resolved?.researchPlan.focus).toBe("pricing");
+    expect(named?.researchPlan.focuses[0]).toBe("pricing");
+    expect(named?.researchPlan.focuses).toHaveLength(2);
+    expect(named?.sourcePlan.some((item) => item.includes("harga"))).toBe(true);
   });
 
   it("organizes evidence into market confirmation and business transmission", async () => {
@@ -207,11 +215,11 @@ describe("Catalyst agent engine", async () => {
     });
 
     expect(replanned?.researchPlan.mandate).toBe(mandate);
-    expect(replanned?.researchPlan.focus).toBe("margin");
+    expect(replanned?.researchPlan.focuses[0]).toBe("margin");
     expect(replanned?.researchPlan.hypothesisTree[0].claim).toContain("margin");
     expect(replanned?.researchPlan.observables.some((item) => item.dimension === "margin")).toBe(true);
     expect(replanned?.sourcePlan).not.toEqual(baseline?.sourcePlan);
-    expect(replanned?.clarificationGate).toContain("margin");
+    expect(replanned?.closingGate).toContain("margin");
     expect(replanned?.businessImpact.map((item) => item.dimension)).toEqual([
       "volume", "pricing", "margin", "cash-flow", "balance-sheet", "valuation",
     ]);

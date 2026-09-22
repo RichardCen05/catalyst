@@ -31,7 +31,6 @@ interface CatalystState {
   playbook: InvestorResearchPlaybook;
   holdings: Holdings;
   caseMandates: Partial<Record<SymbolCode, string>>;
-  caseClarifications: Partial<Record<SymbolCode, string>>;
   caseStatuses: Partial<Record<SymbolCode, ResearchCaseStatus>>;
   caseResolutions: Partial<Record<SymbolCode, CaseResolution>>;
   ruleProposals: RuleProposal[];
@@ -55,8 +54,6 @@ interface CatalystState {
   recordInsight: (input: Omit<UserInsight, "id" | "createdAt" | "status" | "reviewHistory">) => void;
   setInsightStatus: (id: string, status: UserInsight["status"]) => void;
   setCaseMandate: (symbol: SymbolCode, mandate: string) => void;
-  setCaseClarification: (symbol: SymbolCode, choiceId: string) => void;
-  clearCaseClarification: (symbol: SymbolCode) => void;
   setCaseStatus: (symbol: SymbolCode, status: ResearchCaseStatus) => void;
   saveCaseResolution: (symbol: SymbolCode, resolution: Omit<CaseResolution, "resolvedAt">) => void;
   setRuleProposalStatus: (id: string, status: RuleProposal["status"]) => void;
@@ -89,7 +86,6 @@ export const useCatalystStore = create<CatalystState>()(
       playbook: structuredClone(defaultPlaybook),
       holdings: {},
       caseMandates: {},
-      caseClarifications: {},
       caseStatuses: {},
       caseResolutions: {},
       ruleProposals: [],
@@ -145,17 +141,7 @@ export const useCatalystStore = create<CatalystState>()(
         return { insights: [insight, ...state.insights], preferences: [learned, ...state.preferences] };
       }),
       setInsightStatus: (id, status) => set((state) => ({ insights: state.insights.map((item) => item.id === id ? { ...item, status, reviewHistory: [...(item.reviewHistory ?? [{ status: item.status, at: item.createdAt }]), { status, at: new Date().toISOString() }] } : item) })),
-      setCaseMandate: (symbol, mandate) => set((state) => {
-        const caseClarifications = { ...state.caseClarifications };
-        delete caseClarifications[symbol];
-        return { caseMandates: { ...state.caseMandates, [symbol]: mandate }, caseClarifications };
-      }),
-      setCaseClarification: (symbol, choiceId) => set((state) => ({ caseClarifications: { ...state.caseClarifications, [symbol]: choiceId } })),
-      clearCaseClarification: (symbol) => set((state) => {
-        const caseClarifications = { ...state.caseClarifications };
-        delete caseClarifications[symbol];
-        return { caseClarifications };
-      }),
+      setCaseMandate: (symbol, mandate) => set((state) => ({ caseMandates: { ...state.caseMandates, [symbol]: mandate } })),
       setCaseStatus: (symbol, status) => set((state) => ({ caseStatuses: { ...state.caseStatuses, [symbol]: status } })),
       saveCaseResolution: (symbol, resolution) => set((state) => {
         const resolvedAt = new Date().toISOString();
@@ -220,7 +206,7 @@ export const useCatalystStore = create<CatalystState>()(
       }),
       removeInsight: (id) => set((state) => ({ insights: state.insights.filter((item) => item.id !== id), preferences: state.preferences.filter((item) => item.id !== `learned-${id}`) })),
       togglePreference: (id) => set((state) => ({ preferences: state.preferences.map((item) => item.id === id ? { ...item, active: !item.active } : item) })),
-      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], holdings: {}, playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseClarifications: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
+      resetMemory: () => set({ preferences: basePreferences, feedback: [], insights: [], holdings: {}, playbook: structuredClone(defaultPlaybook), caseMandates: {}, caseStatuses: {}, caseResolutions: {}, ruleProposals: [] }),
     }),
     {
       name: "catalyst:v1",
@@ -232,7 +218,6 @@ export const useCatalystStore = create<CatalystState>()(
           ...stored,
           holdings: stored.holdings ?? {},
           caseMandates: stored.caseMandates ?? {},
-          caseClarifications: stored.caseClarifications ?? {},
           caseStatuses: stored.caseStatuses ?? {},
           caseResolutions: stored.caseResolutions ?? {},
           ruleProposals: stored.ruleProposals ?? [],
@@ -254,7 +239,6 @@ export const useCatalystStore = create<CatalystState>()(
           // Satu tabel default (C7): tidak ada duplikat literal 85 di sini.
           playbook: { relevanceFloor: DEFAULT_THRESHOLDS.relevanceFloor, ...current.playbook, ...(stored.playbook ?? {}) },
           caseMandates: stored.caseMandates ?? current.caseMandates,
-          caseClarifications: stored.caseClarifications ?? current.caseClarifications,
           caseStatuses: stored.caseStatuses ?? current.caseStatuses,
           caseResolutions: stored.caseResolutions ?? current.caseResolutions,
           ruleProposals: stored.ruleProposals ?? current.ruleProposals,

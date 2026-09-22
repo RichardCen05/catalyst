@@ -95,6 +95,39 @@ describe("the openai-compatible provider", () => {
     ]);
   });
 
+  it("sends no reasoning field unless one is asked for", async () => {
+    // Every vendor behind this provider does not have the field, and a
+    // strict one answers 400 to a key it does not know.
+    delete process.env.LLM_REASONING;
+    const fetchMock = stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await getLlmProvider().generate(request);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("reasoning");
+  });
+
+  it("turns thinking off when asked to", async () => {
+    process.env.LLM_REASONING = "off";
+    const fetchMock = stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await getLlmProvider().generate(request);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).reasoning).toEqual({ enabled: false });
+  });
+
+  it("passes an effort through by name", async () => {
+    process.env.LLM_REASONING = "low";
+    const fetchMock = stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await getLlmProvider().generate(request);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).reasoning).toEqual({ effort: "low" });
+  });
+
+  it("names the accepted values rather than sending a typo to the vendor", async () => {
+    process.env.LLM_REASONING = "medium-ish";
+    stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await expect(getLlmProvider().generate(request)).rejects.toThrow(/off, low, medium, high/);
+  });
+
   it("carries the status so a 429 is recognised as a rate limit", async () => {
     stubFetch(429, { error: { message: "rate-limited upstream" } });
     const [{ getLlmProvider }, { isRateLimitError }] = await Promise.all([

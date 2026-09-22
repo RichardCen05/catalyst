@@ -86,7 +86,7 @@ describe("generateStructured", () => {
 
     const { generateStructured } = await import("@/lib/agent/llm/client");
     await generateStructured(params);
-    expect(generateContent.mock.calls[0][0].config.maxOutputTokens).toBe(4096);
+    expect(generateContent.mock.calls[0][0].config.maxOutputTokens).toBe(2048);
   });
 
   it("refuses before the request leaves once the day is over budget", async () => {

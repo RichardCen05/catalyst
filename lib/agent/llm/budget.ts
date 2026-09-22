@@ -35,6 +35,12 @@
  * Both raise `LlmBudgetError`, which the engine turns into the deterministic
  * answer plus a note the reader can see. Leaving the variable unset means no
  * ceiling — call volume is then unbounded, and `.env.example` says so.
+ *
+ * The two gates are independent, and only the ceiling is ours. A free tier
+ * has no spend to cap, so the ceiling is left unset there; the 429 gate is
+ * the vendor refusing and still applies. Unsetting the ceiling used to switch
+ * both off, which is exactly backwards for the case it exists for: nothing to
+ * count, and every request re-learning the same refusal all day.
  */
 import { gcsGetJson, gcsPutJson, GcsPreconditionFailed } from "@/lib/gcp/gcs";
 
@@ -103,6 +109,21 @@ export function resetLocalLlmBudget(): void {
   localCalls = 0;
   localRateLimits = 0;
   localRateLimited = false;
+  warnedDay = "";
+}
+
+/**
+ * The ledger being unreachable is one condition, not one per call.
+ *
+ * A machine with no credentials for the bucket repeats this on every model
+ * call, which buries the lines that describe a single event. Saying it once
+ * a day says the same thing.
+ */
+let warnedDay = "";
+function warnLedgerUnreachable(date: string, error: unknown): void {
+  if (warnedDay === date) return;
+  warnedDay = date;
+  console.warn(`[llm-budget] ledger unreachable, counting in-process only for ${date}: ${error instanceof Error ? error.message : String(error)}`);
 }
 
 /**
@@ -138,9 +159,21 @@ export async function reserveLlmCall(
   store: LlmBudgetStore = gcsBudgetStore,
   now: Date = new Date(),
 ): Promise<void> {
-  const budget = dailyBudget();
-  if (budget === null) return;
   const date = dayOf(now);
+
+  // The strike gate first, and whether or not a ceiling is set: it records
+  // the vendor refusing, not our own accounting, and a run with no ceiling
+  // still must not spend the day re-learning the same 429.
+  if (localLedger(date).rateLimitedAt) {
+    throw new LlmBudgetError("rate-limit", `Model rate limited earlier today (${date})`);
+  }
+
+  const budget = dailyBudget();
+  // No ceiling means nothing to count, so nothing to read or write. That also
+  // keeps a run with no ledger reachable — a local machine with no
+  // credentials — from warning once per model call about a file it has no
+  // reason to open.
+  if (budget === null) return;
 
   let loaded: { data: LlmDayLedger; generation: string } | null = null;
   let remote = true;
@@ -148,7 +181,7 @@ export async function reserveLlmCall(
     loaded = await store.load(date);
   } catch (error) {
     remote = false;
-    console.warn(`[llm-budget] ledger read failed, counting in-process only: ${error instanceof Error ? error.message : String(error)}`);
+    warnLedgerUnreachable(date, error);
   }
 
   const current = remote ? loaded?.data ?? { date, calls: 0 } : localLedger(date);

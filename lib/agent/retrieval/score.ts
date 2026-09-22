@@ -4,6 +4,18 @@ import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { companies } from "@/lib/data/fixtures";
 import type { CorpusEntry, RequestContext } from "@/lib/agent/retrieval/types";
 
+/** Which kind of entry answers more of a question, when two match equally. */
+const KIND_RANK: Record<import("@/lib/agent/retrieval/types").EntryKind, number> = {
+  view: 0,
+  case: 1,
+  event: 2,
+  "causal-node": 3,
+  metric: 4,
+  threshold: 5,
+  endpoint: 6,
+  chrome: 7,
+};
+
 export interface ScoredEntry {
   entry: CorpusEntry;
   score: number;
@@ -20,11 +32,20 @@ export interface ScoredEntry {
 const VIEW_BOOST = 0.12;
 const SYMBOL_BOOST = 0.25;
 
-/** Generic question words that must not decide which entry a question is about. */
+/**
+ * Generic words that must not decide which entry a question is about.
+ *
+ * The second row is how a reader points at something on screen rather than
+ * what they are pointing at. "halaman Pantau isinya apa" is a question about
+ * Pantau, but "halaman" also appears in the dashboard's own vocabulary, and
+ * indexing it let the generic half of the question outvote the specific half.
+ */
 const QUESTION_WORDS = new Set([
   "apa", "apakah", "kenapa", "mengapa", "bagaimana", "berapa", "kapan", "dimana",
   "mana", "jelaskan", "ceritakan", "tolong", "coba", "bisa", "dong", "sih",
   "what", "why", "how", "when", "where", "which", "explain", "tell", "please",
+  "halaman", "laman", "panel", "bagian", "layar", "menu", "tombol", "tulisan",
+  "page", "screen", "section", "button", "label", "isinya", "maksud", "arti", "artinya",
 ]);
 
 /**
@@ -71,7 +92,14 @@ export function scoreCorpus(
     if (context.view && entry.view === context.view) score += VIEW_BOOST;
     if (score >= DEFAULT_THRESHOLDS.retrievalScoreFloor) scored.push({ entry, score });
   }
-  return scored.sort((first, second) => second.score - first.score);
+  // A tie is decided by how much of an answer the entry is. "halaman Pantau
+  // isinya apa" matches the Pantau page and a button reading "Pantau
+  // indikator" equally well on words alone, and the page is what was asked
+  // for: it describes the panels, while a panel cannot describe its page.
+  // Without this the winner was whichever kind the corpus happened to list
+  // first, which is not a reason for anything.
+  return scored.sort((first, second) =>
+    second.score - first.score || KIND_RANK[first.entry.kind] - KIND_RANK[second.entry.kind]);
 }
 
 /** The best score any entry reached, or 0. What the retrieved handler bids with. */

@@ -24,7 +24,7 @@ const viewTabs: Array<{ value: DashboardView; label: string; Icon: typeof IconGr
 ];
 
 export default function DashboardPage() {
-  const { profile, playbook, insights, caseClarifications, caseStatuses, caseResolutions } = useCatalystStore();
+  const { profile, playbook, insights, caseStatuses, caseResolutions } = useCatalystStore();
   // Relevance floor for the whole board: lower draws more of the recorded
   // links, higher thins it to the strongest paths. Same semantics as the
   // per-issuer chain so the two views can be compared.
@@ -57,7 +57,6 @@ export default function DashboardPage() {
       minRelevance,
       context: (symbol: SymbolCode) => ({
         mandate: undefined,
-        clarificationChoice: caseClarifications[symbol],
         playbook,
         userInsights: insights,
         resolution: caseResolutions[symbol],
@@ -69,7 +68,7 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbolKey, profile, minRelevance, caseClarifications, playbook, insights, caseResolutions]);
+  }, [symbolKey, profile, minRelevance, playbook, insights, caseResolutions]);
 
   const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
   const pending = insights.filter((item) => item.status === "pending");

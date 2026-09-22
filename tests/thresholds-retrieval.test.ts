@@ -7,6 +7,8 @@ const ADDED = [
   "retrievalScoreFloor",
   "retrievalContextCharCap",
   "copilotHistoryTurns",
+  "copilotHistoryTurnChars",
+  "copilotQuestionChars",
   "retrievalMemoMaxEntries",
 ] as const;
 

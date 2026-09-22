@@ -537,7 +537,6 @@ describe("store migration without loss (B4)", () => {
       expect(state.feedback).toHaveLength(1);
       expect(state.holdings).toEqual({});
       expect(state.caseMandates).toEqual({});
-      expect(state.caseClarifications).toEqual({});
       expect(state.caseStatuses).toEqual({});
       expect(state.caseResolutions).toEqual({});
       expect(state.ruleProposals).toEqual([]);

@@ -55,9 +55,44 @@ export const DEFAULT_THRESHOLDS = {
   retrievalContextCharCap: 6000,
   /** Giliran percakapan terakhir yang dikirim ke model. */
   copilotHistoryTurns: 6,
+  /** Panjang maksimum satu giliran riwayat, dalam karakter. Batas ini
+   *  memotong, tidak menolak: jawaban agregat ("semua kasus…") lebih panjang
+   *  daripada angka mana pun yang bisa dipilih di sini, jadi menolaknya
+   *  berarti pertanyaan lanjutan gagal terkirim justru setelah jawaban yang
+   *  paling lengkap. Yang dijaga batas ini adalah volume teks dari klien,
+   *  bukan kebenaran jawaban. */
+  copilotHistoryTurnChars: 4000,
+  /** Berapa chip "periksa ulang catatan" yang ditawarkan sekaligus, satu per
+   *  emiten yang punya catatan terbuka. Dulu literal `.slice(0, 2)` di
+   *  components/copilot.tsx. */
+  copilotInsightPrompts: 2,
+  /** Panjang minimum satu pertanyaan, dalam karakter. Dipakai composer untuk
+   *  menahan kiriman yang pasti ditolak skema: satu karakter bukan
+   *  pertanyaan, dan memberitahu pembaca "layanan menolak permintaan"
+   *  menyalahkan layanan atas ketukan yang belum selesai. */
+  copilotQuestionMinChars: 2,
+  /** Panjang maksimum satu pertanyaan, dalam karakter. Dipakai dua kali:
+   *  composer berhenti menerima ketukan di angka ini, dan permintaan yang
+   *  tetap datang lebih panjang dipotong di batas yang sama alih-alih
+   *  ditolak. */
+  copilotQuestionChars: 500,
+  /** Token keluaran maksimum untuk satu jawaban chat: satu objek JSON pendek
+   *  berisi maksimal 4 kalimat. Completion terukur untuk jawaban semacam ini
+   *  jauh di bawah 200 token dengan thinking mati, jadi 1024 adalah lima kali
+   *  ruang gerak sekaligus batas atas waktu generasi pada tier gratis yang
+   *  lambat — ekor yang membuat satu jawaban retrieved memakan 28 detik
+   *  padahal plafon 2048-nya tidak pernah dibutuhkan. Call site yang butuh
+   *  lebih (tidak ada saat ini) mengoper maxOutputTokens eksplisit alih-alih
+   *  menaikkan ini. */
+  answerMaxTokens: 1024,
   /** Batas entri memo analisis per instance, supaya Map tingkat modul pada
    *  instance Cloud Run berumur panjang tidak tumbuh tanpa henti. */
   retrievalMemoMaxEntries: 64,
+  /** Berapa dimensi dampak bisnis yang diuji satu kasus sekaligus. Dulu
+   *  `.slice(0, 2)` di dalam gerbang klarifikasi: pembaca memilih satu dari
+   *  dua. Gerbang itu hilang, keduanya kini diuji bersama — angkanya tetap
+   *  satu nilai supaya rencana, sumber, dan tabel dampak tidak bisa berbeda. */
+  caseFocusCount: 2,
 } as const;
 
 /**
@@ -106,7 +141,13 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   retrievalTopK: "convention",
   retrievalContextCharCap: "convention",
   copilotHistoryTurns: "convention",
+  copilotHistoryTurnChars: "convention",
+  copilotQuestionChars: "convention",
+  copilotQuestionMinChars: "convention",
+  copilotInsightPrompts: "convention",
+  answerMaxTokens: "convention",
   retrievalMemoMaxEntries: "convention",
+  caseFocusCount: "convention",
 };
 
 /**
@@ -179,7 +220,13 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
     retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
     copilotHistoryTurns: DEFAULT_THRESHOLDS.copilotHistoryTurns,
+    copilotHistoryTurnChars: DEFAULT_THRESHOLDS.copilotHistoryTurnChars,
+    copilotQuestionChars: DEFAULT_THRESHOLDS.copilotQuestionChars,
+    copilotQuestionMinChars: DEFAULT_THRESHOLDS.copilotQuestionMinChars,
+    copilotInsightPrompts: DEFAULT_THRESHOLDS.copilotInsightPrompts,
+    answerMaxTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
+    caseFocusCount: DEFAULT_THRESHOLDS.caseFocusCount,
   };
 }
 

@@ -15,7 +15,7 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00048-rwr`, deployed 2026-09-21 from commit `75fd2f3` on `feat/alief/wire-ui`, 100% of traffic | `gcloud run revisions list --service=catalyst-web --region=us-central1` |
+| Serving revision | `catalyst-web-00049-xj2`, deployed 2026-09-22, 100% of traffic. Source commit untracked (source deploys carry none); the image predates the provider switch — live logs on 2026-09-22 show Gemini AI Studio errors, so `LLM_PROVIDER` is set but unread | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
 | Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:bfb77408…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
@@ -35,6 +35,7 @@ Plain environment variables:
 - `LLM_BASE_URL=https://openrouter.ai/api/v1`
 - `LLM_MODEL=nex-agi/nex-n2.5-mini:free`
 - `LLM_RATE_LIMIT_STRIKES=3`
+- `LLM_REASONING=off`
 - `GEMINI_MODEL=gemini-3.8-flash`
 - `GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite`
 - `COPILOT_RETRIEVAL=on`
@@ -44,11 +45,19 @@ Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`, 
 `INTERNAL_CRON_SECRET`, `SECTORS_API_KEY`, `OPERATOR_TOKEN` (`gcloud secrets list` shows exactly
 these five).
 
-The revision runs OpenRouter, not Gemini. `GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are still set
-and are inert: `lib/agent/llm/models.ts` reads them only while `LLM_PROVIDER` is `gemini`. They
-are left in place so that removing `LLM_PROVIDER` is a complete rollback on its own.
-`GOOGLE_API_KEY` is likewise still mounted and unused, which is what makes that rollback need no
-redeploy.
+The revision sets the OpenRouter variables below, but the image predates `fc5a247`
+(`feat(llm): select the model provider by environment`), so nothing reads them and the
+effective provider is still Gemini. Verified 2026-09-22: live `llm-fallback` lines carry
+Gemini AI Studio errors (`ai.google.dev/gemini-api/docs/billing`), never OpenRouter ones.
+To actually run OpenRouter, redeploy from source containing `fc5a247` (current `HEAD`
+qualifies) with the §6 command — env alone cannot switch the provider on this image.
+
+`GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are therefore live, not inert: they name the only
+models this image can call. After a redeploy from current source they become inert under
+`openai-compatible` (see `lib/agent/llm/models.ts`) and can be dropped from the command;
+the built-in Gemini defaults keep a rollback working without them. `GOOGLE_API_KEY` stays
+mounted either way — costless while unused, and a rollback without it needs a new secret
+version plus a new revision.
 
 Measured before the switch, over 40-request bursts against the real answer path,
 `nex-agi/nex-n2.5-mini:free` produced a verifier-approved answer 26 times out of 40, at p90
@@ -56,15 +65,30 @@ Measured before the switch, over 40-request bursts against the real answer path,
 phrasing and invented figures that `lib/agent/llm/verify.ts` catches. That rate is the known
 cost of the free tier and has not been compared against Gemini on the same harness.
 
+`LLM_REASONING=off` is load-bearing, not cosmetic: without it the free reasoning model thinks
+before answering (measured 543–966 completion tokens, 6.6–18.2s per call), with it the same
+call costs 87–102 tokens and 1.3–2.5s. A revision without this variable pays the thinking tax
+on every chat answer. `LLM_MODEL_CHEAP` is intentionally unset in the §6 command: on current source, one model
+doing both jobs means `composeRetrieved` makes a single attempt instead of asking the same
+vendor twice (see `lib/agent/engine.ts`). The live image predates that skip and still attempts
+cheap-then-strong — both Gemini, both currently 429ing against the spend cap.
+
 `GCS_MEMORY_BUCKET` is not set. `lib/memory/gcs-memory.ts` falls back to `katalis-recorded`, so
 user memory is written there, not to the `catalyst-memory` bucket. The `catalyst-memory` bucket
 exists in `US-CENTRAL1` but is empty and unused; the design plan's `catalyst-recorded` bucket was
 never created.
 
-`GEMINI_MODEL` is the stronger model: one failed-verification retry per question lands here.
-`GEMINI_MODEL_CHEAP` (`gemini-3.5-flash-lite`) composes the first draft of every retrieved
-answer; the code default is the same value, so unsetting it changes nothing, but keeping it
-explicit pins the cost model the rollout was priced on (~$16/month at 200 questions/day).
+`GEMINI_MODEL` is the stronger model on the current image: every retrieved answer is
+composed on `GEMINI_MODEL_CHEAP` (`gemini-3.5-flash-lite`) with one retry on `GEMINI_MODEL`.
+After a redeploy from current source this paragraph inverts — one model
+(`LLM_MODEL`) does both jobs and `GEMINI_MODEL_CHEAP` is ignored — so do not read cost
+estimates here across a redeploy. Priced on Gemini at ~$16/month at 200 questions/day;
+unpriced on OpenRouter free tier (queue wait instead of money).
+
+Heads-up from the live logs (2026-09-22): the Gemini key's project has exceeded its monthly
+spending cap (`ai.studio/spend`), so model calls are currently answering 429 and the app is
+serving the deterministic fallback. Irrelevant once on OpenRouter; blocking if you ever roll
+back — raise the cap in AI Studio first.
 
 ## 2b. Switching model provider
 
@@ -163,7 +187,12 @@ running when UI or routing changed.
 
 ## 6. Deploy
 
-One command, run from the repository root on the branch you want live:
+Two variants — pick one. Both run from the repository root on the branch you want live, and
+both build the image from current source (required: the provider switch only exists in code
+containing `fc5a247`). `--set-env-vars` and `--set-secrets` replace the whole set each time,
+so each command below is complete on its own: never mix half of one with half of the other.
+
+### 6a. With OpenRouter (current recommendation)
 
 ```bash
 gcloud run deploy catalyst-web \
@@ -173,13 +202,39 @@ gcloud run deploy catalyst-web \
   --service-account=catalyst-run@ada-sectors-508410.iam.gserviceaccount.com \
   --allow-unauthenticated \
   --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
-  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+  --set-env-vars=AGENT_MODE=llm,LLM_PROVIDER=openai-compatible,LLM_BASE_URL=https://openrouter.ai/api/v1,LLM_MODEL=nex-agi/nex-n2.5-mini:free,LLM_RATE_LIMIT_STRIKES=3,LLM_REASONING=off,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+  --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest,LLM_API_KEY=LLM_API_KEY:latest
+```
+
+`GEMINI_MODEL` / `GEMINI_MODEL_CHEAP` are deliberately absent: inert under `openai-compatible`,
+and the built-in defaults keep a rollback working without them. `GOOGLE_API_KEY` stays mounted
+but unused — costless, and removing `LLM_PROVIDER` alone then rolls back to Gemini with no new
+secret version. `LLM_REASONING=off` is load-bearing (see §2), not cosmetic.
+
+### 6b. With Gemini (fallback)
+
+```bash
+gcloud run deploy catalyst-web \
+  --source . \
+  --project=ada-sectors-508410 \
+  --region=us-central1 \
+  --service-account=catalyst-run@ada-sectors-508410.iam.gserviceaccount.com \
+  --allow-unauthenticated \
+  --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
+  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=1,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
   --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
 ```
 
-`--set-env-vars` and `--set-secrets` replace the whole set each time, so keep every entry in the
-command even when you are only changing one of them. Dropping `INTERNAL_CRON_SECRET` makes
-`/api/internal/*` fail closed and breaks the scheduler.
+Unset `LLM_PROVIDER` means `gemini`, so no provider variable is needed. `LLM_RATE_LIMIT_STRIKES=1`
+restores the per-key-quota behaviour: on Gemini the first 429 means the allowance is gone, so one
+strike closes the gate (see §2). `LLM_API_KEY` and the `LLM_MODEL` group are dropped — fully
+Gemini, no dangling OpenRouter secrets. Prerequisite: raise the AI Studio spend cap first
+(`ai.studio/spend`) — on 2026-09-22 the key's project was capped and every model call answered
+429. Priced at ~$16/month at 200 questions/day.
+
+Dropping `INTERNAL_CRON_SECRET` in either variant makes `/api/internal/*` fail closed and breaks
+the scheduler; dropping the `LLM_PROVIDER` group from 6a without switching to 6b silently keeps
+whatever the image defaults to, so always deploy one complete variant.
 
 Source deploys carry no commit metadata, so the serving revision cannot be traced back to a commit
 from the console. Record the commit in the pull request when you deploy.

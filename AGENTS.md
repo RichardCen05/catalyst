@@ -48,6 +48,20 @@ Specifically, do not:
 What may be a literal: structural UI copy that is true of every case (a heading, a button label,
 an empty state), field labels, format strings, and the threshold table itself.
 
+That copy is still indexed. `scripts/build-chrome-registry.mjs` reads every heading, eyebrow,
+description, action label and `aria-label` region out of the JSX in `app/` and `components/` and
+writes `lib/data/chrome.generated.ts`, which the assistant retrieves from — so a reader can ask
+what a panel on screen means and be answered about that panel rather than about whichever
+recording happened to share two of its words. Run `npm run chrome:build` after changing any of
+that copy; `tests/chrome-registry.test.ts` fails when the file is stale. Do not hand-edit it, and
+do not write a per-heading explanation: the block's words are paired with its page's bundle
+(`lib/agent/retrieval/context/`) and the model writes the sentence from both.
+
+Every page a reader can open needs a bundle in `lib/agent/retrieval/context/` registered in
+`VIEWS` (`lib/agent/retrieval/context/index.ts`). A page without one can only have its own words
+read back to it. Pages that exist only to redirect have nothing of their own to say and are
+covered by `tests/retrieval-views.test.ts`.
+
 When a model writes a user-visible sentence it must be verified before it ships — numerals limited
 to the material it was given, no invented columns, no trading advice, no symbol names in a
 sentence that is cached for every symbol. See `lib/agent/llm/verify.ts` and the guards in

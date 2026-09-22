@@ -12,16 +12,17 @@ export interface StructuredCallParams {
 }
 
 /**
- * Reasoning tokens are drawn from the same allowance as the answer, and the
- * model spends a variable number of them on an identical prompt: a chat
- * rewrite that measured 394 thought tokens on one call measured 674 on the
- * next. With the old 1024 ceiling the JSON was sometimes cut mid-string, and
- * `JSON.parse` failed with "Unterminated string in JSON", so a working key
- * still produced the deterministic answer. The ceiling now leaves room for
- * both, and a truncated response is named instead of surfacing as a parse
- * error.
+ * Reasoning tokens are drawn from the same allowance as the answer. With
+ * thinking on, a chat rewrite measured 394 thought tokens on one call and 674
+ * on the next — which is why the old 1024 ceiling cut JSON mid-string and
+ * `JSON.parse` failed with "Unterminated string in JSON". With thinking off
+ * (`LLM_REASONING=off`, the intended production setting) the same call costs
+ * 87-102 completion tokens for an answer of the same quality, so the ceiling
+ * is 2048: twenty times that measurement, room for variance without paying a
+ * 4096-token worst case on a slow free tier for a four-sentence answer. A
+ * truncated response is still named instead of surfacing as a parse error.
  */
-const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
+const DEFAULT_MAX_OUTPUT_TOKENS = 2048;
 
 /**
  * Providers that honour a JSON schema still differ on the wrapper: Gemini

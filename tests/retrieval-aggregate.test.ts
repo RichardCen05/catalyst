@@ -11,7 +11,7 @@ const context: RequestContext = { profile: demoProfiles[0], history: [] };
 describe("isAggregateQuestion", () => {
   it("mengenali pertanyaan jamak", () => {
     for (const question of [
-      "jelaskan semua kasus dalam satu jalur",
+      "jelaskan semua kasus yang sudah lengkap",
       "berapa banyak emiten yang masuk",
       "mana saja yang punya kasus lengkap",
       "list all events",
@@ -29,6 +29,16 @@ describe("isAggregateQuestion", () => {
     ]) {
       expect(isAggregateQuestion(question), question).toBe(false);
     }
+  });
+
+  it("tidak menghitung penanda jamak yang dikutip dari judul di layar", () => {
+    // "Semua kasus dalam satu jalur" adalah judul panel di Dashboard. Pembaca
+    // yang menanyakan artinya tidak sedang meminta daftar segalanya; "semua"
+    // itu milik aplikasi, bukan milik pertanyaan.
+    expect(isAggregateQuestion("apa maksud dari Semua kasus dalam satu jalur")).toBe(false);
+    expect(isAggregateQuestion("jelaskan semua kasus dalam satu jalur")).toBe(false);
+    // Kata yang sama, tanpa kutipan judul, tetap jamak.
+    expect(isAggregateQuestion("jelaskan semua kasus yang terbuka")).toBe(true);
   });
 
   it("tidak tertipu kata yang memuat penanda sebagai bagian kata lain", () => {

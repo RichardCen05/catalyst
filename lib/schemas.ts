@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { VIEW_IDS } from "@/lib/agent/retrieval/types";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 const symbolSchema = z.string().trim().min(4).max(5).transform((value) => value.toUpperCase());
 const pillarSchema = z.enum(["concentration", "volume", "momentum", "catalyst"]);
@@ -89,7 +90,6 @@ export const analyzeRequestSchema = z.object({
   symbol: symbolSchema,
   profile: profileSchema,
   mandate: z.string().max(600).optional(),
-  clarificationChoice: z.string().max(40).optional(),
   userInsights: z.array(userInsightSchema).max(100).optional(),
   playbook: playbookSchema.optional(),
 });
@@ -99,7 +99,6 @@ export const causalGraphRequestSchema = z.object({
   scope: z.enum(["watchlist", "market"]).default("market"),
   minRelevance: z.number().min(0).max(100).default(60),
   mandate: z.string().max(600).optional(),
-  clarificationChoice: z.string().max(40).optional(),
   playbook: playbookSchema.optional(),
 });
 export const impactRequestSchema = z.object({ eventId: z.string().min(1), profile: profileSchema, scope: z.enum(["watchlist", "market"]) });
@@ -133,22 +132,34 @@ export const refreshRunSchema = z.object({
   symbols: z.array(z.string().trim().min(4).max(5)).max(6).optional(),
 });
 /**
- * Conversation turns, bounded at the boundary.
+ * Conversation turns, bounded at the boundary — by truncation, not refusal.
  *
  * This is client-supplied text that reaches a prompt, which is the same
  * surface `lib/data/endpoint-registry.ts` was written to close for the
  * evidence panel: free text in a prompt is both an injection vector and free
  * model time for whoever pastes into it. The engine filters each turn through
  * `safeLanguage` on the way in, and the retrieval layer never lets a turn
- * contribute a figure. The caps here are what stop the volume.
+ * contribute a figure. The cap here is what stops the volume.
+ *
+ * It truncates rather than rejects because the turn it carries is this app's
+ * own previous answer. A cap that refuses turned the most complete answers
+ * into a dead end: an aggregate answer runs past any length worth choosing
+ * here, so the next question was refused with `HTTP 400` and the reader was
+ * told to retry a send that could never succeed. Trimming the tail of a turn
+ * costs a follow-up some context; refusing it costs the reader the answer.
  */
 const historyTurnSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  text: z.string().trim().min(1).max(600),
+  text: z.string().trim().min(1).transform((value) => value.slice(0, DEFAULT_THRESHOLDS.copilotHistoryTurnChars)),
 });
 
 export const chatRequestSchema = z.object({
-  question: z.string().trim().min(2).max(500),
+  // Truncated for the same reason as a history turn: a reader who pasted a
+  // long question has asked something, and the first 500 characters of it are
+  // a question this engine can answer. The composer stops at the same number,
+  // so a request arrives longer than this only when it did not come from the
+  // panel.
+  question: z.string().trim().min(DEFAULT_THRESHOLDS.copilotQuestionMinChars).transform((value) => value.slice(0, DEFAULT_THRESHOLDS.copilotQuestionChars)),
   profile: profileSchema,
   contextSymbol: symbolSchema.optional(),
   userInsights: z.array(userInsightSchema).max(100).optional(),

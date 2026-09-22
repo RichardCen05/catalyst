@@ -449,7 +449,7 @@ test.describe("Phase 3 — input boundaries", () => {
     expect(posts).toBe(1);
   });
 
-  test("P9 one-char and 501-char inputs reach the API and 400 [live:0 LLM]", async ({ page }) => {
+  test("P9 composer boundaries are held before the request, not by a 400 [live:0 LLM]", async ({ page }) => {
     test.setTimeout(120_000);
     await dismissOnboarding(page);
     await page.goto(`${PROD}/copilot`);
@@ -458,19 +458,23 @@ test.describe("Phase 3 — input boundaries", () => {
       if (res.url().includes("/api/chat") && res.request().method() === "POST") seen.push(res.status());
     });
     const input = page.getByLabel("Tanya Catalyst");
-    // One character: below the schema min of 2.
+    // One character is below the schema minimum, so the composer refuses to
+    // send it at all: a request that can only come back 400 is not worth
+    // telling the reader the service rejected them.
     await input.fill("a");
-    await expect(page.getByRole("button", { name: "Kirim pertanyaan" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Kirim pertanyaan" })).toBeDisabled();
     await input.press("Enter");
-    await expect(page.getByText(NET_FAIL_COPY.replace("jaringan atau layanan tidak terjangkau", "layanan menolak permintaan (HTTP 400)"))).toBeVisible({
-      timeout: 60_000,
-    });
-    // 501 characters: textarea has no maxlength, so this reaches the API too.
+    await page.waitForTimeout(2000);
+    expect(seen).toEqual([]);
+    // Past the maximum the textarea stops accepting keystrokes, so what is
+    // sent is already inside the bound and comes back answered.
     await input.fill("A".repeat(501));
+    expect(await input.inputValue()).toHaveLength(500);
     await input.press("Enter");
-    await expect(page.getByText(/HTTP 400/).nth(1)).toBeVisible({ timeout: 60_000 });
-    expect(seen).toEqual([400, 400]);
-    console.log("[prod-boundary] 1-char and 501-char both 400; UI shows generic HTTP-400 failure, no schema hint");
+    await expect.poll(() => seen.length, { timeout: 90_000 }).toBeGreaterThan(0);
+    expect(seen).toEqual([200]);
+    await expect(page.getByText(/HTTP 400/)).toHaveCount(0);
+    console.log("[prod-boundary] 1-char never sent; 501-char clamped to 500 and answered 200");
   });
 
   test("P10 hostile input renders as text, injection earns no uncited figure [live:3]", async ({ page }) => {

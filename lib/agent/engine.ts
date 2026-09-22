@@ -147,39 +147,22 @@ function explicitMandateFocus(mandate: string): BusinessImpactDimension | undefi
   return dimensionFromText(mandate);
 }
 
-function createClarification(symbol: SymbolCode, mandate: string, choice?: string) {
+/**
+ * Every dimension this case tests. A gate used to ask the reader to pick one
+ * of these two before the case rendered anything; the pair is carried instead,
+ * and every hypothesis, source line, observable and impact row still names the
+ * dimension it came from, so a combined case stays attributable.
+ */
+function resolveFocuses(symbol: SymbolCode, mandate: string): BusinessImpactDimension[] {
   const inferred = explicitMandateFocus(mandate);
   const recordedDefault = sectorDefaultFocus(symbol);
-  // The two dimensions this symbol's recordings reach most, plus whatever the
-  // mandate or the reader named. A fixed second option used to be typed here,
-  // which offered the same pair for every issuer the record described
-  // differently.
+  // The dimensions this symbol's recordings reach most, plus whatever the
+  // mandate named. Ranking lives in lib/agent/dimensions.ts, never a table here.
   const ranked = recordedFocusRanking(symbol);
-  const chosen = choice && (Object.keys(impactLabels) as BusinessImpactDimension[]).find((item) => item === choice);
-  const focusOptions = [inferred, recordedDefault, ...ranked, chosen]
+  return [inferred, recordedDefault, ...ranked]
     .filter((item): item is BusinessImpactDimension => Boolean(item))
     .filter((item, index, values) => values.indexOf(item) === index)
-    .slice(0, 2);
-  if (chosen && !focusOptions.includes(chosen)) focusOptions.push(chosen);
-  const options = focusOptions.map((focus) => ({
-    id: focus,
-    label: impactLabels[focus],
-    question: `Apakah pemicu perlu diuji terhadap ${impactLabels[focus].toLowerCase()} ${symbol}?`,
-    focus,
-    // One sentence shape for every dimension, filled from the dimension's own
-    // observables — not a per-dimension paragraph that only two of six had.
-    sourceConsequence: `Utamakan data dan keterbukaan yang menjelaskan ${impactObservables[focus].toLowerCase()}.`,
-    observable: impactObservables[focus],
-  }));
-  const selected = options.find((option) => option.id === choice) ?? options.find((option) => option.focus === inferred);
-  return {
-    required: !selected,
-    reason: selected
-      ? `Pertanyaan diarahkan ke ${impactLabels[selected.focus].toLowerCase()}. Sumber dan indikator mengikuti pilihan ini.`
-      : "Pertanyaan belum menyebut hasil bisnis yang harus berubah. Pilih satu fokus sebelum Catalyst melanjutkan.",
-    selectedOptionId: selected?.id,
-    options,
-  };
+    .slice(0, _DEFAULTS.caseFocusCount);
 }
 
 function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): AppliedPlaybookRule[] {
@@ -224,39 +207,55 @@ function createResearchPlan(
   symbol: SymbolCode,
   mandate: string,
   pillars: PillarResult[],
-  focusOverride?: BusinessImpactDimension,
+  focusOverride?: BusinessImpactDimension[],
   context?: AnalysisContext,
 ) {
-  const focus = focusOverride ?? mandateFocus(mandate, symbol);
-  const focusLabel = impactLabels[focus].toLowerCase();
-  const trustedSource = context?.playbook?.trustedSources[0] ?? "Data perusahaan Sectors dan keterbukaan emiten";
+  const focuses = focusOverride?.length ? focusOverride : [mandateFocus(mandate, symbol)];
+  const labelOf = (focus: BusinessImpactDimension) => impactLabels[focus].toLowerCase();
+  const observableOf = (focus: BusinessImpactDimension) => impactObservables[focus].toLowerCase();
+  const focusList = focuses.map(labelOf).join(" dan ");
+  // A playbook source is a sentence the reader typed, so it often ends in a
+  // full stop. The source line appends its own clause; without this the panel
+  // prints "…berita sekunder.: uji margin operasi".
+  const trustedSource = (context?.playbook?.trustedSources[0] ?? "Data perusahaan Sectors dan keterbukaan emiten").replace(/[.\s]+$/, "");
   const falsifier = context?.playbook?.falsifiers.find((item) => item.toUpperCase().includes(symbol))
-    ?? `${focusLabel} tidak bergerak sesuai jalur pada jendela observasi.`;
+    ?? `${focusList} tidak bergerak sesuai jalur pada jendela observasi.`;
+  const unique = (values: string[]) => values.filter((item, index) => values.indexOf(item) === index);
   return {
     mandate,
-    focus,
-    rationale: `Pertanyaan mengutamakan ${focusLabel}. Catalyst menyesuaikan hipotesis, sumber, dan indikator tanpa mengubah data dasar.`,
+    focuses,
+    rationale: `Pertanyaan menguji ${focusList}. Catalyst menyusun hipotesis, sumber, dan indikator untuk setiap fokus tanpa mengubah data dasar.`,
     hypothesisTree: [
-      { id: `${symbol}-plan-primary`, claim: `Pemicu mengubah ${focusLabel} ${symbol}.`, test: `Cari perubahan pada ${impactObservables[focus].toLowerCase()}.`, state: "primary" as const },
+      ...focuses.map((focus) => ({
+        id: `${symbol}-plan-primary-${focus}`,
+        claim: `Pemicu mengubah ${labelOf(focus)} ${symbol}.`,
+        test: `Cari perubahan pada ${observableOf(focus)}.`,
+        state: "primary" as const,
+      })),
       { id: `${symbol}-plan-support`, claim: "Arus, volume, dan momentum bergerak setelah pemicu.", test: pillars.map((pillar) => pillar.label).join(" → "), state: "supporting" as const },
       { id: `${symbol}-plan-challenge`, claim: "Penjelasan lain lebih kuat daripada pemicu utama.", test: falsifier, state: "challenge" as const },
     ],
     observables: [
-      { dimension: focus, metric: impactObservables[focus], expectedChange: `Bergerak konsisten dengan arah pemicu pada ${symbol}.`, window: focus === "valuation" ? monthWindowLabel(OBSERVATION_WINDOWS.valuationMonths) : sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions) },
-      ...(focus === "volume" ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions) }]),
+      ...focuses.map((focus) => ({
+        dimension: focus,
+        metric: impactObservables[focus],
+        expectedChange: `Bergerak konsisten dengan arah pemicu pada ${symbol}.`,
+        window: focus === "valuation" ? monthWindowLabel(OBSERVATION_WINDOWS.valuationMonths) : sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions),
+      })),
+      ...(focuses.includes("volume") ? [] : [{ dimension: "volume" as const, metric: impactObservables.volume, expectedChange: "Mengonfirmasi bahwa perubahan mencapai aktivitas operasional.", window: sessionWindowLabel(OBSERVATION_WINDOWS.defaultSessions) }]),
     ],
-    sourcePlan: [
-      `${trustedSource}: uji ${focusLabel} dan periode pembanding.`,
+    sourcePlan: unique([
+      ...focuses.map((focus) => `${trustedSource}: uji ${labelOf(focus)} dan periode pembanding.`),
       `Data harian dan broker Sectors: pastikan perubahan terjadi setelah pemicu.`,
-      `Keterbukaan emiten: periksa ${impactObservables[focus].toLowerCase()}.`,
+      ...focuses.map((focus) => `Keterbukaan emiten: periksa ${observableOf(focus)}.`),
       `Pembanding sektor: pisahkan perubahan perusahaan dari faktor pasar yang sama.`,
-    ],
-    clarificationGate: `Fokus aktif: ${focusLabel}. Sebelum menutup kasus, pastikan perubahan penting dan jendela pengamatan sudah ditentukan.`,
+    ]),
+    closingGate: `Fokus aktif: ${focusList}. Sebelum menutup kasus, pastikan perubahan penting dan jendela pengamatan sudah ditentukan.`,
   };
 }
 
 function createBusinessImpact(
-  focus: BusinessImpactDimension,
+  focuses: BusinessImpactDimension[],
   symbol: SymbolCode,
   citations: Citation[],
 ): BusinessImpactResult[] {
@@ -264,8 +263,8 @@ function createBusinessImpact(
   return dimensions.map((dimension) => ({
     dimension,
     label: impactLabels[dimension],
-    status: dimension === focus ? "Primary test" : ["volume", "pricing"].includes(dimension) ? "Supporting" : "Open",
-    mechanism: dimension === focus
+    status: focuses.includes(dimension) ? "Primary test" : ["volume", "pricing"].includes(dimension) ? "Supporting" : "Open",
+    mechanism: focuses.includes(dimension)
       ? `Pertanyaan meminta jalur pemicu diterjemahkan langsung ke ${impactLabels[dimension].toLowerCase()}.`
       : `Uji apakah jalur utama ${symbol} mencapai ${impactLabels[dimension].toLowerCase()}.`,
     observable: impactObservables[dimension],
@@ -729,14 +728,13 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     }
     appliedRules.unshift(...extra);
   }
-  const clarification = createClarification(symbol, mandate, context?.clarificationChoice);
-  const selectedFocus = clarification.options.find((option) => option.id === clarification.selectedOptionId)?.focus;
-  const researchPlan = createResearchPlan(symbol, mandate, ordered, selectedFocus, context);
+  const focuses = resolveFocuses(symbol, mandate);
+  const researchPlan = createResearchPlan(symbol, mandate, ordered, focuses, context);
   const businessImpactCitations = uniqueCitations([
     ...fixture.financialContext.flatMap((item) => item.citations),
     ...sources,
   ]);
-  const businessImpact = createBusinessImpact(researchPlan.focus, symbol, businessImpactCitations);
+  const businessImpact = createBusinessImpact(researchPlan.focuses, symbol, businessImpactCitations);
   const relevanceFloor = relevanceFloorFor(context?.playbook);
   const materiality = primaryLink && primaryLink.relevance >= relevanceFloor ? "High" as const : primaryLink ? "Medium" as const : "Low" as const;
   const primaryBusinessImpact = businessImpact.find((item) => item.status === "Primary test") ?? businessImpact[0];
@@ -795,18 +793,13 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       ...(hasLeadershipEvent ? ["Batalkan pengaruh pengurus bila biaya dan eksekusi tidak berubah pada laporan kuartal berikutnya."] : []),
     ],
     sourcePlan: researchPlan.sourcePlan,
-    clarificationGate: researchPlan.clarificationGate,
-    clarification,
+    closingGate: researchPlan.closingGate,
     // Stage names come from RESEARCH_LIFECYCLE so the method page cannot
     // describe a different process than the one that runs.
     lifecycle: RESEARCH_LIFECYCLE.map(({ key, label }) => ({
       key,
       label,
-      state: key === "mandate"
-        ? "complete" as const
-        : clarification.required
-          ? "blocked" as const
-          : key === "review" ? "active" as const : "complete" as const,
+      state: key === "review" ? "active" as const : "complete" as const,
     })),
     primaryCausalPath: primaryLink?.path ?? "Belum ada jalur utama yang terverifikasi.",
     researchPlan,
@@ -954,10 +947,13 @@ async function composeRetrieved(
   cacheable: boolean,
 ): Promise<{ text: string; llmFallbackNote?: string }> {
   if (agentMode() !== "llm") return { text: retrieved.readerText };
-  const models = [
-    cheapModel(),
-    strongModel(),
-  ];
+  const cheap = cheapModel();
+  const strong = strongModel();
+  // No cheap tier named means one model does both jobs (see models.ts): the
+  // retry would then ask the same vendor the same question twice in a row,
+  // paying the wait twice for a draft drawn from the same distribution. One
+  // attempt, then the retrieved bundle itself.
+  const models = cheap === strong ? [strong] : [cheap, strong];
   for (const model of models) {
     // Only a first turn is cacheable. A follow-up's meaning depends on turns
     // the key does not carry, so "dan yang satunya?" would otherwise be served
@@ -1526,7 +1522,7 @@ async function buildCausalGraph(
     if (event.category === "sentiment") return "valuation";
     // Company disclosures test whatever the research plan focuses on. Without
     // a recorded plan there is no honest default, so the edge carries none.
-    return analysis?.researchPlan.focus;
+    return analysis?.researchPlan.focuses[0];
   };
   const implicationFor = (event: MarketEvent, phrasing: "reach" | "tested"): string => {
     const dimension = businessDimensionFor(event);

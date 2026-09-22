@@ -7,7 +7,7 @@ import { useCopilotSession } from "@/lib/copilot-session";
 import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
 import { coverageInfo, DATA_AS_OF } from "@/lib/data/fixtures";
-import { ASSISTANT_NAME, buildQuickPrompts } from "@/lib/agent/assistant";
+import { ASSISTANT_NAME, buildInsightPrompts, buildQuickPrompts } from "@/lib/agent/assistant";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { VIEW_IDS } from "@/lib/agent/retrieval/types";
 import type { ChatAnswer, SymbolCode } from "@/lib/types";
@@ -77,9 +77,11 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const prefilled = useRef<string | null>(null);
   const nextId = useRef(0);
   const openNotes = insights.filter((item) => item.status === "pending").length;
-  const insightPrompts = insights.filter((item) => item.status === "pending").slice(0, 2).map((item) => `Periksa ulang catatan saya untuk ${item.symbol}.`);
+  const insightPrompts = useMemo(() => buildInsightPrompts(insights, DEFAULT_THRESHOLDS.copilotInsightPrompts), [insights]);
   const prompts = useMemo(() => buildQuickPrompts(profile), [profile]);
-  const quickPrompts = [...insightPrompts, ...prompts.filter((prompt) => !insightPrompts.some((item) => item === prompt))];
+  // One chip per distinct question. Each chip's text is its key, so a repeat
+  // is not merely redundant on screen — React cannot tell the two apart.
+  const quickPrompts = useMemo(() => [...new Set([...insightPrompts, ...prompts])], [insightPrompts, prompts]);
   // The route is the default, not an override: a case the reader picked or
   // an evidence button they pressed stays until they clear it.
   const activeContext = resolveContext(copilotContext, routeSymbol);
@@ -118,7 +120,9 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   // `bound` is the answer to a clarifying turn: the reader's choice must reach
   // the engine with the original question, before the store has settled.
   const submit = async (question: string, bound?: SymbolCode) => {
-    if (!question.trim() || loading) return;
+    // Below the schema's minimum there is nothing to answer, and sending it
+    // anyway returned a 400 the reader read as the service refusing them.
+    if (question.trim().length < DEFAULT_THRESHOLDS.copilotQuestionMinChars || loading) return;
     const asked = question.trim();
     const symbol = bound ?? activeContext?.symbol;
     append({ id: `u-${(nextId.current += 1)}`, role: "user", text: asked });
@@ -132,7 +136,10 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       const history = messages
         .filter((message) => !message.failed)
         .slice(-DEFAULT_THRESHOLDS.copilotHistoryTurns)
-        .map((message) => ({ role: message.role, text: message.text }));
+        // Trimmed here as well as at the route, so the request the panel sends
+        // is already inside the bound the engine keeps. The server's cap is
+        // then a guard against other callers, never something a reader meets.
+        .map((message) => ({ role: message.role, text: message.text.slice(0, DEFAULT_THRESHOLDS.copilotHistoryTurnChars) }));
       const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: symbol, userInsights: insights, playbook, caseMandate: symbol ? caseMandates[symbol] : undefined, history, view: viewFromPath(pathname) }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = await response.json();
@@ -285,10 +292,10 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         </div>
         <form onSubmit={onSubmit} className="flex items-end gap-1.5 rounded-[22px] border border-border bg-background p-1 transition-colors focus-within:border-foreground/35">
           <label htmlFor="copilot-input" className="sr-only">Tanya Catalyst</label>
-          <textarea id="copilot-input" ref={composerRef} rows={1} value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(input); } }} placeholder="Tanya bukti atau dampak..." className="max-h-[132px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-[7px] text-[15px] leading-[1.45] outline-none placeholder:text-muted-foreground" />
+          <textarea id="copilot-input" ref={composerRef} rows={1} maxLength={DEFAULT_THRESHOLDS.copilotQuestionChars} value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(input); } }} placeholder="Tanya bukti atau dampak..." className="max-h-[132px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-[7px] text-[15px] leading-[1.45] outline-none placeholder:text-muted-foreground" />
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={input.trim().length < DEFAULT_THRESHOLDS.copilotQuestionMinChars || loading}
             aria-label="Kirim pertanyaan"
             className={`grid size-9 shrink-0 place-items-center rounded-full transition-[background-color,color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${input.trim() && !loading ? "cursor-pointer bg-primary text-primary-foreground active:scale-90" : "bg-muted text-muted-foreground"}`}
           >

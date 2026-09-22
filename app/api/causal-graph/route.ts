@@ -20,7 +20,6 @@ export async function POST(request: Request) {
         minRelevance: parsed.data.minRelevance,
         context: {
           mandate: parsed.data.mandate,
-          clarificationChoice: parsed.data.clarificationChoice,
           playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
         },
       }

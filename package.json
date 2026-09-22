@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "chrome:build": "node scripts/build-chrome-registry.mjs",
+    "chrome:check": "node scripts/build-chrome-registry.mjs --check",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

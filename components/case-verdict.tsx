@@ -15,7 +15,6 @@ import { dispositionLabel } from "@/lib/ui-labels";
 export function CaseDisposition({ researchCase, symbol }: { researchCase: ResearchCase; symbol: SymbolCode }) {
   const recordInsight = useCatalystStore((state) => state.recordInsight);
   const [tracked, setTracked] = useState(false);
-  const focusLocked = researchCase.clarification.required;
 
   const trackObservable = () => {
     recordInsight({
@@ -30,7 +29,7 @@ export function CaseDisposition({ researchCase, symbol }: { researchCase: Resear
     <section aria-label="Tindakan riset" className="mb-4 grid gap-4 overflow-hidden rounded-[12px] border border-border bg-primary/6 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
       <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tindakan riset</p>
-        <div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="editorial text-2xl">{dispositionLabel(researchCase.researchDisposition.kind)}</h2>{focusLocked ? <span className="rounded border border-attention/35 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">Sementara</span> : null}</div>
+        <div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="editorial text-2xl">{dispositionLabel(researchCase.researchDisposition.kind)}</h2></div>
         <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{researchCase.researchDisposition.reason}</p>
         <p className="mt-3 font-mono text-[10px] text-muted-foreground">PEMICU · {researchCase.caseId}</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground"><strong className="font-medium text-foreground">{researchCase.trigger.title}</strong> — {researchCase.materialChange.baseline}</p>

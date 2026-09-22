@@ -13,13 +13,13 @@ import { CausalChain } from "@/components/causal-chain";
 import { CompetingHypotheses } from "@/components/competing-hypotheses";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconAttention, IconBranch } from "@/components/ui/icons";
+import { IconArrowRight, IconBranch } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 function ImpactWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { profile, playbook, caseClarifications, caseResolutions, insights, setCaseClarification } = useCatalystStore();
+  const { profile, playbook, caseResolutions, insights } = useCatalystStore();
   // Partially recorded symbols belong here too: they carry a price series and
   // linked sources, so the chain can be drawn as far as the recordings go. The
   // option label says which ones stop short of a business outcome.
@@ -34,12 +34,10 @@ function ImpactWorkspace() {
   // engine's visibility cap), higher thins it to the strongest paths.
   const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
   const [reloading, setReloading] = useState(false);
-  const clarificationChoice = caseClarifications[symbol];
   const resolution = caseResolutions[symbol];
   const sharedShocks = getSharedShocks(events, profile.watchlist);
   const context = {
     mandate: undefined,
-    clarificationChoice,
     playbook,
     userInsights: insights,
     resolution,
@@ -49,7 +47,7 @@ function ImpactWorkspace() {
     agentEngine.analyzeCompany(symbol, profile, context).then((result) => { if (!cancelled) setAnalysis(result); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, playbook, insights, resolution]);
   useEffect(() => {
     let cancelled = false;
     // The previous graph stays visible while the new threshold loads, with a
@@ -59,7 +57,7 @@ function ImpactWorkspace() {
     agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance, context }).then((result) => { if (!cancelled) { setGraph(result); setReloading(false); } });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, profile, minRelevance, clarificationChoice, playbook, insights, resolution]);
+  }, [symbol, profile, minRelevance, playbook, insights, resolution]);
 
   if (analysis === undefined || graph === undefined) {
     return (
@@ -78,7 +76,7 @@ function ImpactWorkspace() {
         action={<label className="block text-xs font-medium text-muted-foreground">Emiten<select aria-label="Pilih emiten" value={symbol} onChange={(event) => router.push(`/impact?company=${event.target.value}`)} className="mt-1 block h-10 min-w-36 rounded-[6px] border border-border bg-surface px-3 font-mono text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">{available.map((company) => <option key={company.symbol} value={company.symbol}>{company.symbol}{company.analyzed ? "" : " · rekaman sebagian"}</option>)}</select></label>}
       />
 
-      {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : analysis?.clarification.required ? <Panel className="p-5 sm:p-6"><IconAttention aria-hidden="true" className="size-5 text-attention" /><h2 className="mt-3 text-lg font-semibold">Tentukan fokus kasus di sini</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{analysis.clarification.reason}</p><div className="mt-4 grid gap-2 md:grid-cols-2">{analysis.clarification.options.map((option) => <button key={option.id} type="button" onClick={() => { setReloading(true); setCaseClarification(symbol, option.id); }} className="cursor-pointer rounded-[8px] border border-border bg-surface p-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><strong className="block text-sm leading-5">{option.question}</strong><span className="mt-2 block text-xs leading-5 text-muted-foreground">Sumber: {option.sourceConsequence}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Indikator: {option.observable}</span></button>)}</div><Link href={`/cases/${symbol}#clarification-gate`} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-[6px] px-3 text-sm font-medium text-primary hover:bg-primary/10">Atau buka kasus {symbol}<IconArrowRight aria-hidden="true" className="size-4" /></Link></Panel> : <div className="space-y-4">
+      {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
           <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Ambang relevansi
             <select aria-label="Ambang relevansi rantai" value={minRelevance} onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary">

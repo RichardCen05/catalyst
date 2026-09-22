@@ -29,6 +29,7 @@ export const VIEW_IDS: readonly ViewId[] = [
 
 export type EntryKind =
   | "case"
+  | "chrome"
   | "event"
   | "metric"
   | "endpoint"
@@ -59,6 +60,10 @@ export interface RequestContext {
 export interface ContextBundle {
   id: string;
   kind: EntryKind;
+  /** The page this material belongs to, when it belongs to one. A chrome
+   *  block sets it so its page's material is fetched once for the whole
+   *  answer rather than repeated under every panel that matched. */
+  view?: ViewId;
   title: string;
   body: string;
   figures: string[];

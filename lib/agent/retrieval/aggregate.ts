@@ -2,6 +2,7 @@ import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { normalizeQuery } from "@/lib/agent/query";
 import { getCorpus } from "@/lib/agent/retrieval/corpus";
+import { listChromeBlocks } from "@/lib/agent/retrieval/context/chrome";
 import type { ScoredEntry } from "@/lib/agent/retrieval/score";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
 import type { Citation } from "@/lib/types";
@@ -20,8 +21,41 @@ import type { Citation } from "@/lib/types";
 const AGGREGATE_WORDS = ["semua", "seluruh", "seluruhnya", "total", "all", "every", "list"];
 const AGGREGATE_PHRASES = ["mana saja", "apa saja", "siapa saja", "berapa banyak", "daftar lengkap", "how many"];
 
+/**
+ * The app's own headings, normalised, longest first.
+ *
+ * A reader quoting a heading is not using its words as their own. The
+ * dashboard's map is titled "Semua kasus dalam satu jalur", so asking what it
+ * means put "semua" in the question and turned a pointed question into a
+ * request for a list of everything. Quoted chrome is removed before the
+ * aggregate words are looked for, so only the reader's own "semua" counts.
+ */
+let chromePhrases: string[] | null = null;
+function quotedChrome(): string[] {
+  if (chromePhrases) return chromePhrases;
+  const phrases = new Set<string>();
+  for (const block of listChromeBlocks()) {
+    for (const text of [block.heading, block.eyebrow, block.description]) {
+      const normalized = text ? normalizeQuery(text) : "";
+      // A one-word heading is not evidence of quoting, and removing it would
+      // hide the reader's own word.
+      if (normalized.includes(" ")) phrases.add(normalized);
+    }
+  }
+  chromePhrases = [...phrases].sort((first, second) => second.length - first.length);
+  return chromePhrases;
+}
+
+function withoutQuotedChrome(normalized: string): string {
+  let out = normalized;
+  for (const phrase of quotedChrome()) {
+    if (out.includes(phrase)) out = out.split(phrase).join(" ");
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
 export function isAggregateQuestion(question: string): boolean {
-  const normalized = normalizeQuery(question);
+  const normalized = withoutQuotedChrome(normalizeQuery(question));
   const padded = ` ${normalized} `;
   if (AGGREGATE_PHRASES.some((phrase) => normalized.includes(phrase))) return true;
   return AGGREGATE_WORDS.some((word) => padded.includes(` ${word} `));

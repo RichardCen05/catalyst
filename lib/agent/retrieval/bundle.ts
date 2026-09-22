@@ -1,7 +1,8 @@
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { scoreCorpus, topScore } from "@/lib/agent/retrieval/score";
 import { aggregateBundle, isAggregateQuestion } from "@/lib/agent/retrieval/aggregate";
-import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
+import { loadViewBundle } from "@/lib/agent/retrieval/context";
+import type { ContextBundle, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
 import type { Citation, SymbolCode } from "@/lib/types";
 
 export interface RetrievedContext {
@@ -39,17 +40,55 @@ export async function retrieveContext(
   const score = topScore(ranked);
 
   const bundles: ContextBundle[] = [];
+  const seen = new Set<string>();
   if (isAggregateQuestion(question)) {
     bundles.push(await aggregateBundle(question, ranked, context));
   } else {
-    for (const row of ranked.slice(0, DEFAULT_THRESHOLDS.retrievalTopK)) {
-      const bundle = await row.entry.load(context).catch((error) => {
-        // One page's builder failing must not cost the reader every other
-        // page's material, so the entry drops out and the rest proceed.
-        console.warn(`[retrieval] builder ${row.entry.id} failed: ${error instanceof Error ? error.message : String(error)}`);
-        return null;
-      });
-      if (bundle) bundles.push(bundle);
+    const top = ranked.slice(0, DEFAULT_THRESHOLDS.retrievalTopK);
+    // Every entry's builder is independent, so awaiting them one by one put
+    // the sum of their costs on every answer. They load together and are
+    // reassembled in ranked order below, which is the only order the cap and
+    // the audit trail ever see.
+    const loaded = await Promise.all(
+      top.map((row) =>
+        row.entry.load(context).catch((error) => {
+          // One page's builder failing must not cost the reader every other
+          // page's material, so the entry drops out and the rest proceed.
+          console.warn(`[retrieval] builder ${row.entry.id} failed: ${error instanceof Error ? error.message : String(error)}`);
+          return null;
+        }),
+      ),
+    );
+    // One fetch per distinct view, in first-seen ranked order. A question can
+    // match three panels on one screen, and fetching their shared page three
+    // times would spend the wait on the same paragraph thrice over.
+    const wantedViews = [...new Set(
+      loaded.flatMap((bundle) => (bundle?.view ? [bundle.view] : [])),
+    )];
+    const pages = await Promise.all(
+      wantedViews.map((view) => loadViewBundle(view, context).catch(() => null)),
+    );
+    const pageByView = new Map<ViewId, ContextBundle>();
+    wantedViews.forEach((view, index) => {
+      const page = pages[index];
+      if (page) pageByView.set(view, page);
+    });
+    for (const bundle of loaded) {
+      if (!bundle) continue;
+      if (seen.has(bundle.id)) continue;
+      bundles.push(bundle);
+      seen.add(bundle.id);
+
+      // A matched panel says what its words are; its page says what the
+      // panel shows, and the reader asked about both. The page follows its
+      // panel immediately so the character cap cannot leave a panel standing
+      // without the material that explains it.
+      if (!bundle.view) continue;
+      const page = pageByView.get(bundle.view);
+      if (page && !seen.has(page.id)) {
+        bundles.push(page);
+        seen.add(page.id);
+      }
     }
   }
   if (!bundles.length) return null;

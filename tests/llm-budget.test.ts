@@ -92,6 +92,63 @@ describe("reserveLlmCall", () => {
     expect(store.writes).toBe(0);
   });
 
+  it("does not open the ledger at all when there is no ceiling", async () => {
+    // A free tier has no spend to cap, so the ceiling is unset there. Reading
+    // a ledger nothing will be written to is what made a machine with no
+    // credentials warn once per model call.
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "");
+    let reads = 0;
+    const store: LlmBudgetStore = {
+      load: async () => { reads += 1; return null; },
+      save: async () => { throw new Error("must not write"); },
+    };
+
+    await expect(reserveLlmCall(store, NOW)).resolves.toBeUndefined();
+    expect(reads).toBe(0);
+  });
+
+  it("still refuses after the strikes run out when there is no ceiling", async () => {
+    // The ceiling is our accounting; a 429 is the vendor refusing. Unsetting
+    // the first must not switch off the second, or a free tier spends the
+    // whole day re-learning the same rejection.
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "");
+    vi.stubEnv("LLM_RATE_LIMIT_STRIKES", "2");
+    const store = memoryStore();
+
+    await noteLlmRateLimited(store, NOW);
+    await expect(reserveLlmCall(store, NOW)).resolves.toBeUndefined();
+
+    await noteLlmRateLimited(store, NOW);
+    await expect(reserveLlmCall(store, NOW)).rejects.toMatchObject({ reason: "rate-limit" });
+  });
+
+  it("lets the next day through after the strikes closed the gate", async () => {
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "");
+    vi.stubEnv("LLM_RATE_LIMIT_STRIKES", "1");
+    const store = memoryStore();
+
+    await noteLlmRateLimited(store, NOW);
+    await expect(reserveLlmCall(store, NOW)).rejects.toMatchObject({ reason: "rate-limit" });
+
+    const tomorrow = new Date("2026-09-18T04:00:00.000Z");
+    await expect(reserveLlmCall(store, tomorrow)).resolves.toBeUndefined();
+  });
+
+  it("says the ledger is unreachable once a day, not once a call", async () => {
+    vi.stubEnv("LLM_DAILY_CALL_BUDGET", "10");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const broken: LlmBudgetStore = {
+      load: async () => { throw new Error("fetch failed"); },
+      save: async () => { throw new Error("fetch failed"); },
+    };
+
+    await reserveLlmCall(broken, NOW);
+    await reserveLlmCall(broken, NOW);
+    await reserveLlmCall(broken, NOW);
+
+    expect(warn.mock.calls.filter((call) => String(call[0]).includes("ledger unreachable"))).toHaveLength(1);
+  });
+
   it("falls open to an in-process count when the ledger cannot be read", async () => {
     vi.stubEnv("LLM_DAILY_CALL_BUDGET", "2");
     vi.spyOn(console, "warn").mockImplementation(() => {});

@@ -182,7 +182,10 @@ export interface AppliedPlaybookRule {
 
 export interface ResearchPlan {
   mandate: string;
-  focus: BusinessImpactDimension;
+  /** Every dimension the case tests. The reader used to pick one of these
+   *  before anything rendered; both are carried now and each hypothesis,
+   *  source line and observable still names the dimension it came from. */
+  focuses: BusinessImpactDimension[];
   rationale: string;
   hypothesisTree: Array<{
     id: string;
@@ -220,7 +223,6 @@ export interface CaseResolution {
 
 export interface AnalysisContext {
   mandate?: string;
-  clarificationChoice?: string;
   playbook?: InvestorResearchPlaybook;
   userInsights?: UserInsight[];
   resolution?: CaseResolution;
@@ -254,20 +256,7 @@ export interface ResearchCase {
   unresolvedQuestions: string[];
   nextResearchActions: string[];
   sourcePlan: string[];
-  clarificationGate: string;
-  clarification: {
-    required: boolean;
-    reason: string;
-    selectedOptionId?: string;
-    options: Array<{
-      id: string;
-      label: string;
-      question: string;
-      focus: BusinessImpactDimension;
-      sourceConsequence: string;
-      observable: string;
-    }>;
-  };
+  closingGate: string;
   lifecycle: Array<{
     key: "mandate" | "decompose" | "source-plan" | "evidence" | "review";
     label: string;
