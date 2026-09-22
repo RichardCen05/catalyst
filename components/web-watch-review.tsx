@@ -275,9 +275,9 @@ export function WebWatchReview() {
   return (
     <div className="mx-auto max-w-[1240px]">
       <PageHeader
-        eyebrow="Pantau web"
-        title="Apa yang berubah di web sejak kemarin?"
-        description="Sumber resmi dan portal pasar yang diperiksa terjadwal tiap hari bursa pukul 17.30 WIB. Kandidat masuk antrean tanpa peta dampak — reviewer yang memetakan, terbuka."
+        eyebrow="Pantauan sumber"
+        title="Perubahan sejak pemeriksaan terakhir"
+        description="Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB"
         action={<Button onClick={load}>Muat ulang</Button>}
       />
       {error ? (

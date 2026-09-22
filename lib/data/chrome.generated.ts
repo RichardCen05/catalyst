@@ -389,14 +389,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/impact/page.tsx",
   },
   {
-    id: "chrome:impact:apa-yang-mendorong-perubahan-ini",
-    heading: "Apa yang mendorong perubahan ini?",
-    view: "impact",
-    eyebrow: "Ruang uji sebab akibat",
-    description: "Bandingkan beberapa penyebab, lacak jalurnya ke emiten, lalu tentukan tindakan riset.",
-    file: "app/impact/page.tsx",
-  },
-  {
     id: "chrome:impact:data-belum-cukup",
     heading: "Data belum cukup",
     view: "impact",
@@ -422,6 +414,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Guncangan bersama",
     view: "impact",
     labels: ["Guncangan bersama pantauan"],
+    file: "app/impact/page.tsx",
+  },
+  {
+    id: "chrome:impact:hipotesis-dan-jalur-dampak",
+    heading: "Hipotesis dan jalur dampak",
+    view: "impact",
+    eyebrow: "Ruang uji sebab akibat",
     file: "app/impact/page.tsx",
   },
   {
@@ -495,14 +494,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/web-watch-review.tsx",
   },
   {
-    id: "chrome:pantau:apa-yang-berubah-di-web-sejak-kemarin",
-    heading: "Apa yang berubah di web sejak kemarin?",
-    view: "pantau",
-    eyebrow: "Pantau web",
-    description: "Sumber resmi dan portal pasar yang diperiksa terjadwal tiap hari bursa pukul 17.30 WIB. Kandidat masuk antrean tanpa peta dampak — reviewer yang memetakan, terbuka.",
-    file: "components/web-watch-review.tsx",
-  },
-  {
     id: "chrome:pantau:diterima-engine",
     heading: "Diterima engine",
     view: "pantau",
@@ -514,6 +505,14 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Kesehatan sumber",
     view: "pantau",
     labels: ["Sumber ("],
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:perubahan-sejak-pemeriksaan-terakhir",
+    heading: "Perubahan sejak pemeriksaan terakhir",
+    view: "pantau",
+    eyebrow: "Pantauan sumber",
+    description: "Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB",
     file: "components/web-watch-review.tsx",
   },
   {
