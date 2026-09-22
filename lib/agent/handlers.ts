@@ -63,6 +63,13 @@ export function clearsFloor(score: number): boolean {
 export interface Candidate {
   id: HandlerId;
   score: number;
+  /** True when what makes this handler ready is something the question itself
+   *  named — a ticker, a figure, a field — rather than a phrase that could
+   *  appear in any question. */
+  anchored?: boolean;
+  /** The retrieval bid. Marked so it can be ranked by a different rule from
+   *  the handlers it competes with. */
+  retrieval?: boolean;
 }
 
 /**
@@ -70,10 +77,26 @@ export interface Candidate {
  *
  * Ties keep the order the caller listed, which is the old sequence — so where
  * two handlers are equally confident, behaviour matches what shipped before.
+ *
+ * One asymmetry, and it is the point of the `anchored` flag: retrieval bids on
+ * a different scale from the handlers. Its bid is the share of the question a
+ * recording matched, which routinely runs above what a handler can reach from
+ * its three signals, so on raw comparison retrieval displaced answers that
+ * were about exactly what the reader named. "Saham publik terserap dari
+ * sumber apa?" names a field, and the field's provenance — the endpoint the
+ * number came from — is the answer to it; a page bundle that shares four
+ * words with the question is not.
+ *
+ * So retrieval competes with handlers that fired on a generic phrase alone —
+ * that competition is what stops "apa dampak peta sebab akibat ke emiten
+ * lain" being answered as an arbitrary event — and never displaces a handler
+ * anchored in the question's own words.
  */
 export function selectHandler(candidates: Candidate[]): Candidate | null {
+  const anchored = candidates.some((candidate) => candidate.anchored && clearsFloor(candidate.score));
   let best: Candidate | null = null;
   for (const candidate of candidates) {
+    if (candidate.retrieval && anchored) continue;
     if (!best || candidate.score > best.score) best = candidate;
   }
   return best && clearsFloor(best.score) ? best : null;

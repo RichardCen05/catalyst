@@ -419,12 +419,35 @@ export function answerableFigures(analysis: AnalysisCase): AnswerableFigure[] {
   ];
 }
 
+/**
+ * A matched figure, and whether the question actually named it.
+ *
+ * `named` is false for the last resort — a pillar's group name, which covers
+ * four figures and can be reached by a single loose word. The difference
+ * decides whether a handler is treated as anchored in the reader's own words
+ * (`lib/agent/handlers.ts`): a misspelled metric name still names that metric,
+ * a group name names nothing in particular.
+ */
+export interface FigureMatch {
+  figure: AnswerableFigure;
+  named: boolean;
+}
+
 /** The figure a question is about, searched across everything on screen. */
 export function matchFigure(
   figures: AnswerableFigure[],
   question: string,
   extractNumerals: (...texts: string[]) => string[],
 ): AnswerableFigure | undefined {
+  return matchFigureWithStrength(figures, question, extractNumerals)?.figure;
+}
+
+/** The same search, reporting how the figure was reached. */
+export function matchFigureWithStrength(
+  figures: AnswerableFigure[],
+  question: string,
+  extractNumerals: (...texts: string[]) => string[],
+): FigureMatch | undefined {
   const lower = question.toLowerCase();
   // A label the reader typed in full outranks a number inside it. "Imbal hasil
   // 3 hari" carries a "3", and matching numbers first answered that question
@@ -432,14 +455,14 @@ export function matchFigure(
   const labelFirst = figures
     .filter(({ metric }) => lower.includes(metric.label.toLowerCase()))
     .sort((first, second) => second.metric.label.length - first.metric.label.length);
-  if (labelFirst.length) return labelFirst[0];
+  if (labelFirst.length) return { figure: labelFirst[0], named: true };
   // A quoted figure has to look like a figure. A lone digit is almost always
   // part of a phrase ("3 hari", "28 hari"), not a value pasted from the page.
   const asked = extractNumerals(question).map(canonicalFigure).filter((figure) => figure.replace("%", "").length > 1);
   if (asked.length) {
     const byFigure = figures.find(({ metric }) =>
       extractNumerals(metric.value).map(canonicalFigure).some((figure) => asked.includes(figure)));
-    if (byFigure) return byFigure;
+    if (byFigure) return { figure: byFigure, named: true };
   }
   // A full label beats an alias, and the longest match beats a shorter one.
   // Both orderings fix a real mismatch: "Rasio churn broker teratas (proksi)"
@@ -451,25 +474,31 @@ export function matchFigure(
     .flatMap((figure) =>
       (METRIC_ALIASES[figure.metric.label] ?? []).filter((alias) => lower.includes(alias)).map((alias) => ({ figure, alias })))
     .sort((first, second) => second.alias.length - first.alias.length);
-  if (aliasHits.length) return aliasHits[0].figure;
+  if (aliasHits.length) return { figure: aliasHits[0].figure, named: true };
   // Nothing matched letter for letter. One dropped or swapped character —
   // "pesert efektif", "free flaot" — used to end here, in the menu that tells
   // a reader the figure they are looking at is not available.
   const fuzzyLabels = figures
     .filter(({ metric }) => phraseMatches(lower, metric.label))
     .sort((first, second) => second.metric.label.length - first.metric.label.length);
-  if (fuzzyLabels.length) return fuzzyLabels[0];
+  // Tolerant matches answer, but they do not anchor. `phraseMatches` forgives
+  // one or two edits per word, which is what lets "volume terbru" reach Volume
+  // terbaru — and also what let "apa dampak" reach the alias "arah dampak".
+  // The first is the reader naming a figure; the second is two generic words
+  // colliding with a metric name.
+  if (fuzzyLabels.length) return { figure: fuzzyLabels[0], named: false };
   const fuzzyAliases = figures
     .flatMap((figure) =>
       (METRIC_ALIASES[figure.metric.label] ?? []).filter((alias) => phraseMatches(lower, alias)).map((alias) => ({ figure, alias })))
     .sort((first, second) => second.alias.length - first.alias.length);
-  if (fuzzyAliases.length) return fuzzyAliases[0].figure;
+  if (fuzzyAliases.length) return { figure: fuzzyAliases[0].figure, named: false };
   // A group name is the weakest signal there is — "Volume" names a pillar
   // holding four figures, so it loses even to a misspelled metric name.
   // Matching it before the tolerant passes answered "brp volume terbru nya"
   // with the pillar's first metric, which is a different number entirely.
-  return figures.find(({ group }) => lower.includes(group.toLowerCase()))
+  const byGroup = figures.find(({ group }) => lower.includes(group.toLowerCase()))
     ?? figures.find(({ group }) => phraseMatches(lower, group));
+  return byGroup ? { figure: byGroup, named: false } : undefined;
 }
 
 /** Meaning, source in plain words, arithmetic, then the technical address. */

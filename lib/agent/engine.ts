@@ -34,13 +34,13 @@ import type {
 } from "@/lib/types";
 import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
-import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
+import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, matchFigureWithStrength, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { generateStructured } from "@/lib/agent/llm/client";
 import { cheapModel, strongModel } from "@/lib/agent/llm/models";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
-import { handlerScore, selectHandler } from "@/lib/agent/handlers";
+import { handlerScore, selectHandler, type HandlerId, type HandlerSignals } from "@/lib/agent/handlers";
 import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
@@ -1055,6 +1055,24 @@ const MISSING_PHRASES = [
 
 const EVENT_PHRASES = ["berita", "dampak", "peristiwa", "news", "impact", "event"];
 
+/**
+ * The half of `EVENT_PHRASES` that names the subject rather than the shape of
+ * the question. "berita" says what the question is about; "dampak" says only
+ * that something affects something, and appears in questions about every page
+ * this app has. The split decides anchoring, not triggering: both halves still
+ * make the handler ready, and only the first half protects it from being
+ * outbid by retrieval.
+ */
+const EVENT_SUBJECT_PHRASES = ["berita", "peristiwa", "news", "event", "kabar"];
+
+/**
+ * A reader pointing at the case already on screen — "emiten ini", "kasus
+ * tersebut". The chip supplies which one; the question is what says the
+ * answer should be about it, so this counts as the question naming its
+ * subject, unlike a chip sitting there beside an unrelated question.
+ */
+const CONTEXT_POINTER = /\b(emiten|kasus|saham|perusahaan)\s+(ini|itu|tersebut)\b/;
+
 const WHY_PHRASES = ["kenapa", "mengapa", "daftar", "why", "listed"];
 
 /**
@@ -1230,7 +1248,11 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // terbru nya` names a metric on the page, but `eventFromQuestion` scores
   // token overlap, so it used to be answered with an unrelated event's
   // impact path.
-  const namedFigure = analysis ? matchFigure(answerableFigures(analysis), request.question, extractNumerals) : undefined;
+  const figureMatch = analysis ? matchFigureWithStrength(answerableFigures(analysis), request.question, extractNumerals) : undefined;
+  const namedFigure = figureMatch?.figure;
+  // A group name ("Volume") reaches four figures from one loose word, so it
+  // makes the handler ready without anchoring it.
+  const figureNamed = Boolean(figureMatch?.named) || Boolean(matchFieldName(request.question));
   const event = eventFromQuestion(request.question);
   // What the question points at, settled before anything is scored. A pointer
   // that found nothing answers with the menu rather than guessing: naming the
@@ -1257,15 +1279,36 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   //
   // With COPILOT_RETRIEVAL off there is no competitor, so behaviour is exactly
   // what shipped before — which is what makes this safe to land on its own.
+  /** One candidate, scored and marked with what made it ready. A handler is
+   *  anchored when the question itself named its subject; that is what
+   *  retrieval may not outbid (`selectHandler`). */
+  const candidate = (id: HandlerId, signals: HandlerSignals, anchored: boolean) => ({
+    id,
+    score: handlerScore(signals),
+    anchored: signals.evidenceReady && anchored,
+  });
+
+  // The question named its subject when it typed a ticker, or pointed at the
+  // one on screen.
+  //
+  // Naming a subject anchors nothing on its own. Every handler here can be
+  // about ANTM, so "mekanisme apa saja di peta sebab akibat untuk ANTM" would
+  // otherwise anchor why-listed — whose trigger is satisfied by the ticker
+  // alone — and lock retrieval out of a question that is plainly about the
+  // causal map. A handler is anchored when the question named the thing THAT
+  // handler answers about: the figure for a figure question, the event for an
+  // event question, the case together with a why-phrase for why-listed.
+  const subjectNamed = symbols.length > 0 || (Boolean(request.contextSymbol) && CONTEXT_POINTER.test(question));
+
   const winner = selectHandler([
-    { id: "compare", score: handlerScore({ symbolNamedInQuestion: symbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: symbols.length >= 2 && mentions(question, COMPARE_PHRASES) }) },
-    { id: "provenance", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }) },
-    { id: "explain", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }) },
-    { id: "event-impact", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && !namedFigure }) },
-    { id: "missing", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, MISSING_PHRASES), fuzzyPhrase: false, evidenceReady: mentions(question, MISSING_PHRASES) }) },
-    { id: "explain", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure), exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(analysis) && Boolean(namedFigure) }) },
-    { id: "why-listed", score: handlerScore({ symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, WHY_PHRASES), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && (mentions(question, WHY_PHRASES) || symbols.length > 0) }) },
-    { id: "retrieved", score: handlerScore({ symbolNamedInQuestion: false, figureNamedInQuestion: false, exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(retrieved), retrievalScore: retrieved?.score ?? 0 }) },
+    candidate("compare", { symbolNamedInQuestion: symbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: symbols.length >= 2 && mentions(question, COMPARE_PHRASES) }, symbols.length >= 2),
+    candidate("provenance", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }, isProvenanceQuestion(question)),
+    candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }, figureNamed),
+    candidate("event-impact", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && !namedFigure }, Boolean(event) || mentions(question, EVENT_SUBJECT_PHRASES)),
+    candidate("missing", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, MISSING_PHRASES), fuzzyPhrase: false, evidenceReady: mentions(question, MISSING_PHRASES) }, mentions(question, MISSING_PHRASES)),
+    candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure), exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(analysis) && Boolean(namedFigure) }, figureNamed),
+    candidate("why-listed", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, WHY_PHRASES), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && (mentions(question, WHY_PHRASES) || symbols.length > 0) }, subjectNamed && mentions(question, WHY_PHRASES)),
+    { id: "retrieved", retrieval: true, score: handlerScore({ symbolNamedInQuestion: false, figureNamedInQuestion: false, exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(retrieved), retrievalScore: retrieved?.score ?? 0 }) },
   ]) ?? { id: "unknown" as const, score: 0 };
 
   if (winner.id === "compare" && mentions(question, COMPARE_PHRASES) && symbols.length >= 2) {
@@ -1335,8 +1378,15 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // Retrieval outranking this means the question was answerable without a
   // case after all — "apa saja yang ada di daftar pantauan saya" contains
   // "daftar", which is a why-phrase, but it is not a question about one case.
-  if (winner.id !== "retrieved" && !primary && !mentions(question, EVENT_PHRASES)
-    && (mentions(question, WHY_PHRASES) || Boolean(matchFieldName(request.question)) || namesAMetric(request.question))) {
+  // A figure question with no case is the one shape retrieval may not take
+  // over. "hhi berapa" matches the metric's own recording, so retrieval bids
+  // and wins, and the reader is told what HHI means when what they asked is
+  // what it IS for a case they never named. A why-phrase alone is different:
+  // "apa saja yang ada di daftar pantauan saya" contains "daftar" but is not
+  // about one case, so retrieval answering it is right.
+  const unboundFigure = !primary && (Boolean(matchFieldName(request.question)) || namesAMetric(request.question));
+  if (!primary && !mentions(question, EVENT_PHRASES)
+    && (unboundFigure || (winner.id !== "retrieved" && mentions(question, WHY_PHRASES)))) {
     return {
       text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
       refused: false, intent: "clarify", hypotheses: [], citations: [],

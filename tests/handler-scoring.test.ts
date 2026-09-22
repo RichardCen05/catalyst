@@ -75,6 +75,30 @@ describe("dengan retrieval hidup, topik menang atas kata kunci", () => {
     expect(answer.intent).toBe("retrieved");
   });
 
+  it("emiten yang diketik tidak mengunci pertanyaan tentang halaman lain", async () => {
+    // Menyebut subjek tidak menambatkan apa pun sendirian: setiap handler di
+    // router ini bisa berbicara tentang ANTM. Dulu `why-listed` siap hanya
+    // karena tikernya muncul, sehingga pertanyaan yang jelas-jelas tentang
+    // peta sebab akibat dijawab dengan ringkasan kasus.
+    for (const question of [
+      "mekanisme apa saja di peta sebab akibat untuk ANTM",
+      "ANTM pengaruh ke emiten lain lewat peta sebab akibat gimana",
+    ]) {
+      const answer = await ask(question);
+      expect(answer.intent, question).toBe("retrieved");
+    }
+  });
+
+  it("label angka yang salah eja tetap dijawab sebagai angka itu, bukan diambil retrieval", async () => {
+    // Pencocokan toleran tidak menambatkan handler, jadi retrieval ikut
+    // bersaing di pertanyaan seperti ini. Yang menjaga jawabannya tetap benar
+    // adalah skor: kata yang salah eja tidak mencocokkan istilah korpus mana
+    // pun. Tes ini yang akan gagal lebih dulu bila itu berubah.
+    const answer = await ask("brp volume terbru nya", "ANTM");
+    expect(answer.intent).toBe("explain");
+    expect(answer.text).toContain("Volume terbaru");
+  });
+
   it("tetap menjawab why-listed ketika pertanyaannya menyebut emitennya", async () => {
     const answer = await ask("kenapa ANTM masuk daftar hari ini?");
     expect(answer.intent).toBe("why-listed");
