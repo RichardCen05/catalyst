@@ -516,7 +516,9 @@ export interface CompetingHypothesis {
   id: string;
   rank: number;
   claim: string;
-  targetObservable: string;
+  /** Every indicator this cause is tested against — one per focus the case
+   *  carries, so a combined case does not silently compare against the first. */
+  targetObservables: string[];
   supportingEvidence: string;
   counterEvidence: string;
   discriminator: string;
@@ -529,7 +531,8 @@ export interface CausalGraph {
   targetSymbol: SymbolCode;
   nodes: CausalNode[];
   edges: CausalEdge[];
-  targetObservable: string;
+  /** Every indicator the chain is drawn against, in plan order. */
+  targetObservables: string[];
   competingHypotheses: CompetingHypothesis[];
   hiddenRelationshipCount: number;
   asOf: string;

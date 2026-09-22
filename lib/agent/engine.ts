@@ -1512,26 +1512,32 @@ async function buildCausalGraph(
     if (event.category === "sentiment") return "Volume pemberitaan dan kecepatan liputan kembali normal tanpa diikuti perubahan operasional.";
     return "Metrik biaya, volume, atau kapasitas menunjukkan dampak setelah aturan berlaku.";
   };
-  const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension | undefined => {
-    if (event.category === "commodity") return "pricing";
-    if (event.category === "rates") return "margin";
-    if (event.category === "currency") return "cash-flow";
-    if (event.category === "weather") return "volume";
-    if (event.category === "policy") return "margin";
-    if (event.category === "flows") return "valuation";
-    if (event.category === "sentiment") return "valuation";
-    // Company disclosures test whatever the research plan focuses on. Without
-    // a recorded plan there is no honest default, so the edge carries none.
-    return analysis?.researchPlan.focuses[0];
+  const businessDimensionsFor = (event: MarketEvent): BusinessImpactDimension[] => {
+    if (event.category === "commodity") return ["pricing"];
+    if (event.category === "rates") return ["margin"];
+    if (event.category === "currency") return ["cash-flow"];
+    if (event.category === "weather") return ["volume"];
+    if (event.category === "policy") return ["margin"];
+    if (event.category === "flows") return ["valuation"];
+    if (event.category === "sentiment") return ["valuation"];
+    // Company disclosures test whatever the research plan focuses on — every
+    // focus, not the first. Without a recorded plan there is no honest
+    // default, so the edge carries none.
+    return analysis?.researchPlan.focuses ?? [];
   };
+  // The edge tag holds one dimension; the sentence beside it names them all,
+  // so a company disclosure under a two-focus plan does not read as if only
+  // one of them were being tested.
+  const businessDimensionFor = (event: MarketEvent): BusinessImpactDimension | undefined => businessDimensionsFor(event)[0];
   const implicationFor = (event: MarketEvent, phrasing: "reach" | "tested"): string => {
-    const dimension = businessDimensionFor(event);
-    if (!dimension) {
+    const dimensions = businessDimensionsFor(event);
+    if (!dimensions.length) {
       return "Indikator bisnis untuk emiten ini belum terekam, jadi jalur ini belum dapat diuji terhadap angka keuangan.";
     }
+    const list = dimensions.map((dimension) => impactLabels[dimension].toLowerCase()).join(" dan ");
     return phrasing === "reach"
-      ? `Jalur harus mencapai ${impactLabels[dimension].toLowerCase()} sebelum dianggap material.`
-      : `Dampak diuji pada ${impactLabels[dimension].toLowerCase()}.`;
+      ? `Jalur harus mencapai ${list} sebelum dianggap material.`
+      : `Dampak diuji pada ${list}.`;
   };
   /**
    * Say when the commodity-to-issuer link is an assumption.
@@ -1570,10 +1576,19 @@ async function buildCausalGraph(
     ? [...eligible.filter(({ event }) => prioritized.has(event.id)), ...eligible.filter(({ event }) => !prioritized.has(event.id))]
     : eligible;
   const visible = ranked.slice(0, maxVisibleSources);
-  const targetImpact = analysis ? analysis.businessImpact.find((item) => item.status === "Primary test") ?? analysis.businessImpact[0] : undefined;
+  // Every dimension the case tests, not just the first: the chain compares the
+  // same causes against each of them, and the heading says so.
+  const targetImpacts = analysis
+    ? (analysis.businessImpact.filter((item) => item.status === "Primary test").length
+        ? analysis.businessImpact.filter((item) => item.status === "Primary test")
+        : analysis.businessImpact.slice(0, 1))
+    : [];
+  const targetImpact = targetImpacts[0];
   // Without a recorded business observable the chain must not name one.
-  const targetObservable = targetImpact?.label
-    ?? `Indikator bisnis belum terekam (${coverage.missing.join(", ") || "rekaman belum lengkap"})`;
+  const targetObservables = targetImpacts.length
+    ? targetImpacts.map((item) => item.label)
+    : [`Indikator bisnis belum terekam (${coverage.missing.join(", ") || "rekaman belum lengkap"})`];
+  const targetObservableList = targetObservables.join(" dan ");
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
     label: symbol,
@@ -1694,16 +1709,16 @@ async function buildCausalGraph(
     targetSymbol: symbol,
     nodes,
     edges,
-    targetObservable,
+    targetObservables,
     // Hypotheses stay at three even when the graph shows more: three
     // competing claims fit in working memory, six do not.
     competingHypotheses: visible.slice(0, 3).map(({ event, link }, index) => ({
       id: `${symbol}-competing-${event.id}`,
       rank: index + 1,
       claim: targetImpact
-        ? `${event.title} menjelaskan perubahan ${targetImpact.label.toLowerCase()} ${symbol}.`
+        ? `${event.title} menjelaskan perubahan ${targetObservableList.toLowerCase()} ${symbol}.`
         : `${event.title} adalah jalur terhubung ke ${symbol}; indikator bisnisnya belum terekam untuk diuji.`,
-      targetObservable,
+      targetObservables,
       supportingEvidence: `${link.path}. Relevansi ${link.relevance}/100 dan waktu sumber tersedia.`,
       counterEvidence: index === 0
         ? "Jalur belum mengisolasi masukan lain yang muncul pada jendela yang sama."

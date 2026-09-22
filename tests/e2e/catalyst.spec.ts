@@ -454,12 +454,15 @@ test("causal map labels hypotheses, confidence, lag, and counter-evidence", asyn
   await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText(/ANTM · realisasi harga/)).toBeVisible();
 });
 
-test("Causal Impact compares competing explanations for one observable", async ({ page }) => {
+test("Causal Impact compares competing explanations across every observable the case tests", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/impact?company=ANTM");
 
   const workspace = page.getByRole("region", { name: /^Hipotesis untuk / });
-  await expect(workspace.getByText("3 penyebab diuji terhadap indikator yang sama.", { exact: true })).toBeVisible();
+  await expect(workspace.getByText(/^3 penyebab diuji terhadap \d+ indikator yang sama\.$/)).toBeVisible();
+  // Each cause is labelled with every indicator it is tested against, so a
+  // combined case never compares against the first focus alone.
+  await expect(workspace.getByText(/^Diuji pada · /).first()).toBeVisible();
   await expect(workspace.getByRole("button", { name: /Urutan 1/ })).toBeVisible();
   await workspace.getByRole("button", { name: /Urutan 2/ }).click();
 

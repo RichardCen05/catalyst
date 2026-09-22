@@ -11,13 +11,18 @@ import { uiLabel } from "@/lib/ui-labels";
 export function CompetingHypotheses({ graph }: { graph: CausalGraph }) {
   const [selectedId, setSelectedId] = useState(graph.competingHypotheses[0]?.id);
   const selected = graph.competingHypotheses.find((item) => item.id === selectedId) ?? graph.competingHypotheses[0];
+  // A case carries one focus per recorded dimension, so the same causes are
+  // compared against each of them. The count below is read off that list
+  // rather than assuming a single indicator.
+  const observables = graph.targetObservables;
+  const observableList = observables.join(" dan ");
   if (!selected) return null;
 
   return (
-    <section role="region" aria-label={`Hipotesis untuk ${graph.targetObservable}`} className="mb-4 overflow-hidden rounded-[12px] border border-border bg-surface">
+    <section role="region" aria-label={`Hipotesis untuk ${observableList}`} className="mb-4 overflow-hidden rounded-[12px] border border-border bg-surface">
       <header className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-        <div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Perbandingan penyebab</p><h2 className="editorial mt-1 text-2xl">Apa yang paling mungkin menjelaskan {graph.targetObservable.toLowerCase()}?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{graph.competingHypotheses.length} penyebab diuji terhadap indikator yang sama.</p></div>
-        <span className="inline-flex min-h-9 items-center gap-2 self-start rounded-md border border-border px-3 font-mono text-[10px] text-muted-foreground"><Scale aria-hidden="true" className="size-3.5 text-primary" />Satu indikator, beberapa sebab</span>
+        <div className="max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Perbandingan penyebab</p><h2 className="editorial mt-1 text-2xl">Apa yang paling mungkin menjelaskan {observableList.toLowerCase()}?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{graph.competingHypotheses.length} penyebab diuji terhadap {observables.length} indikator yang sama.</p></div>
+        <span className="inline-flex min-h-9 items-center gap-2 self-start rounded-md border border-border px-3 font-mono text-[10px] text-muted-foreground"><Scale aria-hidden="true" className="size-3.5 text-primary" />{observables.length > 1 ? "Indikator yang sama, beberapa sebab" : "Satu indikator, beberapa sebab"}</span>
       </header>
 
       <div className="grid lg:grid-cols-[minmax(250px,0.72fr)_minmax(0,1.28fr)]">
@@ -31,6 +36,7 @@ export function CompetingHypotheses({ graph }: { graph: CausalGraph }) {
         <article role="region" aria-label="Hipotesis terpilih" className="p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Urutan {selected.rank}</span><span className="rounded border border-border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{uiLabel(selected.status)}</span></div>
           <h3 className="mt-3 max-w-2xl text-base font-semibold leading-6">{selected.claim}</h3>
+          <ul className="mt-3 flex flex-wrap gap-2">{selected.targetObservables.map((observable) => <li key={observable} className="rounded border border-primary/35 bg-primary/8 px-2 py-0.5 font-mono text-[10px] text-primary">Diuji pada · {observable}</li>)}</ul>
           <dl className="mt-5 grid gap-px overflow-hidden rounded-[8px] border border-border bg-border sm:grid-cols-3">
             <div className="bg-background p-3"><dt className="text-xs font-medium">Bukti pendukung</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{selected.supportingEvidence}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium">Bukti penyangkal</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{selected.counterEvidence}</dd></div>

@@ -83,16 +83,18 @@ describe("Catalyst agent engine", async () => {
     )).toBe(true);
   });
 
-  it("compares several hypotheses against one business observable", async () => {
+  it("compares several hypotheses against every business observable the case tests", async () => {
     const graph = await agentEngine.buildCausalGraph("ANTM", demoProfiles[0], { scope: "market", minRelevance: 60 });
 
-    // The observable the graph aims at is the one this symbol's recorded
-    // impact paths land on, not a dimension typed into the test.
-    expect(graph?.targetObservable).toBe(DIMENSION_LABELS[defaultFocusFor("ANTM")]);
+    // The observables the graph aims at are the ones this symbol's recorded
+    // impact paths land on, not dimensions typed into the test. The
+    // highest-ranked one leads; the rest are carried, not dropped.
+    expect(graph?.targetObservables[0]).toBe(DIMENSION_LABELS[defaultFocusFor("ANTM")]);
+    expect(graph?.targetObservables.length).toBeGreaterThan(1);
     expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
     expect(graph?.competingHypotheses.map((item) => item.rank)).toEqual([1, 2, 3]);
     expect(graph?.competingHypotheses.every((item) =>
-      item.targetObservable === graph.targetObservable
+      item.targetObservables.join("|") === graph.targetObservables.join("|")
       && item.supportingEvidence
       && item.counterEvidence
       && item.discriminator,
@@ -117,7 +119,8 @@ describe("Catalyst agent engine", async () => {
     // No recorded financials means no business-outcome column and no claimed
     // observable — the chain must not name one it cannot test.
     expect(graph?.nodes.some((node) => node.kind === "business-impact")).toBe(false);
-    expect(graph?.targetObservable).toContain("belum terekam");
+    expect(graph?.targetObservables).toHaveLength(1);
+    expect(graph?.targetObservables[0]).toContain("belum terekam");
     expect(graph?.edges.every((edge) => edge.businessImpactImplication)).toBe(true);
   });
 
