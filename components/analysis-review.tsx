@@ -5,7 +5,7 @@ import { useCatalystStore } from "@/lib/store";
 import type { PillarKey, SymbolCode, UserInsight } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { IconCheck, IconGate, IconNote, IconVerified } from "@/components/ui/icons";
+import { IconCheck, IconGate, IconNote } from "@/components/ui/icons";
 
 const categoryLabels: Record<UserInsight["category"], string> = {
   "data-error": "Data terlihat keliru",
@@ -20,12 +20,6 @@ const pillarLabels: Record<PillarKey, string> = {
   catalyst: "Katalis",
 };
 
-const statusLabels: Record<UserInsight["status"], string> = {
-  pending: "menunggu",
-  incorporated: "diperiksa",
-  dismissed: "diabaikan",
-};
-
 export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
   const { insights, recordInsight } = useCatalystStore();
   const [note, setNote] = useState("");
@@ -36,6 +30,7 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
   const [saved, setSaved] = useState(false);
   const error = touched && note.trim().length < 8 ? "Jelaskan koreksi sedikitnya 8 karakter agar dapat diuji." : "";
   const sourceError = sourceUrl && !/^https:\/\//i.test(sourceUrl) ? "Gunakan URL HTTPS agar referensi dapat dibuka dengan aman." : "";
+  // All notes for this symbol, no slice limit
   const symbolInsights = insights.filter((insight) => insight.symbol === symbol);
 
   const submit = (event: FormEvent) => {
@@ -51,11 +46,11 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
 
   return (
     <Panel>
-      <PanelHeader title="Koreksi analisis ini" />
+      <PanelHeader title="Koreksi Analisis" />
       <div className="p-4">
         <div className="flex gap-2 rounded-lg border border-primary/20 bg-primary/7 p-3 text-xs leading-5 text-muted-foreground">
           <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-          <p>Catatan Anda menjadi hipotesis terbuka. Koreksi tidak mengubah angka, rumus, sumber, atau hasil bukti sebelum diperiksa.</p>
+          <p>Isi koreksi jika Anda menemukan kesalahan pada analisis ini. Jika tidak ada koreksi yang dikirim, AI menganggap hasil analisis sudah cukup akurat.</p>
         </div>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -68,9 +63,26 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
           <div id={`analysis-note-help-${symbol}`} className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground"><span>Maksimum 800 karakter. Tersimpan lokal.</span><span className="font-mono">{note.length}/800</span></div>
           {error ? <p id={`analysis-note-error-${symbol}`} role="alert" className="text-xs text-danger">{error}</p> : null}
           {sourceError ? <p id={`analysis-source-error-${symbol}`} role="alert" className="text-xs text-danger">{sourceError}</p> : null}
-          <div className="flex flex-wrap items-center gap-3"><Button type="submit" disabled={note.trim().length < 8 || Boolean(sourceError)}><IconNote aria-hidden="true" className="size-4" />Kirim untuk verifikasi</Button>{saved ? <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive"><IconCheck aria-hidden="true" className="size-4" />Tersimpan sebagai hipotesis terbuka</p> : null}</div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={note.trim().length < 8 || Boolean(sourceError)}><IconNote aria-hidden="true" className="size-4" />Kirim untuk verifikasi</Button>
+            {saved ? <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive"><IconCheck aria-hidden="true" className="size-4" />Tersimpan sebagai hipotesis terbuka</p> : null}
+          </div>
         </form>
-        {symbolInsights.length ? <div className="mt-4 border-t border-border pt-4"><p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{symbolInsights.length} catatan pada {symbol}</p><div className="mt-2 space-y-2">{symbolInsights.slice(0, 2).map((insight) => <article key={insight.id} className="rounded-lg border border-border bg-background p-3"><div className="flex flex-wrap items-center gap-2"><span className="rounded border border-attention/30 bg-attention/8 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{statusLabels[insight.status]}</span><span className="text-[11px] text-muted-foreground">{pillarLabels[insight.pillar ?? "catalyst"]}</span></div><p className="mt-2 text-xs leading-5">{insight.note}</p></article>)}</div></div> : null}
+        {symbolInsights.length ? (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{symbolInsights.length} catatan pada {symbol}</p>
+            <div className="mt-2 space-y-2">
+              {symbolInsights.map((insight) => (
+                <article key={insight.id} className="rounded-lg border border-border bg-background p-3">
+                  <span className="inline-block rounded border border-primary/30 bg-primary/8 px-2 py-0.5 text-xs font-semibold text-primary">
+                    {pillarLabels[insight.pillar ?? "catalyst"]}
+                  </span>
+                  <p className="mt-2 text-xs leading-5">{insight.note}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </Panel>
   );

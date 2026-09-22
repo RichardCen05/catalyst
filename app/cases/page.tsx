@@ -21,8 +21,8 @@ import { orderByFeedback } from "@/lib/learning";
 type CaseHubView = "active" | "picker" | "audit";
 
 const views: Array<{ value: CaseHubView; label: string }> = [
-  { value: "active", label: "Kasus aktif" },
-  { value: "picker", label: "Bandingkan emiten" },
+  { value: "active", label: "Analisis Aktif" },
+  { value: "picker", label: "Perbandingan Emiten" },
 ];
 
 function ResearchCasesContent() {
@@ -89,7 +89,7 @@ function ResearchCasesContent() {
 
   return (
     <div data-tour="research-cases">
-      <PageHeader eyebrow="Kasus riset" title="Periksa satu perubahan penting" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
+      <PageHeader eyebrow="Kasus riset" title="Perubahan Saham yang perlu diperiksa" />
 
       <nav aria-label="Bagian kasus" className="mb-4 flex min-w-0 overflow-x-auto border-b border-border">
         {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}{item.value === "audit" && insights.filter((entry) => entry.status === "pending").length ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{insights.filter((entry) => entry.status === "pending").length}</span> : null}</Link>)}
@@ -100,7 +100,7 @@ function ResearchCasesContent() {
           {orderedCases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
             const openCount = analysis.unresolvedQuestions.length;
-            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status === "closed" ? "Selesai" : "Terbuka"}</span>{status !== "closed" && openCount ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{openCount} pertanyaan terbuka</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
+            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span></span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
           })}
         </div>
       </Panel> : null}
