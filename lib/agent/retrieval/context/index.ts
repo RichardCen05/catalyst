@@ -31,7 +31,8 @@ interface ViewSpec {
   view: ViewId;
   /** The page's own vocabulary, as its headings and labels say it. */
   vocabulary: string[];
-  load(context: RequestContext): Promise<import("@/lib/agent/retrieval/types").ContextBundle>;
+  /** `null` when this page has nothing of its own to say for this request. */
+  load(context: RequestContext): Promise<import("@/lib/agent/retrieval/types").ContextBundle | null>;
 }
 
 const VIEWS: ViewSpec[] = [
@@ -90,14 +91,18 @@ const VIEWS: ViewSpec[] = [
   },
   {
     // The case page is one emiten's case, so it answers about the case the
-    // reader has open. With no case open there is nothing page-specific to
-    // say, and the per-symbol entries already cover a named one.
+    // reader has open. `/cases/[symbol]` cannot be opened without a symbol,
+    // so with none carried there is nothing page-specific to say, and the
+    // per-symbol entries already cover a named one. Answering with the
+    // coverage bundle instead handed back `view:cases`, which the registered
+    // `view:cases` entry already carries — and a repeated id is dropped
+    // without a trace in `retrieveContext`.
     id: "view:case",
     view: "case",
     vocabulary: ["halaman kasus", "kasus ini", "isi kasus"],
     load: (context) => (context.contextSymbol
       ? buildCaseBundle(context.contextSymbol)
-      : buildCasesBundle()),
+      : Promise.resolve(null)),
   },
 ];
 
@@ -156,17 +161,19 @@ type Bundle = import("@/lib/agent/retrieval/types").ContextBundle;
  * builder reads is either a recording — constant for the lifetime of the
  * process — or one of the context fields in the key below.
  */
-const viewMemo = lruMemo<string, Bundle>(DEFAULT_THRESHOLDS.retrievalMemoMaxEntries);
+const viewMemo = lruMemo<string, Bundle | null>(DEFAULT_THRESHOLDS.retrievalMemoMaxEntries);
 
 function viewMemoKey(view: ViewId, context: RequestContext): string {
   const profile = context.profile;
   return [view, profile.id, context.contextSymbol ?? "", profile.watchlist.join(","), profile.owned.join(",")].join("|");
 }
 
-async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle> {
+async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle | null> {
   const key = viewMemoKey(spec.view, context);
-  const cached = viewMemo.get(key);
-  if (cached) return cached;
+  // `has` rather than a truthy `get`: a page with nothing of its own to say
+  // is a real answer, and re-deriving it on every matched panel would spend
+  // the wait to reach the same silence.
+  if (viewMemo.has(key)) return viewMemo.get(key) ?? null;
   const bundle = await spec.load(context);
   viewMemo.set(key, bundle);
   return bundle;

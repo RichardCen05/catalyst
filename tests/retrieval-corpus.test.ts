@@ -86,6 +86,9 @@ describe("indeks korpus", () => {
     const sampled = corpus.entries.filter((entry) => entry.kind !== "case").slice(0, 40);
     for (const entry of sampled) {
       const bundle = await entry.load(context);
+      // Sebuah halaman bisa tidak punya materi sendiri untuk konteks ini;
+      // itu bukan bundel yang angkanya perlu diperiksa.
+      if (!bundle) continue;
       for (const numeral of extractNumerals(bundle.body)) {
         expect(bundle.figures, `${entry.id} / ${numeral}`).toContain(numeral);
       }
@@ -97,6 +100,6 @@ describe("indeks korpus", () => {
     // daripada tidak ada kalimat sama sekali.
     const metric = corpus.entries.find((entry) => entry.kind === "metric")!;
     const bundle = await metric.load(context);
-    expect(bundle.figures).toHaveLength(0);
+    expect(bundle!.figures).toHaveLength(0);
   });
 });

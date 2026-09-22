@@ -80,7 +80,11 @@ export interface ContextBundle {
  * what breaks it.
  *
  * `load` is lazy because scoring touches every entry's terms while only the
- * winners are worth materializing into prompt text.
+ * winners are worth materializing into prompt text. It answers `null` when the
+ * entry has nothing of its own to say in this request's context — a page that
+ * only exists with a parameter the request did not carry. Borrowing another
+ * entry's bundle instead would collide with that entry's id, and
+ * `retrieveContext` drops a repeated id without a trace.
  */
 export interface CorpusEntry {
   id: string;
@@ -88,5 +92,5 @@ export interface CorpusEntry {
   terms: string[];
   symbols: SymbolCode[];
   view?: ViewId;
-  load(context: RequestContext): Promise<ContextBundle>;
+  load(context: RequestContext): Promise<ContextBundle | null>;
 }

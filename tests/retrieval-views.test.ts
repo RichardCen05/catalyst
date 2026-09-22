@@ -1,14 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { loadViewBundle } from "@/lib/agent/retrieval/context";
 import { VIEW_IDS, type RequestContext, type ViewId } from "@/lib/agent/retrieval/types";
-import { demoProfiles } from "@/lib/data/fixtures";
+import { companies, demoProfiles } from "@/lib/data/fixtures";
 import { CHROME_BLOCKS } from "@/lib/data/chrome.generated";
 import { LAYERS } from "@/lib/learning-layers";
 
 const context: RequestContext = { profile: demoProfiles[0], history: [] };
 
-/** Pages that exist only as a redirect have nothing of their own to say. */
-const REDIRECTS: ViewId[] = ["companies", "compare", "agent"];
+/**
+ * Konteks yang benar untuk sebuah halaman.
+ *
+ * `/cases/[symbol]` tidak bisa dibuka tanpa simbol, jadi memeriksanya dengan
+ * konteks tanpa simbol menguji keadaan yang tidak pernah ada di layar.
+ * Simbolnya diambil dari registry, bukan diketik.
+ */
+const caseSymbol = companies.find((company) => company.analyzed)!.symbol;
+function contextFor(view: ViewId): RequestContext {
+  return view === "case" ? { ...context, contextSymbol: caseSymbol } : context;
+}
+
+/**
+ * Pages that exist only as a redirect have nothing of their own to say.
+ *
+ * `/companies` and `/companies/[symbol]` both `redirect()` into `/cases`
+ * (`app/companies/page.tsx`, `app/companies/[symbol]/page.tsx`), so the
+ * reader never reads a screen of their own.
+ */
+const REDIRECTS: ViewId[] = ["companies", "company", "compare", "agent"];
 
 describe("halaman yang dapat ditanyakan", () => {
   it("punya materi untuk setiap halaman yang membawa teks di layar", async () => {
@@ -16,7 +34,7 @@ describe("halaman yang dapat ditanyakan", () => {
     const missing: ViewId[] = [];
     for (const view of withChrome) {
       if (REDIRECTS.includes(view)) continue;
-      const bundle = await loadViewBundle(view, context);
+      const bundle = await loadViewBundle(view, contextFor(view));
       if (!bundle) missing.push(view);
     }
     // Sebuah panel yang tidak dapat menyebut isi halamannya hanya bisa
@@ -67,12 +85,16 @@ describe("halaman yang dapat ditanyakan", () => {
     expect(bundle!.body).toContain("panel dan label di layar");
   });
 
-  it("mengembalikan materi yang terisi untuk setiap halaman terdaftar", async () => {
+  it("mengembalikan materi yang terisi untuk setiap halaman yang bukan pengalihan", async () => {
+    // Melewati halaman tanpa bundel diam-diam membuat penjaga ini hijau
+    // justru pada kasus yang harus ditangkapnya: halaman yang bisa dibuka
+    // pembaca tetapi tidak punya materi sendiri.
     for (const view of VIEW_IDS) {
-      const bundle = await loadViewBundle(view, context);
-      if (!bundle) continue;
-      expect(bundle.body.length, view).toBeGreaterThan(0);
-      expect(bundle.title.length, view).toBeGreaterThan(0);
+      if (REDIRECTS.includes(view)) continue;
+      const bundle = await loadViewBundle(view, contextFor(view));
+      expect(bundle, view).not.toBeNull();
+      expect(bundle!.body.length, view).toBeGreaterThan(0);
+      expect(bundle!.title.length, view).toBeGreaterThan(0);
     }
   });
 

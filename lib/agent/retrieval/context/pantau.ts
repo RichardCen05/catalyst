@@ -2,7 +2,14 @@ import { companies, coverageInfo } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
 
-/** The reader's watchlist, and what each row is missing. */
+/**
+ * The reader's watchlist, and what each row is missing.
+ *
+ * The id is not `view:pantau`: that belongs to the Pantau web page
+ * (`context/web-watch.ts`), which is a different screen with different
+ * material. Two builders under one id lose the second one silently, because
+ * `retrieveContext` dedupes on `bundle.id`.
+ */
 export async function buildPantauBundle(context: RequestContext): Promise<ContextBundle> {
   const watchlist = context.profile.watchlist;
   const rows = companies.filter((company) => watchlist.includes(company.symbol));
@@ -15,7 +22,7 @@ export async function buildPantauBundle(context: RequestContext): Promise<Contex
     }),
   ].join("\n");
   return {
-    id: "view:pantau",
+    id: "view:pantau-watchlist",
     kind: "view",
     title: "Daftar pantauan",
     body,
