@@ -21,13 +21,16 @@ export async function buildActiveCasesBundle(context: RequestContext): Promise<C
   const { agentEngine } = await import("@/lib/agent/engine");
   const watchlist = context.profile.watchlist.filter((symbol) =>
     companies.some((company) => company.symbol === symbol));
+  // A context object — any context object — makes `buildAnalysis` skip its
+  // memo (`engine.ts`), because a playbook or a note changes the case. When
+  // the request carries none of the three, passing an object of undefineds
+  // bought nothing and recomputed every watched case on every question.
+  const analysisContext = context.playbook || context.userInsights?.length || context.caseMandate
+    ? { mandate: context.caseMandate, playbook: context.playbook, userInsights: context.userInsights }
+    : undefined;
   const analyses = await Promise.all(watchlist.map(async (symbol) => ({
     symbol,
-    analysis: await agentEngine.analyzeCompany(symbol, context.profile, {
-      mandate: context.caseMandate,
-      playbook: context.playbook,
-      userInsights: context.userInsights,
-    }),
+    analysis: await agentEngine.analyzeCompany(symbol, context.profile, analysisContext),
   })));
 
   const open = analyses.filter((row): row is { symbol: typeof row.symbol; analysis: AnalysisCase } =>

@@ -54,12 +54,26 @@ describe("golden: daftar yang dicakup pembaca", () => {
     const answer = await ask("pantauanku isinya apa", P1);
     expect(new Set(symbolsIn(answer))).toEqual(new Set(P1.watchlist));
     expect(answer.text.toLowerCase()).toContain("lengkap");
+    // Label jawaban harus menyebut miliknya siapa, bukan mengandalkan
+    // kebetulan bahwa entri teratas dan bundel teratas sama.
+    expect(answer.scope).toBe("user");
+    expect(answer.intent).toBe("scoped-list");
   });
 
   it("4. pertanyaan cakupan registry tetap dijawab registry-wide", async () => {
     const answer = await ask("ada berapa emiten yang punya kasus lengkap", P1);
     expect(answer.intent).not.toBe("scoped-list");
     expect(answer.text).toContain(String(analysed.length));
+    expect(answer.text).toContain(String(companies.length));
+  });
+
+  it("4b. kata milik yang hanya basa-basi tidak memindahkan denominator", async () => {
+    // "menurutku" adalah sikap pembicara, bukan kepemilikan atas apa yang
+    // ditanyakan. Prior scope boleh mengangkat entri melewati ambang jawab;
+    // ia tidak boleh menggeser entri yang mencocokkan lebih banyak kata.
+    const answer = await ask("menurutku ada berapa emiten yang punya kasus lengkap", P1);
+    expect(answer.intent).not.toBe("scoped-list");
+    expect(answer.scope).not.toBe("user");
     expect(answer.text).toContain(String(companies.length));
   });
 

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { expandEnclitics, normalizeQuery } from "@/lib/agent/query";
 import { CHROME_NAV } from "@/lib/data/chrome.generated";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
@@ -212,9 +213,32 @@ const viewMemo = lruMemo<string, Bundle | null>(DEFAULT_THRESHOLDS.retrievalMemo
  * reader's own — and keying on `view` made the second one serve the first
  * one's bundle from the memo. That is a silent wrong answer, not a slow one.
  */
+/**
+ * Everything a builder reads beyond the recordings.
+ *
+ * The scoped builders call `analyzeCompany` with the reader's playbook,
+ * notes and mandate, and those change the case they produce — a different
+ * relevance floor is a different disposition on screen. Leaving them out of
+ * the key served one reader's playbook to the next request that happened to
+ * share a profile id and a watchlist, which is a wrong answer, not a stale
+ * one. Hashed because the notes list is unbounded in length and the key is
+ * held in memory per entry.
+ */
+function analysisFingerprint(context: RequestContext): string {
+  if (!context.playbook && !context.userInsights?.length && !context.caseMandate) return "";
+  return createHash("sha256")
+    .update(JSON.stringify([context.playbook ?? null, context.userInsights ?? null, context.caseMandate ?? null]))
+    .digest("hex")
+    .slice(0, 16);
+}
+
 function viewMemoKey(specId: string, context: RequestContext): string {
   const profile = context.profile;
-  return [specId, profile.id, context.contextSymbol ?? "", profile.watchlist.join(","), profile.owned.join(",")].join("|");
+  return [
+    specId, profile.id, context.contextSymbol ?? "",
+    profile.watchlist.join(","), profile.owned.join(","),
+    analysisFingerprint(context),
+  ].join("|");
 }
 
 async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle | null> {

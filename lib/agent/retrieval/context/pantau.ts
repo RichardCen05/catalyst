@@ -24,6 +24,7 @@ export async function buildPantauBundle(context: RequestContext): Promise<Contex
   return {
     id: "view:pantau-watchlist",
     kind: "view",
+    scope: "user",
     title: "Daftar pantauan",
     body,
     figures: extractNumerals(body),

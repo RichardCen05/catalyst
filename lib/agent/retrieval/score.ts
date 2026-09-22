@@ -18,7 +18,12 @@ const KIND_RANK: Record<import("@/lib/agent/retrieval/types").EntryKind, number>
 
 export interface ScoredEntry {
   entry: CorpusEntry;
+  /** What the handler bids with: overlap plus every prior. */
   score: number;
+  /** Overlap alone, before any prior. Ranking is decided on this first, so a
+   *  prior can lift an entry over the answer floor but can never move it
+   *  above an entry that matched more of the question. */
+  raw: number;
 }
 
 /**
@@ -96,11 +101,12 @@ export function scoreCorpus(
   for (const [id, overlap] of hits) {
     const entry = index.byId.get(id);
     if (!entry) continue;
-    let score = overlap / words.length;
+    const raw = overlap / words.length;
+    let score = raw;
     if (symbols.length && entry.symbols.some((symbol) => symbols.includes(symbol))) score += SYMBOL_BOOST;
     if (context.view && entry.view === context.view) score += VIEW_BOOST;
     if (scoped && entry.scope === "user") score += DEFAULT_THRESHOLDS.retrievalScopeBoost;
-    if (score >= DEFAULT_THRESHOLDS.retrievalScoreFloor) scored.push({ entry, score });
+    if (score >= DEFAULT_THRESHOLDS.retrievalScoreFloor) scored.push({ entry, score, raw });
   }
   // A tie is decided by how much of an answer the entry is. "halaman Pantau
   // isinya apa" matches the Pantau page and a button reading "Pantau
@@ -108,8 +114,17 @@ export function scoreCorpus(
   // for: it describes the panels, while a panel cannot describe its page.
   // Without this the winner was whichever kind the corpus happened to list
   // first, which is not a reason for anything.
+  // Overlap decides the order; the priors decide whether the winner is
+  // confident enough to answer at all. Without this split, "menurutku ada
+  // berapa emiten yang punya kasus lengkap" — a registry question with a
+  // conversational "-ku" in it — had the reader's own list lifted over the
+  // coverage entry that matched twice as much of it, and was answered with
+  // the wrong denominator. A prior that can do that is a filter wearing a
+  // prior's name.
   return scored.sort((first, second) =>
-    second.score - first.score || KIND_RANK[first.entry.kind] - KIND_RANK[second.entry.kind]);
+    second.raw - first.raw
+    || second.score - first.score
+    || KIND_RANK[first.entry.kind] - KIND_RANK[second.entry.kind]);
 }
 
 /** The best score any entry reached, or 0. What the retrieved handler bids with. */

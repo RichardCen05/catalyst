@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadViewBundle, viewEntries } from "@/lib/agent/retrieval/context";
 import { demoProfiles } from "@/lib/data/fixtures";
+import { buildDefaultPlaybook } from "@/lib/playbook-defaults";
 import type { RequestContext } from "@/lib/agent/retrieval/types";
 
 const context: RequestContext = { profile: demoProfiles[0], history: [] };
@@ -21,5 +22,17 @@ describe("memo bundel halaman", () => {
       const byId = await loadViewBundle(entry.id, context);
       expect(byId?.id ?? null, entry.id).toBe(direct?.id ?? null);
     }
+  });
+
+  it("tidak menyajikan kasus yang dihitung dengan aturan riset pembaca lain", async () => {
+    // Ambang relevansi mengubah tindakan riset yang tertulis pada kasus.
+    // Kunci memo yang tidak memuatnya menyajikan jawaban pembaca sebelumnya
+    // kepada pembaca berikutnya yang kebetulan sama profil dan pantauannya.
+    const base = buildDefaultPlaybook();
+    const strict = { ...context, playbook: { ...base, relevanceFloor: 99 } };
+    const loose = { ...context, playbook: { ...base, relevanceFloor: 1 } };
+    const first = await loadViewBundle("view:cases-active", loose);
+    const second = await loadViewBundle("view:cases-active", strict);
+    expect(first?.body).not.toBe(second?.body);
   });
 });

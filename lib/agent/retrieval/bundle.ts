@@ -129,7 +129,12 @@ export async function retrieveContext(
   // beside the question — and once it is in the same answer, nothing on the
   // screen tells the reader it was not on their list.
   const watched = new Set<SymbolCode>(context.profile.watchlist);
-  const assembled = scopedFirst
+  // Read off what actually loaded, not off the ranking. A top entry whose
+  // builder threw is caught down to null, and applying the strict filter to
+  // the survivors of a question that is no longer scoped could empty the
+  // answer entirely.
+  const scopedAnswer = bundles[0]?.scope === "user";
+  const assembled = scopedAnswer
     ? bundles.filter((bundle) =>
         bundle.scope !== "registry" && bundle.symbols.every((symbol) => watched.has(symbol)))
     : bundles;
@@ -162,6 +167,6 @@ export async function retrieveContext(
     score,
     // The winning entry names the answer. A neutral entry riding along does
     // not turn a registry answer into a scoped one, or the other way round.
-    scope: kept[0]?.scope ?? (scopedFirst ? "user" : "registry"),
+    scope: kept[0]?.scope ?? "registry",
   };
 }
