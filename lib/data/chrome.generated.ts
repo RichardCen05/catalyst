@@ -133,26 +133,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/case-verdict.tsx",
   },
   {
-    id: "chrome:case:audit-dan-batas-bukti",
-    heading: "Audit dan batas bukti",
-    view: "case",
-    file: "components/research-case-workspace.tsx",
-  },
-  {
-    id: "chrome:case:audit-kasus",
-    heading: "Audit kasus",
-    view: "case",
-    labels: ["Audit dan batas bukti","batas data,"],
-    file: "components/research-case-workspace.tsx",
-  },
-  {
-    id: "chrome:case:belum-diperiksa",
-    heading: "Belum diperiksa",
-    view: "case",
-    description: "Berhenti saat bukti kurang",
-    file: "components/analysis-audit.tsx",
-  },
-  {
     id: "chrome:case:bukti-penyangkal-dan-catatan",
     heading: "Bukti penyangkal dan catatan",
     view: "case",
@@ -166,38 +146,10 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/research-case-workspace.tsx",
   },
   {
-    id: "chrome:case:di-mana-dampak-harus-terlihat",
-    heading: "Di mana dampak harus terlihat?",
-    view: "case",
-    description: "Uji dampak bisnis",
-    file: "components/research-case-workspace.tsx",
-  },
-  {
     id: "chrome:case:hal-yang-belum-terjawab",
     heading: "Hal yang belum terjawab",
     view: "case",
     file: "components/case-verdict.tsx",
-  },
-  {
-    id: "chrome:case:hasil-kasus",
-    heading: "Hasil kasus",
-    view: "case",
-    description: "Memori riset",
-    file: "components/case-resolution.tsx",
-  },
-  {
-    id: "chrome:case:hasil-kasus-2",
-    heading: "Hasil kasus",
-    view: "case",
-    labels: ["Memori riset","Hasil kasus","Tutup pemeriksaan dengan pelajaran yang dapat dipakai pada kasus berikutnya."],
-    file: "components/case-resolution.tsx",
-  },
-  {
-    id: "chrome:case:hasil-pemeriksaan",
-    heading: "Hasil pemeriksaan",
-    view: "case",
-    labels: ["Masih terbuka"],
-    file: "components/case-resolution.tsx",
   },
   {
     id: "chrome:case:hipotesis",
@@ -215,7 +167,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:case:klaim-yang-diuji",
     heading: "Klaim yang diuji",
     view: "case",
-    description: "Bukti pendukung",
     file: "components/evidence-card.tsx",
   },
   {
@@ -240,13 +191,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/research-case-workspace.tsx",
   },
   {
-    id: "chrome:case:rencana-cari-periksa-ringkas",
-    heading: "Rencana → Cari → Periksa → Ringkas",
-    view: "case",
-    description: "Jejak asisten",
-    file: "components/agent-trace.tsx",
-  },
-  {
     id: "chrome:case:riwayat",
     heading: "Riwayat",
     view: "case",
@@ -266,13 +210,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
   },
   {
     id: "chrome:case:tindakan-riset",
-    heading: "Tindakan riset",
-    view: "case",
-    labels: ["Lanjutkan riset","Pantau indikator","Abaikan pemicu"],
-    file: "components/case-resolution.tsx",
-  },
-  {
-    id: "chrome:case:tindakan-riset-2",
     heading: "Tindakan riset",
     view: "case",
     labels: ["Tindakan riset","PEMICU ·","· opsional, bisa nanti","Buka kembali jika"],
@@ -323,14 +260,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/page.tsx",
   },
   {
-    id: "chrome:dashboard:apa-yang-menggerakkan-daftar-pantauan",
-    heading: "Apa yang menggerakkan daftar pantauan?",
-    view: "dashboard",
-    eyebrow: "Riset saham komoditas IDX",
-    description: "Seluruh kasus terbuka digambar sebagai satu peta sebab akibat: sumber terekam, mekanisme yang dihipotesiskan, emiten, lalu dampak bisnis yang diuji. Sumber dan jalur yang dipakai lebih dari satu emiten digambar sekali lalu bercabang, jadi terlihat di mana kasus-kasus itu bertemu.",
-    file: "app/page.tsx",
-  },
-  {
     id: "chrome:dashboard:belum-ada-kasus-terbuka",
     heading: "Belum ada kasus terbuka",
     view: "dashboard",
@@ -347,6 +276,14 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/dashboard-timeline.tsx",
   },
   {
+    id: "chrome:dashboard:dashboard-pantauan",
+    heading: "Dashboard Pantauan",
+    view: "dashboard",
+    eyebrow: "Riset saham komoditas IDX",
+    description: "Peta sebab akibat seluruh emiten, sumber berita, hipotesis mekanisme, hingga dampak bisnis.",
+    file: "app/page.tsx",
+  },
+  {
     id: "chrome:dashboard:jejak-bukti",
     heading: "Jejak bukti",
     view: "dashboard",
@@ -359,10 +296,10 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/price-compare-chart.tsx",
   },
   {
-    id: "chrome:dashboard:kontrol-peta",
-    heading: "Kontrol peta",
+    id: "chrome:dashboard:peta-sebab-akibat-seluruh-kasus",
+    heading: "Peta sebab akibat seluruh kasus",
     view: "dashboard",
-    labels: ["Susun ulang"],
+    labels: ["Kartu dapat Anda uraikan","Susun Ulang Kartu"],
     file: "components/market-causal-map.tsx",
   },
   {
@@ -370,13 +307,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Semua kasus dalam satu jalur",
     view: "dashboard",
     eyebrow: "Peta sebab akibat",
-    file: "app/page.tsx",
-  },
-  {
-    id: "chrome:dashboard:status-pembaruan",
-    heading: "Status pembaruan",
-    view: "dashboard",
-    labels: ["kasus terbuka di peta","sumber terekam","pemicu bersama","jalur dipakai bersama","dampak bisnis dapat diuji","catatan menunggu","hari lalu — bukan pasar live"],
     file: "app/page.tsx",
   },
   {
@@ -577,6 +507,12 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/playbook/page.tsx",
   },
   {
+    id: "chrome:shared:belum-diperiksa",
+    heading: "Belum diperiksa",
+    description: "Berhenti saat bukti kurang",
+    file: "components/analysis-audit.tsx",
+  },
+  {
     id: "chrome:shared:buka-pencarian",
     heading: "Buka pencarian",
     labels: ["Cari atau buka"],
@@ -587,6 +523,24 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Halaman tidak ditemukan",
     actions: ["Kembali ke Dashboard"],
     file: "app/not-found.tsx",
+  },
+  {
+    id: "chrome:shared:hasil-kasus",
+    heading: "Hasil kasus",
+    description: "Memori riset",
+    file: "components/case-resolution.tsx",
+  },
+  {
+    id: "chrome:shared:hasil-kasus-2",
+    heading: "Hasil kasus",
+    labels: ["Memori riset","Hasil kasus","Tutup pemeriksaan dengan pelajaran yang dapat dipakai pada kasus berikutnya."],
+    file: "components/case-resolution.tsx",
+  },
+  {
+    id: "chrome:shared:hasil-pemeriksaan",
+    heading: "Hasil pemeriksaan",
+    labels: ["Masih terbuka"],
+    file: "components/case-resolution.tsx",
   },
   {
     id: "chrome:shared:mulai-di-sini",
@@ -607,11 +561,23 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/onboarding-wizard.tsx",
   },
   {
+    id: "chrome:shared:rencana-cari-periksa-ringkas",
+    heading: "Rencana → Cari → Periksa → Ringkas",
+    description: "Jejak asisten",
+    file: "components/agent-trace.tsx",
+  },
+  {
     id: "chrome:shared:ritual-harian-selesai",
     heading: "Ritual harian selesai",
     description: "Tur selesai",
     actions: ["Selesai"],
     file: "components/guided-tour.tsx",
+  },
+  {
+    id: "chrome:shared:tindakan-riset",
+    heading: "Tindakan riset",
+    labels: ["Lanjutkan riset","Pantau indikator","Abaikan pemicu"],
+    file: "components/case-resolution.tsx",
   },
 ];
 
@@ -623,7 +589,7 @@ export const CHROME_NAV: Array<{ href: string; label: string; source: "nav" | "c
   { href: "/", label: "Buka Dashboard", source: "command", view: "dashboard", },
   { href: "/cases?view=picker", label: "Perbandingan emiten", source: "command", view: "cases", },
   { href: "/cases", label: "Buka Kasus", source: "command", view: "cases", },
-  { href: "/cases", label: "Kasus", source: "nav", view: "cases", },
+  { href: "/cases", label: "Riset & Analisis", source: "nav", view: "cases", },
   { href: "/companies", label: "Buka daftar emiten", source: "command", view: "companies", },
   { href: "/copilot", label: "Tanya asisten Catalyst", source: "command", view: "copilot", },
   { href: "/", label: "Dashboard", source: "nav", view: "dashboard", },

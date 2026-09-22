@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
-  { href: "/cases", label: "Kasus", icon: BriefcaseBusiness },
+  { href: "/cases", label: "Riset & Analisis", icon: BriefcaseBusiness },
   { href: "/impact", label: "Sebab akibat", icon: GitBranch },
   { href: "/pantau", label: "Pantau", icon: Radar },
   { href: "/ai-learning", label: "AI Learning", icon: BrainCircuit },

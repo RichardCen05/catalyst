@@ -9,23 +9,23 @@
    --------------------------------------------------------------- */
 
 :root {
-  --background: #f8f5f6;
+  --background: #E8FBFF;
   --surface: #ffffff;
-  --surface-raised: #f2ecef;
-  --foreground: #22171c;
-  --muted: #efe7eb;
-  --muted-foreground: #66575e;
-  --border: #ddcfd5;
-  --primary: #7f0135;
+  --surface-raised: #e8fbfd;
+  --foreground: #012a3a;
+  --muted: #d8f6fa;
+  --muted-foreground: #3a6475;
+  --border: #91e0ef;
+  --primary: #023e8a;
   --primary-foreground: #ffffff;
-  --brand: #9e0142;
+  --brand: #023e8a;
   --brand-foreground: #ffffff;
   --attention: #a86100;
   --attention-foreground: #7d4900;
   --positive: #08683b;
   --danger: #b42334;
-  --ring: #9e0142;
-  --chart-grid: #ddcfd5;
+  --ring: #023e8a;
+  --chart-grid: #91e0ef;
   color-scheme: light;
 }
 

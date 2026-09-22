@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { buildMarketGraph } from "@/lib/agent/market-graph";
-import { companies, DATA_AS_OF, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { MarketCausalGraph, SymbolCode } from "@/lib/types";
 import { cn, formatAsOf } from "@/lib/utils";
@@ -13,14 +12,15 @@ import { SymbolMultiselect } from "@/components/symbol-multiselect";
 import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconBranch, IconChart, IconClock, IconGraph, IconSignal } from "@/components/ui/icons";
+import { IconArrowRight, IconBranch, IconChart, IconClock, IconGraph } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import Link from "next/link";
 
 type DashboardView = "node" | "chart";
 
 const viewTabs: Array<{ value: DashboardView; label: string; Icon: typeof IconGraph }> = [
-  { value: "node", label: "Peta node", Icon: IconGraph },
-  { value: "chart", label: `Grafik ${WINDOW_SESSIONS} hari`, Icon: IconChart },
+  { value: "node", label: "Peta Sebab Akibat", Icon: IconGraph },
+  { value: "chart", label: "Grafik Indeks", Icon: IconChart },
 ];
 
 export default function DashboardPage() {
@@ -29,18 +29,11 @@ export default function DashboardPage() {
   // links, higher thins it to the strongest paths. Same semantics as the
   // per-issuer chain so the two views can be compared.
   const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
-  // Two readings of the same open cases: the map answers what links them, the
-  // chart answers what the recorded window did to them.
   const [view, setView] = useState<DashboardView>("node");
-  // Which issuers both readings are narrowed to. Empty is "Semua" — the board
-  // without a filter is every open case, in either mode.
   const [selected, setSelected] = useState<SymbolCode[]>([]);
   const [graph, setGraph] = useState<MarketCausalGraph | undefined>(undefined);
   const [reloading, setReloading] = useState(false);
 
-  // Closed cases leave the board: the dashboard is the open work, and a
-  // resolved case that keeps drawing six cards is noise the user already
-  // dismissed once.
   const openSymbols = useMemo(
     () => profile.watchlist.filter((symbol) => caseStatuses[symbol] !== "closed"),
     [profile.watchlist, caseStatuses],
@@ -71,10 +64,7 @@ export default function DashboardPage() {
   }, [symbolKey, profile, minRelevance, playbook, insights, caseResolutions]);
 
   const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
-  const pending = insights.filter((item) => item.status === "pending");
 
-  // The board's counters read the recorded universe: closes from the daily
-  // recording, names and market caps from the company report overview.
   const citations = useMemo(
     () => [
       ...events.filter((event) => event.impactLinks.some((link) => activeSymbols.includes(link.symbol))).flatMap((event) => event.citations),
@@ -86,9 +76,8 @@ export default function DashboardPage() {
   const header = (
     <PageHeader
       eyebrow="Riset saham komoditas IDX"
-      title="Apa yang menggerakkan daftar pantauan?"
-      description="Seluruh kasus terbuka digambar sebagai satu peta sebab akibat: sumber terekam, mekanisme yang dihipotesiskan, emiten, lalu dampak bisnis yang diuji. Sumber dan jalur yang dipakai lebih dari satu emiten digambar sekali lalu bercabang, jadi terlihat di mana kasus-kasus itu bertemu."
-      action={<CitationDialog citations={citations} label="Sumber" />}
+      title="Dashboard Pantauan"
+      description="Peta sebab akibat seluruh emiten, sumber berita, hipotesis mekanisme, hingga dampak bisnis."
     />
   );
 
@@ -116,7 +105,7 @@ export default function DashboardPage() {
   );
 
   const picker = openSymbols.length
-    ? <SymbolMultiselect options={openSymbols} selected={selected} onChange={setSelected} label="Emiten di papan" />
+    ? <SymbolMultiselect options={openSymbols} selected={selected} onChange={setSelected} label="Emiten" />
     : null;
 
   if (view === "chart") {
@@ -141,33 +130,23 @@ export default function DashboardPage() {
     );
   }
 
-  const sourceCount = graph.nodes.filter((node) => node.kind === "source").length;
-  const impactCount = graph.nodes.filter((node) => node.kind === "business-impact").length;
-  // Channels more than one issuer runs through: the count that says whether
-  // the board is one web or six chains that happen to share a page.
-  const hubCount = graph.nodes.filter((node) => node.kind === "mechanism" && node.symbols.length > 1).length;
-
   return (
     <div>
       {header}
       {modeSwitch}
       {picker}
 
-      <section className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs" aria-label="Status pembaruan">
-        <span className="inline-flex items-center gap-2 font-medium">
-          <IconSignal aria-hidden="true" className="size-4 text-primary" />
-          {graph.symbols.length} kasus terbuka di peta
-        </span>
-        <span className="text-muted-foreground"><strong className="font-mono text-foreground">{sourceCount}</strong> sumber terekam</span>
-        <span className="text-muted-foreground"><strong className="font-mono text-attention-foreground">{graph.sharedSourceIds.length}</strong> pemicu bersama</span>
-        <span className="text-muted-foreground"><strong className="font-mono text-attention-foreground">{hubCount}</strong> jalur dipakai bersama</span>
-        <span className="text-muted-foreground"><strong className="font-mono text-foreground">{impactCount}</strong> dampak bisnis dapat diuji</span>
-        <span className="text-muted-foreground"><strong className="font-mono text-attention-foreground">{pending.length}</strong> catatan menunggu</span>
-        <span className="text-muted-foreground">Rekaman {stalenessDays} hari lalu — bukan pasar live</span>
+      {/* ALUR ANALISIS bar with Sumber button trailing */}
+      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs">
+        <span className="font-mono uppercase tracking-wider text-muted-foreground">Alur Analisis:</span>
+        <span className="text-muted-foreground">Sumber → Mekanisme → Emiten → Dampak Bisnis</span>
         <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           <IconClock aria-hidden="true" className="size-3" />{formatAsOf(DATA_AS_OF)} WIB
         </span>
-      </section>
+        <CitationDialog citations={citations} label="Sumber" />
+      </div>
+
+      <p className="mb-4 text-xs text-muted-foreground">(Klik kartu atau garis hubung untuk penjelasan lebih lanjut dan bukti)</p>
 
       {graph.symbols.length === 0 ? (
         <Panel className="p-8 text-center">
@@ -180,7 +159,6 @@ export default function DashboardPage() {
         </Panel>
       ) : (
         <MarketCausalMap
-          // Remount when the board's shape changes: see MarketCausalMap.
           key={`${symbolKey}:${minRelevance}`}
           graph={graph}
           reloading={reloading}
@@ -211,7 +189,6 @@ export default function DashboardPage() {
           }
         />
       )}
-
     </div>
   );
 }
