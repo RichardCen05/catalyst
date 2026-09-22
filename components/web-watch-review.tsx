@@ -4,23 +4,20 @@ import { fuzzyIncludes } from "@/lib/text/fuzzy";
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
-import { primarySymbol } from "@/lib/data/fixtures";
-import { operatorHeaders } from "@/lib/operator-token";
+import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
+/** The fields this page reads. `/api/web-watch` also returns poll counters and
+ *  a status enum, which the crawler's own ops route reports; a reviewer does
+ *  not act on either, so they are not read here. */
 interface SourceRow {
   id: string;
   label: string;
   kind: string;
-  enabled: boolean;
-  lastStatus: string;
   lastError: string | null;
   lastCheckedAt: string | null;
-  lastChangedAt: string | null;
-  checks: number;
-  changes: number;
 }
 
 interface ImpactDraft {
@@ -48,16 +45,32 @@ const directionLabel: Record<ImpactDraft["direction"], string> = {
   Unrelated: "Tidak terkait",
 };
 
-const statusLabel: Record<string, string> = {
-  never: "Belum dicek",
-  unchanged: "Tidak berubah",
-  changed: "Berubah",
-  baselined: "Baseline",
-  error: "Gagal",
-  busy: "Sibuk",
-  disabled: "Nonaktif",
-  not_due: "Belum jatuh tempo",
-};
+/**
+ * The registry stores legal names — "Aneka Tambang Tbk.", "PT Bank Central
+ * Asia Tbk." — and a headline never writes one. Matching on the full string
+ * therefore never fired; the corporate wrapper comes off so the distinctive
+ * part of the name is what gets compared.
+ */
+function tradingName(name: string): string {
+  return name.replace(/^PT\s+/i, "").replace(/\s+Tbk\.?$/i, "").trim().toUpperCase();
+}
+
+/**
+ * Which emiten a queue candidate is about, before a reviewer has mapped it.
+ *
+ * Pending candidates carry no impact links yet — mapping is the decision the
+ * reviewer is here to make — so the only evidence is the text the crawler
+ * kept: the ticker as its own word, or the registry's name for the company
+ * behind it. Both come from the registry; neither is a per-symbol table.
+ */
+function mentionsSymbol(candidate: MarketEvent, symbol: SymbolCode): boolean {
+  if (candidate.impactLinks.some((link) => link.symbol === symbol)) return true;
+  const haystack = `${candidate.title} ${candidate.summary} ${candidate.body ?? ""}`.toUpperCase();
+  const name = companies.find((company) => company.symbol === symbol)?.name;
+  const named = name ? tradingName(name) : "";
+  if (named && haystack.includes(named)) return true;
+  return new RegExp(`\\b${symbol.replace(/[^\p{L}\p{N}]/gu, "")}\\b`).test(haystack);
+}
 
 function CandidateCard({
   candidate,
@@ -83,7 +96,7 @@ function CandidateCard({
       try {
         const response = await fetch(apiUrl("/api/web-watch"), {
           method: "POST",
-          headers: operatorHeaders(),
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         const data = await response.json();
@@ -229,6 +242,7 @@ export function WebWatchReview() {
   const [data, setData] = useState<QueueData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState("semua");
+  const [symbol, setSymbol] = useState("semua");
   const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
@@ -269,6 +283,7 @@ export function WebWatchReview() {
   const categories = ["semua", "company", "commodity", "rates", "currency", "policy", "weather"];
   const visiblePending = (data?.pending ?? []).filter((candidate) => {
     if (category !== "semua" && candidate.category !== category) return false;
+    if (symbol !== "semua" && !mentionsSymbol(candidate, symbol as SymbolCode)) return false;
     return fuzzyIncludes(`${candidate.title} ${candidate.summary} ${candidate.citations[0]?.provider ?? ""}`, query);
   });
 
@@ -286,35 +301,15 @@ export function WebWatchReview() {
         <Panel className="h-72 animate-pulse bg-muted" aria-label="Memuat antrean pantauan" />
       ) : (
         <div className="space-y-8">
-          <section aria-label="Kesehatan sumber">
-            <h2 className="mb-3 text-lg font-semibold">Sumber ({data.sources.length})</h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {data.sources.map((source) => (
-                <Panel key={source.id} className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold leading-snug">{source.label}</h3>
-                    <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
-                      {source.enabled ? (statusLabel[source.lastStatus] ?? source.lastStatus) : "Nonaktif"}
-                    </span>
-                  </div>
-                  <p className="mt-1 font-mono text-[11px] text-muted-foreground">{source.kind} · dicek {source.checks}× · berubah {source.changes}×</p>
-                  {source.lastError ? (
-                    <p className="mt-2 rounded-[6px] bg-muted p-2 text-xs leading-5 text-foreground">Gagal: {source.lastError}</p>
-                  ) : null}
-                  {source.lastCheckedAt ? (
-                    <p className="mt-1 text-[11px] text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
-                  ) : null}
-                </Panel>
-              ))}
-              {!data.sources.length ? (
-                <Panel className="p-6 text-sm text-muted-foreground">Belum ada sumber — jalankan sweep sekarang, atau tunggu sapuan terjadwal berikutnya.</Panel>
-              ) : null}
-            </div>
-          </section>
-
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <h2 className="mr-auto text-lg font-semibold">Antrean ({visiblePending.length})</h2>
+              <select aria-label="Saring emiten" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary">
+                <option value="semua">Semua emiten</option>
+                {data.symbols.map((code) => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
               <select aria-label="Saring kategori" value={category} onChange={(event) => setCategory(event.target.value)} className="h-9 rounded-[6px] border border-border bg-surface px-2 text-xs outline-none focus:border-primary">
                 {categories.map((c) => (
                   <option key={c} value={c}>{c === "semua" ? "Semua kategori" : c}</option>
@@ -360,6 +355,34 @@ export function WebWatchReview() {
               <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
             )}
           </section>
+
+          {/* Feed plumbing, not review material: which pages the crawler polls
+              and whether any of them is failing. It sits closed under the queue
+              because a reviewer opens this page to judge candidates, and the
+              poll bookkeeping above them was answering a question nobody on
+              this page had asked. */}
+          <details aria-label="Kesehatan sumber" className="rounded-[12px] border border-border bg-surface">
+            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+              Sumber yang dipantau ({data.sources.length})
+            </summary>
+            <div className="grid gap-3 border-t border-border p-4 md:grid-cols-2">
+              {data.sources.map((source) => (
+                <Panel key={source.id} className="p-4">
+                  <h3 className="text-sm font-semibold leading-snug">{source.label}</h3>
+                  <p className="mt-1 font-mono text-[11px] text-muted-foreground">{source.kind}</p>
+                  {source.lastError ? (
+                    <p className="mt-2 rounded-[6px] bg-muted p-2 text-xs leading-5 text-foreground">Gagal: {source.lastError}</p>
+                  ) : null}
+                  {source.lastCheckedAt ? (
+                    <p className="mt-1 text-[11px] text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
+                  ) : null}
+                </Panel>
+              ))}
+              {!data.sources.length ? (
+                <Panel className="p-6 text-sm text-muted-foreground">Belum ada sumber — jalankan sweep sekarang, atau tunggu sapuan terjadwal berikutnya.</Panel>
+              ) : null}
+            </div>
+          </details>
         </div>
       )}
     </div>

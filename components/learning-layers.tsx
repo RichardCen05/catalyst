@@ -37,7 +37,7 @@ function TeacherBadge({ teacher }: { teacher: Teacher }) {
 export function LearningLayers() {
   return (
     <Panel className="mb-4 overflow-hidden">
-      <details open className="group">
+      <details className="group">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
           <span className="min-w-0">
             <span className="meta mb-1.5 block text-muted-foreground">Sebelum membaca daftar di bawah</span>

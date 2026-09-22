@@ -27,7 +27,8 @@ export async function buildAiLearningBundle(): Promise<ContextBundle> {
       layer.caveat ? `Catatan: ${layer.caveat.badge} — ${layer.caveat.detail}` : "",
     ].filter(Boolean).join(" ")),
     `Lapis yang diajar pembaca: ${taughtByReader.map((layer) => layer.name).join(", ")}. Lapis yang diajar rekaman pasar: ${taughtByMarket.map((layer) => layer.name).join(", ")}.`,
-    `Daftar memori dapat disaring menurut: ${LEARNING_FILTERS.join(", ")}.`,
+    `Halaman ini memuat kotak "Ajari Catalyst": pembaca memilih satu saham, menulis apa yang ingin diajarkan, dan boleh melampirkan satu tautan referensi. Ajaran itu tersimpan sebagai hipotesis terbuka pada saham tersebut.`,
+    `Riwayatnya ditampilkan sebagai garis waktu per hari, dan dapat disaring menurut jenis (${LEARNING_FILTERS.join(", ")}) maupun menurut kode saham.`,
     `Isi memori milik pembaca tersimpan di peramban, jadi tidak ikut terbaca di sini.`,
   ].join("\n");
 

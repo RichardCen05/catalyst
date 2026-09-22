@@ -75,22 +75,22 @@ const feedbackCopy: Record<FeedbackEvent["action"], { input: string; learned: st
   useful: {
     input: "Bukti ini berguna",
     learned: "Prioritaskan bukti serupa",
-    effect: "Menaikkan urutan kasus sejenis di daftar Kasus riset.",
+    effect: "Menaikkan urutan kasus sejenis di daftar Analisis dan Riset.",
   },
   "not-useful": {
     input: "Bukti ini kurang relevan",
     learned: "Kurangi prioritas bukti serupa",
-    effect: "Menurunkan urutan kasus sejenis di daftar Kasus riset.",
+    effect: "Menurunkan urutan kasus sejenis di daftar Analisis dan Riset.",
   },
   "show-more": {
     input: "Minta analisis lebih dalam",
     learned: "Prioritaskan analisis lebih dalam",
-    effect: "Menaikkan urutan kasus sejenis di daftar Kasus riset.",
+    effect: "Menaikkan urutan kasus sejenis di daftar Analisis dan Riset.",
   },
   "show-less": {
     input: "Minta analisis lebih ringkas",
     learned: "Kurangi prioritas analisis serupa",
-    effect: "Menurunkan urutan kasus sejenis di daftar Kasus riset.",
+    effect: "Menurunkan urutan kasus sejenis di daftar Analisis dan Riset.",
   },
 };
 
@@ -412,4 +412,70 @@ export function formatLearningTime(value: string | undefined): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Waktu tidak tersedia";
   return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+/**
+ * The timeline's own view model.
+ *
+ * Everything below is derived from `LearningItem[]` — the facets, their
+ * counts, and the day headings. A hand-kept list of tickers would go stale the
+ * moment a reader teaches a symbol nobody anticipated, and a hand-kept count
+ * would disagree with the rows underneath it.
+ */
+export interface LearningDay {
+  key: string;
+  label: string;
+  items: LearningItem[];
+}
+
+export interface LearningFacet {
+  symbol: SymbolCode;
+  count: number;
+}
+
+/** Tickers that actually appear in the trace, busiest first, then alphabetical. */
+export function learningFacets(items: LearningItem[]): LearningFacet[] {
+  const counts = new Map<SymbolCode, number>();
+  for (const item of items) {
+    if (!item.symbol) continue;
+    counts.set(item.symbol, (counts.get(item.symbol) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([symbol, count]) => ({ symbol, count }))
+    .sort((first, second) => second.count - first.count || first.symbol.localeCompare(second.symbol));
+}
+
+export function filterLearningItems(
+  items: LearningItem[],
+  { kind, symbol }: { kind: LearningFilter; symbol?: SymbolCode },
+): LearningItem[] {
+  return items.filter((item) => (kind === "all" || item.kind === kind) && (!symbol || item.symbol === symbol));
+}
+
+const dayFormatter = new Intl.DateTimeFormat("id-ID", { dateStyle: "full" });
+
+/** Calendar day in the reader's own timezone, so a heading never splits an evening in two. */
+function dayKey(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+export function groupLearningByDay(items: LearningItem[]): LearningDay[] {
+  const days: LearningDay[] = [];
+  for (const item of items) {
+    const key = dayKey(item.createdAt);
+    const label = key ? dayFormatter.format(new Date(item.createdAt)) : "Waktu tidak tersedia";
+    const last = days[days.length - 1];
+    if (last && last.key === key) last.items.push(item);
+    else days.push({ key, label, items: [item] });
+  }
+  return days;
+}
+
+export function formatLearningClock(value: string | undefined): string {
+  if (!value) return "--:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+  return new Intl.DateTimeFormat("id-ID", { timeStyle: "short" }).format(date);
 }

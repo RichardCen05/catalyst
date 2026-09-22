@@ -13,11 +13,11 @@ async function finishSetup(page: Page) {
 
 const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/", heading: "Apa yang menggerakkan daftar pantauan?" },
-  { url: "/cases", heading: "Periksa satu perubahan penting" },
+  { url: "/cases", heading: "Perubahan Saham yang perlu diperiksa" },
   { url: "/cases/ANTM", heading: /Kasus ANTM/ },
   { url: "/cases/ANTM?tab=market", heading: "Konfirmasi pasar" },
   { url: "/cases/ANTM?tab=business", heading: "Dampak ke bisnis" },
-  { url: "/cases/ANTM?tab=review", heading: "Koreksi analisis ini" },
+  { url: "/cases/ANTM?tab=review", heading: "Ajari Catalyst tentang ANTM" },
   { url: "/impact?company=ANTM", heading: "Apa yang mendorong perubahan ini?" },
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Cari jawaban dari bukti" },

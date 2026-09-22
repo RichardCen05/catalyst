@@ -25,21 +25,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "AI Learning",
     view: "ai-learning",
     eyebrow: "Memori personal",
-    description: "Lihat masukan yang Anda berikan, proses yang Catalyst jalankan, dan memori yang sedang dipakai saat menyusun riset.",
-    file: "app/ai-learning/learning-content.tsx",
-  },
-  {
-    id: "chrome:ai-learning:apa-yang-dipelajari",
-    heading: "Apa yang dipelajari",
-    view: "ai-learning",
-    eyebrow: "Detail",
-    file: "app/ai-learning/learning-content.tsx",
-  },
-  {
-    id: "chrome:ai-learning:apa-yang-sedang-disimpan",
-    heading: "Apa yang sedang disimpan",
-    view: "ai-learning",
-    eyebrow: "Memori aktif dan terjaga",
+    description: "Dua hal saja di halaman ini: Anda mengajari Catalyst tentang satu saham, lalu melihat apa yang berubah karenanya — kapan, untuk saham mana, dan efeknya.",
     file: "app/ai-learning/learning-content.tsx",
   },
   {
@@ -50,10 +36,10 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/prediction-panel.tsx",
   },
   {
-    id: "chrome:ai-learning:batas-ai-learning",
-    heading: "Batas AI Learning",
+    id: "chrome:ai-learning:filter-saham",
+    heading: "Filter saham",
     view: "ai-learning",
-    labels: ["Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori."],
+    labels: ["Semua saham"],
     file: "app/ai-learning/learning-content.tsx",
   },
   {
@@ -71,18 +57,18 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/prediction-panel.tsx",
   },
   {
-    id: "chrome:ai-learning:riwayat-masukan",
-    heading: "Riwayat masukan",
-    view: "ai-learning",
-    eyebrow: "Jejak pembelajaran",
-    file: "app/ai-learning/learning-content.tsx",
-  },
-  {
     id: "chrome:ai-learning:yang-ingin-catalyst-ubah",
     heading: "Yang ingin Catalyst ubah",
     view: "ai-learning",
     eyebrow: "Usulan koreksi",
     file: "components/prediction-panel.tsx",
+  },
+  {
+    id: "chrome:ai-learning:yang-sudah-dipelajari",
+    heading: "Yang sudah dipelajari",
+    view: "ai-learning",
+    eyebrow: "Riwayat lengkap",
+    file: "app/ai-learning/learning-content.tsx",
   },
   {
     id: "chrome:case:analisis-belum-tersedia",
@@ -198,12 +184,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/research-case-workspace.tsx",
   },
   {
-    id: "chrome:case:koreksi-analisis-ini",
-    heading: "Koreksi analisis ini",
-    view: "case",
-    file: "components/analysis-review.tsx",
-  },
-  {
     id: "chrome:case:pertanyaan-yang-diuji",
     heading: "Pertanyaan yang diuji",
     view: "case",
@@ -223,6 +203,12 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     view: "case",
     description: "Jejak asisten",
     file: "components/agent-trace.tsx",
+  },
+  {
+    id: "chrome:case:riwayat",
+    heading: "Riwayat",
+    view: "case",
+    file: "components/analysis-review.tsx",
   },
   {
     id: "chrome:case:sumber-utama",
@@ -281,10 +267,10 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/cases/page.tsx",
   },
   {
-    id: "chrome:cases:periksa-satu-perubahan-penting",
-    heading: "Periksa satu perubahan penting",
+    id: "chrome:cases:perubahan-saham-yang-perlu-diperiksa",
+    heading: "Perubahan Saham yang perlu diperiksa",
     view: "cases",
-    eyebrow: "Kasus riset",
+    eyebrow: "Analisis dan Riset",
     description: "Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset.",
     file: "app/cases/page.tsx",
   },
@@ -490,7 +476,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:antrean-review",
     heading: "Antrean review",
     view: "pantau",
-    labels: ["Antrean ("],
+    labels: ["Antrean (","Semua emiten"],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -504,7 +490,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:kesehatan-sumber",
     heading: "Kesehatan sumber",
     view: "pantau",
-    labels: ["Sumber ("],
+    labels: ["Sumber yang dipantau ("],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -513,6 +499,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     view: "pantau",
     eyebrow: "Pantauan sumber",
     description: "Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB",
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:saring-emiten",
+    heading: "Saring emiten",
+    view: "pantau",
+    labels: ["Semua emiten"],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -584,6 +577,17 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/not-found.tsx",
   },
   {
+    id: "chrome:shared:mulai-di-sini",
+    heading: "Mulai di sini",
+    file: "components/teach-agent.tsx",
+  },
+  {
+    id: "chrome:shared:pilar-terkait",
+    heading: "Pilar terkait",
+    labels: ["Seluruh analisis"],
+    file: "components/teach-agent.tsx",
+  },
+  {
     id: "chrome:shared:pilih-saham-komoditas-yang-dipantau",
     heading: "Pilih saham komoditas yang dipantau",
     eyebrow: "Alur harian",
@@ -605,7 +609,7 @@ export const CHROME_NAV: Array<{ href: string; label: string; source: "nav" | "c
   { href: "/ai-learning", label: "Buka AI Learning", source: "command", view: "ai-learning", },
   { href: "/", label: "Buka Dashboard", source: "command", view: "dashboard", },
   { href: "/cases?view=audit", label: "Audit riset", source: "command", view: "cases", },
-  { href: "/cases?view=picker", label: "Bandingkan emiten", source: "command", view: "cases", },
+  { href: "/cases?view=picker", label: "Perbandingan emiten", source: "command", view: "cases", },
   { href: "/cases", label: "Buka Kasus", source: "command", view: "cases", },
   { href: "/cases", label: "Kasus", source: "nav", view: "cases", },
   { href: "/companies", label: "Buka daftar emiten", source: "command", view: "companies", },
