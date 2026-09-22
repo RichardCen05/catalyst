@@ -22,6 +22,8 @@ const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Cari jawaban dari bukti" },
   { url: "/ai-learning", heading: "AI Learning" },
+  { url: "/ai-learning?section=pasar", heading: "Apa yang sudah ditagih" },
+  { url: "/ai-learning?section=memori", heading: "Apa yang sedang disimpan" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },
   { url: "/pantau", heading: "Apa yang berubah di web sejak kemarin?" },
   { url: "/method", heading: "Cara Catalyst menyusun bukti" },

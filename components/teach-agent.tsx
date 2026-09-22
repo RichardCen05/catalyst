@@ -58,6 +58,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
   const [sourceUrl, setSourceUrl] = useState("");
   const [category, setCategory] = useState<UserInsight["category"]>("missing-context");
   const [pillar, setPillar] = useState<PillarKey | "">("");
+  const [advanced, setAdvanced] = useState(false);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<SymbolCode | null>(null);
 
@@ -92,16 +93,12 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
         eyebrow="Mulai di sini"
         title={symbol ? `Ajari Catalyst tentang ${symbol}` : "Ajari Catalyst tentang satu saham"}
       />
-      {/* Two columns so the box stays a band across the page instead of a tall
-          tower with a column of air beside it: the ticker and the optional
-          link on the left, the sentence the reader is actually writing on the
-          right, where it gets the width. */}
-      <form onSubmit={submit} className="grid gap-x-4 gap-y-3 p-4 lg:grid-cols-[minmax(200px,260px)_minmax(0,1fr)]">
-        {/* Placed rather than stacked: on a phone the fields read in the order
-            they are written (ticker, sentence, optional link), while on a wide
-            screen the link drops under the ticker and the sentence keeps the
-            whole right-hand column. */}
-        <div className="lg:col-start-1 lg:row-start-1">
+      {/* Plain rows, top to bottom. An earlier two-column version left a hole
+          in the left column whenever the textarea was taller than the field
+          above it — the form has no side rail now, so there is nothing to
+          leave empty. */}
+      <form onSubmit={submit} className="space-y-4 p-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {symbol ? (
             <div>
               <p className="text-xs font-medium">Saham</p>
@@ -126,85 +123,88 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
               </select>
             </label>
           )}
+
+          <div>
+            <label htmlFor={sourceId} className="block text-xs font-medium">
+              Tautan referensi (opsional)
+              <input
+                id={sourceId}
+                type="url"
+                value={sourceUrl}
+                onChange={(event) => { setSourceUrl(event.target.value); setSaved(null); }}
+                placeholder="https://..."
+                aria-describedby={sourceError ? `${sourceId}-error` : undefined}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 font-mono text-xs outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/25"
+              />
+            </label>
+            {sourceError ? <p id={`${sourceId}-error`} role="alert" className="mt-1.5 text-xs text-danger">{sourceError}</p> : null}
+          </div>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-2 lg:col-start-2 lg:row-start-1">
-          <label htmlFor={noteId} className="block text-xs font-medium">Yang ingin Anda ajarkan</label>
+        <div>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <label htmlFor={noteId} className="text-xs font-medium">Yang ingin Anda ajarkan</label>
+            <span className="font-mono text-[11px] text-muted-foreground">{note.length}/{NOTE_MAX}</span>
+          </div>
           <textarea
             id={noteId}
-            rows={4}
+            rows={3}
             maxLength={NOTE_MAX}
             value={note}
             onChange={(event) => { setNote(event.target.value); setSaved(null); }}
             onBlur={() => setTouched(true)}
             aria-describedby={`${noteId}-help${noteError ? ` ${noteId}-error` : ""}`}
             placeholder={`Contoh: pada ${active}, kenaikan volume tanpa berita biasanya tidak berarti apa-apa untuk saya.`}
-            className="min-h-[104px] w-full flex-1 resize-y rounded-lg border border-border bg-background px-3 py-2.5 text-sm leading-6 outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/25"
+            className="mt-1.5 w-full resize-y rounded-lg border border-border bg-background px-3 py-2.5 text-sm leading-6 outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/25"
           />
-          <div id={`${noteId}-help`} className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-            <span>Tulis dengan bahasa Anda sendiri. Tersimpan di peramban ini.</span>
-            <span className="font-mono">{note.length}/{NOTE_MAX}</span>
+          {noteError ? <p id={`${noteId}-error`} role="alert" className="mt-1.5 text-xs text-danger">{noteError}</p> : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={note.trim().length < NOTE_MIN || Boolean(sourceError)}>
+            <IconNote aria-hidden="true" className="size-4" />
+            Ajarkan ke Catalyst
+          </Button>
+          <button
+            type="button"
+            aria-expanded={advanced}
+            onClick={() => setAdvanced((current) => !current)}
+            className="min-h-9 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            {advanced ? "Sembunyikan opsi lanjutan" : "Opsi lanjutan"}
+          </button>
+          {saved ? (
+            <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive">
+              <IconCheck aria-hidden="true" className="size-4" />
+              Tersimpan untuk {saved}
+            </p>
+          ) : null}
+          <p id={`${noteId}-help`} className="ml-auto text-[11px] text-muted-foreground">Tersimpan di peramban ini.</p>
+        </div>
+
+        {advanced ? (
+          <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
+            <label htmlFor={categoryId} className="text-xs font-medium">
+              Jenis masukan
+              <select id={categoryId} aria-label="Jenis masukan" value={category} onChange={(event) => setCategory(event.target.value as UserInsight["category"])} className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">
+                {(Object.keys(categoryLabels) as UserInsight["category"][]).map((item) => <option key={item} value={item}>{categoryLabels[item]}</option>)}
+              </select>
+            </label>
+            <label htmlFor={pillarId} className="text-xs font-medium">
+              Pilar terkait
+              <select id={pillarId} aria-label="Pilar terkait" value={pillar} onChange={(event) => setPillar(event.target.value as PillarKey | "")} className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">
+                <option value="">Seluruh analisis</option>
+                {(Object.keys(pillarLabels) as PillarKey[]).map((item) => <option key={item} value={item}>{pillarLabels[item]}</option>)}
+              </select>
+            </label>
           </div>
-          {noteError ? <p id={`${noteId}-error`} role="alert" className="text-xs text-danger">{noteError}</p> : null}
+        ) : null}
 
-        </div>
-
-        <div className="lg:col-start-1 lg:row-start-2">
-          <label htmlFor={sourceId} className="block text-xs font-medium">
-            Tautan referensi (opsional)
-            <input
-              id={sourceId}
-              type="url"
-              value={sourceUrl}
-              onChange={(event) => { setSourceUrl(event.target.value); setSaved(null); }}
-              placeholder="https://..."
-              aria-describedby={sourceError ? `${sourceId}-error` : undefined}
-              className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 font-mono text-xs outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/25"
-            />
-          </label>
-          {sourceError ? <p id={`${sourceId}-error`} role="alert" className="mt-1.5 text-xs text-danger">{sourceError}</p> : null}
-        </div>
-
-        <div className="lg:col-start-2 lg:row-start-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={note.trim().length < NOTE_MIN || Boolean(sourceError)}>
-              <IconNote aria-hidden="true" className="size-4" />
-              Ajarkan ke Catalyst
-            </Button>
-            <details className="min-w-0">
-              <summary className="min-h-9 cursor-pointer py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Opsi lanjutan</summary>
-              <div className="mt-2 grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-2">
-                <label htmlFor={categoryId} className="text-xs font-medium">
-                  Jenis masukan
-                  <select id={categoryId} aria-label="Jenis masukan" value={category} onChange={(event) => setCategory(event.target.value as UserInsight["category"])} className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">
-                    {(Object.keys(categoryLabels) as UserInsight["category"][]).map((item) => <option key={item} value={item}>{categoryLabels[item]}</option>)}
-                  </select>
-                </label>
-                <label htmlFor={pillarId} className="text-xs font-medium">
-                  Pilar terkait
-                  <select id={pillarId} aria-label="Pilar terkait" value={pillar} onChange={(event) => setPillar(event.target.value as PillarKey | "")} className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">
-                    <option value="">Seluruh analisis</option>
-                    {(Object.keys(pillarLabels) as PillarKey[]).map((item) => <option key={item} value={item}>{pillarLabels[item]}</option>)}
-                  </select>
-                </label>
-              </div>
-            </details>
-            {saved ? (
-              <p role="status" className="inline-flex items-center gap-1.5 text-xs text-positive">
-                <IconCheck aria-hidden="true" className="size-4" />
-                Tersimpan untuk {saved}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </form>
-
-      <div className="border-t border-border px-4 py-3">
-        <p className="flex gap-2 rounded-lg border border-primary/20 bg-primary/7 p-3 text-xs leading-5 text-muted-foreground">
+        <p className="flex gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
           <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
           <span>Catatan Anda menjadi hipotesis terbuka: ia muncul pada analisis saham ini, tetapi tidak mengubah angka, rumus, atau sumber sebelum diperiksa.</span>
         </p>
-      </div>
+      </form>
     </Panel>
   );
 }

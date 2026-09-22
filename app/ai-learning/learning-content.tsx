@@ -42,6 +42,15 @@ import { cn } from "@/lib/utils";
  * headings are derived from the stored trace in lib/learning.ts.
  */
 
+/** The page's three sections, in the order a reader meets them. */
+type LearningSection = "ajaran" | "pasar" | "memori";
+
+const sections: Array<{ value: LearningSection; label: string }> = [
+  { value: "ajaran", label: "Ajaran dan riwayat" },
+  { value: "pasar", label: "Belajar dari pasar" },
+  { value: "memori", label: "Memori tersimpan" },
+];
+
 const filterLabels: Record<LearningFilter, string> = {
   all: "Semua",
   feedback: "Feedback",
@@ -112,6 +121,8 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
     [feedback, preferences, insights, caseResolutions, ruleProposals, playbook],
   );
 
+  const requestedSection = searchParams.get("section") as LearningSection | null;
+  const section: LearningSection = sections.some((item) => item.value === requestedSection) ? requestedSection as LearningSection : "ajaran";
   const requestedFilter = searchParams.get("filter");
   const filter: LearningFilter = LEARNING_FILTERS.includes(requestedFilter as LearningFilter) ? requestedFilter as LearningFilter : "all";
   const facets = learningFacets(snapshot.items);
@@ -147,9 +158,36 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
       <PageHeader
         eyebrow="Memori personal"
         title="AI Learning"
-        description="Dua hal saja di halaman ini: Anda mengajari Catalyst tentang satu saham, lalu melihat apa yang berubah karenanya — kapan, untuk saham mana, dan efeknya."
+        description="Tiga bagian: apa yang Anda ajarkan dan akibatnya, apa yang Catalyst pelajari sendiri dari pasar, dan apa yang sedang disimpan."
       />
 
+      {/* Same tab strip as the case hub: one section on screen at a time, the
+          section in the address bar so a reader can link to it. */}
+      {/* The explainer sits at the end of the section strip, on the same line
+          a reader is already using to move around the page — not floating in
+          the header where it read as a stray chip. */}
+      <div className="mb-4 flex flex-col-reverse gap-2 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <nav aria-label="Bagian AI Learning" className="flex min-w-0 overflow-x-auto">
+          {sections.map((item) => (
+            <Link
+              key={item.value}
+              href={item.value === "ajaran" ? "/ai-learning" : `/ai-learning?section=${item.value}`}
+              aria-current={section === item.value ? "page" : undefined}
+              className={cn(
+                "relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground",
+                section === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand",
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="shrink-0 px-1 pt-1 sm:p-0 sm:pb-2 sm:pr-1">
+          <LearningLayers />
+        </div>
+      </div>
+
+      {section === "ajaran" ? <>
       <TeachAgent />
 
       <Panel className="mt-4 overflow-hidden">
@@ -157,26 +195,23 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           eyebrow="Riwayat lengkap"
           title="Yang sudah dipelajari"
           action={
-            <div className="hidden shrink-0 gap-4 sm:flex">
-              {counters.map((counter) => (
-                <p key={counter.label} className="text-right">
-                  <span className="block font-mono text-lg font-semibold tabular-nums">{counter.value}</span>
-                  <span className="block text-[11px] leading-4 text-muted-foreground">{counter.label}</span>
-                </p>
-              ))}
-            </div>
+            <p className="hidden shrink-0 self-center text-xs text-muted-foreground sm:block">
+              {counters.map((counter) => `${counter.value} ${counter.label}`).join(" · ")}
+            </p>
           }
         />
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Filter jenis masukan">
+        <div className="space-y-2 border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter jenis masukan">
+            <span aria-hidden="true" className="w-12 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Jenis</span>
             {LEARNING_FILTERS.map((value) => (
               <button key={value} type="button" aria-pressed={filter === value} onClick={() => setSearch({ filter: value, selected: null })} className={chipClass(filter === value)}>
                 {filterLabels[value]}
               </button>
             ))}
           </div>
-          <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Filter saham">
+          <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter saham">
+            <span aria-hidden="true" className="w-12 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Saham</span>
             <button type="button" aria-pressed={!symbol} onClick={() => setSearch({ symbol: null, selected: null })} className={chipClass(!symbol)}>
               Semua saham
             </button>
@@ -187,7 +222,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
               </button>
             ))}
           </div>
-          <p className="ml-auto text-xs text-muted-foreground sm:hidden">{counters.map((counter) => `${counter.value} ${counter.label}`).join(" · ")}</p>
+          <p className="text-xs text-muted-foreground sm:hidden">{counters.map((counter) => `${counter.value} ${counter.label}`).join(" · ")}</p>
         </div>
 
         {days.length ? (
@@ -293,19 +328,14 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           </div>
         )}
       </Panel>
+      </> : null}
 
-      <div className="mt-4">{predictionSlot}</div>
+      {section === "pasar" ? <div>{predictionSlot}</div> : null}
 
-      <Panel className="mt-4 overflow-hidden">
-        <details className="group">
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-            <span className="min-w-0">
-              <span className="meta mb-1.5 block text-muted-foreground">Rincian untuk yang ingin menggali</span>
-              <span className="editorial block text-[17px] text-foreground">Apa yang sedang disimpan</span>
-            </span>
-            <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-primary transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="border-t border-border p-4">
+      {section === "memori" ? <>
+      <Panel className="overflow-hidden">
+        <PanelHeader eyebrow="Rincian" title="Apa yang sedang disimpan" />
+        <div className="p-4">
             <div className="mb-4 flex flex-wrap gap-2">
               <Link href="/cases?view=audit" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Kelola ajaran dan usulan<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
               <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Edit aturan eksplisit<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
@@ -334,11 +364,9 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
               })}
             </div>
             <p className="mt-4 rounded-[10px] border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
-          </div>
-        </details>
+        </div>
       </Panel>
-
-      <div className="mt-4"><LearningLayers /></div>
+      </> : null}
     </div>
   );
 }

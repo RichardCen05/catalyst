@@ -58,8 +58,8 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await page.goto("/ai-learning?filter=resolution");
   await page.getByRole("button", { name: new RegExp(marker) }).click();
   await expect(page.getByRole("article", { name: "Detail Hasil kasus disimpan" })).toContainText("Diterima");
-  // The raw memory stores sit behind a disclosure now; open it before reading.
-  await page.getByText("Apa yang sedang disimpan").click();
+  // The raw memory stores live in their own section now.
+  await page.goto("/ai-learning?section=memori");
   await expect(page.getByRole("region", { name: "Aturan yang disetujui" })).toContainText(marker);
 
   // Per-symbol view: the timeline narrows to one issuer and keeps its entries.
