@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { demoProfiles } from "@/lib/data/fixtures";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import { MEMORY_SNAPSHOT_VERSION } from "@/lib/schemas";
+import { migrateMemorySnapshot } from "@/lib/memory/snapshot";
 import { buildBasePreferences, buildDefaultPlaybook } from "@/lib/playbook-defaults";
 import type {
   AnswerDepth,
@@ -22,6 +24,8 @@ import type {
 } from "@/lib/types";
 
 import type { Holding, Holdings } from "@/lib/portfolio";
+
+type PlaybookThresholdKey = keyof NonNullable<InvestorResearchPlaybook["thresholds"]>;
 
 interface CatalystState {
   profile: UserProfile;
@@ -60,8 +64,12 @@ interface CatalystState {
   setPlaybookList: (key: Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor" | "thresholds">, values: string[]) => void;
   setPreferredComparables: (symbol: SymbolCode, values: SymbolCode[]) => void;
   setRelevanceFloor: (value: number) => void;
-  setThreshold: (key: keyof typeof DEFAULT_THRESHOLDS extends infer K ? Exclude<K, "relevanceFloor"> : never, value: number) => void;
-  resetThreshold: (key: Exclude<keyof typeof DEFAULT_THRESHOLDS, "relevanceFloor">) => void;
+  /** Keyed on what the playbook can actually hold: a `DEFAULT_THRESHOLDS` key
+   *  with no slot in `InvestorResearchPlaybook["thresholds"]` (a server-side
+   *  one such as `memoryPatchMaxBytes`) would be written into the store and
+   *  then stripped in silence on the next sync. */
+  setThreshold: (key: PlaybookThresholdKey, value: number) => void;
+  resetThreshold: (key: PlaybookThresholdKey) => void;
   resetAllThresholds: () => void;
   setHolding: (symbol: SymbolCode, holding: Holding) => void;
   removeHolding: (symbol: SymbolCode) => void;
@@ -75,6 +83,25 @@ interface CatalystState {
 const basePreferences: LearnedPreference[] = buildBasePreferences(demoProfiles[0]);
 
 export const defaultPlaybook: InvestorResearchPlaybook = buildDefaultPlaybook();
+
+/**
+ * The shape version every persisted copy carries.
+ *
+ * Defined in `lib/schemas.ts` so the memory route — server code that must not
+ * import this client module — stamps the same number on the GCS object that
+ * `persist` writes into localStorage here.
+ */
+export const STORE_VERSION = MEMORY_SNAPSHOT_VERSION;
+
+/**
+ * One migration, used by both hydration paths.
+ *
+ * The body lives in `lib/memory/snapshot.ts`, which `components/memory-sync.tsx`
+ * also runs, so the GCS path cannot drift into a second implementation.
+ */
+export function migrateCatalystState(persisted: unknown): CatalystState {
+  return (migrateMemorySnapshot(persisted) as CatalystState | null) ?? (persisted as CatalystState);
+}
 
 export const useCatalystStore = create<CatalystState>()(
   persist(
@@ -210,26 +237,21 @@ export const useCatalystStore = create<CatalystState>()(
     }),
     {
       name: "catalyst:v1",
-      version: 4,
-      migrate: (persisted) => {
-        if (!persisted || typeof persisted !== "object") return persisted as CatalystState;
-        const stored = persisted as Partial<CatalystState> & { version?: number };
-        const out = {
-          ...stored,
-          holdings: stored.holdings ?? {},
-          caseMandates: stored.caseMandates ?? {},
-          caseStatuses: stored.caseStatuses ?? {},
-          caseResolutions: stored.caseResolutions ?? {},
-          ruleProposals: stored.ruleProposals ?? [],
-          insights: stored.insights ?? [],
-          feedback: stored.feedback ?? [],
-        } as CatalystState;
-        // v3 → v4: thresholds diperkenalkan; snapshot lama tidak punya field ini.
-        // Isi objek kosong agar resolveThresholds mengisi default per kunci (C7).
-        if (out.playbook) {
-          out.playbook = { ...out.playbook, thresholds: (out.playbook.thresholds ?? {}) as InvestorResearchPlaybook["thresholds"] };
-        }
-        return out;
+      version: STORE_VERSION,
+      migrate: (persisted) => migrateCatalystState(persisted),
+      /**
+       * What is worth keeping between visits.
+       *
+       * Three fields are about the current visit and nothing else: whether
+       * the copilot panel happens to be open, what it is pointed at, and
+       * whether the tour is running. Persisting them meant a browser could
+       * be reopened straight into a tour nobody asked to restart, and it put
+       * transient panel state into the server backup. Reader-visible
+       * behaviour changes here: a reload now starts with the panel closed.
+       */
+      partialize: (state) => {
+        const { copilotOpen: _open, copilotContext: _context, tourOpen: _tour, ...rest } = state;
+        return rest as CatalystState;
       },
       merge: (persisted, current) => {
         const stored = persisted as Partial<CatalystState>;

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { VIEW_IDS } from "@/lib/agent/retrieval/types";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import type { InvestorResearchPlaybook } from "@/lib/types";
 
 const symbolSchema = z.string().trim().min(4).max(5).transform((value) => value.toUpperCase());
 const pillarSchema = z.enum(["concentration", "volume", "momentum", "catalyst"]);
@@ -30,6 +31,7 @@ export const playbookSchema = z.object({
   falsifiers: z.array(z.string().max(400)).max(50),
   relevanceFloor: z.number().min(0).max(100).optional(),
   thresholds: z.object({
+    chainRelevanceFloor: z.number().min(0).max(100).optional(),
     concentrationFloor: z.number().min(0).max(1).optional(),
     volumeZFloor: z.number().min(0).max(10).optional(),
     volumeExtremeFloor: z.number().min(0).max(10).optional(),
@@ -42,6 +44,21 @@ export const playbookSchema = z.object({
     foreignContradictionShare: z.number().min(0).max(1).optional(),
   }).optional(),
 });
+/**
+ * The threshold schema must list every tunable a reader can actually set.
+ *
+ * These objects are not `.strict()`, so a key the schema omits is stripped in
+ * silence: `chainRelevanceFloor` was dropped on every write to GCS and again
+ * on every hydration, which reads as "my setting reverted" with no error
+ * anywhere. This assertion fails the build instead, the moment a threshold is
+ * added to `InvestorResearchPlaybook` without its bound here.
+ */
+type SchemaThresholds = NonNullable<z.infer<typeof playbookSchema>["thresholds"]>;
+type StoredThresholds = NonNullable<InvestorResearchPlaybook["thresholds"]>;
+type ThresholdsMissingFromSchema = Exclude<keyof StoredThresholds, keyof SchemaThresholds>;
+const _thresholdSchemaIsComplete: ThresholdsMissingFromSchema extends never ? true : never = true;
+void _thresholdSchemaIsComplete;
+
 export const userInsightSchema = z.object({
   id: z.string().min(1).max(100),
   symbol: symbolSchema,
@@ -54,21 +71,94 @@ export const userInsightSchema = z.object({
   reviewHistory: z.array(z.object({ status: z.enum(["pending", "incorporated", "dismissed"]), at: z.string().datetime() })).max(30).default([]),
 });
 
+const feedbackEventSchema = z.object({
+  id: z.string().min(1).max(120),
+  symbol: symbolSchema.optional(),
+  eventId: z.string().max(200).optional(),
+  targetId: z.string().max(200).optional(),
+  targetLabel: z.string().max(400).optional(),
+  action: z.enum(["useful", "not-useful", "show-more", "show-less"]),
+  createdAt: z.string().max(40),
+});
+
+const learnedPreferenceSchema = z.object({
+  id: z.string().min(1).max(120),
+  label: z.string().max(400),
+  explanation: z.string().max(800),
+  source: z.enum(["explicit", "feedback"]),
+  active: z.boolean(),
+});
+
+const ruleProposalSchema = z.object({
+  id: z.string().min(1).max(120),
+  symbol: symbolSchema,
+  kind: z.enum(["materiality", "falsifier"]),
+  rule: z.string().max(400),
+  evidence: z.string().max(800),
+  sourceResolutionAt: z.string().max(40),
+  status: z.enum(["pending", "accepted", "rejected"]),
+  createdAt: z.string().max(40),
+});
+
+const caseResolutionSchema = z.object({
+  outcome: z.enum(["supported", "challenged", "open"]),
+  disposition: z.enum(["escalate", "monitor", "dismiss"]).optional(),
+  finalHypothesis: z.string().max(800),
+  falsifiedBy: z.string().max(800),
+  wrongAssumption: z.string().max(800),
+  reusableRule: z.string().max(400),
+  resolvedAt: z.string().max(40),
+});
+
+const holdingSchema = z.object({ shares: z.number().finite(), avgCost: z.number().finite() });
+
 /**
- * The memory keys `/api/memory` knows how to check.
+ * The shape version every stored copy of a reader's memory carries.
+ *
+ * Two paths hydrate the store — zustand `persist` from localStorage, and
+ * `MemorySync` from the GCS backup — and both must read the same number, so it
+ * lives here rather than in `lib/store.ts`: the route is server code and the
+ * store module is a client module that builds a zustand store on import.
+ * `lib/store.ts` re-exports it as `STORE_VERSION`.
+ *
+ * Bumped 4 → 5 with `partialize`: the persisted shape lost `copilotOpen`,
+ * `copilotContext` and `tourOpen`. Without the bump, zustand skips `migrate`
+ * for a snapshot already marked 4, `merge` spreads the stored keys over the
+ * defaults, and a browser that was closed mid-tour reopens into that tour
+ * once — exactly the behaviour the change removes.
+ */
+export const MEMORY_SNAPSHOT_VERSION = 5;
+
+/** One entry per recorded issuer at most: these maps are keyed by symbol. */
+const bySymbol = <T extends z.ZodTypeAny>(value: T) => z.record(symbolSchema, value);
+
+/**
+ * Every memory key `/api/memory` accepts, and the shape it must have.
  *
  * The POST body is a zustand `persist` snapshot, not a hand-built payload, so
  * it carries whatever the store holds at the time. Validating only `playbook`
  * let a snapshot with a valid-JSON but wrong-shaped `profile` land in GCS, and
- * the next hydration `setState()`s that straight back into the store. Every key
- * that already has a schema is checked here; keys with no schema still pass
- * through, because rejecting unknown keys would stop sync for every client
- * older than the next store field.
+ * the next hydration `setState()`s that straight back into the store.
+ *
+ * This is now the whole allowlist, not a partial one. A key with no schema is
+ * dropped before the write rather than forwarded: the previous rule — check
+ * what has a schema, forward everything else — meant `feedback`,
+ * `preferences`, `ruleProposals`, `caseResolutions`, `caseStatuses`,
+ * `caseMandates` and `holdings` were stored unchecked, and hydration put them
+ * back into the store unchecked. Adding a store field now means adding its
+ * schema here in the same change, which is the point.
  */
 export const memoryPatchFieldSchemas = {
   profile: profileSchema,
   playbook: playbookSchema,
   insights: z.array(userInsightSchema).max(100),
+  feedback: z.array(feedbackEventSchema).max(100),
+  preferences: z.array(learnedPreferenceSchema).max(100),
+  ruleProposals: z.array(ruleProposalSchema).max(100),
+  caseResolutions: bySymbol(caseResolutionSchema),
+  caseStatuses: bySymbol(z.enum(["open", "closed"])),
+  caseMandates: bySymbol(z.string().max(600)),
+  holdings: bySymbol(holdingSchema),
 } as const;
 
 /** Lookup keys for the evidence panel's plain-words summaries. One panel asks

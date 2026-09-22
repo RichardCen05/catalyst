@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { loadMemory, saveMemory } from "@/lib/memory/gcs-memory";
-import { memoryPatchFieldSchemas } from "@/lib/schemas";
+import { MEMORY_SNAPSHOT_VERSION, memoryPatchFieldSchemas } from "@/lib/schemas";
+import { MEMORY_SNAPSHOT_KEYS } from "@/lib/memory/snapshot";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 /**
  * Anonymous per-browser identity. No sign-in, so this cookie IS the user as
@@ -58,28 +60,105 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * Read the body with a hard ceiling, in bytes on the wire.
+ *
+ * Two things this is not: a `String.length` check (that counts UTF-16 units,
+ * so a mandate in a non-Latin script would pass a character check and still
+ * write an object twice the size it was measured at), and a Content-Length
+ * check (absent on a chunked upload, and a value the client chooses anyway).
+ * The stream is read in chunks and cancelled the moment the running total
+ * passes the limit, so an oversized body never lands in this process — the
+ * ceiling protects the Cloud Run instance, not only the stored object.
+ *
+ * Why there is a ceiling at all: the whole object is read and rewritten on
+ * every sync, both halves under one `GCS_REQUEST_TIMEOUT_MS`, so an object
+ * that outgrows it makes a reader's memory permanently unavailable rather
+ * than slow.
+ */
+async function readBoundedBody(request: Request, limit: number): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > limit) return null;
+  const body = request.body;
+  if (!body) {
+    const raw = await request.text();
+    return new TextEncoder().encode(raw).length > limit ? null : raw;
+  }
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const joined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(joined);
+}
+
 export async function POST(request: Request) {
   const uid = readUid(request) ?? randomUUID();
-  let patch: Record<string, unknown>;
+  const limit = DEFAULT_THRESHOLDS.memoryPatchMaxBytes;
+
+  const raw = await readBoundedBody(request, limit);
+  if (raw === null) {
+    return NextResponse.json({ error: "Memori terlalu besar", limit }, { status: 413 });
+  }
+
+  let body: Record<string, unknown>;
   try {
-    patch = await request.json();
+    body = JSON.parse(raw) as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: "Body bukan JSON valid" }, { status: 400 });
   }
-  // C6: thresholds mencapai GCS tanpa validasi bila tidak diperiksa di sini.
-  // /api/analyze dkk memvalidasi via zod (400 bila out-of-bound); samakan untuk backup memori.
-  // Setiap kunci memori yang punya skema diperiksa, bukan playbook saja: snapshot
-  // berbentuk salah pernah lolos ke GCS lalu dihidrasi kembali ke store.
-  for (const [key, schema] of Object.entries(memoryPatchFieldSchemas)) {
-    if (patch[key] === undefined) continue;
-    const parsed = schema.safeParse(patch[key]);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Body bukan objek memori" }, { status: 400 });
+  }
+
+  /**
+   * A hard allowlist, built from the schemas rather than filtered against them.
+   *
+   * The previous rule was the inverse — check what has a schema, forward the
+   * rest — so `feedback`, `preferences`, `ruleProposals`, `caseResolutions`,
+   * `caseStatuses`, `caseMandates` and `holdings` reached GCS unchecked, and
+   * anything else a client sent was stored verbatim and handed back at
+   * hydration. A key with no schema is now dropped here, which means adding a
+   * store field and adding its schema are the same change.
+   */
+  const patch: Record<string, unknown> = {};
+  for (const key of MEMORY_SNAPSHOT_KEYS) {
+    const value = body[key];
+    if (value === undefined) continue;
+    const parsed = memoryPatchFieldSchemas[key].safeParse(value);
     if (!parsed.success) {
       return NextResponse.json({ error: `Memori tidak valid pada ${key}`, field: key, details: parsed.error.flatten() }, { status: 400 });
     }
-    // Skema tidak .strict(): kunci tak dikenal ter-strip; simpan hasil parse
-    // agar field yang dikenal justru lolos (schema extension di Task 1).
-    patch = { ...patch, [key]: parsed.data };
+    patch[key] = parsed.data;
   }
+  // Nothing recognisable in the body: writing would bump the object's
+  // generation to store a version stamp and nothing else, and would tell the
+  // client its memory was saved when none of it was.
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Tidak ada kunci memori yang dikenal" }, { status: 400 });
+  }
+  // Stamped so a stored object says which shape it is. Nothing reads it back
+  // today — `migrateMemorySnapshot` fills by key and is version-blind on
+  // purpose — but objects written from here on carry it, which is what makes a
+  // future shape change that cannot be inferred from the keys possible at all.
+  // Dropped again at hydration: it is not an allowlisted store key.
+  patch.version = MEMORY_SNAPSHOT_VERSION;
+
   try {
     const saved = await saveMemory(uid, patch);
     return withUidCookie(NextResponse.json({ data: saved }), uid);

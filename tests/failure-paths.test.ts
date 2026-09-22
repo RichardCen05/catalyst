@@ -329,7 +329,7 @@ describe("memory merge semantics (A2/A3)", () => {
     expect(written[0]).toMatchObject({ feedback: ["new"], concurrent: true });
   });
 
-  it("A3: known memory keys are shape-checked; unknown keys still pass through", async () => {
+  it("A3: known memory keys are shape-checked; unknown keys are dropped, not stored", async () => {
     const { objects } = useInMemoryGcs({});
     const { POST } = await import("@/app/api/memory/route");
 
@@ -338,13 +338,17 @@ describe("memory merge semantics (A2/A3)", () => {
     expect(malformed.status).toBe(400);
     expect(objects.get(memoryPath(UID_A))).toBeUndefined();
 
-    // Keys the schema does not know are still written unvalidated. That is the
-    // residual risk the report keeps as P2: the store may add a field at any
-    // time, and rejecting unknown keys would stop sync for every older client.
-    const passthrough = { weirdKey: "z".repeat(10_000), nested: { deep: { deeper: [1, 2, 3] } } };
-    const response = await POST(memoryPost(passthrough, `catalyst_uid=${UID_A}`));
+    // A key with no schema is dropped rather than forwarded (P3). The write
+    // still succeeds — an older or newer client is not cut off from sync — but
+    // nothing unvalidated reaches the bucket, and so nothing unvalidated can
+    // come back at hydration.
+    const unknown = { weirdKey: "z".repeat(10_000), nested: { deep: { deeper: [1, 2, 3] } } };
+    const response = await POST(memoryPost({ ...unknown, caseStatuses: { ANTM: "open" } }, `catalyst_uid=${UID_A}`));
     expect(response.status).toBe(200);
-    expect(objects.get(memoryPath(UID_A))?.data).toMatchObject(passthrough);
+    const stored = objects.get(memoryPath(UID_A))?.data as Record<string, unknown>;
+    expect(stored.weirdKey).toBeUndefined();
+    expect(stored.nested).toBeUndefined();
+    expect(stored.caseStatuses).toEqual({ ANTM: "open" });
   });
 });
 
@@ -380,10 +384,10 @@ describe("memory sync failure injection (G6/G10/G11)", () => {
     const { objects } = useInMemoryGcs({});
     const { POST } = await import("@/app/api/memory/route");
     for (let i = 0; i < 20; i++) {
-      const response = await POST(memoryPost({ counter: i }, `catalyst_uid=${UID_A}`));
+      const response = await POST(memoryPost({ caseMandates: { ANTM: `suntingan ${i}` } }, `catalyst_uid=${UID_A}`));
       expect(response.status).toBe(200);
     }
-    expect(objects.get(memoryPath(UID_A))?.data).toMatchObject({ counter: 19 });
+    expect(objects.get(memoryPath(UID_A))?.data).toMatchObject({ caseMandates: { ANTM: "suntingan 19" } });
     // Client side, components/memory-sync.tsx:49-66 clears the pending timer on
     // every store change and reads localStorage INSIDE the timer callback, so
     // 20 edits in 2s produce one POST carrying the latest snapshot, never a
@@ -414,23 +418,23 @@ describe("memory concurrency and identity (G12-G16)", () => {
     const { objects } = useInMemoryGcs({ [memoryPath(UID_A)]: { profile: { id: "p0" } } });
     const { POST } = await import("@/app/api/memory/route");
     const [first, second] = await Promise.all([
-      POST(memoryPost({ tabA: [1, 2, 3] }, `catalyst_uid=${UID_A}`)),
-      POST(memoryPost({ tabB: [4, 5, 6] }, `catalyst_uid=${UID_A}`)),
+      POST(memoryPost({ caseStatuses: { ANTM: "open" } }, `catalyst_uid=${UID_A}`)),
+      POST(memoryPost({ holdings: { BBRI: { shares: 100, avgCost: 4500 } } }, `catalyst_uid=${UID_A}`)),
     ]);
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     const stored = objects.get(memoryPath(UID_A))?.data as Record<string, unknown>;
-    expect(stored).toMatchObject({ tabA: [1, 2, 3], tabB: [4, 5, 6] });
+    expect(stored).toMatchObject({ caseStatuses: { ANTM: "open" }, holdings: { BBRI: { shares: 100, avgCost: 4500 } } });
   });
 
   it("G13: two tabs, different full states — deterministic last-writer-wins", async () => {
     const { objects } = useInMemoryGcs({});
     const { POST } = await import("@/app/api/memory/route");
-    await POST(memoryPost({ profile: { ...demoProfiles[0], name: "Tab A" }, counter: 1 }, `catalyst_uid=${UID_A}`));
-    await POST(memoryPost({ profile: { ...demoProfiles[0], name: "Tab B" }, counter: 2 }, `catalyst_uid=${UID_A}`));
-    const stored = objects.get(memoryPath(UID_A))?.data as { profile: { name: string }; counter: number };
+    await POST(memoryPost({ profile: { ...demoProfiles[0], name: "Tab A" }, caseMandates: { ANTM: "tab A" } }, `catalyst_uid=${UID_A}`));
+    await POST(memoryPost({ profile: { ...demoProfiles[0], name: "Tab B" }, caseMandates: { ANTM: "tab B" } }, `catalyst_uid=${UID_A}`));
+    const stored = objects.get(memoryPath(UID_A))?.data as { profile: { name: string }; caseMandates: Record<string, string> };
     expect(stored.profile.name).toBe("Tab B");
-    expect(stored.counter).toBe(2);
+    expect(stored.caseMandates.ANTM).toBe("tab B");
   });
 
   it("G14: cookie cleared mid-session mints a NEW uid — old GCS memory orphans silently", async () => {
@@ -452,9 +456,9 @@ describe("memory concurrency and identity (G12-G16)", () => {
     const { GET, POST } = await import("@/app/api/memory/route");
     const body = await (await GET(new Request("http://localhost/api/memory", { headers: { cookie: `catalyst_uid=${UID_B}` } }))).json();
     expect(body).toEqual({ data: {} });
-    await POST(memoryPost({ injected: true }, `catalyst_uid=${UID_B}`));
+    await POST(memoryPost({ caseStatuses: { ANTM: "closed" } }, `catalyst_uid=${UID_B}`));
     expect(objects.get(memoryPath(UID_A))?.data).toMatchObject({ profile: { id: "real" } });
-    expect(objects.get(memoryPath(UID_B))?.data).toMatchObject({ injected: true });
+    expect(objects.get(memoryPath(UID_B))?.data).toMatchObject({ caseStatuses: { ANTM: "closed" } });
   });
 
   it("G16: duplicate catalyst_uid entries — the regex picks the FIRST match", async () => {

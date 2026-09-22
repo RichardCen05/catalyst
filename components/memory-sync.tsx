@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCatalystStore } from "@/lib/store";
+import { parseMemorySnapshot } from "@/lib/memory/snapshot";
 import { apiUrl } from "@/lib/api-base";
 
 const STORAGE_KEY = "catalyst:v1";
@@ -28,11 +29,28 @@ export function MemorySync() {
     let cancelled = false;
     fetch(apiUrl("/api/memory"))
       .then((response) => response.json())
-      .then((body: { data?: { profile?: { hasOnboarded?: boolean } } }) => {
+      .then((body: { data?: unknown }) => {
         if (cancelled || hydratedRemote.current) return;
-        const remote = body.data;
+        /**
+         * Migrated and checked before anything reaches the store.
+         *
+         * `setState(remote)` used to put the bucket's bytes straight into the
+         * store: an object written by an older build kept its old shape, and a
+         * wrong-shaped key became wrong-shaped state. The parser runs the same
+         * migration `persist` runs and validates every key; one bad key
+         * discards the whole snapshot rather than hydrating half of it, and
+         * the reader keeps the local state they already had.
+         */
+        const remote = parseMemorySnapshot(body.data);
+        if (!remote) {
+          if (body.data && Object.keys(body.data).length > 0) {
+            console.warn("[memory] backup snapshot rejected; local state kept");
+          }
+          return;
+        }
+        const profile = remote.profile as { hasOnboarded?: boolean } | undefined;
         const local = useCatalystStore.getState();
-        if (remote?.profile?.hasOnboarded && !local.profile.hasOnboarded) {
+        if (profile?.hasOnboarded && !local.profile.hasOnboarded) {
           hydratedRemote.current = true;
           useCatalystStore.setState(remote as Partial<ReturnType<typeof useCatalystStore.getState>>);
         }

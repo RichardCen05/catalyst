@@ -60,6 +60,14 @@ export const DEFAULT_THRESHOLDS = {
   /** Batas teks bukti yang masuk prompt, dalam karakter. Nilai inilah yang
    *  menentukan biaya token masuk per pertanyaan. */
   retrievalContextCharCap: 6000,
+  /** Batas ukuran satu patch memori yang diterima `/api/memory`, dalam byte.
+   *  Objek memori dibaca dan ditulis ulang utuh pada setiap sinkronisasi, dan
+   *  `GCS_REQUEST_TIMEOUT_MS` 8 detik berlaku untuk keduanya — objek yang
+   *  membengkak membuat memori seorang pembaca "unavailable" secara permanen,
+   *  bukan lambat. Angka ini jauh di atas snapshot mana pun yang dihasilkan
+   *  store hari ini dan jauh di bawah ukuran yang membuat satu round-trip
+   *  melewati batas waktu. */
+  memoryPatchMaxBytes: 262144,
   /** Giliran percakapan terakhir yang dikirim ke model. Dipakai dua kali:
    *  panel memotong di angka ini sebelum mengirim, dan skema permintaan
    *  menolak di angka yang sama. Dulu skema memakai literal 12, jadi panel
@@ -162,6 +170,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   // karakter masuk prompt, berapa giliran diingat, berapa entri disimpan.
   retrievalTopK: "convention",
   retrievalContextCharCap: "convention",
+  memoryPatchMaxBytes: "convention",
   copilotHistoryTurns: "convention",
   copilotHistorySymbols: "convention",
   copilotHistoryTurnChars: "convention",
@@ -245,6 +254,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     retrievalScopeBoost: DEFAULT_THRESHOLDS.retrievalScopeBoost,
     retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
     retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
+    memoryPatchMaxBytes: DEFAULT_THRESHOLDS.memoryPatchMaxBytes,
     copilotHistoryTurns: DEFAULT_THRESHOLDS.copilotHistoryTurns,
     copilotHistorySymbols: DEFAULT_THRESHOLDS.copilotHistorySymbols,
     copilotHistoryTurnChars: DEFAULT_THRESHOLDS.copilotHistoryTurnChars,

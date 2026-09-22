@@ -210,7 +210,10 @@ describe("memory transport failure injection (G1-G5)", () => {
       new Request("http://localhost/api/memory", {
         method: "POST",
         headers: { "Content-Type": "application/json", cookie: `catalyst_uid=${UID_A}` },
-        body: JSON.stringify({ feedback: [1] }),
+        // Muatan yang sah menurut skema: yang diuji di sini adalah jalur
+        // kegagalan GCS, dan sejak allowlist keras berlaku, body yang
+        // berbentuk salah ditolak 400 sebelum sampai ke sana.
+        body: JSON.stringify({ caseStatuses: {} }),
       }),
     );
     expect(response.status).toBe(200);
@@ -228,7 +231,10 @@ describe("memory transport failure injection (G1-G5)", () => {
       new Request("http://localhost/api/memory", {
         method: "POST",
         headers: { "Content-Type": "application/json", cookie: `catalyst_uid=${UID_A}` },
-        body: JSON.stringify({ feedback: [1] }),
+        // Muatan yang sah menurut skema: yang diuji di sini adalah jalur
+        // kegagalan GCS, dan sejak allowlist keras berlaku, body yang
+        // berbentuk salah ditolak 400 sebelum sampai ke sana.
+        body: JSON.stringify({ caseStatuses: {} }),
       }),
     );
     expect(await response.json()).toEqual({ unavailable: true });
