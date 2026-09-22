@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, type ReactNode } from "react";
-import { ArrowRight, Check, ChevronDown, ExternalLink, Lightbulb } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ExternalLink, Lightbulb, Trash2, X } from "lucide-react";
 import { LearningLayers } from "@/components/learning-layers";
 import { PageHeader } from "@/components/page-header";
 import { TeachAgent } from "@/components/teach-agent";
+import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import {
   buildLearningSnapshot,
@@ -20,9 +21,11 @@ import {
   type LearningItem,
   type LearningStatus,
   type MemoryGroup,
+  type MemoryItem,
 } from "@/lib/learning";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode } from "@/lib/types";
+import { uiLabel } from "@/lib/ui-labels";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,11 +45,12 @@ import { cn } from "@/lib/utils";
  * headings are derived from the stored trace in lib/learning.ts.
  */
 
-/** The page's three sections, in the order a reader meets them. */
-type LearningSection = "ajaran" | "pasar" | "memori";
+/** The page's four sections, in the order a reader meets them. */
+type LearningSection = "ajaran" | "tinjauan" | "pasar" | "memori";
 
 const sections: Array<{ value: LearningSection; label: string }> = [
   { value: "ajaran", label: "Ajaran dan riwayat" },
+  { value: "tinjauan", label: "Tinjauan dan usulan" },
   { value: "pasar", label: "Belajar dari pasar" },
   { value: "memori", label: "Memori tersimpan" },
 ];
@@ -100,6 +104,20 @@ function dotClass(status: LearningStatus): string {
   return "bg-positive";
 }
 
+/** Berapa nilai yang terbuka sebelum sebuah golongan meminta dilipat. */
+const MEMORY_ROWS_SHOWN = 6;
+
+function MemoryRow({ item, showStatus }: { item: MemoryItem; showStatus: boolean }) {
+  return (
+    <li>
+      <Link href={item.href} className="flex items-start gap-2 rounded text-xs leading-5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <span className="min-w-0 flex-1">{item.detail}</span>
+        {showStatus ? <span className={cn("mt-0.5 shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(item.status))}>{statusText(item.status)}</span> : null}
+      </Link>
+    </li>
+  );
+}
+
 function chipClass(active: boolean): string {
   return cn(
     "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -116,6 +134,9 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
   const caseResolutions = useCatalystStore((state) => state.caseResolutions);
   const ruleProposals = useCatalystStore((state) => state.ruleProposals);
   const playbook = useCatalystStore((state) => state.playbook);
+  const setInsightStatus = useCatalystStore((state) => state.setInsightStatus);
+  const setRuleProposalStatus = useCatalystStore((state) => state.setRuleProposalStatus);
+  const removeInsight = useCatalystStore((state) => state.removeInsight);
   const snapshot = useMemo(
     () => buildLearningSnapshot({ feedback, preferences, insights, caseResolutions, ruleProposals, playbook }),
     [feedback, preferences, insights, caseResolutions, ruleProposals, playbook],
@@ -147,6 +168,12 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
     router.replace(query ? `/ai-learning?${query}` : "/ai-learning", { scroll: false });
   };
 
+  // Antrean yang menunggu keputusan pembaca: koreksi yang belum diperiksa dan
+  // usulan aturan yang belum diterima atau ditolak. Dihitung dari snapshot,
+  // bukan dijumlah ulang di sini, agar lencana tab dan angka di bagian
+  // Tinjauan tidak bisa berbeda.
+  const pendingCount = snapshot.summary.pendingCount;
+
   const counters = [
     { label: "sudah diajarkan", value: snapshot.summary.inputCount },
     { label: "menunggu diperiksa", value: snapshot.summary.pendingCount },
@@ -158,7 +185,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
       <PageHeader
         eyebrow="Memori personal"
         title="AI Learning"
-        description="Tiga bagian: apa yang Anda ajarkan dan akibatnya, apa yang Catalyst pelajari sendiri dari pasar, dan apa yang sedang disimpan."
+        description="Empat bagian: apa yang Anda ajarkan dan akibatnya, apa yang masih menunggu keputusan Anda, apa yang Catalyst pelajari sendiri dari pasar, dan apa yang sedang disimpan."
       />
 
       {/* Same tab strip as the case hub: one section on screen at a time, the
@@ -179,6 +206,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
               )}
             >
               {item.label}
+              {item.value === "tinjauan" && pendingCount ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{pendingCount}</span> : null}
             </Link>
           ))}
         </nav>
@@ -330,42 +358,159 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
       </Panel>
       </> : null}
 
+      {section === "tinjauan" ? <>
+      {/* Dua antrean yang menunggu keputusan pembaca, bukan tampilan ulang
+          memori: bagian Memori tersimpan menunjukkan apa yang sudah dipakai,
+          bagian ini menunjukkan apa yang belum diputuskan. Hasil kasus sendiri
+          sudah muncul sebagai baris di Ajaran dan riwayat, jadi tidak diulang
+          di sini. */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
+        <Panel className="overflow-hidden">
+          <PanelHeader eyebrow="Antrean pemeriksaan" title="Koreksi yang perlu diperiksa" />
+          {insights.length ? (
+            <div className="divide-y divide-border">
+              {insights.map((insight) => (
+                <article key={insight.id} className="p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-primary">{insight.symbol}</span>
+                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{insight.pillar ? uiLabel(insight.pillar) : "Umum"}</span>
+                    <span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(insight.status === "pending" ? "pending" : insight.status === "incorporated" ? "reviewed" : "dismissed"))}>
+                      {insight.status === "pending" ? "menunggu" : insight.status === "incorporated" ? "diperiksa" : "diabaikan"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6">{insight.note}</p>
+                  {insight.sourceUrl ? (
+                    <a href={insight.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                      Buka referensi pengguna<ExternalLink aria-hidden="true" className="size-3.5" />
+                    </a>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => setInsightStatus(insight.id, insight.status === "pending" ? "incorporated" : "pending")}>
+                      {insight.status === "pending" ? "Tandai sudah diperiksa" : "Kembalikan ke antrean"}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setInsightStatus(insight.id, "dismissed")}>Abaikan</Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeInsight(insight.id)} aria-label={`Hapus catatan ${insight.symbol}`} className="ml-auto text-danger">
+                      <Trash2 aria-hidden="true" className="size-4" />
+                    </Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-start gap-3 px-4 py-8 text-sm leading-6 text-muted-foreground sm:flex-row sm:items-center">
+              <Lightbulb aria-hidden="true" className="size-5 shrink-0 text-primary" />
+              <p className="max-w-2xl">Tidak ada koreksi yang menunggu pemeriksaan. Tulis satu kalimat di bagian Ajaran dan riwayat untuk membuka hipotesis baru.</p>
+              <Link href="/ai-learning" className="inline-flex min-h-9 shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline sm:ml-auto">
+                Buka kotak ajaran<ArrowRight aria-hidden="true" className="size-3.5" />
+              </Link>
+            </div>
+          )}
+        </Panel>
+
+        <Panel className="overflow-hidden">
+          <PanelHeader eyebrow="Usulan dari asisten" title="Usulan aturan" />
+          <p className="border-b border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Hasil kasus tidak otomatis mengubah aturan riset. Anda harus menerima atau menolak usulan.</p>
+          {ruleProposals.length ? (
+            <div className="divide-y divide-border">
+              {ruleProposals.map((proposal) => (
+                <article key={proposal.id} className="p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-primary">{proposal.symbol}</span>
+                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{proposal.kind === "materiality" ? "materialitas" : "kondisi pembatal"}</span>
+                    <span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(proposal.status === "accepted" ? "accepted" : proposal.status === "rejected" ? "rejected" : "pending"))}>
+                      {statusText(proposal.status === "accepted" ? "accepted" : proposal.status === "rejected" ? "rejected" : "pending")}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-6">{proposal.rule}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">Bukti: {proposal.evidence}</p>
+                  {proposal.status === "pending" ? (
+                    <div className="mt-3 flex gap-2">
+                      <Button size="sm" onClick={() => setRuleProposalStatus(proposal.id, "accepted")}><Check aria-hidden="true" className="size-3.5" />Terima aturan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setRuleProposalStatus(proposal.id, "rejected")}><X aria-hidden="true" className="size-3.5" />Tolak</Button>
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="p-4 text-sm leading-6 text-muted-foreground">Tutup kasus dengan pelajaran yang dapat dipakai ulang. Catalyst hanya akan mengusulkan aturan, dan usulannya menunggu di sini.</p>
+          )}
+        </Panel>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link href="/cases" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka kasus riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka aturan riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+      </div>
+      </> : null}
+
       {section === "pasar" ? <div>{predictionSlot}</div> : null}
 
       {section === "memori" ? <>
-      <Panel className="overflow-hidden">
-        <PanelHeader eyebrow="Rincian" title="Apa yang sedang disimpan" />
-        <div className="p-4">
-            <div className="mb-4 flex flex-wrap gap-2">
-              <Link href="/cases?view=audit" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Kelola ajaran dan usulan<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-              <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Edit aturan eksplisit<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              {memoryGroups.map((group) => {
-                const items = snapshot.memories.filter((item) => item.group === group.key);
-                return (
-                  <Panel key={group.key} aria-labelledby={`memory-${group.key}-title`} className="overflow-hidden">
-                    <PanelHeader titleId={`memory-${group.key}-title`} eyebrow={group.eyebrow} title={group.title} />
-                    {items.length ? (
-                      <div className="divide-y divide-border">
-                        {items.map((item) => (
-                          <Link key={item.id} href={item.href} className="block px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-medium">{item.label}</span>
-                              <span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(item.status))}>{statusText(item.status)}</span>
-                            </div>
-                            <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.detail}</p>
-                          </Link>
-                        ))}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Link href="/ai-learning?section=tinjauan" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Kelola ajaran dan usulan<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Edit aturan eksplisit<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+      </div>
+
+      {/* Satu panel per jenis memori, bertumpuk selebar halaman.
+          Versi sebelumnya menjejerkan empat panel dalam satu baris: tiga di
+          antaranya kosong sementara yang keempat memanjang tiga layar, dan
+          barisnya berakhir compang-camping.
+
+          Di dalam panel, baris disatukan menurut labelnya. Registry memori
+          memberi label yang sama kepada setiap nilai dalam satu golongan
+          ("Eksposur yang diketahui" muncul sekali per emiten), jadi tanpa ini
+          pembaca melihat judul yang sama tercetak enam kali berturut-turut. */}
+      <div className="space-y-4">
+        {memoryGroups.map((group) => {
+          const items = snapshot.memories.filter((item) => item.group === group.key);
+          const byLabel = new Map<string, MemoryItem[]>();
+          for (const item of items) byLabel.set(item.label, [...(byLabel.get(item.label) ?? []), item]);
+          // Lencana status hanya berguna saat ada yang berbeda; satu golongan
+          // yang seluruhnya "eksplisit" tidak perlu 38 lencana kembar.
+          const showStatus = new Set(items.map((item) => item.status)).size > 1;
+          return (
+            <Panel key={group.key} aria-labelledby={`memory-${group.key}-title`} className="overflow-hidden">
+              <PanelHeader
+                titleId={`memory-${group.key}-title`}
+                eyebrow={group.eyebrow}
+                title={group.title}
+                action={items.length ? <span className="shrink-0 self-center font-mono text-xs text-muted-foreground">{items.length} tersimpan</span> : undefined}
+              />
+              {items.length ? (
+                <div className="divide-y divide-border">
+                  {[...byLabel.entries()].map(([label, rows]) => (
+                    <div key={label} className="grid gap-x-4 gap-y-1 px-4 py-3 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+                      <p className="text-sm font-medium">
+                        {label}
+                        {rows.length > 1 ? <span className="ml-2 font-mono text-[10px] text-muted-foreground">{rows.length}</span> : null}
+                      </p>
+                      <div className="min-w-0">
+                        <ul className="space-y-1">
+                          {rows.slice(0, MEMORY_ROWS_SHOWN).map((item) => <MemoryRow key={item.id} item={item} showStatus={showStatus} />)}
+                        </ul>
+                        {rows.length > MEMORY_ROWS_SHOWN ? (
+                          <details className="group mt-1">
+                            <summary className="min-h-8 cursor-pointer list-none text-xs font-medium text-primary">
+                              <span className="group-open:hidden">Lihat {rows.length - MEMORY_ROWS_SHOWN} lainnya</span>
+                              <span className="hidden group-open:inline">Sembunyikan</span>
+                            </summary>
+                            <ul className="mt-1 space-y-1">
+                              {rows.slice(MEMORY_ROWS_SHOWN).map((item) => <MemoryRow key={item.id} item={item} showStatus={showStatus} />)}
+                            </ul>
+                          </details>
+                        ) : null}
                       </div>
-                    ) : <p className="p-4 text-sm leading-6 text-muted-foreground">{group.empty}</p>}
-                  </Panel>
-                );
-              })}
-            </div>
-            <p className="mt-4 rounded-[10px] border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
-        </div>
-      </Panel>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="p-4 text-sm leading-6 text-muted-foreground">{group.empty}</p>}
+            </Panel>
+          );
+        })}
+      </div>
+
+      <p className="mt-4 rounded-[10px] border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
       </> : null}
     </div>
   );

@@ -52,7 +52,7 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await resolution.getByLabel("Asumsi yang keliru").fill(`Asumsi keliru ${marker}.`);
   await resolution.getByLabel("Aturan yang dapat dipakai ulang").fill(marker);
   await resolution.getByRole("button", { name: "Simpan hasil dan tutup kasus" }).click();
-  await page.goto("/cases?view=audit");
+  await page.goto("/ai-learning?section=tinjauan");
   const proposal = page.locator("article", { hasText: marker }).first();
   await proposal.getByRole("button", { name: "Terima aturan" }).click();
   await page.goto("/ai-learning?filter=resolution");

@@ -297,7 +297,7 @@ function toStandaloneRuleItem(proposal: RuleProposal): LearningItem {
       { label: "Usulan aturan dibuat", detail: proposal.rule, state: "complete", at: proposal.createdAt },
       { label: copy.label, detail: copy.effect, state: proposal.status === "pending" ? "current" : "complete" },
     ],
-    href: "/cases?view=audit",
+    href: "/ai-learning?section=tinjauan",
   };
 }
 
@@ -326,8 +326,12 @@ function explicitMemory(playbook: InvestorResearchPlaybook): MemoryItem[] {
       id: `explicit-comparables-${symbol}`,
       group: "explicit",
       status: "explicit",
-      label: `Pembanding ${symbol}`,
-      detail: comparables.join(" · "),
+      // Satu label untuk seluruh emiten, bukan satu label per emiten: daftar
+      // memori mengelompokkan baris menurut labelnya, dan "Pembanding ANTM",
+      // "Pembanding BBCA", ... akan tampil sebagai delapan belas judul yang
+      // hanya berbeda empat huruf.
+      label: "Pembanding pilihan",
+      detail: `${symbol}: ${comparables.join(" · ")}`,
       href: "/playbook",
     });
   });
@@ -390,7 +394,7 @@ export function buildLearningSnapshot(input: LearningSnapshotInput): LearningSna
       status: "accepted" as const,
       label: `Aturan ${proposal.symbol}`,
       detail: proposal.rule,
-      href: "/cases?view=audit",
+      href: "/ai-learning?section=tinjauan",
     }));
   const explicit = explicitMemory(input.playbook);
   const memories = [...feedbackMemories, ...insightMemories, ...ruleMemories, ...explicit];

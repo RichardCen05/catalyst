@@ -1,4 +1,5 @@
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { CalibrationChart, VerdictChart, type CalibrationDatum, type VerdictDatum } from "@/components/prediction-charts";
 import { CALIBRATION_DIMENSION_LABELS, MIN_SAMPLE, type CalibrationBucket, type CalibrationDimension, type CalibrationReport } from "@/lib/agent/calibration";
 import {
   PREDICTION_METRIC_LABELS,
@@ -39,6 +40,18 @@ const VERDICT_TONE: Record<PredictionVerdict, string> = {
   void: "border-border bg-muted/50 text-muted-foreground",
 };
 
+const VERDICT_CHART_TONE: Record<PredictionVerdict, VerdictDatum["tone"]> = {
+  hit: "positive",
+  early: "attention",
+  late: "attention",
+  miss: "danger",
+  pending: "muted",
+  void: "muted",
+};
+
+/** Vonis yang layak masuk grafik sebaran: yang sudah punya jawaban. */
+const GRADED_VERDICTS: PredictionVerdict[] = ["hit", "early", "late", "miss"];
+
 const DIMENSION_ORDER: CalibrationDimension[] = ["eventCategory", "relevanceBand", "sourceType", "selection", "metric"];
 
 const DIMENSION_NOTES: Record<CalibrationDimension, string> = {
@@ -73,12 +86,7 @@ function BucketRow({ bucket }: { bucket: CalibrationBucket }) {
       <p className="min-w-0 text-sm">{bucket.label}</p>
 
       {bucket.sufficient ? (
-        <div className="flex items-center gap-2">
-          <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <span className="block h-full rounded-full bg-positive" style={{ width: `${Math.round((bucket.hitRate ?? 0) * 100)}%` }} />
-          </span>
-          <span className="w-9 shrink-0 text-right font-mono text-xs tabular-nums text-positive">{percent(bucket.hitRate)}</span>
-        </div>
+        <span className="font-mono text-xs tabular-nums text-positive">{percent(bucket.hitRate)} tepat waktu</span>
       ) : (
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">belum cukup bukti</span>
       )}
@@ -92,6 +100,30 @@ function BucketRow({ bucket }: { bucket: CalibrationBucket }) {
     </div>
   );
 }
+
+/** Satu klaim, satu baris — dipakai baik di daftar ringkas maupun di lipatannya. */
+function ClaimRow({ row }: { row: { claim: PredictionClaim; outcome: PredictionOutcome } }) {
+  const { claim, outcome } = row;
+  return (
+    <li className="grid gap-x-4 gap-y-1.5 px-4 py-3 md:grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] md:items-baseline">
+      <span className="flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[11px] font-semibold text-primary">{claim.symbol}</span>
+        <VerdictChip verdict={outcome.verdict} />
+      </span>
+      <span className="min-w-0 text-sm leading-6">
+        {PREDICTION_METRIC_LABELS[claim.metric]}
+        {claim.shadow ? <span className="ml-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">kalah seleksi</span> : null}
+      </span>
+      <span className="min-w-0 text-xs leading-5 text-muted-foreground">{outcome.note}</span>
+      <span className="min-w-0 font-mono text-[10px] text-muted-foreground">
+        {claim.issuedAt} · {claim.windowSessions[0]}–{claim.windowSessions[1]} sesi · {claim.threshold}
+      </span>
+    </li>
+  );
+}
+
+/** Berapa vonis yang terbuka sebelum pembaca meminta sisanya. */
+const VISIBLE_CLAIMS = 4;
 
 export function PredictionPanel({
   claims,
@@ -110,12 +142,29 @@ export function PredictionPanel({
     .sort((a, b) => b.claim.issuedAt.localeCompare(a.claim.issuedAt))
     .slice(0, 10);
 
+  const visibleGraded = graded.slice(0, VISIBLE_CLAIMS);
+  const restGraded = graded.slice(VISIBLE_CLAIMS);
+
   const tiles = [
     { label: "Klaim dibuat", value: report.summary.claims, detail: "pernyataan yang bisa meleset" },
     { label: "Sudah dinilai", value: report.summary.graded, detail: "jendelanya sudah penuh" },
     { label: "Masih menunggu", value: report.summary.pending, detail: "rekaman belum cukup panjang" },
     { label: "Kelompok cukup bukti", value: report.summary.sufficientBuckets, detail: `minimal ${MIN_SAMPLE} klaim tervonis` },
   ];
+
+  // Semua seri grafik diturunkan di sini, dari laporan yang sama yang mengisi
+  // tabel di bawahnya — bukan dihitung ulang di dalam komponen grafik.
+  const verdictCounts = outcomes.reduce((total, outcome) => {
+    total.set(outcome.verdict, (total.get(outcome.verdict) ?? 0) + 1);
+    return total;
+  }, new Map<PredictionVerdict, number>());
+  const verdictData: VerdictDatum[] = GRADED_VERDICTS
+    .filter((verdict) => (verdictCounts.get(verdict) ?? 0) > 0)
+    .map((verdict) => ({
+      label: PREDICTION_VERDICT_LABELS[verdict],
+      value: verdictCounts.get(verdict) ?? 0,
+      tone: VERDICT_CHART_TONE[verdict],
+    }));
 
   const dimensions = DIMENSION_ORDER
     .map((dimension) => ({
@@ -124,17 +173,71 @@ export function PredictionPanel({
     }))
     .filter((entry) => entry.buckets.length);
 
+  const calibrationData: CalibrationDatum[] = dimensions
+    .flatMap(({ dimension, buckets }) => buckets
+      .filter((bucket) => bucket.sufficient)
+      .map((bucket) => ({
+        label: bucket.label,
+        dimension: CALIBRATION_DIMENSION_LABELS[dimension],
+        hitRate: Math.round((bucket.hitRate ?? 0) * 100),
+        occurrenceRate: Math.round((bucket.occurrenceRate ?? 0) * 100),
+        n: bucket.n,
+      })))
+    .sort((first, second) => second.hitRate - first.hitRate);
+
+  const bucketCount = dimensions.reduce((total, entry) => total + entry.buckets.length, 0);
+  const insufficientCount = bucketCount - calibrationData.length;
+
+  const gradedShare = report.summary.claims ? report.summary.graded / report.summary.claims : 0;
+
   return (
     <section aria-label="Belajar dari pasar">
-      <section className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan prediksi">
-        {tiles.map((tile) => (
-          <Panel key={tile.label} className="p-4">
-            <p className="font-mono text-2xl font-semibold tabular-nums">{tile.value}</p>
-            <p className="mt-1 text-sm font-medium">{tile.label}</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{tile.detail}</p>
-          </Panel>
-        ))}
-      </section>
+      {/* Angka ringkasan dan batangnya satu panel: keduanya menjawab
+          pertanyaan yang sama, dan dipisah membuat panel kiri berakhir
+          setengah tinggi grafik di sebelahnya. */}
+      <div className="mb-4 grid items-stretch gap-4 lg:grid-cols-2">
+        <Panel className="overflow-hidden" aria-label="Ringkasan prediksi">
+          <PanelHeader eyebrow="Jendela penilaian" title="Berapa yang sudah bisa dinilai" />
+          <div className="p-4">
+            {/* Lebar batangnya adalah pangsa klaim yang jendelanya sudah
+                penuh, bukan lebar tetap yang kebetulan mirip. */}
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted" role="img" aria-label={`${report.summary.graded} dari ${report.summary.claims} klaim sudah dinilai`}>
+              <span className="block h-full bg-positive" style={{ width: `${Math.round(gradedShare * 100)}%` }} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+              <span className="inline-flex items-center gap-2">
+                <span aria-hidden="true" className="size-2 rounded-full bg-positive" />
+                <span className="font-mono tabular-nums">{report.summary.graded}</span> sudah dinilai
+              </span>
+              <span className="inline-flex items-center gap-2 text-muted-foreground">
+                <span aria-hidden="true" className="size-2 rounded-full bg-muted-foreground/60" />
+                <span className="font-mono tabular-nums">{report.summary.pending}</span> menunggu rekaman lebih panjang
+              </span>
+            </div>
+
+            <dl className="mt-4 grid gap-x-4 gap-y-3 border-t border-border pt-4 sm:grid-cols-2">
+              {tiles.map((tile) => (
+                <div key={tile.label}>
+                  <dt className="text-xs font-medium">
+                    <span className="mr-2 font-mono text-lg font-semibold tabular-nums">{tile.value}</span>
+                    {tile.label}
+                  </dt>
+                  <dd className="mt-0.5 text-xs leading-5 text-muted-foreground">{tile.detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </Panel>
+
+        <Panel className="overflow-hidden">
+          <PanelHeader eyebrow="Sebaran vonis" title="Hasil klaim yang sudah ditagih" />
+          {verdictData.length ? (
+            <VerdictChart data={verdictData} />
+          ) : (
+            <p className="p-4 text-sm leading-6 text-muted-foreground">Belum ada klaim yang jendelanya penuh.</p>
+          )}
+        </Panel>
+      </div>
 
       {/* Dua panel pendek disandingkan — keduanya habis dalam satu layar, jadi
           tidak ada kolom yang berjalan sendirian. */}
@@ -189,23 +292,19 @@ export function PredictionPanel({
               <span>Dicatat · jendela · ambang</span>
             </div>
             <ul className="divide-y divide-border">
-              {graded.map(({ claim, outcome }) => (
-                <li key={claim.id} className="grid gap-x-4 gap-y-1.5 px-4 py-3 md:grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] md:items-baseline">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] font-semibold text-primary">{claim.symbol}</span>
-                    <VerdictChip verdict={outcome.verdict} />
-                  </span>
-                  <span className="min-w-0 text-sm leading-6">
-                    {PREDICTION_METRIC_LABELS[claim.metric]}
-                    {claim.shadow ? <span className="ml-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">kalah seleksi</span> : null}
-                  </span>
-                  <span className="min-w-0 text-xs leading-5 text-muted-foreground">{outcome.note}</span>
-                  <span className="min-w-0 font-mono text-[10px] text-muted-foreground">
-                    {claim.issuedAt} · {claim.windowSessions[0]}–{claim.windowSessions[1]} sesi · {claim.threshold}
-                  </span>
-                </li>
-              ))}
+              {visibleGraded.map((row) => <ClaimRow key={row.claim.id} row={row} />)}
             </ul>
+            {restGraded.length ? (
+              <details className="group border-t border-border">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 text-xs font-medium text-primary hover:bg-muted/40">
+                  <span className="group-open:hidden">Lihat {restGraded.length} vonis lainnya</span>
+                  <span className="hidden group-open:inline">Sembunyikan {restGraded.length} vonis lainnya</span>
+                </summary>
+                <ul className="divide-y divide-border border-t border-border">
+                  {restGraded.map((row) => <ClaimRow key={row.claim.id} row={row} />)}
+                </ul>
+              </details>
+            ) : null}
           </>
         ) : (
           <p className="p-6 text-sm leading-6 text-muted-foreground">
@@ -217,24 +316,48 @@ export function PredictionPanel({
       <Panel className="overflow-hidden">
         <PanelHeader eyebrow="Kalibrasi" title="Di mana tebakannya tepat, di mana tidak" />
         <p className="border-b border-border px-4 py-3 text-xs leading-5 text-muted-foreground">
-          <strong className="text-foreground">Tepat</strong> berarti kondisinya terjadi di dalam jendela yang
-          diperkirakan. <strong className="text-foreground">Terjadi</strong> berarti kondisinya terjadi, kapan pun —
-          selisih keduanya adalah klaim yang benar arah tetapi salah waktu. Kelompok dengan kurang dari {MIN_SAMPLE}{" "}
-          klaim tervonis tidak menampilkan persentase sama sekali.
+          <strong className="text-foreground">Tepat waktu</strong> berarti kondisinya terjadi di dalam jendela yang
+          diperkirakan. <strong className="text-foreground">Terjadi, kapan pun</strong> mengabaikan waktunya — selisih
+          keduanya adalah klaim yang benar arah tetapi salah waktu. Kelompok dengan kurang dari {MIN_SAMPLE} klaim
+          tervonis tidak digambar dan tidak menampilkan persentase sama sekali.
         </p>
-        <div className="divide-y divide-border">
-          {dimensions.map(({ dimension, buckets }) => (
-            <section key={dimension} aria-label={CALIBRATION_DIMENSION_LABELS[dimension]}>
-              <div className="bg-background px-4 py-2.5">
-                <h3 className="text-sm font-semibold">{CALIBRATION_DIMENSION_LABELS[dimension]}</h3>
-                <p className="mt-0.5 max-w-3xl text-xs leading-5 text-muted-foreground">{DIMENSION_NOTES[dimension]}</p>
-              </div>
-              <div className="divide-y divide-border border-t border-border">
-                {buckets.map((bucket) => <BucketRow key={`${bucket.dimension}-${bucket.key}`} bucket={bucket} />)}
-              </div>
-            </section>
-          ))}
-        </div>
+
+        {calibrationData.length ? (
+          <div className="border-b border-border pt-4">
+            <div className="mb-1 flex flex-wrap gap-x-5 gap-y-1 px-4 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <span aria-hidden="true" className="size-2 rounded-sm bg-positive" />Tepat waktu
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span aria-hidden="true" className="size-2 rounded-sm bg-primary/45" />Terjadi, kapan pun
+              </span>
+            </div>
+            <CalibrationChart data={calibrationData} />
+          </div>
+        ) : null}
+        {/* Kelompok yang belum cukup bukti jumlahnya jauh lebih banyak daripada
+            yang sudah — belasan baris "belum cukup bukti" berderet menenggelamkan
+            tiga baris yang benar-benar punya angka. Mereka tetap ada, terlipat,
+            karena yang belum terjawab juga sebuah jawaban. */}
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 border-b border-border px-4 text-xs font-medium text-primary hover:bg-muted/40">
+            <span className="group-open:hidden">Lihat rincian {bucketCount} kelompok, termasuk {insufficientCount} yang belum cukup bukti</span>
+            <span className="hidden group-open:inline">Sembunyikan rincian per kelompok</span>
+          </summary>
+          <div className="divide-y divide-border">
+            {dimensions.map(({ dimension, buckets }) => (
+              <section key={dimension} aria-label={CALIBRATION_DIMENSION_LABELS[dimension]}>
+                <div className="bg-background px-4 py-2.5">
+                  <h3 className="text-sm font-semibold">{CALIBRATION_DIMENSION_LABELS[dimension]}</h3>
+                  <p className="mt-0.5 max-w-3xl text-xs leading-5 text-muted-foreground">{DIMENSION_NOTES[dimension]}</p>
+                </div>
+                <div className="divide-y divide-border border-t border-border">
+                  {buckets.map((bucket) => <BucketRow key={`${bucket.dimension}-${bucket.key}`} bucket={bucket} />)}
+                </div>
+              </section>
+            ))}
+          </div>
+        </details>
       </Panel>
     </section>
   );
