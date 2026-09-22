@@ -1,6 +1,7 @@
 # Deploy and operate Catalyst on GCP
 
-Every value in this file was read from the live project on **18 September 2026** with the
+Every value in this file was read from the live project on **18 September 2026**, and §1, §2 and
+§2b were re-read on **22 September 2026** after the redeploy that made OpenRouter live, with the
 `gcloud` commands quoted next to it. If a command below disagrees with what you see, trust the
 live project and fix this file in the same pull request.
 
@@ -15,8 +16,8 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00049-xj2`, deployed 2026-09-22, 100% of traffic. Source commit untracked (source deploys carry none); the image predates the provider switch — live logs on 2026-09-22 show Gemini AI Studio errors, so `LLM_PROVIDER` is set but unread | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
-| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:bfb77408…` | `gcloud run revisions describe` |
+| Serving revision | `catalyst-web-00054-gvr`, deployed 2026-09-22, 100% of traffic. Source commit untracked (source deploys carry none) — built from `b85b90f` on `feat/alief/wire-ui`. This image is the first one that reads `LLM_PROVIDER`: two live `/api/chat` calls returned 200 with no `llmFallbackNote`, and the revision's logs carry no AI Studio error | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
+| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:4a55412c…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
@@ -36,8 +37,6 @@ Plain environment variables:
 - `LLM_MODEL=nex-agi/nex-n2.5-mini:free`
 - `LLM_RATE_LIMIT_STRIKES=3`
 - `LLM_REASONING=off`
-- `GEMINI_MODEL=gemini-3.8-flash`
-- `GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite`
 - `COPILOT_RETRIEVAL=on`
 - `GCS_CACHE_BUCKET=katalis-recorded`
 
@@ -45,19 +44,18 @@ Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`, 
 `INTERNAL_CRON_SECRET`, `SECTORS_API_KEY`, `OPERATOR_TOKEN` (`gcloud secrets list` shows exactly
 these five).
 
-The revision sets the OpenRouter variables below, but the image predates `fc5a247`
-(`feat(llm): select the model provider by environment`), so nothing reads them and the
-effective provider is still Gemini. Verified 2026-09-22: live `llm-fallback` lines carry
-Gemini AI Studio errors (`ai.google.dev/gemini-api/docs/billing`), never OpenRouter ones.
-To actually run OpenRouter, redeploy from source containing `fc5a247` (current `HEAD`
-qualifies) with the §6 command — env alone cannot switch the provider on this image.
+The image on this revision contains `fc5a247` (`feat(llm): select the model provider by
+environment`), so the OpenRouter variables above are read and the effective provider is
+OpenRouter. Every earlier revision set the same variables on an image that predated that commit
+and silently kept calling Gemini, which is why an env-only change is not a provider change:
+`LLM_PROVIDER` is read by code, so switching it requires an image that contains the code.
+Verified 2026-09-22 on `catalyst-web-00054-gvr`: two live `/api/chat` calls returned 200 with no
+`llmFallbackNote`, and this revision's logs carry no AI Studio error.
 
-`GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are therefore live, not inert: they name the only
-models this image can call. After a redeploy from current source they become inert under
-`openai-compatible` (see `lib/agent/llm/models.ts`) and can be dropped from the command;
-the built-in Gemini defaults keep a rollback working without them. `GOOGLE_API_KEY` stays
-mounted either way — costless while unused, and a rollback without it needs a new secret
-version plus a new revision.
+`GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are inert under `openai-compatible` (see
+`lib/agent/llm/models.ts`) and are no longer set; the built-in Gemini defaults keep a rollback
+working without them. `GOOGLE_API_KEY` stays mounted either way — costless while unused, and a
+rollback without it needs a new secret version plus a new revision.
 
 Measured before the switch, over 40-request bursts against the real answer path,
 `nex-agi/nex-n2.5-mini:free` produced a verifier-approved answer 26 times out of 40, at p90
@@ -68,32 +66,30 @@ cost of the free tier and has not been compared against Gemini on the same harne
 `LLM_REASONING=off` is load-bearing, not cosmetic: without it the free reasoning model thinks
 before answering (measured 543–966 completion tokens, 6.6–18.2s per call), with it the same
 call costs 87–102 tokens and 1.3–2.5s. A revision without this variable pays the thinking tax
-on every chat answer. `LLM_MODEL_CHEAP` is intentionally unset in the §6 command: on current source, one model
-doing both jobs means `composeRetrieved` makes a single attempt instead of asking the same
-vendor twice (see `lib/agent/engine.ts`). The live image predates that skip and still attempts
-cheap-then-strong — both Gemini, both currently 429ing against the spend cap.
+on every chat answer. `LLM_MODEL_CHEAP` is intentionally unset in the §6 command: one model doing both jobs means
+`composeRetrieved` makes a single attempt instead of asking the same vendor twice (see
+`lib/agent/engine.ts`). The serving image carries that skip.
 
 `GCS_MEMORY_BUCKET` is not set. `lib/memory/gcs-memory.ts` falls back to `katalis-recorded`, so
 user memory is written there, not to the `catalyst-memory` bucket. The `catalyst-memory` bucket
 exists in `US-CENTRAL1` but is empty and unused; the design plan's `catalyst-recorded` bucket was
 never created.
 
-`GEMINI_MODEL` is the stronger model on the current image: every retrieved answer is
-composed on `GEMINI_MODEL_CHEAP` (`gemini-3.5-flash-lite`) with one retry on `GEMINI_MODEL`.
-After a redeploy from current source this paragraph inverts — one model
-(`LLM_MODEL`) does both jobs and `GEMINI_MODEL_CHEAP` is ignored — so do not read cost
-estimates here across a redeploy. Priced on Gemini at ~$16/month at 200 questions/day;
-unpriced on OpenRouter free tier (queue wait instead of money).
+`GEMINI_MODEL` and `GEMINI_MODEL_CHEAP` are no longer set on the live revision: under
+`openai-compatible` they are inert, and `lib/agent/llm/models.ts` carries defaults that keep a
+rollback working without them. One model (`LLM_MODEL`) now does both the draft and the retry.
+Unpriced on the OpenRouter free tier — the cost is queue wait, not money. The ~$16/month at 200
+questions/day figure applies to the Gemini variant only, so do not read it against this revision.
 
-Heads-up from the live logs (2026-09-22): the Gemini key's project has exceeded its monthly
-spending cap (`ai.studio/spend`), so model calls are currently answering 429 and the app is
-serving the deterministic fallback. Irrelevant once on OpenRouter; blocking if you ever roll
-back — raise the cap in AI Studio first.
+Heads-up for a rollback (measured 2026-09-22): the Gemini key's project had exceeded its monthly
+spending cap (`ai.studio/spend`), so model calls answered 429 and the app served the
+deterministic fallback. Irrelevant on OpenRouter; blocking the moment you switch back — raise the
+cap in AI Studio first.
 
 ## 2b. Switching model provider
 
-The live revision runs `openai-compatible` against OpenRouter. This section describes how the
-selection works and how to move it.
+The live revision runs `openai-compatible` against OpenRouter, on an image that reads the
+variable. This section describes how the selection works and how to move it.
 
 `LLM_PROVIDER` selects the provider in `lib/agent/llm/providers.ts`. Unset means `gemini`, so
 removing the variable is the rollback. The other value is `openai-compatible`:
