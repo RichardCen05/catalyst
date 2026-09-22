@@ -53,7 +53,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:ai-learning:batas-ai-learning",
     heading: "Batas AI Learning",
     view: "ai-learning",
-    labels: ["Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori."],
+    labels: ["Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar kasus di layar Kasus; jawaban asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback."],
     file: "app/ai-learning/learning-content.tsx",
   },
   {

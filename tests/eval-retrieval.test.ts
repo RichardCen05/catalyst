@@ -23,6 +23,7 @@ import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 
 const registry = companies.map((company) => company.symbol);
 const analysed = companies.filter((company) => coverageInfo[company.symbol]?.analyzed).map((company) => company.symbol);
+const unanalysed = companies.filter((company) => !coverageInfo[company.symbol]?.analyzed).map((company) => company.symbol);
 
 function profileWith(watchlist: SymbolCode[]): UserProfile {
   return { ...demoProfiles[0], watchlist, owned: [] };
@@ -209,5 +210,45 @@ describe("eval: metrik ini mengukur sesuatu", () => {
     expect(metrics.scopeRecall).toBeLessThan(1);
     expect(metrics.leakRate).toBeGreaterThan(0);
     expect(metrics.denominatorHonesty).toBeLessThan(1);
+  });
+});
+
+describe("eval: lapis pembelajaran tidak menyentuh jawaban asisten (P4)", () => {
+  it("urutan daftar mengikuti pantauan pembaca, apa pun feedbacknya", async () => {
+    // The decision recorded on /ai-learning: feedback orders the case list on
+    // the Kasus screen, and nothing else. The assistant names every watched
+    // issuer in watchlist order, so no row can be lifted or buried by a rating
+    // — and there is no reader feedback on the wire to do it with.
+    // A watchlist deliberately out of registry order, mixing issuers with a
+    // complete case and issuers without one.
+    const profile = profileWith([analysed[2], unanalysed[0], analysed[0]]);
+    const answer = await ask("kasus apa saja yang aktif", profile);
+    expect(new Set(symbolsIn(answer))).toEqual(new Set(profile.watchlist));
+
+    const open = profile.watchlist.filter((symbol) => coverageInfo[symbol]?.analyzed);
+    const incomplete = profile.watchlist.filter((symbol) => !coverageInfo[symbol]?.analyzed);
+    const openAt = open.map((symbol) => answer.text.indexOf(symbol));
+    // The reader's own order inside the complete cases, kept as typed.
+    expect(openAt).toEqual([...openAt].sort((first, second) => first - second));
+    // And the incomplete ones after them, named rather than dropped.
+    for (const symbol of incomplete) {
+      expect(answer.text.indexOf(symbol)).toBeGreaterThan(Math.max(...openAt));
+    }
+  });
+
+  it("permintaan tidak membawa feedback atau preferensi pembaca", async () => {
+    const { chatRequestSchema } = await import("@/lib/schemas");
+    const accepted = await import("@/lib/schemas").then(() => chatRequestSchema.safeParse({
+      question: "kasus apa saja yang aktif",
+      profile: READERS[0],
+      feedback: [{ id: "x", action: "useful", createdAt: new Date().toISOString() }],
+      preferences: [{ id: "y", label: "L", explanation: "E", source: "feedback", active: true }],
+    }));
+    expect(accepted.success).toBe(true);
+    // Accepted because the schema is not strict, and dropped because it is not
+    // a field: nothing downstream can read what was never parsed. This is the
+    // check that keeps choice B honest if someone adds the fields later.
+    expect(accepted.success && "feedback" in accepted.data).toBe(false);
+    expect(accepted.success && "preferences" in accepted.data).toBe(false);
   });
 });

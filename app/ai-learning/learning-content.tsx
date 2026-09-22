@@ -91,7 +91,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
 
       <section className="mb-4 flex gap-3 rounded-[12px] border border-primary/25 bg-primary/8 p-4 text-sm leading-6" aria-label="Batas AI Learning">
         <BrainCircuit aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-        <p>Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori.</p>
+        <p>Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar kasus di layar Kasus; jawaban asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback.</p>
       </section>
 
       <LearningLayers />

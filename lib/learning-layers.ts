@@ -32,8 +32,8 @@ export const LAYERS: Layer[] = [
     question: "Apa yang Anda pedulikan?",
     analogy: "Seperti barista langganan yang hafal pesanan Anda. Dia tidak jadi ahli kopi — dia hafal selera. Dan selera tidak bisa salah.",
     example: "Anda menandai kartu volume perbankan “kurang relevan” beberapa kali. Kasus serupa turun dari urutan atas.",
-    changes: "Urutan kasus dan panjang penjelasan.",
-    keeps: "Angka, sumber, dan kesimpulan analisis.",
+    changes: "Urutan daftar kasus di layar Kasus, dan panjang penjelasan.",
+    keeps: "Angka, sumber, dan kesimpulan analisis. Juga jawaban asisten: daftar yang disebutkannya mengikuti urutan pantauan Anda, tidak diurutkan ulang oleh feedback.",
   },
   {
     index: 2,
