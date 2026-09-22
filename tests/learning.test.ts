@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { POST as analyze } from "@/app/api/analyze/route";
 import { agentEngine } from "@/lib/agent/engine";
 import { demoProfiles } from "@/lib/data/fixtures";
-import { buildLearningSnapshot, feedbackRankDelta } from "@/lib/learning";
+import { buildLearningSnapshot, feedbackRankDelta, filterLearningItems, groupLearningByDay, learningFacets } from "@/lib/learning";
 import { useCatalystStore } from "@/lib/store";
 import type { CaseResolution, FeedbackEvent, InvestorResearchPlaybook, LearnedPreference, RuleProposal, UserInsight } from "@/lib/types";
 
@@ -105,6 +105,31 @@ describe("AI Learning view model", () => {
     expect(snapshot.items.find((item) => item.id === "feedback-legacy-feedback")?.status).toBe("active");
     expect(snapshot.items.find((item) => item.id.startsWith("resolution-"))?.status).toBe("stored");
     expect(snapshot.memories.some((item) => item.group === "insight")).toBe(false);
+  });
+
+  it("derives the symbol facets and day groups the timeline draws", () => {
+    const snapshot = buildLearningSnapshot({
+      feedback: [feedback, { ...feedback, id: "fb-2", symbol: "INCO", createdAt: "2026-09-19T02:00:00.000Z" }],
+      preferences: [preference],
+      insights: [insight],
+      caseResolutions: {},
+      ruleProposals: [],
+      playbook,
+    });
+
+    // Counted from the trace, never from a typed list: ANTM leads because it
+    // carries two entries, not because it was written first.
+    expect(learningFacets(snapshot.items)).toEqual([
+      { symbol: "ANTM", count: 2 },
+      { symbol: "INCO", count: 1 },
+    ]);
+    expect(filterLearningItems(snapshot.items, { kind: "all", symbol: "INCO" }).map((item) => item.symbol)).toEqual(["INCO"]);
+    expect(filterLearningItems(snapshot.items, { kind: "feedback", symbol: "ANTM" }).map((item) => item.id)).toEqual(["feedback-fb-1"]);
+
+    const days = groupLearningByDay(snapshot.items);
+    expect(days.length).toBe(2);
+    expect(days.flatMap((day) => day.items)).toEqual(snapshot.items);
+    expect(new Set(days.map((day) => day.key)).size).toBe(days.length);
   });
 
   it("uses only active feedback preferences for dashboard ranking", () => {

@@ -1,12 +1,15 @@
 /**
- * Bearer guard for the UI-facing mutations: `POST /api/web-watch` (accept or
- * dismiss a scraped candidate, which decides what the causal chain may show)
- * and `POST /api/settings/refresh` (flip the Sectors gate, spend credits).
+ * Bearer guard for `POST /api/settings/refresh` — flipping the Sectors gate
+ * and spending live credits.
  *
- * Both ran anonymous. The Cloud Run URL is public, so anyone who found it
- * could inject an event into the chain or switch live spending on, bounded
- * only by the daily credit budget. Reads stay open — the app has no sign-in
- * and the browser must still render the queue.
+ * It ran anonymous. The Cloud Run URL is public, so anyone who found it could
+ * switch live spending on, bounded only by the daily credit budget. Reads stay
+ * open — the app has no sign-in and the browser must still render its pages.
+ *
+ * Review of the web-watch queue is deliberately not guarded: accepting or
+ * dismissing a candidate spends nothing, and the gate there only stood between
+ * a reader and the queue. Money stays behind this bearer; editorial judgement
+ * does not.
  *
  * Same posture as `checkInternalAuth`, one token class lower:
  *
