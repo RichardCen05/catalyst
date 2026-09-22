@@ -466,6 +466,13 @@ export interface ChatAnswer {
   /** Set only by the clarify intent: the question as asked, so the reader's
    *  choice can re-send it with a symbol attached. */
   clarification?: { question: string; choices: SymbolCode[] };
+  /** Which retrieved entries this answer was written from, in the order the
+   *  prompt carried them. No panel renders it: it is what an audit and a test
+   *  read instead of judging an Indonesian sentence by eye. It does travel in
+   *  the response to the reader who asked, like `clarification.question`, so
+   *  it is not a place to put anything that reader may not see. Absent when
+   *  no retrieval ran, which is itself the fact worth reading. */
+  entryIds?: string[];
 }
 
 export interface CopilotContext {

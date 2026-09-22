@@ -1391,6 +1391,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       text: composed.text, refused: false, intent: "retrieved",
       hypotheses: openInsightTraces, citations: retrieved.citations,
       preferenceNote: personalizedNote(), relatedSymbols: retrieved.symbols,
+      entryIds: retrieved.entryIds,
       ...(composed.llmFallbackNote ? { llmFallbackNote: composed.llmFallbackNote } : {}),
     };
   }
