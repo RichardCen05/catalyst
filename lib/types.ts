@@ -442,7 +442,7 @@ export interface ChatRequest {
    *  Client-supplied text that reaches a prompt: bounded by the schema,
    *  filtered through `safeLanguage` at ingest, and never a source of
    *  figures. */
-  history?: Array<{ role: "user" | "assistant"; text: string }>;
+  history?: Array<{ role: "user" | "assistant"; text: string; symbols?: SymbolCode[] }>;
   /** The page the reader asked from. A ranking prior, never a filter. */
   view?: string;
 }

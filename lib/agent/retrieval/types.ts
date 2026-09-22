@@ -40,6 +40,11 @@ export type EntryKind =
 export interface HistoryTurn {
   role: "user" | "assistant";
   text: string;
+  /** The symbols an assistant turn put in front of the reader, so the next
+   *  turn's "yang satunya" has a list to point into. Client-supplied, so
+   *  every symbol is checked against the registry before it selects
+   *  anything, and none of them may ever become a figure. */
+  symbols?: SymbolCode[];
 }
 
 export interface RequestContext {

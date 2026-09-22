@@ -1,4 +1,4 @@
-import { normalizeQuery } from "@/lib/agent/query";
+import { expandEnclitics, normalizeQuery } from "@/lib/agent/query";
 import { CHROME_NAV } from "@/lib/data/chrome.generated";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
@@ -113,7 +113,10 @@ function termsOf(phrases: string[]): string[] {
     const normalized = normalizeQuery(phrase);
     if (!normalized) continue;
     out.add(normalized);
-    for (const word of normalized.split(" ")) {
+    // The stem as well as the written word, for the same reason the question
+    // side keeps both: a label spelled with an enclitic must still be
+    // reachable from the plain word, and the plain word from the label.
+    for (const word of expandEnclitics(normalized.split(" "))) {
       if (word.length >= 3) out.add(word);
     }
   }

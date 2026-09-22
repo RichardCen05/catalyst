@@ -45,6 +45,8 @@ import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
+import { resolveFollowUp, type FollowUp } from "@/lib/agent/retrieval/follow-up";
+import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
@@ -1169,7 +1171,7 @@ async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
  * punishment rather than protection, and dropping the turn removes it from
  * the prompt just as completely.
  */
-function safeHistory(history: ChatRequest["history"]): Array<{ role: "user" | "assistant"; text: string }> {
+function safeHistory(history: ChatRequest["history"]): HistoryTurn[] {
   return (history ?? []).filter((turn) => !safeLanguage(turn.text).refused);
 }
 
@@ -1180,12 +1182,16 @@ function safeHistory(history: ChatRequest["history"]): Array<{ role: "user" | "a
  * router's corrected precedence ships independently of the retrieval layer and
  * can be verified on its own.
  */
-async function retrievalFor(request: ChatRequest): Promise<RetrievedContext | null> {
+async function retrievalFor(request: ChatRequest, followUp: FollowUp): Promise<RetrievedContext | null> {
   if (process.env.COPILOT_RETRIEVAL !== "on") return null;
   const view = VIEW_IDS.includes(request.view as ViewId) ? (request.view as ViewId) : undefined;
-  return retrieveContext(request.question, {
+  // The resolved question, not the raw one: "yang satunya?" carries no word
+  // any entry holds, so scoring it as typed reaches nothing. The symbol the
+  // pointer resolved to selects entries exactly the way a symbol the reader
+  // typed would; it never becomes material.
+  return retrieveContext(followUp.question, {
     profile: request.profile,
-    contextSymbol: request.contextSymbol,
+    contextSymbol: followUp.symbol ?? request.contextSymbol,
     view,
     history: safeHistory(request.history),
   }).catch((error) => {
@@ -1220,7 +1226,13 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // impact path.
   const namedFigure = analysis ? matchFigure(answerableFigures(analysis), request.question, extractNumerals) : undefined;
   const event = eventFromQuestion(request.question);
-  const retrieved = await retrievalFor(request);
+  // What the question points at, settled before anything is scored. A pointer
+  // that found nothing answers with the menu rather than guessing: naming the
+  // wrong issuer confidently is worse than saying which one is meant.
+  const followUp = resolveFollowUp(request.question, safeHistory(request.history));
+  const retrieved = followUp.anaphoric && !followUp.resolved
+    ? null
+    : await retrievalFor(request, followUp);
 
   // Which handler answers is now a comparison, not a sequence.
   //
@@ -1386,7 +1398,12 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   }
 
   if (winner.id === "retrieved" && retrieved) {
-    const composed = await composeRetrieved(request.question, retrieved, !(request.history ?? []).length);
+    // Cacheable once the question stands on its own. The old rule refused
+    // every follow-up, which was right while nothing resolved pointers and
+    // wrong the moment something did: two conversations that arrive at the
+    // same resolved question over the same material have the same answer.
+    // A pointer that failed never reaches here, so it is never written.
+    const composed = await composeRetrieved(followUp.question, retrieved, !followUp.anaphoric || followUp.resolved);
     return {
       text: composed.text, refused: false, intent: "retrieved",
       hypotheses: openInsightTraces, citations: retrieved.citations,

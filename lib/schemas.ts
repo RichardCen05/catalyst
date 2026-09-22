@@ -151,6 +151,11 @@ export const refreshRunSchema = z.object({
 const historyTurnSchema = z.object({
   role: z.enum(["user", "assistant"]),
   text: z.string().trim().min(1).transform((value) => value.slice(0, DEFAULT_THRESHOLDS.copilotHistoryTurnChars)),
+  /** The symbols an assistant turn put on screen, so "yang satunya" has a
+   *  list to point into. Shape-checked here; membership is checked again
+   *  against the registry before any of them selects an entry, because a
+   *  well-formed code is not the same thing as a recorded one. */
+  symbols: z.array(symbolSchema).max(DEFAULT_THRESHOLDS.copilotHistorySymbols).optional(),
 });
 
 export const chatRequestSchema = z.object({
@@ -165,6 +170,9 @@ export const chatRequestSchema = z.object({
   userInsights: z.array(userInsightSchema).max(100).optional(),
   playbook: playbookSchema.optional(),
   caseMandate: z.string().max(600).optional(),
-  history: z.array(historyTurnSchema).max(12).optional(),
+  // The same bound the panel trims to. A literal 12 here meant the panel
+  // sent six while the route accepted twelve, and nothing could disagree
+  // loudly enough to fail.
+  history: z.array(historyTurnSchema).max(DEFAULT_THRESHOLDS.copilotHistoryTurns).optional(),
   view: z.enum(VIEW_IDS as unknown as [string, ...string[]]).optional(),
 });

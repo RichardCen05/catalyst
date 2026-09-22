@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { agentEngine } from "@/lib/agent/engine";
 import { chatRequestSchema } from "@/lib/schemas";
 import { ensureOverlay } from "@/lib/web-watch/queue";
-import type { InvestorResearchPlaybook, SymbolCode, UserInsight, UserProfile } from "@/lib/types";
+import type { ChatRequest, InvestorResearchPlaybook, SymbolCode, UserInsight, UserProfile } from "@/lib/types";
 
 /**
  * Three outcomes, three statuses.
@@ -34,7 +34,10 @@ export async function POST(request: Request) {
       userInsights: parsed.data.userInsights as UserInsight[] | undefined,
       playbook: parsed.data.playbook as InvestorResearchPlaybook | undefined,
       caseMandate: parsed.data.caseMandate,
-      history: parsed.data.history,
+      // Cast like every other field parsed here: the schema checks the shape,
+      // and the engine checks each symbol against the registry before it
+      // selects anything.
+      history: parsed.data.history as ChatRequest["history"],
       view: parsed.data.view,
     });
     return NextResponse.json({ answer, mode: "recorded" });

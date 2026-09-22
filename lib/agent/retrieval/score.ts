@@ -1,5 +1,5 @@
 import { getCorpus, type CorpusIndex } from "@/lib/agent/retrieval/corpus";
-import { findSymbolsRobust, normalizeQuery } from "@/lib/agent/query";
+import { expandEnclitics, findSymbolsRobust, normalizeQuery } from "@/lib/agent/query";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { companies } from "@/lib/data/fixtures";
 import type { CorpusEntry, RequestContext } from "@/lib/agent/retrieval/types";
@@ -66,8 +66,11 @@ export function scoreCorpus(
   index: CorpusIndex = getCorpus(),
 ): ScoredEntry[] {
   const normalized = normalizeQuery(question);
-  const words = normalized
-    .split(" ")
+  // Both the written form and its stem. A reader who owns a thing says so —
+  // "pantauanku", "kasusku" — and neither word is in any index, so the
+  // question reached nothing at all. The original stays, so a page that
+  // spells the long form still matches it whole.
+  const words = expandEnclitics(normalized.split(" "))
     .filter((word) => word.length >= 3 && !QUESTION_WORDS.has(word));
   if (!words.length) return [];
 

@@ -53,8 +53,22 @@ export const DEFAULT_THRESHOLDS = {
   /** Batas teks bukti yang masuk prompt, dalam karakter. Nilai inilah yang
    *  menentukan biaya token masuk per pertanyaan. */
   retrievalContextCharCap: 6000,
-  /** Giliran percakapan terakhir yang dikirim ke model. */
+  /** Giliran percakapan terakhir yang dikirim ke model. Dipakai dua kali:
+   *  panel memotong di angka ini sebelum mengirim, dan skema permintaan
+   *  menolak di angka yang sama. Dulu skema memakai literal 12, jadi panel
+   *  mengirim 6 sementara server menerima 12 dan tidak ada yang gagal. */
   copilotHistoryTurns: 6,
+  /** Berapa simbol yang boleh dibawa satu giliran riwayat. Satu jawaban
+   *  daftar menyebut paling banyak satu watchlist; angka ini memberi ruang
+   *  untuk itu tanpa menerima daftar sepanjang apa pun dari klien. */
+  copilotHistorySymbols: 12,
+  /** Panjang minimum sebuah kata sebelum akhiran -ku/-mu/-nya/-lah/-kah/-pun
+   *  boleh dilepas. Di bawah ini pelepasan lebih sering memotong kata utuh
+   *  daripada menemukan bentuk dasarnya. */
+  encliticMinTokenChars: 5,
+  /** Panjang minimum sisa kata setelah akhiran dilepas. Sisa yang lebih
+   *  pendek bukan kata yang diindeks korpus mana pun. */
+  encliticMinStemChars: 3,
   /** Panjang maksimum satu giliran riwayat, dalam karakter. Batas ini
    *  memotong, tidak menolak: jawaban agregat ("semua kasus…") lebih panjang
    *  daripada angka mana pun yang bisa dipilih di sini, jadi menolaknya
@@ -141,7 +155,10 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   retrievalTopK: "convention",
   retrievalContextCharCap: "convention",
   copilotHistoryTurns: "convention",
+  copilotHistorySymbols: "convention",
   copilotHistoryTurnChars: "convention",
+  encliticMinTokenChars: "convention",
+  encliticMinStemChars: "convention",
   copilotQuestionChars: "convention",
   copilotQuestionMinChars: "convention",
   copilotInsightPrompts: "convention",
@@ -220,7 +237,10 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
     retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
     copilotHistoryTurns: DEFAULT_THRESHOLDS.copilotHistoryTurns,
+    copilotHistorySymbols: DEFAULT_THRESHOLDS.copilotHistorySymbols,
     copilotHistoryTurnChars: DEFAULT_THRESHOLDS.copilotHistoryTurnChars,
+    encliticMinTokenChars: DEFAULT_THRESHOLDS.encliticMinTokenChars,
+    encliticMinStemChars: DEFAULT_THRESHOLDS.encliticMinStemChars,
     copilotQuestionChars: DEFAULT_THRESHOLDS.copilotQuestionChars,
     copilotQuestionMinChars: DEFAULT_THRESHOLDS.copilotQuestionMinChars,
     copilotInsightPrompts: DEFAULT_THRESHOLDS.copilotInsightPrompts,

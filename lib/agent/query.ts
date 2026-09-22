@@ -1,5 +1,6 @@
 import { codeMatches, phraseMatches, words } from "@/lib/text/fuzzy";
 import { companies } from "@/lib/data/fixtures";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 /**
@@ -78,6 +79,66 @@ function buildSymbolAliases(): Partial<Record<SymbolCode, string[]>> {
 }
 
 export const SYMBOL_ALIASES: Partial<Record<SymbolCode, string[]>> = buildSymbolAliases();
+
+/**
+ * The Indonesian enclitics a reader attaches to a noun they own.
+ *
+ * Longest first, so `-nya` is tried before `-ya` could ever be mistaken for
+ * one. This is not a stemmer: it removes these six endings and nothing else.
+ */
+const ENCLITICS = ["nya", "lah", "kah", "pun", "ku", "mu"];
+
+/** Every single-token alias of a recorded issuer, lowercased. */
+let aliasTokens: Set<string> | null = null;
+function singleTokenAliases(): Set<string> {
+  if (aliasTokens) return aliasTokens;
+  aliasTokens = new Set(
+    Object.values(SYMBOL_ALIASES)
+      .flat()
+      .filter((alias): alias is string => Boolean(alias) && !alias.includes(" ")),
+  );
+  return aliasTokens;
+}
+
+/**
+ * The stem of a word a reader marked as theirs, or null.
+ *
+ * `pantauanku`, `kasusku` and `emitenku` carry no term any index holds, so a
+ * question written the way a reader actually speaks reached nothing at all.
+ * Two bounds keep this from cutting words apart: the word has to be long
+ * enough to plausibly carry an ending, and what is left has to be long enough
+ * to be a word. A single-token issuer alias is never cut — a recorded name is
+ * not a possessive, and mistaking one for the other answers about the wrong
+ * issuer, which is worse than not matching at all.
+ */
+export function stripEnclitics(token: string): string | null {
+  if (token.length < DEFAULT_THRESHOLDS.encliticMinTokenChars) return null;
+  if (singleTokenAliases().has(token)) return null;
+  for (const enclitic of ENCLITICS) {
+    if (!token.endsWith(enclitic)) continue;
+    const stem = token.slice(0, -enclitic.length);
+    if (stem.length < DEFAULT_THRESHOLDS.encliticMinStemChars) return null;
+    return stem;
+  }
+  return null;
+}
+
+/**
+ * The same tokens, plus the stem of any that carried an enclitic.
+ *
+ * Both forms are kept on both sides — the question and the index — because
+ * replacing the original would make `pantauan` unreachable from the term
+ * `pantauanku` the moment a page happens to spell it the long way.
+ */
+export function expandEnclitics(tokens: string[]): string[] {
+  const out: string[] = [];
+  for (const token of tokens) {
+    out.push(token);
+    const stem = stripEnclitics(token);
+    if (stem && stem !== token) out.push(stem);
+  }
+  return [...new Set(out)];
+}
 
 const CATEGORY_KEYWORDS: Array<[string[], MarketEvent["category"]]> = [
   [["nikel", "nickel", "batu bara", "batubara", "komoditas", "emas", "timah", "cp nickel", "harga acuan"], "commodity"],

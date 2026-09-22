@@ -139,7 +139,17 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         // Trimmed here as well as at the route, so the request the panel sends
         // is already inside the bound the engine keeps. The server's cap is
         // then a guard against other callers, never something a reader meets.
-        .map((message) => ({ role: message.role, text: message.text.slice(0, DEFAULT_THRESHOLDS.copilotHistoryTurnChars) }));
+        // The symbols an assistant turn named travel with it, so a follow-up
+        // pointing at "yang satunya" has the list the reader is looking at.
+        // Nothing else from the answer is sent: the turn is a pointer into
+        // the reader's own screen, not a second source of figures.
+        .map((message) => ({
+          role: message.role,
+          text: message.text.slice(0, DEFAULT_THRESHOLDS.copilotHistoryTurnChars),
+          ...(message.answer?.relatedSymbols?.length
+            ? { symbols: message.answer.relatedSymbols.slice(0, DEFAULT_THRESHOLDS.copilotHistorySymbols) }
+            : {}),
+        }));
       const response = await fetch(apiUrl("/api/chat"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: asked, profile, contextSymbol: symbol, userInsights: insights, playbook, caseMandate: symbol ? caseMandates[symbol] : undefined, history, view: viewFromPath(pathname) }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = await response.json();

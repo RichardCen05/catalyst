@@ -30,6 +30,13 @@ export interface RetrievedContext {
  * client-supplied text, so a numeral a reader pasted two turns ago must never
  * license the model to write that numeral as a finding. The verifier checks
  * drafts against this list, so anything that leaks in here becomes quotable.
+ *
+ * The same holds for the symbols a history turn carries. They may only
+ * **select** entries — the pointer in "yang satunya" names one, and naming
+ * one is what a reader typing a ticker does too. They are never material:
+ * they do not enter `figures`, they do not enter `text`, and a symbol the
+ * registry does not hold is dropped before it selects anything
+ * (`retrieval/follow-up.ts`).
  */
 export async function retrieveContext(
   question: string,

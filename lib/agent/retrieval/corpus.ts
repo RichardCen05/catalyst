@@ -1,7 +1,7 @@
 import { companies, events, DATA_AS_OF } from "@/lib/data/fixtures";
 import { METRIC_ALIASES, METRIC_FORMULA } from "@/lib/agent/explain";
 import { DEFAULT_THRESHOLDS, PILLAR_LABELS, THRESHOLD_PROVENANCE } from "@/lib/agent/thresholds";
-import { normalizeQuery, SYMBOL_ALIASES } from "@/lib/agent/query";
+import { expandEnclitics, normalizeQuery, SYMBOL_ALIASES } from "@/lib/agent/query";
 import { viewEntries } from "@/lib/agent/retrieval/context";
 import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
 import { buildEventBundle } from "@/lib/agent/retrieval/context/event";
@@ -26,7 +26,10 @@ function termsOf(...phrases: string[]): string[] {
     const normalized = normalizeQuery(phrase);
     if (!normalized) continue;
     out.add(normalized);
-    for (const word of normalized.split(" ")) {
+    // The stem as well as the written word, for the same reason the question
+    // side keeps both: a label spelled with an enclitic must still be
+    // reachable from the plain word, and the plain word from the label.
+    for (const word of expandEnclitics(normalized.split(" "))) {
       if (word.length >= 3) out.add(word);
     }
   }

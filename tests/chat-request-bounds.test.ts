@@ -21,6 +21,23 @@ describe("chatRequestSchema", () => {
     expect(chatRequestSchema.safeParse({ ...base, history }).success).toBe(false);
   });
 
+  it("memakai batas giliran yang sama dengan yang dipotong panel", () => {
+    // Skema dulu memakai literal 12 sementara panel memotong di 6, jadi
+    // keduanya tidak pernah bisa berselisih dengan suara cukup keras untuk
+    // menggagalkan apa pun.
+    const turns = (count: number) =>
+      Array.from({ length: count }, () => ({ role: "user" as const, text: "x" }));
+    expect(chatRequestSchema.safeParse({ ...base, history: turns(DEFAULT_THRESHOLDS.copilotHistoryTurns) }).success).toBe(true);
+    expect(chatRequestSchema.safeParse({ ...base, history: turns(DEFAULT_THRESHOLDS.copilotHistoryTurns + 1) }).success).toBe(false);
+  });
+
+  it("membatasi berapa simbol yang boleh dibawa satu giliran", () => {
+    const symbols = (count: number) => Array.from({ length: count }, () => "ANTM");
+    const turn = (count: number) => [{ role: "assistant" as const, text: "daftar", symbols: symbols(count) }];
+    expect(chatRequestSchema.safeParse({ ...base, history: turn(DEFAULT_THRESHOLDS.copilotHistorySymbols) }).success).toBe(true);
+    expect(chatRequestSchema.safeParse({ ...base, history: turn(DEFAULT_THRESHOLDS.copilotHistorySymbols + 1) }).success).toBe(false);
+  });
+
   it("memotong satu giliran yang terlalu panjang, bukan menolaknya", () => {
     // Teks dari klien yang sampai ke prompt adalah waktu model gratis bagi
     // siapa pun yang menempel ke sana, jadi batasnya tetap ada. Tapi giliran
