@@ -48,6 +48,13 @@ export const DEFAULT_THRESHOLDS = {
    *  rendah daripada handlerScoreFloor: entri dikumpulkan dulu, gabungannya
    *  yang dinilai. */
   retrievalScoreFloor: 0.18,
+  /** Tambahan skor untuk entri bermateri milik pembaca ketika pertanyaannya
+   *  memang menyebut pembaca ("kasusku", "pantauan saya"). Aditif, bukan
+   *  penyaring: pertanyaan cakupan registry dari halaman mana pun tetap
+   *  sampai ke materi registry. Nilainya harus cukup untuk mengangkat satu
+   *  entri melewati handlerScoreFloor dari kecocokan satu kata, dan tidak
+   *  lebih. */
+  retrievalScopeBoost: 0.3,
   /** Entri yang dimuat untuk pertanyaan non-agregat. */
   retrievalTopK: 6,
   /** Batas teks bukti yang masuk prompt, dalam karakter. Nilai inilah yang
@@ -150,6 +157,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   // sekali, jadi keduanya keputusan — bukan penjaga kapasitas.
   handlerScoreFloor: "guess",
   retrievalScoreFloor: "guess",
+  retrievalScopeBoost: "guess",
   // Sisanya menjaga ukuran, bukan menilai bukti: berapa entri dimuat, berapa
   // karakter masuk prompt, berapa giliran diingat, berapa entri disimpan.
   retrievalTopK: "convention",
@@ -234,6 +242,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     // setiap ambang yang dibaca mesin, seperti yang dijanjikan namanya.
     handlerScoreFloor: DEFAULT_THRESHOLDS.handlerScoreFloor,
     retrievalScoreFloor: DEFAULT_THRESHOLDS.retrievalScoreFloor,
+    retrievalScopeBoost: DEFAULT_THRESHOLDS.retrievalScopeBoost,
     retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
     retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
     copilotHistoryTurns: DEFAULT_THRESHOLDS.copilotHistoryTurns,

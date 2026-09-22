@@ -124,6 +124,30 @@ export function stripEnclitics(token: string): string | null {
 }
 
 /**
+ * First-person words: the reader saying the thing is theirs.
+ *
+ * `-nya` is deliberately absent — it is third person, and "kasusnya" is a
+ * question about the case under discussion, not about the reader's list.
+ */
+const READER_WORDS = ["saya", "aku", "kami", "kita", "punyaku", "milikku"];
+const READER_ENCLITICS = ["ku", "mu"];
+
+/**
+ * Whether the question is about the reader's own material.
+ *
+ * Two ways a reader says so: a first-person word, or a possessive ending on
+ * a word long enough to carry one. Both are read off the question alone, so
+ * the signal is the same for every reader and can be checked by reading.
+ */
+export function mentionsReader(question: string): boolean {
+  const normalized = normalizeQuery(question);
+  const padded = ` ${normalized} `;
+  if (READER_WORDS.some((word) => padded.includes(` ${word} `))) return true;
+  return normalized.split(" ").some((token) =>
+    READER_ENCLITICS.some((enclitic) => token.endsWith(enclitic)) && stripEnclitics(token) !== null);
+}
+
+/**
  * The same tokens, plus the stem of any that carried an enclitic.
  *
  * Both forms are kept on both sides — the question and the index — because

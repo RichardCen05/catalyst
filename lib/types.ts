@@ -450,7 +450,7 @@ export interface ChatRequest {
 export interface ChatAnswer {
   text: string;
   refused: boolean;
-  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "retrieved" | "unknown";
+  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "retrieved" | "scoped-list" | "unknown";
   hypotheses: HypothesisTrace[];
   citations: Citation[];
   preferenceNote: string;
@@ -466,6 +466,11 @@ export interface ChatAnswer {
   /** Set only by the clarify intent: the question as asked, so the reader's
    *  choice can re-send it with a symbol attached. */
   clarification?: { question: string; choices: SymbolCode[] };
+  /** Whose material the answer was written from. `user` means the counts in
+   *  it are about this reader's list; `registry` means they are about every
+   *  recorded issuer. A reader comparing an answer with their screen needs to
+   *  know which of the two they are looking at. */
+  scope?: "user" | "registry";
   /** Which retrieved entries this answer was written from, in the order the
    *  prompt carried them. No panel renders it: it is what an audit and a test
    *  read instead of judging an Indonesian sentence by eye. It does travel in

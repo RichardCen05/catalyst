@@ -1194,6 +1194,12 @@ async function retrievalFor(request: ChatRequest, followUp: FollowUp): Promise<R
     contextSymbol: followUp.symbol ?? request.contextSymbol,
     view,
     history: safeHistory(request.history),
+    // The same inputs `/cases` hands `analyzeCompany` (`app/cases/page.tsx`),
+    // so a scoped bundle and the screen compute the same cases. All three
+    // already arrive on the request; they simply never reached this layer.
+    playbook: request.playbook,
+    userInsights: request.userInsights,
+    caseMandate: request.caseMandate,
   }).catch((error) => {
     // Retrieval is an addition to the answer path, never a precondition for
     // it. A failure here drops to the handlers that shipped before it.
@@ -1405,7 +1411,13 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     // A pointer that failed never reaches here, so it is never written.
     const composed = await composeRetrieved(followUp.question, retrieved, !followUp.anaphoric || followUp.resolved);
     return {
-      text: composed.text, refused: false, intent: "retrieved",
+      text: composed.text, refused: false,
+      // Two different answers wear two different names. A list computed over
+      // the reader's own watchlist counts their emiten; a retrieved answer
+      // over registry material counts every recorded one, and a reader
+      // checking an answer against their screen has to be able to tell.
+      intent: retrieved.scope === "user" ? "scoped-list" : "retrieved",
+      scope: retrieved.scope,
       hypotheses: openInsightTraces, citations: retrieved.citations,
       preferenceNote: personalizedNote(), relatedSymbols: retrieved.symbols,
       entryIds: retrieved.entryIds,

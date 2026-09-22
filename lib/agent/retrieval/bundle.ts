@@ -1,8 +1,8 @@
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { scoreCorpus, topScore } from "@/lib/agent/retrieval/score";
 import { aggregateBundle, isAggregateQuestion } from "@/lib/agent/retrieval/aggregate";
-import { loadViewBundle } from "@/lib/agent/retrieval/context";
-import type { ContextBundle, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
+import { loadPageBundle } from "@/lib/agent/retrieval/context";
+import type { ContextBundle, EntryScope, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
 import type { Citation, SymbolCode } from "@/lib/types";
 
 export interface RetrievedContext {
@@ -20,6 +20,10 @@ export interface RetrievedContext {
   entryIds: string[];
   /** The best entry score, which is what the retrieved handler bids with. */
   score: number;
+  /** Whose material this answer is built from. `user` means it was computed
+   *  for the reader who asked, so its counts are about their list and not
+   *  about the registry. */
+  scope: EntryScope;
 }
 
 /**
@@ -48,7 +52,13 @@ export async function retrieveContext(
 
   const bundles: ContextBundle[] = [];
   const seen = new Set<string>();
-  if (isAggregateQuestion(question)) {
+  // An aggregate is a count over everything that matched, which is the right
+  // answer to "how many emiten are recorded" and the wrong one to "what is on
+  // my list". When the question's best match is the reader's own material,
+  // summarising the whole corpus answers a question nobody asked — and does
+  // it with a denominator the reader cannot check against their screen.
+  const scopedFirst = ranked[0]?.entry.scope === "user";
+  if (isAggregateQuestion(question) && !scopedFirst) {
     bundles.push(await aggregateBundle(question, ranked, context));
   } else {
     const top = ranked.slice(0, DEFAULT_THRESHOLDS.retrievalTopK);
@@ -73,7 +83,7 @@ export async function retrieveContext(
       loaded.flatMap((bundle) => (bundle?.view ? [bundle.view] : [])),
     )];
     const pages = await Promise.all(
-      wantedViews.map((view) => loadViewBundle(view, context).catch(() => null)),
+      wantedViews.map((view) => loadPageBundle(view, context).catch(() => null)),
     );
     const pageByView = new Map<ViewId, ContextBundle>();
     wantedViews.forEach((view, index) => {
@@ -104,7 +114,28 @@ export async function retrieveContext(
   const readerParts: string[] = [];
   const kept: ContextBundle[] = [];
   let used = 0;
-  for (const bundle of bundles) {
+  // A question answered from the reader's own material does not carry a
+  // registry-wide enumeration alongside it. This is not the ranking filter
+  // the scope prior deliberately is not: every entry still competed, and a
+  // registry question still reaches registry material — it is the assembled
+  // answer that must not mix "two on your list" with "eighteen recorded",
+  // because a reader cannot tell which denominator a sentence used.
+  //
+  // Entries with no scope are neutral and stay: one emiten's case is as true
+  // for a scoped answer as for any other.
+  //
+  // A scoped answer also never introduces an issuer the reader does not
+  // watch. An event about a third emiten is true, recorded and completely
+  // beside the question — and once it is in the same answer, nothing on the
+  // screen tells the reader it was not on their list.
+  const watched = new Set<SymbolCode>(context.profile.watchlist);
+  const assembled = scopedFirst
+    ? bundles.filter((bundle) =>
+        bundle.scope !== "registry" && bundle.symbols.every((symbol) => watched.has(symbol)))
+    : bundles;
+  if (!assembled.length) return null;
+
+  for (const bundle of assembled) {
     const part = `## ${bundle.title}\n${bundle.body}`;
     // Skip rather than break: a long bundle must not hide every shorter one
     // ranked behind it.
@@ -129,5 +160,8 @@ export async function retrieveContext(
     symbols: [...new Set(kept.flatMap((bundle) => bundle.symbols))],
     entryIds: kept.map((bundle) => bundle.id),
     score,
+    // The winning entry names the answer. A neutral entry riding along does
+    // not turn a registry answer into a scoped one, or the other way round.
+    scope: kept[0]?.scope ?? (scopedFirst ? "user" : "registry"),
   };
 }

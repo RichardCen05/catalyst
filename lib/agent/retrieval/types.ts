@@ -1,4 +1,4 @@
-import type { Citation, SymbolCode, UserProfile } from "@/lib/types";
+import type { Citation, InvestorResearchPlaybook, SymbolCode, UserInsight, UserProfile } from "@/lib/types";
 
 /**
  * Every page a reader can ask from.
@@ -47,11 +47,37 @@ export interface HistoryTurn {
   symbols?: SymbolCode[];
 }
 
+/**
+ * Whose material an entry holds.
+ *
+ * `user` is material computed for the reader who asked — their watchlist,
+ * their open cases. `registry` is material true of every reader, computed
+ * over the whole recorded set. Absent means the distinction does not apply.
+ *
+ * This is a ranking prior and a bookkeeping field, never a filter: a reader
+ * asking a registry-wide question from their own page must still be answered
+ * about the registry.
+ */
+export type EntryScope = "user" | "registry";
+
+/**
+ * What the request carries into a builder.
+ *
+ * The analysis fields mirror what `/cases` passes to `analyzeCompany`
+ * (`app/cases/page.tsx`), so a scoped bundle and the screen compute the same
+ * cases from the same inputs rather than two subtly different ones.
+ * `caseResolutions` is deliberately absent: the panel does not send it, so
+ * the claim this layer makes is equality of the symbol set, not of the
+ * sentence. Sending it is a later decision, with its own schema and bound.
+ */
 export interface RequestContext {
   profile: UserProfile;
   contextSymbol?: SymbolCode;
   view?: ViewId;
   history: HistoryTurn[];
+  playbook?: InvestorResearchPlaybook;
+  userInsights?: UserInsight[];
+  caseMandate?: string;
 }
 
 /**
@@ -65,6 +91,8 @@ export interface RequestContext {
 export interface ContextBundle {
   id: string;
   kind: EntryKind;
+  /** Whose material this is. See `EntryScope`. */
+  scope?: EntryScope;
   /** The page this material belongs to, when it belongs to one. A chrome
    *  block sets it so its page's material is fetched once for the whole
    *  answer rather than repeated under every panel that matched. */
@@ -97,5 +125,7 @@ export interface CorpusEntry {
   terms: string[];
   symbols: SymbolCode[];
   view?: ViewId;
+  /** Whose material this entry holds. See `EntryScope`. */
+  scope?: EntryScope;
   load(context: RequestContext): Promise<ContextBundle | null>;
 }

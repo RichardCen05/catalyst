@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCorpus } from "@/lib/agent/retrieval/corpus";
 import { buildPantauBundle } from "@/lib/agent/retrieval/context/pantau";
 import { buildWebWatchBundle } from "@/lib/agent/retrieval/context/web-watch";
-import { loadViewBundle } from "@/lib/agent/retrieval/context";
+import { loadPageBundle } from "@/lib/agent/retrieval/context";
 import type { RequestContext } from "@/lib/agent/retrieval/types";
 import { demoProfiles } from "@/lib/data/fixtures";
 
@@ -40,6 +40,6 @@ describe("invarian id retrieval", () => {
     // Komentar pada spec `view:case` menyatakan tidak ada yang khas halaman
     // ini saat tidak ada kasus terbuka. Mengembalikan bundel `view:cases`
     // membuat pernyataan itu tidak benar dan menabrak entri `view:cases`.
-    expect(await loadViewBundle("case", { ...context, contextSymbol: undefined })).toBeNull();
+    expect(await loadPageBundle("case", { ...context, contextSymbol: undefined })).toBeNull();
   });
 });

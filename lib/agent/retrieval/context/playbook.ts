@@ -31,6 +31,7 @@ export async function buildPlaybookBundle(context: RequestContext): Promise<Cont
 
   return {
     id: "view:playbook",
+    scope: "user",
     kind: "view",
     title: "Aturan riset investor",
     body,

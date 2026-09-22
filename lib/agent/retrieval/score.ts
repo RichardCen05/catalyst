@@ -1,5 +1,5 @@
 import { getCorpus, type CorpusIndex } from "@/lib/agent/retrieval/corpus";
-import { expandEnclitics, findSymbolsRobust, normalizeQuery } from "@/lib/agent/query";
+import { expandEnclitics, findSymbolsRobust, mentionsReader, normalizeQuery } from "@/lib/agent/query";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { companies } from "@/lib/data/fixtures";
 import type { CorpusEntry, RequestContext } from "@/lib/agent/retrieval/types";
@@ -75,6 +75,12 @@ export function scoreCorpus(
   if (!words.length) return [];
 
   const symbols = findSymbolsRobust(question, companies.map((company) => company.symbol));
+  // A third prior, and the same rule as the other two: it moves an entry up a
+  // ranking the question already put it in. A reader who says "kasusku" is
+  // asking about their list; a reader who says "berapa emiten terekam" is
+  // not, and nothing here stops the second question reaching registry
+  // material — there is no penalty on the other side.
+  const scoped = mentionsReader(question);
   const hits = new Map<string, number>();
   const add = (id: string, weight: number) => hits.set(id, (hits.get(id) ?? 0) + weight);
 
@@ -93,6 +99,7 @@ export function scoreCorpus(
     let score = overlap / words.length;
     if (symbols.length && entry.symbols.some((symbol) => symbols.includes(symbol))) score += SYMBOL_BOOST;
     if (context.view && entry.view === context.view) score += VIEW_BOOST;
+    if (scoped && entry.scope === "user") score += DEFAULT_THRESHOLDS.retrievalScopeBoost;
     if (score >= DEFAULT_THRESHOLDS.retrievalScoreFloor) scored.push({ entry, score });
   }
   // A tie is decided by how much of an answer the entry is. "halaman Pantau

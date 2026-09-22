@@ -35,6 +35,7 @@ export async function buildCopilotBundle(): Promise<ContextBundle> {
 
   return {
     id: "view:copilot",
+    scope: "registry",
     kind: "view",
     title: "Asisten riset",
     body,

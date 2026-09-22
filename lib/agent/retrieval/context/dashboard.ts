@@ -58,6 +58,7 @@ export async function buildDashboardBundle(context: RequestContext): Promise<Con
 
   return {
     id: "view:dashboard",
+    scope: "registry",
     kind: "view",
     title: "Dashboard",
     body,

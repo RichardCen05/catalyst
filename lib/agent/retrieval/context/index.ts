@@ -11,7 +11,9 @@ import { buildWebWatchBundle } from "@/lib/agent/retrieval/context/web-watch";
 import { buildCopilotBundle } from "@/lib/agent/retrieval/context/copilot";
 import { buildAiLearningBundle } from "@/lib/agent/retrieval/context/ai-learning";
 import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
-import type { CorpusEntry, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
+import { buildActiveCasesBundle } from "@/lib/agent/retrieval/context/active-cases";
+import { buildPantauBundle } from "@/lib/agent/retrieval/context/pantau";
+import type { CorpusEntry, EntryScope, RequestContext, ViewId } from "@/lib/agent/retrieval/types";
 
 /**
  * One registered builder per page the reader can ask about.
@@ -29,6 +31,8 @@ import type { CorpusEntry, RequestContext, ViewId } from "@/lib/agent/retrieval/
 interface ViewSpec {
   id: string;
   view: ViewId;
+  /** Whose material this spec holds. Registry material needs no marker. */
+  scope?: EntryScope;
   /** The page's own vocabulary, as its headings and labels say it. */
   vocabulary: string[];
   /** `null` when this page has nothing of its own to say for this request. */
@@ -54,12 +58,42 @@ const VIEWS: ViewSpec[] = [
   {
     id: "view:cases",
     view: "cases",
+    // Counted over every recording, so it answers "how many emiten are
+    // covered" and never "what is on my list".
+    scope: "registry",
     vocabulary: ["kasus", "daftar kasus", "cakupan", "kasus lengkap", "semua kasus", "riset"],
     load: () => buildCasesBundle(),
   },
   {
+    // The reader's own open cases, beside the registry-wide coverage entry
+    // above. Two specs on one page: one answers "how many emiten have a
+    // case", the other "what is on my list", and those are different
+    // questions with different denominators.
+    id: "view:cases-active",
+    view: "cases",
+    scope: "user",
+    vocabulary: ["kasus aktif", "kasus saya", "kasus terbuka", "kasus yang aktif",
+      "kasus pada pantauan", "pantauan saya", "daftar kasus saya"],
+    load: (context) => buildActiveCasesBundle(context),
+  },
+  {
+    // The watchlist itself, as its own entry. The playbook spec below carries
+    // it inside a longer answer about rules; a reader asking what is on their
+    // list is not asking about their rules.
+    id: "view:pantau-watchlist",
+    view: "playbook",
+    scope: "user",
+    // Distinctive phrases only. A bare "pantau" belongs to the Pantau web
+    // page, and indexing the generic half of "isi pantauan" let a question
+    // about that page tie with a question about this list.
+    vocabulary: ["daftar pantauan", "watchlist", "emiten pantauan", "emiten yang dipantau"],
+    load: (context) => buildPantauBundle(context),
+  },
+  {
     id: "view:dashboard",
     view: "dashboard",
+    // Counts drawn over the whole recorded map, not over one reader's list.
+    scope: "registry",
     vocabulary: ["dashboard", "papan", "beranda", "halaman utama", "kasus terbuka", "peta node"],
     load: (context) => buildDashboardBundle(context),
   },
@@ -72,6 +106,7 @@ const VIEWS: ViewSpec[] = [
   {
     id: "view:playbook",
     view: "playbook",
+    scope: "user",
     // The watchlist lives on this page, so its words belong to this page.
     vocabulary: ["aturan riset", "playbook", "preferensi", "posisi", "portofolio",
       "daftar pantauan", "pantauan", "watchlist", "emiten pantauan"],
@@ -86,6 +121,9 @@ const VIEWS: ViewSpec[] = [
   {
     id: "view:copilot",
     view: "copilot",
+    // "Yang dapat dicari: N kasus riset, M peristiwa" — every figure here is
+    // a count over the recordings.
+    scope: "registry",
     vocabulary: ["asisten", "copilot", "tanya", "kemampuan", "bisa jawab apa"],
     load: () => buildCopilotBundle(),
   },
@@ -141,6 +179,7 @@ export function viewEntries(): CorpusEntry[] {
     kind: "view" as const,
     symbols: [],
     view: spec.view,
+    ...(spec.scope ? { scope: spec.scope } : {}),
     terms: termsOf([...spec.vocabulary, ...navVocabulary(spec.view)]),
     load: (context) => loadSpec(spec, context),
   }));
@@ -166,13 +205,20 @@ type Bundle = import("@/lib/agent/retrieval/types").ContextBundle;
  */
 const viewMemo = lruMemo<string, Bundle | null>(DEFAULT_THRESHOLDS.retrievalMemoMaxEntries);
 
-function viewMemoKey(view: ViewId, context: RequestContext): string {
+/**
+ * Keyed on the spec, not on the page.
+ *
+ * A page can carry more than one spec — the registry's material and the
+ * reader's own — and keying on `view` made the second one serve the first
+ * one's bundle from the memo. That is a silent wrong answer, not a slow one.
+ */
+function viewMemoKey(specId: string, context: RequestContext): string {
   const profile = context.profile;
-  return [view, profile.id, context.contextSymbol ?? "", profile.watchlist.join(","), profile.owned.join(",")].join("|");
+  return [specId, profile.id, context.contextSymbol ?? "", profile.watchlist.join(","), profile.owned.join(",")].join("|");
 }
 
 async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle | null> {
-  const key = viewMemoKey(spec.view, context);
+  const key = viewMemoKey(spec.id, context);
   // `has` rather than a truthy `get`: a page with nothing of its own to say
   // is a real answer, and re-deriving it on every matched panel would spend
   // the wait to reach the same silence.
@@ -182,7 +228,23 @@ async function loadSpec(spec: ViewSpec, context: RequestContext): Promise<Bundle
   return bundle;
 }
 
+/** One registered spec's material, by the id its corpus entry carries. */
 export async function loadViewBundle(
+  specId: string,
+  context: RequestContext,
+): Promise<Bundle | null> {
+  const spec = VIEWS.find((candidate) => candidate.id === specId);
+  return spec ? loadSpec(spec, context) : null;
+}
+
+/**
+ * A page's own material, for callers that know the page but not the spec.
+ *
+ * The first spec registered for a page is its page-level material; later
+ * specs on the same page are narrower slices of it, and a panel asking "what
+ * does my page hold" wants the page.
+ */
+export async function loadPageBundle(
   view: ViewId,
   context: RequestContext,
 ): Promise<Bundle | null> {

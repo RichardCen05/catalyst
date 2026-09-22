@@ -22,6 +22,7 @@ export async function buildCasesBundle(): Promise<ContextBundle> {
   return {
     id: "view:cases",
     kind: "view",
+    scope: "registry",
     title: "Cakupan kasus",
     body,
     figures: extractNumerals(body),
