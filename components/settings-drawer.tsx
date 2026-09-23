@@ -6,7 +6,6 @@ import { BookOpenCheck, BrainCircuit, BriefcaseBusiness, ClipboardCheck, Compass
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import { getOperatorToken, operatorHeaders, setOperatorToken } from "@/lib/operator-token";
 import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -39,8 +38,6 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
   } | null>(null);
   const [refreshBusy, setRefreshBusy] = useState<"idle" | "toggle" | "preview" | "run">("idle");
   const [refreshNote, setRefreshNote] = useState("");
-  const [operatorToken, setOperatorTokenState] = useState("");
-  const [tokenNote, setTokenNote] = useState("");
 
   const loadRefresh = async () => {
     try {
@@ -76,7 +73,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
     try {
       const response = await fetch("/api/settings/refresh", {
         method: "POST",
-        headers: operatorHeaders(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !refresh.enabled }),
       });
       const body = (await response.json()) as { enabled?: boolean; error?: string; hint?: string };
@@ -100,7 +97,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
     try {
       const response = await fetch("/api/settings/refresh", {
         method: "POST",
-        headers: operatorHeaders(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ run: true, dryRun }),
       });
       const body = (await response.json()) as {
@@ -129,7 +126,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
   };
 
   return (
-    <Dialog.Root onOpenChange={(open) => { if (open) { void loadRefresh(); setOperatorTokenState(getOperatorToken()); setTokenNote(""); } }}>
+    <Dialog.Root onOpenChange={(open) => { if (open) void loadRefresh(); }}>
       <Dialog.Trigger asChild>
         <Button variant="ghost" size={compact ? "icon" : "default"} className={compact ? undefined : "w-full justify-start"} aria-label="Buka pengaturan"><Settings2 aria-hidden="true" className="size-4" />{compact ? null : <span>Pengaturan</span>}</Button>
       </Dialog.Trigger>
@@ -176,34 +173,6 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
               </div>
               {refresh?.pinnedByEnv ? <p className="mt-2 text-xs text-muted-foreground">Gate dikunci operator via env — sakelar ini tidak berlaku.</p> : null}
               {refreshNote ? <p className="mt-2 text-xs leading-5 text-muted-foreground" role="status">{refreshNote}</p> : null}
-            </div>
-            <div className="rounded-xl border border-border bg-background p-3">
-              <label htmlFor="operator-token" className="text-sm font-medium">Token operator</label>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Dibutuhkan untuk menyetujui kandidat pantauan dan menyalakan refresh Sectors. Disimpan di peramban ini saja, tidak pernah dikirim ke pihak lain.
-              </p>
-              <div className="mt-2 flex gap-2">
-                <input
-                  id="operator-token"
-                  type="password"
-                  autoComplete="off"
-                  value={operatorToken}
-                  onChange={(event) => setOperatorTokenState(event.target.value)}
-                  placeholder="Tempel token"
-                  className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setOperatorToken(operatorToken);
-                    setTokenNote(operatorToken.trim() ? "Token disimpan di peramban ini." : "Token dihapus dari peramban ini.");
-                  }}
-                >
-                  Simpan
-                </Button>
-              </div>
-              {tokenNote ? <p className="mt-2 text-xs leading-5 text-muted-foreground" role="status">{tokenNote}</p> : null}
             </div>
             <Dialog.Close asChild><Button variant="secondary" className="justify-start" onClick={restartTour}><Compass aria-hidden="true" className="size-4" />Ulangi tur inti</Button></Dialog.Close>
             <Button variant="secondary" className="justify-start" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" />Ganti tema</Button>

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { refreshRunSchema, refreshToggleSchema } from "@/lib/schemas";
-import { checkOperatorAuth } from "@/lib/operator-auth";
 import { getRuntimeSettings, isRefreshEnabled, isRefreshPinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
 import { BudgetExceededError, executeRefresh, planRefresh } from "@/lib/data/sectors-refresh";
 
@@ -43,8 +42,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = checkOperatorAuth(request);
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   let body: unknown;
   try {
     body = await request.json();
