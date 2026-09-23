@@ -25,7 +25,7 @@ export function AnalysisAudit({ symbol, traces, missingEvidence, sourceCount }: 
         <Dialog.Content className="fixed inset-y-0 right-0 z-100 w-[min(100vw,620px)] overflow-y-auto border-l border-border bg-surface p-4 shadow-2xl focus:outline-none sm:p-6">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
-              <Dialog.Title className="editorial text-2xl">Audit analisis {symbol}</Dialog.Title>
+              <Dialog.Title className="editorial text-xl">Audit analisis {symbol}</Dialog.Title>
               <Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">Periksa jejak, sumber, dan batas bukti tanpa memenuhi layar utama.</Dialog.Description>
             </div>
             <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup audit"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close>

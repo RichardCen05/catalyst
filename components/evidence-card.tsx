@@ -6,6 +6,7 @@ import { metricDerivation } from "@/lib/agent/explain";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceFeedback } from "@/components/evidence-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { displayFigure } from "@/lib/utils";
 
 /** The recordings behind one figure, named. One label reads; a list counts. */
 function sourceSummary(citations: Citation[]): string {
@@ -71,7 +72,7 @@ function DerivationRow({ pillar, metric }: { pillar: PillarResult; metric: Metri
     <li className="bg-surface p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <p className="text-xs font-semibold text-foreground">{metric.label}</p>
-        <p className="break-words font-mono text-sm font-semibold tabular-nums text-foreground">{metric.value}</p>
+        <p className="break-words font-mono text-sm font-semibold tabular-nums text-foreground">{displayFigure(metric.value)}</p>
       </div>
       {formula ? (
         <code className="mt-2 block overflow-x-auto rounded-lg border border-border bg-background px-2 py-1.5 text-xs leading-5 text-foreground">{formula}</code>
@@ -120,7 +121,7 @@ export function EvidenceCard({ pillar, symbol, trailing }: { pillar: PillarResul
           cell the width of half the card. The tiles stretch to close the last
           row instead. */}
       <dl className="flex flex-wrap gap-px border-y border-border bg-border">
-        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-[45%] flex-1 overflow-hidden bg-background p-3 sm:min-w-[170px]"><dt className="truncate text-xs text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-sm font-semibold tabular-nums">{metric.value}</dd>{metric.detail ? <dd className="mt-0.5 font-mono text-xs text-muted-foreground">{metric.detail}</dd> : null}<dd><SourceChip citations={metric.citations} /></dd></div>)}
+        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-[45%] flex-1 overflow-hidden bg-background p-3 sm:min-w-[170px]"><dt className="truncate text-xs text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-base font-medium tabular-nums">{displayFigure(metric.value)}</dd>{metric.detail ? <dd className="mt-0.5 font-mono text-xs text-muted-foreground">{metric.detail}</dd> : null}<dd><SourceChip citations={metric.citations} /></dd></div>)}
       </dl>
 
       <details className="group">

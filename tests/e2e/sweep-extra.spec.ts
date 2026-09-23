@@ -13,21 +13,21 @@ async function finishSetup(page: Page) {
 
 const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/", heading: "Apa yang menggerakkan daftar pantauan?" },
-  { url: "/cases", heading: "Perubahan Saham yang perlu diperiksa" },
+  { url: "/cases", heading: "Riset & Analisis" },
   { url: "/cases/ANTM", heading: /Kasus ANTM/ },
   { url: "/cases/ANTM?tab=market", heading: "Konfirmasi pasar" },
   { url: "/cases/ANTM?tab=business", heading: "Dampak ke bisnis" },
-  { url: "/cases/ANTM?tab=review", heading: "Ajari Catalyst tentang ANTM" },
+  { url: "/cases/ANTM?tab=review", heading: "Keputusan" },
   { url: "/impact?company=ANTM", heading: "Apa yang mendorong perubahan ini?" },
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
-  { url: "/copilot", heading: "Cari jawaban dari bukti" },
+  { url: "/copilot", heading: "Asisten" },
   { url: "/ai-learning", heading: "AI Learning" },
   { url: "/ai-learning?section=tinjauan", heading: "Koreksi yang perlu diperiksa" },
   { url: "/ai-learning?section=pasar", heading: "Apa yang sudah ditagih" },
   { url: "/ai-learning?section=memori", heading: "Apa yang sedang disimpan" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },
   { url: "/pantau", heading: "Apa yang berubah di web sejak kemarin?" },
-  { url: "/method", heading: "Cara Catalyst menyusun bukti" },
+  { url: "/method", heading: "Metode dan batas" },
 ];
 
 test("route inventory: 200 + heading + no overflow at 3 viewports", async ({ page }) => {

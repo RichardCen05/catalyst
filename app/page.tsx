@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { buildMarketGraph } from "@/lib/agent/market-graph";
-import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { MarketCausalGraph, SymbolCode } from "@/lib/types";
-import { cn, formatAsOf } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { CitationDialog } from "@/components/citation-dialog";
 import { DashboardTimeline } from "@/components/dashboard-timeline";
 import { SymbolMultiselect } from "@/components/symbol-multiselect";
 import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconBranch, IconChart, IconClock, IconGraph } from "@/components/ui/icons";
+import { IconArrowRight, IconBranch, IconChart, IconGraph } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import Link from "next/link";
 
@@ -60,7 +60,6 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbolKey, profile, minRelevance, playbook, insights, caseResolutions]);
 
-  const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
 
   const citations = useMemo(
     () => [

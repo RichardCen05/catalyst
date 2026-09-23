@@ -14,7 +14,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, displayFigure, formatCurrency } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
 
@@ -74,14 +74,19 @@ function ResearchCasesContent() {
   const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setQuery(""); setOpenSlot(null); };
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
 
+  const figureOf = (item: AnalysisCase, pillar: string, label: string) => {
+    const value = item.pillars.find((entry) => entry.key === pillar)?.metrics.find((metric) => metric.label === label)?.value;
+    return value ? displayFigure(value) : "—";
+  };
+
   const compareRows: Array<{ label: string; render: (item: AnalysisCase) => ReactNode }> = [
     { label: "Harga saham", render: (item) => <span className="flex items-center gap-2"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><PriceChange value={item.company.changePct} className="text-xs" /></span> },
     { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} /> },
     { label: "Uji bisnis utama", render: (item) => item.businessImpact.find((impact) => impact.status === "Primary test")?.label ?? "—" },
-    { label: "Konsentrasi (HHI)", render: (item) => item.pillars.find((pillar) => pillar.key === "concentration")?.metrics.find((metric) => metric.label === "HHI")?.value ?? "—" },
-    { label: "Volume (skor z)", render: (item) => item.pillars.find((pillar) => pillar.key === "volume")?.metrics.find((metric) => metric.label === "Skor z tahan pencilan")?.value ?? "—" },
-    { label: "Residual vs IHSG", render: (item) => item.pillars.find((pillar) => pillar.key === "momentum")?.metrics.find((metric) => metric.label === "Residual setelah beta")?.value ?? "—" },
-    { label: "Imbal hasil sektor", render: (item) => item.pillars.find((pillar) => pillar.key === "momentum")?.metrics.find((metric) => metric.label === "Imbal hasil sektor")?.value ?? "—" },
+    { label: "Konsentrasi (HHI)", render: (item) => figureOf(item, "concentration", "HHI") },
+    { label: "Volume (skor z)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan") },
+    { label: "Residual vs IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta") },
+    { label: "Imbal hasil sektor", render: (item) => figureOf(item, "momentum", "Imbal hasil sektor") },
     { label: "Materialitas", render: (item) => `${uiLabel(item.priority.materiality)} · ${item.priority.reason}` },
     { label: "Tantangan utama", render: (item) => item.counterEvidence[0] },
   ];

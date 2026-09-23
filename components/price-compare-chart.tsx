@@ -68,7 +68,7 @@ export function PriceCompareChart({ series, ihsgFrom }: {
         <Button variant="secondary" size="sm" onClick={exportCsv}><Download aria-hidden="true" className="size-3.5" />Unduh CSV</Button>
       </div>
       <div className="p-3">
-        <div style={{ height: 340 }} className="w-full" aria-label={`Grafik indeks ${series.map((item) => item.symbol).join(", ")} dibanding IHSG`}>
+        <div role="img" style={{ height: 340 }} className="w-full" aria-label={`Grafik indeks ${series.map((item) => item.symbol).join(", ")} dibanding IHSG`}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={rows} margin={{ top: 20, right: 4, left: -20, bottom: 0 }}>
               <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />

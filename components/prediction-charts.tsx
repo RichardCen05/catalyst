@@ -58,7 +58,7 @@ const TONE_FILL: Record<VerdictDatum["tone"], string> = {
 /** Sebaran vonis: berapa klaim yang tepat, meleset, atau benar tapi salah waktu. */
 export function VerdictChart({ data }: { data: VerdictDatum[] }) {
   return (
-    <div className="h-56 w-full px-2 pb-2" aria-label="Grafik sebaran vonis klaim">
+    <div role="img" className="h-56 w-full px-2 pb-2" aria-label="Grafik sebaran vonis klaim">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 18, right: 8, left: 8, bottom: 0 }}>
           <XAxis
@@ -101,7 +101,7 @@ export interface CalibrationDatum {
 export function CalibrationChart({ data }: { data: CalibrationDatum[] }) {
   const narrow = useNarrowViewport();
   return (
-    <div style={{ height: data.length * 56 + 56 }} className="w-full px-2 pb-2" aria-label="Grafik ketepatan per kelompok">
+    <div role="img" style={{ height: data.length * 56 + 56 }} className="w-full px-2 pb-2" aria-label="Grafik ketepatan per kelompok">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 8, right: 44, left: 8, bottom: 0 }} barGap={4}>
           <XAxis type="number" domain={[0, 100]} hide />

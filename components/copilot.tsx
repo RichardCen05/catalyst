@@ -301,7 +301,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           ))}
         </div>
         <form onSubmit={onSubmit} className="flex items-end gap-1.5 rounded-lg border border-border bg-background p-1 transition-colors focus-within:border-foreground/35">
-          <label htmlFor="copilot-input" className="sr-only">Tanya Asisten</label>
+          <label htmlFor="copilot-input" className="sr-only">Tanya Catalyst</label>
           <textarea id="copilot-input" ref={composerRef} rows={1} maxLength={DEFAULT_THRESHOLDS.copilotQuestionChars} value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(input); } }} placeholder="Tanya bukti atau dampak..." className="max-h-[132px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-[7px] text-base leading-[1.45] outline-none placeholder:text-muted-foreground" />
           <button
             type="submit"

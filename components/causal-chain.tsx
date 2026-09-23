@@ -147,7 +147,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
           {graph.hiddenRelationshipCount} hubungan di bawah ambang relevansi tidak digambar — turunkan ambang di atas atau baca semuanya di daftar hubungan bawah.
         </p>
       ) : null}
-      <div className="map-in h-[560px] w-full" aria-label={`Rangkaian sebab akibat ${graph.targetSymbol}`}>
+      <div role="group" className="map-in h-[560px] w-full" aria-label={`Rangkaian sebab akibat ${graph.targetSymbol}`}>
         <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.3} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} onMove={(_, viewport) => setZoom(viewport.zoom)} onNodeClick={(_, node) => { setSelectedId(node.id); setSelectedEdgeId(null); }} onEdgeClick={(_, edge) => setSelectedEdgeId(edge.id)} onEdgeMouseEnter={(_, edge) => setHoveredEdgeId(edge.id)} onEdgeMouseLeave={() => setHoveredEdgeId(null)}>
           <Background gap={20} size={1} color="var(--chart-grid)" />
           <Controls showInteractive={false} />

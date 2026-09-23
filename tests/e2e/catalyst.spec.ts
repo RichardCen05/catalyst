@@ -259,7 +259,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await page.goto("/cases/ANTM");
 
   const caseTabs = page.getByRole("tablist", { name: "Bagian kasus" });
-  await expect(caseTabs.getByRole("tab")).toHaveText(["Pasar", "Bisnis", "Tinjau"]);
+  await expect(caseTabs.getByRole("tab")).toHaveText(["1Pasar", "2Bisnis", "3Keputusan"]);
   await expect(caseTabs.getByRole("tab", { name: "Pasar" })).toHaveAttribute("aria-selected", "true");
   // The mandate line sits above the tabs, so it stays readable from every tab.
   await expect(page.getByRole("region", { name: "Pertanyaan yang diuji" })).toBeVisible();
@@ -286,8 +286,8 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
   await expect(page.getByRole("heading", { name: "Dampak ke bisnis" })).toBeVisible();
 
   await page.goto("/cases/ANTM?tab=review");
-  await expect(caseTabs.getByRole("tab", { name: "Tinjau" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "Ajari Catalyst tentang ANTM" })).toBeVisible();
+  await expect(caseTabs.getByRole("tab", { name: /Keputusan/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Keputusan", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
 });
 
@@ -399,7 +399,7 @@ test("user completes setup and opens a four-pillar company case", async ({ page 
   await page.getByRole("tab", { name: "Pasar" }).click();
   await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toBeVisible();
   await expect(page.getByText("Rencana → Cari → Periksa → Ringkas")).toHaveCount(0);
-  await page.getByRole("tab", { name: "Tinjau" }).click();
+  await page.getByRole("tab", { name: /Keputusan/ }).click();
   await page.getByRole("button", { name: "Buka audit" }).click();
   const audit = page.getByRole("dialog", { name: "Audit analisis ANTM" });
   await expect(audit.getByText("Rencana → Cari → Periksa → Ringkas")).toBeVisible();
@@ -543,7 +543,7 @@ test("formula details and source destinations are inspectable", async ({ page })
 test("copilot has a dedicated searchable workspace", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/copilot");
-  await expect(page.getByRole("heading", { name: "Cari jawaban dari bukti" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Asisten", exact: true })).toBeVisible();
   await page.getByLabel("Tanya Catalyst").fill("Data apa yang belum diperiksa untuk ANTM?");
   await page.getByLabel("Tanya Catalyst").press("Enter");
   await expect(page.getByText(/Data dalam hari perdagangan/)).toBeVisible();
@@ -552,7 +552,9 @@ test("copilot has a dedicated searchable workspace", async ({ page }) => {
 test("theme persists and core routes do not overflow target breakpoints", async ({ page }) => {
   await finishSetup(page);
   await page.getByRole("button", { name: "Buka pengaturan" }).click();
-  await page.getByRole("dialog", { name: "Pengaturan" }).getByRole("button", { name: "Ganti tema" }).click();
+  await page.getByRole("dialog", { name: "Pengaturan" }).getByRole("button", { name: "Gelap" }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await page.getByRole("dialog", { name: "Pengaturan" }).getByRole("button", { name: "Terang" }).click();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
   await page.reload();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
@@ -573,11 +575,11 @@ test("theme persists and core routes do not overflow target breakpoints", async 
 test("core routes have no automatic WCAG A or AA violations", async ({ page }) => {
   await finishSetup(page);
   const routes = ["/", "/cases", "/cases/ANTM", "/impact", "/copilot", "/playbook", "/companies", "/compare?symbols=ANTM%2CBBCA", "/agent", "/method", "/pantau"];
-  for (const theme of ["dark", "light"] as const) {
-    if (theme === "light") {
+  for (const theme of ["light", "dark"] as const) {
+    if (theme === "dark") {
       await page.goto("/");
       await page.getByRole("button", { name: "Buka pengaturan" }).click();
-      await page.getByRole("dialog", { name: "Pengaturan" }).getByRole("button", { name: "Ganti tema" }).click();
+      await page.getByRole("dialog", { name: "Pengaturan" }).getByRole("button", { name: "Gelap" }).click();
     }
     for (const route of routes) {
       await page.goto(route);

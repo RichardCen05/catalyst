@@ -6,7 +6,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { IconAttention, IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
 
 const CATALYST_SOURCE_LABELS: Record<string, string> = {
-  sectors: "Sectors news",
+  sectors: "Berita Sectors",
   filing: "filing",
   macro: "makro",
   commodity: "komoditas",
@@ -34,7 +34,7 @@ export default function MethodPage() {
       <PageHeader title="Metode dan batas" description={`Rumus, sumber, dan kondisi saat Catalyst harus berhenti. Prototipe memakai rekaman ${recordDate} dan perhitungan tetap.`} />
       <Panel>
         <PanelHeader title={`${COUNT_WORDS[pillars.length] ?? pillars.length} pemeriksaan, dua pertanyaan`} />
-        <div className="grid gap-px border-b border-border bg-border md:grid-cols-2"><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 1</p><h2 className="editorial mt-1 text-2xl">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Konsentrasi, volume, dan momentum menunjukkan apakah perubahan terlihat di pasar.</p></section><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 2</p><h2 className="editorial mt-1 text-2xl">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Katalis, eksposur, dan indikator keuangan menunjukkan apakah perubahan dapat mencapai bisnis.</p></section></div>
+        <div className="grid gap-px border-b border-border bg-border md:grid-cols-2"><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 1</p><h2 className="editorial mt-1 text-xl">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Konsentrasi, volume, dan momentum menunjukkan apakah perubahan terlihat di pasar.</p></section><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 2</p><h2 className="editorial mt-1 text-xl">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Katalis, eksposur, dan indikator keuangan menunjukkan apakah perubahan dapat mencapai bisnis.</p></section></div>
         <div className="grid gap-px bg-border md:grid-cols-2">{pillars.map((pillar, index) => <article key={pillar.name} className="bg-surface p-4 sm:p-5"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-lg bg-primary/10 font-mono text-xs font-semibold text-muted-foreground font-medium">{index + 1}</span><h2 className="font-semibold">{pillar.name}</h2></div><dl className="mt-4 space-y-3 text-sm"><div><dt className=" text-xs text-muted-foreground">Masukan yang diwakili</dt><dd className="mt-1 leading-6">{pillar.input}</dd></div><div><dt className=" text-xs text-muted-foreground">Proses</dt><dd className="mt-1 leading-6">{pillar.formula}</dd></div><div><dt className=" text-xs text-muted-foreground">Hasil</dt><dd className="mt-1 leading-6 text-muted-foreground">{pillar.output}</dd></div></dl></article>)}</div>
       </Panel>
 

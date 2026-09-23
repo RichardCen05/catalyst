@@ -228,7 +228,7 @@ function GuidedTourContent() {
       <section role="dialog" aria-labelledby="guided-tour-complete-title" className="pointer-events-auto absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-w-lg rounded-lg border border-primary/35 bg-surface p-5 shadow-2xl sm:bottom-6">
         <span className="grid size-10 place-items-center rounded-lg bg-positive/10 text-positive"><Check aria-hidden="true" className="size-5" /></span>
         <p className="mt-4 text-xs text-muted-foreground font-medium">Tur selesai</p>
-        <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Ritual harian selesai</h2>
+        <h2 id="guided-tour-complete-title" className="editorial mt-1 text-xl">Ritual harian selesai</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah memilih perubahan, menetapkan pertanyaan, melacak sebab akibat, dan menentukan tindakan riset.</p>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Ulangi alur ini saat ada perubahan baru.</p><Button size="sm" onClick={finishTour}>Selesai<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
       </section>
@@ -255,7 +255,7 @@ function GuidedTourContent() {
         </div> : null}
 
         <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
-          <div className="grid w-24 shrink-0 gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
+          <div role="img" className="grid w-24 shrink-0 gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
           <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
           {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : current.actionSelector ? <p className="hidden text-xs text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
         </div>

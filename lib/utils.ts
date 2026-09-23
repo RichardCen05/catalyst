@@ -17,6 +17,18 @@ export function formatCurrency(value: number) {
     .replace(/\u00a0/g, " ");
 }
 
+/**
+ * A recorded figure as the reader sees it: id-ID decimals and a true minus.
+ *
+ * Display only. The engine's strings stay as they are, because the verifier
+ * and the figure matcher read them; `canonicalFigure` strips both separators,
+ * so a reader who types the figure off the screen still reaches it.
+ */
+export function displayFigure(value: string): string {
+  if (/\d,\d{3}/.test(value)) return value.replace(/^-/, "−");
+  return value.replace(/^-/, "−").replace(/(\d)\.(\d)/g, "$1,$2");
+}
+
 export function formatAsOf(value: string) {
   return new Intl.DateTimeFormat("id-ID", {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta",
