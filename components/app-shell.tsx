@@ -42,14 +42,15 @@ function RouteContextProbe() {
 const OnboardingWizard = dynamic(() => import("@/components/onboarding-wizard").then((mod) => mod.OnboardingWizard), { ssr: false });
 const GuidedTour = dynamic(() => import("@/components/guided-tour").then((mod) => mod.GuidedTour), { ssr: false });
 
-/** Recording age is computed on both server and client; the two can disagree
- *  by a day boundary, so the label carries suppressHydrationWarning and the
- *  client value wins — no placeholder flash, no lint cascade. */
+/** The date the figures close on. It used to count the days since that close
+ *  and call the board "not live market conditions", which read as a warning
+ *  that the data had been left to rot — true while the window was pinned by
+ *  hand, misleading now that a scheduled job moves it every trading day. The
+ *  date still travels, because the figures are session closes and not an
+ *  intraday feed, but it is stated rather than counted down from. */
 function recordLabel(): string {
-  const asOf = new Date(DATA_AS_OF);
-  const date = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(asOf);
-  const days = Math.max(0, Math.floor((Date.now() - asOf.getTime()) / 86_400_000));
-  return days <= 0 ? `Rekaman ${date} · hari ini` : `Rekaman ${date} · ${days} hari lalu`;
+  const date = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(DATA_AS_OF));
+  return `Data ${date}`;
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -88,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh bg-background">
       <a href="#main-content" className="skip-link">Lewati navigasi</a>
-      <div className="demo-banner relative z-50 flex h-9 items-center justify-center gap-2 border-b border-border bg-surface-raised px-3 text-center"><FlaskConical aria-hidden="true" className="size-3 text-attention" /><p className="meta min-w-0 truncate text-attention-foreground"><strong className="font-medium" suppressHydrationWarning>{recordLabel()}</strong><span aria-hidden="true" className="mx-2 opacity-50">/</span><span className="sm:hidden">Bukan pasar live</span><span className="hidden sm:inline">Bukan kondisi pasar live</span></p></div>
+      <div className="demo-banner relative z-50 flex h-9 items-center justify-center gap-2 border-b border-border bg-surface-raised px-3 text-center"><FlaskConical aria-hidden="true" className="size-3 text-attention" /><p className="meta min-w-0 truncate text-attention-foreground"><strong className="font-medium">{recordLabel()}</strong><span aria-hidden="true" className="mx-2 opacity-50">/</span><span className="sm:hidden">Penutupan sesi</span><span className="hidden sm:inline">Penutupan sesi, diperbarui tiap hari bursa</span></p></div>
       <div className="grid min-h-[calc(100dvh-36px)] xl:grid-cols-[236px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-[calc(100dvh-36px)] flex-col border-r border-border bg-surface px-3 py-4 xl:flex">
           <Link href="/" className="mb-6 flex min-h-12 items-center gap-3 rounded-[6px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CatalystLogo /><div><span className="editorial block text-[17px] text-foreground">Catalyst</span><span className="meta block text-muted-foreground">Pemeriksa perubahan</span></div></Link>

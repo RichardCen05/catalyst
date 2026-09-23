@@ -88,7 +88,7 @@ export function CaseMemoActions({ researchCase, symbol }: { researchCase: Resear
       `Tindakan riset: ${researchCase.researchDisposition.label} — ${researchCase.researchDisposition.reason}`,
       `Pantau: ${researchCase.researchDisposition.monitorObservable}`,
       `Buka kembali bila: ${researchCase.researchDisposition.reopenWhen}`,
-      `Rekaman ${researchCase.asOf} · bukan pasar live.`,
+      `Data ${researchCase.asOf} · penutupan sesi, bukan saran transaksi.`,
     ].join("\n");
     try {
       await navigator.clipboard.writeText(text);

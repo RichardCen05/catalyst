@@ -1,0 +1,93 @@
+# Scheduled data refresh for catalyst-web.
+#
+# Cloud Scheduler triggers this on trading days. It re-records the Sectors feeds,
+# rebuilds lib/data/market.generated.ts from them, runs the same gate a human runs
+# before deploying, and only then deploys. A red gate aborts the build and leaves
+# the serving revision exactly where it was — a stale revision is a smaller
+# failure than a revision serving figures no test agreed to.
+#
+# The bundle is compiled into the image (seven static importers, no dynamic
+# import), so a deploy is the only way refreshed data reaches a reader. That is
+# why this pipeline ends in `gcloud run deploy` rather than writing to a bucket.
+#
+# This does not commit the refreshed recordings back to the repository. Each run
+# starts from the committed window and extends it to today in a single call per
+# feed, which costs the same credit whether the span is one day or fifty — so
+# skipping the commit costs nothing and keeps an unattended job from pushing to
+# a branch. The repository's own recordings move when a human runs
+# `scripts/refresh_sectors.py --execute` and commits the result.
+#
+# Credit: the grant is 1,000, non-renewable, and expires at the end of the event.
+# A full run is 85 credits. _MAX_CREDITS is the per-run ceiling, not a budget —
+# watch the balance in the Sectors portal, and change the cadence (not the scope)
+# to stretch it: scope cannot shrink because build_market_data.py derives the
+# timeline from the intersection of every symbol's daily dates.
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE: catalyst-web
+  _SERVICE_ACCOUNT: catalyst-run@ada-sectors-508410.iam.gserviceaccount.com
+  _MAX_CREDITS: "120"
+
+steps:
+  - id: install
+    name: node:22
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        corepack enable
+        pnpm install --frozen-lockfile
+
+  - id: refresh
+    name: python:3.12
+    entrypoint: bash
+    secretEnv: [SECTORS_API_KEY]
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        python3 scripts/refresh_sectors.py --execute --max-credits "${_MAX_CREDITS}"
+        python3 scripts/build_market_data.py
+
+  # The gate a human runs before deploying, in the same order, so an unattended
+  # deploy is held to the standard an attended one is.
+  - id: gate
+    name: node:22
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        corepack enable
+        pnpm lint
+        pnpm typecheck
+        pnpm vitest run --exclude 'tests/zz-live.test.ts'
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        gcloud run deploy "${_SERVICE}" \
+          --source . \
+          --project="$PROJECT_ID" \
+          --region="${_REGION}" \
+          --service-account="${_SERVICE_ACCOUNT}" \
+          --allow-unauthenticated \
+          --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
+          --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=1,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+          --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/ada-sectors-508410/secrets/SECTORS_API_KEY/versions/latest
+      env: SECTORS_API_KEY
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+timeout: 2400s

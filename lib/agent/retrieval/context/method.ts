@@ -19,7 +19,7 @@ export async function buildMethodBundle(): Promise<ContextBundle> {
     `Pilar yang dinilai: ${Object.entries(PILLAR_LABELS).map(([key, label]) => `${label} (${key})`).join(", ")}.`,
     `Tabel ambang memuat ${keys.length} nilai: ${byProvenance("guess").length} dipilih manusia dan belum diukur terhadap pasar Indonesia, ${byProvenance("convention").length} penjaga kualitas data, ${byProvenance("derived").length} turunan matematis.`,
     `Ambang yang dipilih manusia: ${byProvenance("guess").map((key) => `${key} = ${DEFAULT_THRESHOLDS[key]}`).join(", ")}.`,
-    `Batasnya: semua angka berasal dari rekaman bertanggal, bukan pasar live, dan tidak satu pun jadi saran transaksi.`,
+    `Batasnya: semua angka berasal dari penutupan sesi yang terekam dan bertanggal, bukan kutipan intrahari, dan tidak satu pun jadi saran transaksi.`,
   ].join("\n");
 
   return {

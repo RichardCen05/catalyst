@@ -36,7 +36,7 @@ export function buildInvestmentMemo(analysis: ResearchCase): string {
     `## Sumber (${analysis.sources.length})`,
     ...analysis.sources.map((citation) => `- ${citation.label} · ${citation.endpoint} · ${citation.asOf}`),
     ``,
-    `Rekaman ${analysis.asOf} · bukan pasar live, bukan saran transaksi.`,
+    `Data ${analysis.asOf} · penutupan sesi, bukan saran transaksi.`,
   ];
   return lines.join("\n");
 }

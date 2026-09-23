@@ -42,7 +42,7 @@ export async function buildDashboardBundle(context: RequestContext): Promise<Con
     `- Jalur dipakai bersama, yaitu mekanisme yang dilalui lebih dari satu emiten: ${hubCount}.`,
     `- Dampak bisnis dapat diuji: ${impactCount}.`,
     `- Hubungan di bawah ambang relevansi ${DEFAULT_THRESHOLDS.chainRelevanceFloor} sehingga tidak digambar: ${graph.hiddenRelationshipCount}.`,
-    `Rekaman tertanggal ${DATA_AS_OF}; papan ini bukan pasar live.`,
+    `Angka papan ini tertanggal ${DATA_AS_OF}, yaitu penutupan sesi terakhir yang terekam.`,
     ...(graph.skipped.length
       ? [`Tidak digambar: ${graph.skipped.map((row) => `${row.symbol} (${row.reason})`).join("; ")}.`]
       : []),

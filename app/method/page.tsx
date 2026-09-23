@@ -60,7 +60,7 @@ export default function MethodPage() {
           { icon: IconSource, title: "Sumber dihitung per angka", text: "Jumlah sumber pada tiap metrik hanya menghitung rekaman yang menghasilkan angka itu. Dua metrik pada satu kartu dapat berbeda jumlah sumbernya." },
           { icon: IconAttention, title: "Tanpa aksi", text: "Hasil berhenti pada bukti, konflik, dan informasi yang belum ada." },
         ].map((item) => <article key={item.title} className="bg-surface p-4"><item.icon aria-hidden="true" className="size-5 text-attention" /><h3 className="mt-3 font-semibold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p></article>)}</div>
-        <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah rekaman {DATA_AS_OF_LABEL} dan bukan kondisi pasar live. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
+        <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah penutupan sesi {DATA_AS_OF_LABEL}, disegarkan tiap hari bursa, bukan kutipan intrahari. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
       </Panel>
     </div>
   );

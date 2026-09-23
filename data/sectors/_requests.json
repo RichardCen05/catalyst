@@ -1,0 +1,971 @@
+{
+  "_comment": [
+    "The request that produced each recording in this directory.",
+    "Written once from the Sectors research harness manifest and maintained by",
+    "scripts/refresh_sectors.py. It exists so this repository can re-record its",
+    "own data without reaching into a sibling checkout: the scheduled refresh",
+    "runs inside a container that has this repo and nothing else.",
+    "Keys are recording filenames without .json; est_cost is the credit price",
+    "the Sectors reference states for that call."
+  ],
+  "requests": {
+    "v2_broker-summary_ANTM_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/ANTM/top/"
+    },
+    "v2_broker-summary_BBCA_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/BBCA/top/"
+    },
+    "v2_broker-summary_BBRI_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/BBRI/top/"
+    },
+    "v2_broker-summary_GOTO_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/GOTO/top/"
+    },
+    "v2_broker-summary_PGAS_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/PGAS/top/"
+    },
+    "v2_broker-summary_TLKM_top__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 2,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/broker-summary/TLKM/top/"
+    },
+    "v2_brokers": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/brokers/"
+    },
+    "v2_company_corporate-actions_ADRO": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/corporate-actions/ADRO/"
+    },
+    "v2_company_corporate-actions_BBCA": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/corporate-actions/BBCA/"
+    },
+    "v2_company_corporate-actions_BBRI": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/corporate-actions/BBRI/"
+    },
+    "v2_company_corporate-actions_LIFE": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/corporate-actions/LIFE/"
+    },
+    "v2_company_corporate-actions_TLKM": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/corporate-actions/TLKM/"
+    },
+    "v2_company_get-segments_ADRO": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/get-segments/ADRO/"
+    },
+    "v2_company_get-segments_BBCA": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/get-segments/BBCA/"
+    },
+    "v2_company_get-segments_BBRI": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/get-segments/BBRI/"
+    },
+    "v2_company_get-segments_TLKM": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/get-segments/TLKM/"
+    },
+    "v2_company_report_ADRO__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/ADRO/"
+    },
+    "v2_company_report_AMRT__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/AMRT/"
+    },
+    "v2_company_report_ANTM__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/ANTM/"
+    },
+    "v2_company_report_BBCA__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/BBCA/"
+    },
+    "v2_company_report_BBRI__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/BBRI/"
+    },
+    "v2_company_report_BMRI__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/BMRI/"
+    },
+    "v2_company_report_BUKA__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/BUKA/"
+    },
+    "v2_company_report_EMTK__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/EMTK/"
+    },
+    "v2_company_report_EXCL__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/EXCL/"
+    },
+    "v2_company_report_GOTO__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/GOTO/"
+    },
+    "v2_company_report_ICBP__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/ICBP/"
+    },
+    "v2_company_report_INCO__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/INCO/"
+    },
+    "v2_company_report_JSMR__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/JSMR/"
+    },
+    "v2_company_report_MYOR__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/MYOR/"
+    },
+    "v2_company_report_PGAS__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/PGAS/"
+    },
+    "v2_company_report_PTBA__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/PTBA/"
+    },
+    "v2_company_report_TINS__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/TINS/"
+    },
+    "v2_company_report_TLKM__sections-overview": {
+      "est_cost": 1,
+      "params": {
+        "sections": "overview"
+      },
+      "path": "/v2/company/report/TLKM/"
+    },
+    "v2_company_shareholders-composition_ADRO": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/shareholders-composition/ADRO/"
+    },
+    "v2_company_shareholders-composition_BBCA": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/shareholders-composition/BBCA/"
+    },
+    "v2_company_shareholders-composition_BBRI": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/shareholders-composition/BBRI/"
+    },
+    "v2_company_shareholders-composition_TLKM": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/company/shareholders-composition/TLKM/"
+    },
+    "v2_daily_ADRO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/ADRO/"
+    },
+    "v2_daily_AMRT__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/AMRT/"
+    },
+    "v2_daily_ANTM__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/ANTM/"
+    },
+    "v2_daily_BBCA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/BBCA/"
+    },
+    "v2_daily_BBRI__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/BBRI/"
+    },
+    "v2_daily_BMRI__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/BMRI/"
+    },
+    "v2_daily_BUKA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/BUKA/"
+    },
+    "v2_daily_EMTK__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/EMTK/"
+    },
+    "v2_daily_EXCL__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/EXCL/"
+    },
+    "v2_daily_GOTO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/GOTO/"
+    },
+    "v2_daily_ICBP__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/ICBP/"
+    },
+    "v2_daily_INCO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/INCO/"
+    },
+    "v2_daily_JSMR__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/JSMR/"
+    },
+    "v2_daily_MYOR__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/MYOR/"
+    },
+    "v2_daily_PGAS__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/PGAS/"
+    },
+    "v2_daily_PTBA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/PTBA/"
+    },
+    "v2_daily_TINS__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/TINS/"
+    },
+    "v2_daily_TLKM__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/daily/TLKM/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-ADRO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "ADRO.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-AMRT.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "AMRT.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-ANTM.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "ANTM.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-BBCA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "BBCA.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-BBRI.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "BBRI.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-BMRI.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "BMRI.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-BUKA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "BUKA.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-EMTK.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "EMTK.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-EXCL.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "EXCL.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-GOTO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "GOTO.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-ICBP.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "ICBP.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-INCO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "INCO.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-JSMR.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "JSMR.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-MYOR.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "MYOR.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-PGAS.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "PGAS.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-PTBA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "PTBA.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-TINS.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "TINS.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_filings__end-2026-09-23_start-2026-08-01_symbol-TLKM.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbol": "TLKM.JK"
+      },
+      "path": "/v2/filings/"
+    },
+    "v2_financials_quarterly_ANTM__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/ANTM/"
+    },
+    "v2_financials_quarterly_BBCA__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/BBCA/"
+    },
+    "v2_financials_quarterly_BBRI__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/BBRI/"
+    },
+    "v2_financials_quarterly_GOTO__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/GOTO/"
+    },
+    "v2_financials_quarterly_PGAS__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/PGAS/"
+    },
+    "v2_financials_quarterly_TLKM__n_quarters-4": {
+      "est_cost": 4,
+      "params": {
+        "n_quarters": 4
+      },
+      "path": "/v2/financials/quarterly/TLKM/"
+    },
+    "v2_foreign-flow_ADRO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/ADRO/"
+    },
+    "v2_foreign-flow_AMRT__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/AMRT/"
+    },
+    "v2_foreign-flow_ANTM__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/ANTM/"
+    },
+    "v2_foreign-flow_BBCA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/BBCA/"
+    },
+    "v2_foreign-flow_BBRI__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/BBRI/"
+    },
+    "v2_foreign-flow_BMRI__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/BMRI/"
+    },
+    "v2_foreign-flow_BUKA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/BUKA/"
+    },
+    "v2_foreign-flow_EMTK__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/EMTK/"
+    },
+    "v2_foreign-flow_EXCL__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/EXCL/"
+    },
+    "v2_foreign-flow_GOTO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/GOTO/"
+    },
+    "v2_foreign-flow_ICBP__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/ICBP/"
+    },
+    "v2_foreign-flow_INCO__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/INCO/"
+    },
+    "v2_foreign-flow_JSMR__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/JSMR/"
+    },
+    "v2_foreign-flow_MYOR__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/MYOR/"
+    },
+    "v2_foreign-flow_PGAS__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/PGAS/"
+    },
+    "v2_foreign-flow_PTBA__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/PTBA/"
+    },
+    "v2_foreign-flow_TINS__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/TINS/"
+    },
+    "v2_foreign-flow_TLKM__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/foreign-flow/TLKM/"
+    },
+    "v2_free-float": {
+      "est_cost": 10,
+      "params": {},
+      "path": "/v2/free-float/"
+    },
+    "v2_index-daily_ihsg__end-2026-09-23_start-2026-08-01": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01"
+      },
+      "path": "/v2/index-daily/ihsg/"
+    },
+    "v2_mining_commodities_Coal_price__end_year-2025_start_year-2023": {
+      "est_cost": 1,
+      "params": {
+        "end_year": 2025,
+        "start_year": 2023
+      },
+      "path": "/v2/mining/commodities/Coal/price/"
+    },
+    "v2_mining_commodities_Gold_price__end_year-2025_start_year-2023": {
+      "est_cost": 1,
+      "params": {
+        "end_year": 2025,
+        "start_year": 2023
+      },
+      "path": "/v2/mining/commodities/Gold/price/"
+    },
+    "v2_most-traded": {
+      "est_cost": 2,
+      "params": {},
+      "path": "/v2/most-traded/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-ADRO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "ADRO.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-AMRT.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "AMRT.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-ANTM.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "ANTM.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-BBCA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "BBCA.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-BBRI.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "BBRI.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-BMRI.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "BMRI.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-BUKA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "BUKA.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-EMTK.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "EMTK.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-EXCL.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "EXCL.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-GOTO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "GOTO.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-ICBP.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "ICBP.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-INCO.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "INCO.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-JSMR.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "JSMR.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-MYOR.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "MYOR.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-PGAS.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "PGAS.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-PTBA.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "PTBA.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-TINS.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "TINS.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_news__end-2026-09-23_start-2026-08-01_symbols-TLKM.JK": {
+      "est_cost": 1,
+      "params": {
+        "end": "2026-09-23",
+        "start": "2026-08-01",
+        "symbols": "TLKM.JK"
+      },
+      "path": "/v2/news/"
+    },
+    "v2_subsector_report_banks__sections-statistics": {
+      "est_cost": 1,
+      "params": {
+        "sections": "statistics"
+      },
+      "path": "/v2/subsector/report/banks/"
+    },
+    "v2_subsector_report_oil-gas-coal__sections-statistics": {
+      "est_cost": 1,
+      "params": {
+        "sections": "statistics"
+      },
+      "path": "/v2/subsector/report/oil-gas-coal/"
+    },
+    "v2_subsector_report_telecommunication__sections-statistics": {
+      "est_cost": 1,
+      "params": {
+        "sections": "statistics"
+      },
+      "path": "/v2/subsector/report/telecommunication/"
+    },
+    "v2_suspensions": {
+      "est_cost": 1,
+      "params": {},
+      "path": "/v2/suspensions/"
+    }
+  }
+}
