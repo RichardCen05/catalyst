@@ -592,7 +592,14 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:antrean-review",
     heading: "Antrean review",
     view: "pantau",
-    labels: ["Antrean (","Semua emiten"],
+    labels: ["Antrean (","dengan usulan model ·","diarsipkan otomatis","Semua emiten"],
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:diarsipkan-otomatis",
+    heading: "Diarsipkan otomatis",
+    view: "pantau",
+    labels: ["Diarsipkan otomatis (","Disisihkan oleh aturan triase, bukan oleh reviewer. Tidak ada yang dihapus; kembalikan bila aturannya keliru."],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -641,6 +648,20 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Tolak",
     view: "pantau",
     actions: ["Tolak"],
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:usulan-model",
+    heading: "Usulan model",
+    view: "pantau",
+    description: "Lolos pemeriksaan angka dan bahasa. Belum masuk engine sampai Anda menerimanya.",
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:usulan-model-2",
+    heading: "Usulan model",
+    view: "pantau",
+    labels: ["Usulan model","Lolos pemeriksaan angka dan bahasa. Belum masuk engine sampai Anda menerimanya."],
     file: "components/web-watch-review.tsx",
   },
   {

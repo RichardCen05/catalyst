@@ -215,3 +215,51 @@ describe("helpers", () => {
     expect(saved?.pending).toHaveLength(3);
   });
 });
+
+describe("review actions on proposals", () => {
+  const proposal = (band: "high" | "medium", direction: ExposureAssessment["direction"] = "Adverse") => ({
+    impacts: [{ symbol: "PTBA", direction, band, path: good.path, rationale: good.rationale }],
+    model: "stub",
+    verifiedAt: NOW,
+  });
+
+  it("accepts high-band proposals in one action, one human decision each", async () => {
+    const [a, b] = [news(`${PTBA_BODY} A.`, "Bukit Asam A"), news(`${PTBA_BODY} B.`, "Bukit Asam B")];
+    const queue: ReviewQueue = { ...queued(a, b), proposals: { [a.id]: proposal("high"), [b.id]: proposal("high") } };
+    const { acceptProposals } = await import("@/lib/web-watch/queue");
+    const next = acceptProposals(queue, [a.id, b.id], NOW);
+    expect(next.pending).toHaveLength(0);
+    expect(next.accepted.map((e) => e.id).sort()).toEqual([a.id, b.id].sort());
+    expect(next.decided[a.id]).toMatchObject({ status: "accepted", viaProposal: true });
+    expect(next.decided[b.id].impacts?.[0]).toEqual({ symbol: "PTBA", direction: "Adverse", band: "high", path: good.path });
+    expect(next.proposals).toEqual({});
+  });
+
+  it("refuses the whole batch if any proposal is not high band or maps nothing", async () => {
+    const [a, b] = [news(`${PTBA_BODY} C.`, "Bukit Asam C"), news(`${PTBA_BODY} D.`, "Bukit Asam D")];
+    const { acceptProposals, isBatchAcceptable } = await import("@/lib/web-watch/queue");
+    const queue: ReviewQueue = { ...queued(a, b), proposals: { [a.id]: proposal("high"), [b.id]: proposal("medium") } };
+    expect(() => acceptProposals(queue, [a.id, b.id], NOW)).toThrow(/band tinggi/);
+    expect(isBatchAcceptable(proposal("high", "Unrelated"))).toBe(false);
+    expect(isBatchAcceptable(undefined)).toBe(false);
+  });
+
+  it("suggests disabling a source only once its recent window is mostly archive and dismissal", async () => {
+    const { sourceHealth } = await import("@/lib/web-watch/queue");
+    const window = resolveThresholds().webWatchSourceHealthWindow;
+    const archived = Object.fromEntries(
+      Array.from({ length: window }, (_, n) => {
+        const event = news(PROSE_OF(n), `Arsip ${n}`);
+        return [event.id, { event, rule: "no-watched-match" as const, reason: "x", at: `2026-09-${String(10 + (n % 10)).padStart(2, "0")}T00:00:00.000Z` }];
+      }),
+    );
+    const noisy = sourceHealth({ ...emptyQueue, archived }, SEED_SOURCES).find((h) => h.sourceId === "src-cnbc-market");
+    expect(noisy).toMatchObject({ window, noisy: window, suggestDisable: true });
+    const few = sourceHealth({ ...emptyQueue, archived: Object.fromEntries(Object.entries(archived).slice(0, window - 1)) }, SEED_SOURCES);
+    expect(few.find((h) => h.sourceId === "src-cnbc-market")?.suggestDisable).toBe(false);
+  });
+});
+
+function PROSE_OF(n: number): string {
+  return `Kalimat pengisi nomor ${n} untuk arsip sumber yang tidak menyebut emiten mana pun di registri.`;
+}

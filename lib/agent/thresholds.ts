@@ -184,6 +184,13 @@ export const DEFAULT_THRESHOLDS = {
   webWatchDraftTimeBudgetMs: 60000,
   /** Karakter teks kandidat (judul dan kalimat utuh) yang masuk prompt draf. */
   webWatchDraftContextChars: 2000,
+  /** Keputusan terakhir per sumber (diarsipkan, ditolak, diterima) yang
+   *  dibaca untuk saran kesehatan sumber. Di bawah jumlah ini tidak ada saran. */
+  webWatchSourceHealthWindow: 20,
+  /** Porsi arsip + tolak dalam jendela di atas yang memunculkan saran
+   *  "Pertimbangkan menonaktifkan sumber ini". Hanya saran; tidak ada yang
+   *  dinonaktifkan otomatis. */
+  webWatchSourceNoiseShare: 0.9,
 } as const;
 
 /**
@@ -278,6 +285,8 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchDraftSymbolsMax: "convention",
   webWatchDraftTimeBudgetMs: "convention",
   webWatchDraftContextChars: "convention",
+  webWatchSourceHealthWindow: "convention",
+  webWatchSourceNoiseShare: "guess",
 };
 
 /**
@@ -408,6 +417,8 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchDraftSymbolsMax: DEFAULT_THRESHOLDS.webWatchDraftSymbolsMax,
     webWatchDraftTimeBudgetMs: DEFAULT_THRESHOLDS.webWatchDraftTimeBudgetMs,
     webWatchDraftContextChars: DEFAULT_THRESHOLDS.webWatchDraftContextChars,
+    webWatchSourceHealthWindow: DEFAULT_THRESHOLDS.webWatchSourceHealthWindow,
+    webWatchSourceNoiseShare: DEFAULT_THRESHOLDS.webWatchSourceNoiseShare,
   };
 }
 

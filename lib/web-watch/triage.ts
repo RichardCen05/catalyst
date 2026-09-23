@@ -34,6 +34,14 @@ import type { Company, MarketEvent, SymbolCode } from "@/lib/types";
 export const TRIAGE_RULES = ["duplicate", "empty-extract", "weather-below-warning", "no-watched-match"] as const;
 export type TriageRule = (typeof TRIAGE_RULES)[number];
 
+/** What each rule is called on screen and to the assistant. */
+export const TRIAGE_RULE_LABEL: Record<TriageRule, string> = {
+  duplicate: "Duplikat",
+  "empty-extract": "Teks kosong",
+  "weather-below-warning": "Cuaca di bawah ambang",
+  "no-watched-match": "Tidak menyentuh emiten pantauan",
+};
+
 export type MatchKind = "symbol" | "name" | "sector" | "subsector" | "source" | "region" | "weather";
 
 /** One reason a candidate concerns one emiten. `term` is what matched. */

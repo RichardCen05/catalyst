@@ -33,7 +33,7 @@ import { GcsPreconditionFailed, gcsGetJson, gcsPutJson } from "@/lib/gcp/gcs";
 import { companies } from "@/lib/data/fixtures";
 import { bucket } from "@/lib/web-watch/registry";
 import { RELEVANCE_BAND_SCORE, resolveThresholds, type RelevanceBand } from "@/lib/agent/thresholds";
-import { TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
+import { sourceFor, TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
 import type { WatchedSource } from "@/lib/web-watch/types";
 import type { ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
 
@@ -55,6 +55,9 @@ export interface ReviewDecision {
   decidedAt: string;
   reason: string;
   impacts?: ReviewImpact[];
+  /** The reviewer accepted the model's verified proposal (possibly in a
+   *  batch) rather than mapping by hand. Still a human decision. */
+  viaProposal?: boolean;
 }
 
 export interface ArchivedCandidate {
@@ -329,7 +332,7 @@ export class ReviewError extends Error {
 export function decide(
   queue: ReviewQueue,
   candidateId: string,
-  action: { action: "accept"; impacts: ReviewImpact[]; reason?: string } | { action: "dismiss"; reason: string },
+  action: { action: "accept"; impacts: ReviewImpact[]; reason?: string; viaProposal?: boolean } | { action: "dismiss"; reason: string },
   nowIso: string,
 ): ReviewQueue {
   const candidate = queue.pending.find((e) => e.id === candidateId);
@@ -385,9 +388,71 @@ export function decide(
         decidedAt: nowIso,
         reason: (action.reason ?? "").trim().slice(0, 500),
         impacts: action.impacts,
+        ...(action.viaProposal ? { viaProposal: true } : {}),
       },
     },
   };
+}
+
+/** A proposal a reviewer may accept in a batch: every impact high band and a
+ *  direction that maps something. Anything else needs a look first. */
+export function isBatchAcceptable(proposal: TriageProposal | undefined): proposal is TriageProposal {
+  return Boolean(proposal?.impacts.length) && (proposal as TriageProposal).impacts.every((i) => i.band === "high" && i.direction !== "Unrelated");
+}
+
+/**
+ * Accept several proposals in one action. Each candidate still gets its own
+ * decision record, marked as accepted through a proposal; any id that is not
+ * pending or whose proposal is not batch-acceptable stops the whole batch, so
+ * the reviewer never accepts something the confirm dialog did not list.
+ */
+export function acceptProposals(queue: ReviewQueue, candidateIds: string[], nowIso: string): ReviewQueue {
+  if (!candidateIds.length) throw new ReviewError("Tidak ada usulan yang dipilih.");
+  for (const id of candidateIds) {
+    if (!isBatchAcceptable(queue.proposals[id])) throw new ReviewError("Hanya usulan band tinggi yang terverifikasi yang bisa diterima sekaligus.");
+  }
+  return candidateIds.reduce((current, id) => {
+    const impacts = current.proposals[id].impacts.map(({ symbol, direction, band, path }) => ({ symbol, direction, band, path }));
+    return decide(current, id, { action: "accept", impacts, reason: "Usulan model diterima reviewer (sekaligus).", viaProposal: true }, nowIso);
+  }, queue);
+}
+
+export interface SourceHealth {
+  sourceId: string;
+  window: number;
+  noisy: number;
+  share: number;
+  suggestDisable: boolean;
+}
+
+/**
+ * How much of what a source produced ended archived or dismissed, over its
+ * most recent outcomes. A suggestion for the reviewer, never an action.
+ */
+export function sourceHealth(queue: ReviewQueue, sources: WatchedSource[]): SourceHealth[] {
+  const t = resolveThresholds();
+  const outcomes = new Map<string, Array<{ at: string; noisy: boolean }>>();
+  const add = (candidateId: string, at: string, noisy: boolean) => {
+    const source = sourceFor(candidateId, sources);
+    if (!source) return;
+    const list = outcomes.get(source.id) ?? [];
+    list.push({ at, noisy });
+    outcomes.set(source.id, list);
+  };
+  for (const [id, entry] of Object.entries(queue.archived)) add(id, entry.at, true);
+  for (const decision of Object.values(queue.decided)) add(decision.candidateId, decision.decidedAt, decision.status === "dismissed");
+  return [...outcomes.entries()].map(([sourceId, list]) => {
+    const recent = list.sort((a, b) => b.at.localeCompare(a.at)).slice(0, t.webWatchSourceHealthWindow);
+    const noisy = recent.filter((o) => o.noisy).length;
+    const share = recent.length ? noisy / recent.length : 0;
+    return {
+      sourceId,
+      window: recent.length,
+      noisy,
+      share,
+      suggestDisable: recent.length >= t.webWatchSourceHealthWindow && share >= t.webWatchSourceNoiseShare,
+    };
+  });
 }
 
 /** Generation-guarded save with one read-merge retry. */
@@ -413,8 +478,30 @@ export async function saveQueue(store: QueueStore, mutate: (queue: ReviewQueue) 
 // ---------------------------------------------------------------------------
 
 const OVERLAY_TTL_MS = 10 * 60 * 1000;
-let overlay: { events: MarketEvent[]; pending: number; decided: number; expiresAt: number } =
-  { events: [], pending: 0, decided: 0, expiresAt: 0 };
+interface OverlayCounts {
+  pending: number;
+  decided: number;
+  archived: number;
+  proposals: number;
+  archivedByRule: Partial<Record<TriageRule, number>>;
+}
+
+const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, archivedByRule: {} };
+
+let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { events: [], ...zeroCounts, expiresAt: 0 };
+
+/** The counts the assistant can read about the queue, from one queue value. */
+export function overlayCounts(queue: ReviewQueue): OverlayCounts {
+  const archivedByRule: Partial<Record<TriageRule, number>> = {};
+  for (const entry of Object.values(queue.archived)) archivedByRule[entry.rule] = (archivedByRule[entry.rule] ?? 0) + 1;
+  return {
+    pending: queue.pending.length,
+    decided: Object.keys(queue.decided).length,
+    archived: Object.keys(queue.archived).length,
+    proposals: Object.keys(queue.proposals).length,
+    archivedByRule,
+  };
+}
 
 /** Best-effort refresh. GCS-unreachable keeps the previous overlay (or empty)
  *  — the engine degrades to fixtures-only, never errors. */
@@ -422,14 +509,14 @@ export async function ensureOverlay(store: QueueStore = gcsQueueStore, nowMs: nu
   if (overlay.expiresAt > nowMs) return overlay.events;
   try {
     const loaded = await store.load();
+    const queue = normalizeQueue(loaded?.data);
     overlay = {
-      events: loaded?.data.accepted ?? [],
+      events: queue.accepted,
       // Counted here because this is the only place the queue is read on the
       // answer path. A reader asking how many sources are waiting was told
       // nothing at all, since the assistant could see what review accepted
       // and not what it has yet to decide.
-      pending: loaded?.data.pending.length ?? 0,
-      decided: Object.keys(loaded?.data.decided ?? {}).length,
+      ...overlayCounts(queue),
       expiresAt: nowMs + OVERLAY_TTL_MS,
     };
   } catch {
@@ -441,8 +528,15 @@ export async function ensureOverlay(store: QueueStore = gcsQueueStore, nowMs: nu
 /** What review has waiting and what it has settled, as of the last overlay
  *  refresh. Zero before the first `ensureOverlay`, which is the same
  *  fixtures-only state `getOverlayEvents` reports. */
-export function getOverlayStats(): { pending: number; decided: number; accepted: number } {
-  return { pending: overlay.pending, decided: overlay.decided, accepted: overlay.events.length };
+export function getOverlayStats(): OverlayCounts & { accepted: number } {
+  return {
+    pending: overlay.pending,
+    decided: overlay.decided,
+    archived: overlay.archived,
+    proposals: overlay.proposals,
+    archivedByRule: overlay.archivedByRule,
+    accepted: overlay.events.length,
+  };
 }
 
 /** Synchronous read for the providers. May be empty before the first
@@ -452,11 +546,11 @@ export function getOverlayEvents(): MarketEvent[] {
 }
 
 /** Tests and the check-sources route push freshly accepted events directly. */
-export function setOverlayForTests(events: MarketEvent[], counts?: { pending?: number; decided?: number }): void {
+export function setOverlayForTests(events: MarketEvent[], counts?: Partial<OverlayCounts>): void {
   overlay = {
     events,
-    pending: counts?.pending ?? 0,
-    decided: counts?.decided ?? 0,
+    ...zeroCounts,
+    ...counts,
     expiresAt: Date.now() + OVERLAY_TTL_MS,
   };
 }

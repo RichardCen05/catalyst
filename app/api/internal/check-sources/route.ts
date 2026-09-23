@@ -23,7 +23,7 @@
 import { NextResponse } from "next/server";
 import { checkInternalAuth } from "@/lib/internal-auth";
 import { checkSource } from "@/lib/web-watch/check";
-import { enqueue, ensureOverlay, gcsQueueStore, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
+import { enqueue, ensureOverlay, gcsQueueStore, getOverlayStats, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
 import { applySeedDeclarations, gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
 import { gcsReviewStore } from "@/lib/web-watch/review";
 import { SEED_SOURCES } from "@/lib/web-watch/seeds";
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     }
     const output = await watchAll({ store, review: gcsReviewStore, queue: gcsQueueStore }, body.force ?? false);
     const accepted = await ensureOverlay().catch(() => []);
-    setOverlayForTests(accepted);
+    setOverlayForTests(accepted, getOverlayStats());
     return NextResponse.json(output);
   } catch (error) {
     return NextResponse.json(
