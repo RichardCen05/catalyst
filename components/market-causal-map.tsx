@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
@@ -141,7 +142,7 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
             </span>
           ) : null}
         </span>
-        <span className="mt-1 line-clamp-2 block text-[12px] font-semibold leading-[1.3]">{node.label}</span>
+        <span className="mt-1 line-clamp-2 block text-[12px] font-semibold leading-[1.3]">{node.kind === "mechanism" ? node.label.charAt(0).toUpperCase() + node.label.slice(1) : node.label}</span>
         <span className="mt-auto flex items-center gap-1.5 font-mono text-[9px] text-muted-foreground">
           <span className="truncate">{node.symbols.join(" · ")}</span>
           {node.relevance ? <span className="ml-auto shrink-0">{node.relevance}</span> : null}
@@ -584,7 +585,16 @@ function NodeDetail({
           </span>
         ) : null}
       </div>
-      <h3 className="mt-2 text-sm font-semibold leading-5">{selected.label}</h3>
+      <h3 className="mt-2 text-sm font-semibold leading-5">
+        {selected.kind === "company" ? (
+          <Link
+            href={`/cases/${selected.label}`}
+            className="text-primary underline-offset-2 hover:underline"
+          >
+            {selected.label}
+          </Link>
+        ) : selected.label}
+      </h3>
       <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{uiLabel(selected.basis)}</p>
       <p className="mt-2 whitespace-pre-line text-xs leading-5 text-muted-foreground">{selected.detail}</p>
 

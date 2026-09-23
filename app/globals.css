@@ -9,14 +9,14 @@
    --------------------------------------------------------------- */
 
 :root {
-  --background: #E8FBFF;
-  --surface: #ffffff;
-  --surface-raised: #e8fbfd;
+  --background: #e1f3ff;
+  --surface: #f5faff;
+  --surface-raised: #e1fdff;
   --foreground: #012a3a;
   --muted: #d8f6fa;
   --muted-foreground: #3a6475;
   --border: #91e0ef;
-  --primary: #023e8a;
+  --primary: #02198a;
   --primary-foreground: #ffffff;
   --brand: #023e8a;
   --brand-foreground: #ffffff;
@@ -30,23 +30,23 @@
 }
 
 .dark {
-  --background: #0d0a0c;
-  --surface: #151013;
-  --surface-raised: #1c1519;
-  --foreground: #f5eff2;
-  --muted: #241b20;
-  --muted-foreground: #b6a7ae;
-  --border: #3a2931;
-  --primary: #f08bb3;
-  --primary-foreground: #2a0615;
-  --brand: #9e0142;
+  --background: #031020;
+  --surface: #00112a;
+  --surface-raised: #15171c;
+  --foreground: #ffffff;
+  --muted: #0b1564;
+  --muted-foreground: #bfc6ff;
+  --border: #345b7b;
+  --primary: #00c3ff;
+  --primary-foreground: #1326bc;
+  --brand: #00c3ff;
   --brand-foreground: #ffffff;
   --attention: #e4b65a;
   --attention-foreground: #e4b65a;
   --positive: #58c99a;
   --danger: #ff7a85;
   --ring: #f08bb3;
-  --chart-grid: #34272d;
+  --chart-grid: #00696d;
   color-scheme: dark;
 }
 

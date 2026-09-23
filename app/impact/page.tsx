@@ -73,7 +73,7 @@ function ImpactWorkspace() {
     <div className="mx-auto max-w-[1240px]">
       <PageHeader
         eyebrow="Ruang uji sebab akibat"
-        title="Hipotesis dan jalur dampak"
+        title="Hipotesis dan Jalur Dampak"
         action={<div className="text-xs font-medium text-muted-foreground">Emiten
           <div className="relative mt-1">
             <button

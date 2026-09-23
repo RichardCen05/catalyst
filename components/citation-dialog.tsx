@@ -165,7 +165,7 @@ export function CitationDialog({ citations, label = "Periksa sumber", trigger }:
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-100 w-[min(100vw,480px)] overflow-y-auto border-l border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
+        <Dialog.Content className="fixed inset-0 z-100 m-auto h-fit max-h-[85dvh] w-[min(100vw-2rem,520px)] overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
           {/* Mounted with the panel, so the descriptions are requested once
               per opening rather than once per card. */}
           <EvidenceList citations={unique} />

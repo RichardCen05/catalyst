@@ -54,7 +54,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
 
       <section id={`case-panel-${activeTab}`} role="tabpanel" aria-labelledby={`case-tab-${activeTab}`} tabIndex={0} className="focus:outline-none">
         {activeTab === "market" && marketPillar ? <section aria-labelledby="market-confirmation-title">
-          <section aria-label="Rencana analisis" className="mb-5 rounded-[10px] border border-border bg-background px-4 py-4 sm:px-5">
+          <section aria-label="Rencana analisis" className="mb-5 rounded-[10px] border border-border bg-surface px-4 py-4 sm:px-5">
             <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Rencana analisis</p>{focusDimensions.map((dimension) => <span key={dimension} className="rounded border border-primary/35 bg-primary/8 px-2 py-0.5 font-mono text-[10px] text-primary">Fokus · {uiLabel(dimension)}</span>)}</div>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{analysis.researchPlan.rationale}</p>
             <details className="group mt-3">
@@ -70,7 +70,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
           <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p></header>
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 bg-surface px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-surface-raised")}><span className="block truncate text-sm font-medium">{item.label}</span><span className={cn("mt-1 block truncate font-mono text-[10px]", active && "text-primary")}>{uiLabel(item.status)}</span></Link>; })}</div>
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
-          <p className="mt-3 text-xs text-muted-foreground">Jejak bukti {WINDOW_SESSIONS} hari sekarang ada di <Link href="/" className="text-primary hover:underline">Hari ini</Link>, mode grafik.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Jejak bukti {WINDOW_SESSIONS} hari sekarang ada di <Link href="/" className="text-primary hover:underline">dashboard</Link>, mode grafik.</p>
         </section> : null}
 
         {activeTab === "business" && catalystPillar ? <section aria-labelledby="business-transmission-title" data-tour="business-transmission">
