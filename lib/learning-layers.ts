@@ -51,7 +51,7 @@ export const LAYERS: Layer[] = [
     teacher: "Pasar",
     caveat: {
       badge: "mengukur, belum mengoreksi",
-      detail: "Catalyst sudah mencatat klaimnya dan menagihnya ke rekaman harga — hasilnya ada di bagian “Prediksi yang ditagih ke pasar” di bawah. Yang belum: mengubah ambang atau jendelanya sendiri. Koreksi muncul sebagai usulan, dan Anda yang memutuskan.",
+      detail: "Catalyst sudah mencatat klaimnya dan menagihnya ke rekaman harga — hasilnya ada di bagian “Belajar dari pasar”. Yang belum: mengubah ambang atau jendelanya sendiri. Koreksi muncul sebagai usulan, dan Anda yang memutuskan.",
     },
     question: "Seberapa sering tebakan Catalyst tepat?",
     analogy: "Seperti ramalan cuaca. BMKG bilang besok 70% hujan; besok langit yang menjawab. Tidak perlu ada yang komplain supaya ketahuan ramalannya terlalu percaya diri.",

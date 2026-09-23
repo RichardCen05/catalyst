@@ -193,15 +193,15 @@ test("legacy research utilities converge into the Research Case hub", async ({ p
   const settings = page.getByRole("dialog", { name: "Pengaturan" });
   await expect(settings.getByRole("link", { name: "Company universe" })).toHaveCount(0);
   await expect(settings.getByRole("link", { name: "Correction queue" })).toHaveCount(0);
-  await expect(settings.getByRole("link", { name: /Audit riset/ })).toBeVisible();
+  await expect(settings.getByRole("link", { name: /Tinjauan dan usulan/ })).toBeVisible();
 
   await page.goto("/companies");
   await expect(page).toHaveURL(/\/cases\?view=picker$/);
-  await expect(page.getByRole("link", { name: "Bandingkan emiten" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Perbandingan emiten" })).toHaveAttribute("aria-current", "page");
 
   await page.goto("/agent");
-  await expect(page).toHaveURL(/\/cases\?view=audit$/);
-  await expect(page.getByRole("heading", { name: "Memori hasil" })).toBeVisible();
+  await expect(page).toHaveURL(/\/ai-learning\?section=tinjauan$/);
+  await expect(page.getByRole("heading", { name: "Usulan aturan" })).toBeVisible();
 
   await page.goto("/companies/ANTM");
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
@@ -287,7 +287,7 @@ test("Research Case tabs keep each investigation layer focused and deep-linkable
 
   await page.goto("/cases/ANTM?tab=review");
   await expect(caseTabs.getByRole("tab", { name: "Tinjau" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "Koreksi analisis ini" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ajari Catalyst tentang ANTM" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
 });
 
@@ -491,11 +491,11 @@ test("user correction becomes a reversible open hypothesis", async ({ page }) =>
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=review");
   const note = "Kontrak ekspor belum dibedakan antara denominasi USD dan IDR.";
-  await page.getByLabel("Apa yang keliru atau belum dipertimbangkan?").fill(note);
-  await page.getByLabel("Referensi pendukung (opsional)").fill("https://www.bi.go.id/");
-  await page.getByRole("button", { name: "Kirim untuk verifikasi" }).click();
-  await expect(page.getByText("Tersimpan sebagai hipotesis terbuka")).toBeVisible();
-  await page.goto("/cases?view=audit");
+  await page.getByLabel("Yang ingin Anda ajarkan").fill(note);
+  await page.getByLabel("Tautan referensi (opsional)").fill("https://www.bi.go.id/");
+  await page.getByRole("button", { name: "Ajarkan ke Catalyst" }).click();
+  await expect(page.getByText("Tersimpan untuk ANTM")).toBeVisible();
+  await page.goto("/ai-learning?section=tinjauan");
   await expect(page.getByText(note)).toBeVisible();
   await expect(page.getByRole("link", { name: "Buka referensi pengguna" })).toHaveAttribute("href", "https://www.bi.go.id/");
   await page.getByRole("button", { name: "Tandai sudah diperiksa" }).click();
@@ -519,8 +519,8 @@ test("closing a case stores a reusable research resolution", async ({ page }) =>
   await page.reload();
   await expect(page.getByRole("region", { name: "Hasil kasus" }).getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true })).toBeVisible();
 
-  await page.goto("/cases?view=audit");
-  await expect(page.getByRole("heading", { name: "Memori hasil" })).toBeVisible();
+  await page.goto("/ai-learning?section=tinjauan");
+  await expect(page.getByRole("heading", { name: "Usulan aturan" })).toBeVisible();
   await expect(page.getByText("Pisahkan efek kurs pada harga jual dan biaya sebelum menaikkan prioritas.", { exact: true }).first()).toBeVisible();
   const proposal = page.getByRole("button", { name: "Terima aturan" }).locator("xpath=ancestor::article");
   await expect(proposal).toContainText("menunggu");

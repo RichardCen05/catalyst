@@ -1,3 +1,4 @@
+import React from "react";
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
 import type { Citation, MetricValue, PillarResult, SymbolCode } from "@/lib/types";
 import { primarySymbol } from "@/lib/data/fixtures";
@@ -91,7 +92,7 @@ function DerivationRow({ pillar, metric }: { pillar: PillarResult; metric: Metri
   );
 }
 
-export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol: SymbolCode }) {
+export function EvidenceCard({ pillar, symbol, trailing }: { pillar: PillarResult; symbol: SymbolCode; trailing?: React.ReactNode }) {
   // Tour anchor follows the first recorded full case, not a typed ticker, so
   // the spotlight tracks the registry when recordings refresh.
   return (
@@ -103,7 +104,10 @@ export function EvidenceCard({ pillar, symbol }: { pillar: PillarResult; symbol:
       </header>
 
       <section className="border-t border-border px-4 py-5 sm:px-5" aria-labelledby={`claim-${pillar.key}`}>
-        <h4 id={`claim-${pillar.key}`} className="text-sm font-semibold">Klaim yang diuji</h4>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h4 id={`claim-${pillar.key}`} className="text-sm font-semibold">Klaim yang diuji</h4>
+          {trailing}
+        </div>
         <p className="mt-2 max-w-3xl text-sm leading-6">{pillar.protocol.claim}</p>
         <div className="mt-5 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-2">
           <div className="bg-background p-4"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>

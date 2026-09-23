@@ -7,31 +7,30 @@ import { agentEngine } from "@/lib/agent/engine";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
 import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
-import type { CaseResolution, SymbolCode, AnalysisCase } from "@/lib/types";
+import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { IconArrowRight, IconCheck, IconClose, IconExternal, IconNote, IconSearch, IconTrash } from "@/components/ui/icons";
+import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { cn, formatCurrency } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
 
-type CaseHubView = "active" | "picker" | "audit";
+type CaseHubView = "active" | "picker";
 
 const views: Array<{ value: CaseHubView; label: string }> = [
-  { value: "active", label: "Kasus aktif" },
-  { value: "picker", label: "Bandingkan emiten" },
+  { value: "active", label: "Analisis Aktif" },
+  { value: "picker", label: "Perbandingan emiten" },
 ];
 
 function ResearchCasesContent() {
   const searchParams = useSearchParams();
   const requested = searchParams.get("view") as CaseHubView | null;
-  // "audit" stays a valid direct-link target (settings drawer, /agent redirect,
-  // AI Learning, case resolution) even though it's no longer a tab pill here.
-  const activeView = requested === "audit" || views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
-  const { profile, playbook, caseStatuses, caseResolutions, insights, ruleProposals, feedback, preferences, setInsightStatus, setRuleProposalStatus, removeInsight } = useCatalystStore();
+  // Koreksi pengguna, usulan aturan, dan memori hasil hidup di AI Learning —
+  // itu memori yang diajarkan pembaca, bukan kasus yang sedang diperiksa.
+  const activeView: CaseHubView = views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
+  const { profile, playbook, caseStatuses, caseResolutions, insights, feedback, preferences } = useCatalystStore();
   const [query, setQuery] = useState("");
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [selected, setSelected] = useState<Array<SymbolCode | undefined>>(() => {
@@ -70,7 +69,6 @@ function ResearchCasesContent() {
     () => orderByFeedback(cases, feedback, preferences, (item) => item.company.symbol),
     [cases, feedback, preferences],
   );
-  const resolutions = Object.entries(caseResolutions).filter((entry): entry is [SymbolCode, CaseResolution] => Boolean(entry[1]));
 
   const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setQuery(""); setOpenSlot(null); };
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
@@ -89,18 +87,17 @@ function ResearchCasesContent() {
 
   return (
     <div data-tour="research-cases">
-      <PageHeader eyebrow="Kasus riset" title="Periksa satu perubahan penting" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
+      <PageHeader eyebrow="Analisis dan Riset" title="Perubahan Saham yang perlu diperiksa" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
 
       <nav aria-label="Bagian kasus" className="mb-4 flex min-w-0 overflow-x-auto border-b border-border">
-        {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}{item.value === "audit" && insights.filter((entry) => entry.status === "pending").length ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{insights.filter((entry) => entry.status === "pending").length}</span> : null}</Link>)}
+        {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}</Link>)}
       </nav>
 
       {activeView === "active" ? <Panel>
         <div className="divide-y divide-border">
           {orderedCases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
-            const openCount = analysis.unresolvedQuestions.length;
-            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", status === "closed" ? "border-positive/30 text-positive" : "border-border text-muted-foreground")}>{status === "closed" ? "Selesai" : "Terbuka"}</span>{status !== "closed" && openCount ? <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{openCount} pertanyaan terbuka</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
+            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span>{status === "closed" ? <span className="rounded border border-positive/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-positive">Selesai</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
           })}
         </div>
       </Panel> : null}
@@ -155,19 +152,6 @@ function ResearchCasesContent() {
             </table>
           </div>
         </Panel>
-      </div> : null}
-
-      {activeView === "audit" ? <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
-        <Panel>
-          <div className="border-b border-border p-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Antrean pemeriksaan</p><h2 className="editorial mt-1 text-2xl">Koreksi yang perlu diperiksa</h2></div>
-          {insights.length ? <div className="divide-y divide-border">{insights.map((insight) => <article key={insight.id} className="p-4"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs font-semibold">{insight.symbol}</span><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{insight.pillar ? uiLabel(insight.pillar) : "Umum"}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{insight.status === "pending" ? "menunggu" : insight.status === "incorporated" ? "diperiksa" : "diabaikan"}</span></div><p className="mt-2 text-sm leading-6">{insight.note}</p>{insight.sourceUrl ? <a href={insight.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-primary hover:underline">Buka referensi pengguna<IconExternal aria-hidden="true" className="size-3.5" /></a> : null}<div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => setInsightStatus(insight.id, insight.status === "pending" ? "incorporated" : "pending")}>{insight.status === "pending" ? "Tandai sudah diperiksa" : "Kembalikan ke antrean"}</Button><Button variant="ghost" size="sm" onClick={() => setInsightStatus(insight.id, "dismissed")}>Abaikan</Button><Button variant="ghost" size="icon" onClick={() => removeInsight(insight.id)} aria-label={`Hapus catatan ${insight.symbol}`} className="ml-auto text-danger"><IconTrash aria-hidden="true" className="size-4" /></Button></div></article>)}</div> : <div className="p-6 text-sm text-muted-foreground">Tidak ada koreksi yang menunggu pemeriksaan.</div>}
-        </Panel>
-
-        <div className="space-y-4">
-          <Panel><div className="border-b border-border p-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Usulan dari asisten</p><h2 className="editorial mt-1 text-2xl">Usulan aturan</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Hasil kasus tidak otomatis mengubah aturan riset. Anda harus menerima atau menolak usulan.</p></div>{ruleProposals.length ? <div className="divide-y divide-border">{ruleProposals.map((proposal) => <article key={proposal.id} className="p-4"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs font-semibold">{proposal.symbol}</span><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{proposal.kind === "materiality" ? "materialitas" : "kondisi pembatal"}</span><span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", proposal.status === "accepted" ? "border-positive/30 text-positive" : proposal.status === "rejected" ? "border-danger/30 text-danger" : "border-attention/30 text-attention-foreground")}>{proposal.status === "accepted" ? "diterima" : proposal.status === "rejected" ? "ditolak" : "menunggu"}</span></div><p className="mt-2 text-sm leading-6">{proposal.rule}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Bukti: {proposal.evidence}</p>{proposal.status === "pending" ? <div className="mt-3 flex gap-2"><Button size="sm" onClick={() => setRuleProposalStatus(proposal.id, "accepted")}><IconCheck aria-hidden="true" className="size-3.5" />Terima aturan</Button><Button variant="ghost" size="sm" onClick={() => setRuleProposalStatus(proposal.id, "rejected")}><IconClose aria-hidden="true" className="size-3.5" />Tolak</Button></div> : null}</article>)}</div> : <div className="p-5 text-sm leading-6 text-muted-foreground">Tutup kasus dengan pelajaran yang dapat dipakai ulang. Catalyst hanya akan mengusulkan aturan.</div>}</Panel>
-          <Panel><div className="border-b border-border p-4"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Pelajaran kasus</p><h2 className="editorial mt-1 text-2xl">Memori hasil</h2></div>{resolutions.length ? <div className="divide-y divide-border">{resolutions.map(([symbol, resolution]) => <article key={symbol} className="p-4"><div className="flex items-center gap-2"><IconCheck aria-hidden="true" className="size-4 text-positive" /><span className="font-mono text-xs font-semibold">{symbol}</span><span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{resolution.outcome === "supported" ? "mendukung" : resolution.outcome === "challenged" ? "terbantahkan" : "terbuka"}</span></div><p className="mt-2 text-sm leading-6">{resolution.reusableRule}</p><Link href={`/cases/${symbol}?tab=review`} className="mt-2 inline-flex min-h-8 items-center text-xs font-medium text-primary">Buka hasil</Link></article>)}</div> : <div className="p-5 text-sm leading-6 text-muted-foreground">Tutup kasus untuk membangun memori riset yang dapat dipakai ulang.</div>}</Panel>
-          <Panel className="p-4"><IconNote aria-hidden="true" className="size-5 text-primary" /><h2 className="mt-3 text-sm font-semibold">Penilaian riset tetap terbuka</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Pembanding, materialitas, eksposur, sumber, dan kondisi pembatal tersimpan dalam aturan riset.</p><Link href="/playbook" className="mt-3 inline-flex min-h-9 items-center text-xs font-medium text-primary">Buka aturan riset</Link></Panel>
-        </div>
       </div> : null}
     </div>
   );

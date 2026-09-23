@@ -19,24 +19,26 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
 
   await page.goto("/ai-learning?filter=feedback");
   await expect(page.getByRole("heading", { name: "AI Learning" })).toBeVisible();
-  const useful = page.getByRole("button", { name: /Bukti ini berguna.*ANTM.*Konsentrasi/ });
+  const useful = page.getByRole("button", { name: /ANTM.*Bukti ini berguna.*Konsentrasi/ });
   await useful.click();
   const detail = page.getByRole("article", { name: "Detail Bukti ini berguna" });
   await expect(detail).toContainText("ANTM · Konsentrasi");
-  await expect(detail).toContainText("Menaikkan urutan kasus sejenis di daftar Kasus riset.");
+  await expect(detail).toContainText("Menaikkan urutan kasus sejenis di daftar Analisis dan Riset.");
 
   await page.goto("/cases/ANTM?tab=market&pillar=concentration");
   await page.getByRole("button", { name: "Kurang relevan" }).click();
   await page.reload();
   await expect(page.getByRole("button", { name: "Kurang relevan" })).toHaveAttribute("aria-pressed", "true");
   await page.goto("/ai-learning?filter=feedback");
-  await expect(page.getByRole("button", { name: /Bukti ini kurang relevan.*ANTM.*Konsentrasi/ })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /ANTM.*Bukti ini kurang relevan.*Konsentrasi/ })).toHaveCount(1);
 
+  // Teaching from the AI Learning page itself: one issuer picker, one note.
   const correction = `Kontrak USD dan IDR belum dibedakan ${Date.now()}.`;
-  await page.goto("/cases/ANTM?tab=review");
-  await page.getByLabel("Apa yang keliru atau belum dipertimbangkan?").fill(correction);
-  await page.getByRole("button", { name: "Kirim untuk verifikasi" }).click();
-  await expect(page.getByText("Tersimpan sebagai hipotesis terbuka")).toBeVisible();
+  await page.goto("/ai-learning");
+  await page.getByLabel("Saham", { exact: true }).selectOption("ANTM");
+  await page.getByLabel("Yang ingin Anda ajarkan").fill(correction);
+  await page.getByRole("button", { name: "Ajarkan ke Catalyst" }).click();
+  await expect(page.getByText("Tersimpan untuk ANTM")).toBeVisible();
   await page.goto("/ai-learning?filter=insight");
   await page.getByRole("button", { name: new RegExp(correction) }).click();
   await expect(page.getByRole("article", { name: "Detail Konteks belum masuk" })).toContainText("Menunggu pemeriksaan");
@@ -50,13 +52,21 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await resolution.getByLabel("Asumsi yang keliru").fill(`Asumsi keliru ${marker}.`);
   await resolution.getByLabel("Aturan yang dapat dipakai ulang").fill(marker);
   await resolution.getByRole("button", { name: "Simpan hasil dan tutup kasus" }).click();
-  await page.goto("/cases?view=audit");
+  await page.goto("/ai-learning?section=tinjauan");
   const proposal = page.locator("article", { hasText: marker }).first();
   await proposal.getByRole("button", { name: "Terima aturan" }).click();
   await page.goto("/ai-learning?filter=resolution");
   await page.getByRole("button", { name: new RegExp(marker) }).click();
   await expect(page.getByRole("article", { name: "Detail Hasil kasus disimpan" })).toContainText("Diterima");
+  // The raw memory stores live in their own section now.
+  await page.goto("/ai-learning?section=memori");
   await expect(page.getByRole("region", { name: "Aturan yang disetujui" })).toContainText(marker);
+
+  // Per-symbol view: the timeline narrows to one issuer and keeps its entries.
+  await page.goto("/ai-learning");
+  await page.getByRole("button", { name: /^ANTM/ }).click();
+  await expect(page).toHaveURL(/symbol=ANTM/);
+  await expect(page.getByText(correction).first()).toBeVisible();
 
   await page.goto("/copilot");
   const question = `Pertanyaan sementara ${Date.now()}?`;

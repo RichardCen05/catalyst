@@ -13,7 +13,8 @@ import { CausalChain } from "@/components/causal-chain";
 import { CompetingHypotheses } from "@/components/competing-hypotheses";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconBranch } from "@/components/ui/icons";
+import { TickerAvatar } from "@/components/ui/ticker-avatar";
+import { IconArrowRight, IconBranch, IconCaretDown } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 function ImpactWorkspace() {
@@ -34,6 +35,7 @@ function ImpactWorkspace() {
   // engine's visibility cap), higher thins it to the strongest paths.
   const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
   const [reloading, setReloading] = useState(false);
+  const [emitenOpen, setEmitenOpen] = useState(false);
   const resolution = caseResolutions[symbol];
   const sharedShocks = getSharedShocks(events, profile.watchlist);
   const context = {
@@ -71,9 +73,38 @@ function ImpactWorkspace() {
     <div className="mx-auto max-w-[1240px]">
       <PageHeader
         eyebrow="Ruang uji sebab akibat"
-        title="Apa yang mendorong perubahan ini?"
-        description="Bandingkan beberapa penyebab, lacak jalurnya ke emiten, lalu tentukan tindakan riset."
-        action={<label className="block text-xs font-medium text-muted-foreground">Emiten<select aria-label="Pilih emiten" value={symbol} onChange={(event) => router.push(`/impact?company=${event.target.value}`)} className="mt-1 block h-10 min-w-36 rounded-[6px] border border-border bg-surface px-3 font-mono text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25">{available.map((company) => <option key={company.symbol} value={company.symbol}>{company.symbol}{company.analyzed ? "" : " · rekaman sebagian"}</option>)}</select></label>}
+        title="Hipotesis dan jalur dampak"
+        action={<div className="text-xs font-medium text-muted-foreground">Emiten
+          <div className="relative mt-1">
+            <button
+              type="button"
+              onClick={() => setEmitenOpen((open) => !open)}
+              onBlur={() => setEmitenOpen(false)}
+              aria-haspopup="listbox"
+              aria-expanded={emitenOpen}
+              className="flex h-10 min-w-36 items-center gap-2 rounded-[6px] border border-border bg-surface px-3 font-mono text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+            >
+              <TickerAvatar symbol={symbol} size="sm" />
+              <span>{symbol}</span>
+              <IconCaretDown aria-hidden="true" className="ml-auto size-3.5 text-muted-foreground" />
+            </button>
+            {emitenOpen ? <ul role="listbox" aria-label="Pilih emiten" className="absolute right-0 z-10 mt-1 max-h-56 w-44 overflow-y-auto rounded-[8px] border border-border bg-surface py-1 shadow-lg">
+              {available.map((company) => <li key={company.symbol}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={company.symbol === symbol}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => { setEmitenOpen(false); router.push(`/impact?company=${company.symbol}`); }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"
+                >
+                  <TickerAvatar symbol={company.symbol} size="sm" />
+                  <span className="font-mono font-semibold text-primary">{company.symbol}</span>
+                </button>
+              </li>)}
+            </ul> : null}
+          </div>
+        </div>}
       />
 
       {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">

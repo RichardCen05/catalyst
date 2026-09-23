@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
@@ -21,7 +20,7 @@ import type { ImpactDirection, MarketCausalGraph, MarketCausalNode } from "@/lib
 import { layoutMarketGraph, marketNodeSize } from "@/lib/agent/market-layout";
 import { collapseSources, sourceGroupKey } from "@/lib/agent/market-graph";
 import { connectedIds } from "@/lib/agent/chain-layout";
-import { events, primarySymbol } from "@/lib/data/fixtures";
+import { events } from "@/lib/data/fixtures";
 import { uiLabel } from "@/lib/ui-labels";
 import { cn } from "@/lib/utils";
 import { AskAgentButton } from "@/components/ask-agent-button";
@@ -29,7 +28,6 @@ import { CitationDialog } from "@/components/citation-dialog";
 import { SourceText } from "@/components/source-text";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
-  IconArrowRight,
   IconClose,
   IconCompanies,
   IconDocument,
@@ -398,50 +396,9 @@ export function MarketCausalMap({
     <section data-tour="market-map" className="overflow-hidden rounded-[12px] border border-border bg-surface">
       {toolbar}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2.5 text-[10px] text-muted-foreground">
-        <span className="font-mono uppercase tracking-wider text-primary">Alur</span>
-        <span>Sumber</span><span aria-hidden="true">→</span>
-        <span>Mekanisme</span><span aria-hidden="true">→</span>
-        <span>Emiten</span><span aria-hidden="true">→</span>
-        <span>Dampak bisnis</span>
-        <span className="ml-auto inline-flex items-center gap-1.5">
-          <span aria-hidden="true" className="inline-block size-2 rounded-full bg-attention" />
-          Dipakai lebih dari satu emiten
-        </span>
-        <span>Kartu bisa digeser</span>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3" role="group" aria-label="Kontrol peta">
-        <button
-          type="button"
-          onClick={resetLayout}
-          className="min-h-8 cursor-pointer rounded-full border border-border px-3 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Susun ulang
-        </button>
-        {expanded.size > 0 ? (
-          <button
-            type="button"
-            onClick={() => { setExpanded(new Set()); closeInspector(); }}
-            className="min-h-8 cursor-pointer rounded-full border border-primary/40 bg-primary/10 px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Ringkas sumber
-          </button>
-        ) : foldedCount > 0 ? (
-          <span className="font-mono text-[10px] leading-4 text-muted-foreground">
-            {foldedCount} sumber terlipat — klik kartu bergaris putus untuk membukanya
-          </span>
-        ) : null}
-      </div>
-
       {view.skipped.length ? (
         <p className="border-b border-border bg-muted px-4 py-2 text-xs leading-5 text-muted-foreground">
           Tidak digambar: {view.skipped.map((item) => `${item.symbol} (${item.reason.toLowerCase().replace(/\.$/, "")})`).join("; ")}.
-        </p>
-      ) : null}
-      {view.hiddenRelationshipCount > 0 ? (
-        <p className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
-          {view.hiddenRelationshipCount} hubungan di bawah ambang relevansi tidak digambar — turunkan ambang di atas.
         </p>
       ) : null}
 
@@ -450,6 +407,26 @@ export function MarketCausalMap({
         className={cn("relative h-[min(76dvh,720px)] w-full transition-opacity", reloading && "opacity-50")}
         aria-label="Peta sebab akibat seluruh kasus"
       >
+        {/* Susun Ulang Kartu — top-trailing inside the canvas */}
+        <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+          {expanded.size > 0 ? (
+            <button
+              type="button"
+              onClick={() => { setExpanded(new Set()); closeInspector(); }}
+              className="min-h-8 cursor-pointer rounded-full border border-primary/40 bg-primary/10 px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Ringkas sumber
+            </button>
+          ) : null}
+          <span className="font-mono text-[10px] text-muted-foreground">Kartu dapat Anda uraikan</span>
+          <button
+            type="button"
+            onClick={resetLayout}
+            className="min-h-8 cursor-pointer rounded-full border border-border bg-surface/90 px-3 font-mono text-[11px] text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Susun Ulang Kartu
+          </button>
+        </div>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -527,20 +504,6 @@ export function MarketCausalMap({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border px-4 py-3">
-        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Buka kasus</span>
-        {view.symbols.map((symbol) => (
-          <Link
-            key={symbol}
-            href={`/cases/${symbol}`}
-            data-tour-action={symbol === primarySymbol ? "open-case" : undefined}
-            className="inline-flex min-h-8 items-center gap-1 rounded-full border border-border px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {symbol}
-            <IconArrowRight aria-hidden="true" className="size-3" />
-          </Link>
-        ))}
-      </div>
     </section>
   );
 }
