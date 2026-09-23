@@ -1,4 +1,5 @@
 import type { MarketEvent } from "@/lib/types";
+import { bandForRelevance, RELEVANCE_BAND_SCORE, type RelevanceBand } from "@/lib/agent/thresholds";
 import {
   heuristicWindowFor,
   type PredictionClaim,
@@ -66,11 +67,9 @@ const EMPTY_VERDICTS: Record<PredictionVerdict, number> = {
   hit: 0, early: 0, late: 0, miss: 0, pending: 0, void: 0,
 };
 
-/** Band relevansi mengikuti BAND_SCORE di lib/web-watch/queue.ts (85 / 70 / 50). */
-export function relevanceBand(relevance: number): "high" | "medium" | "low" {
-  if (relevance >= 85) return "high";
-  if (relevance >= 70) return "medium";
-  return "low";
+/** Band relevansi mengikuti RELEVANCE_BAND_SCORE di lib/agent/thresholds.ts. */
+export function relevanceBand(relevance: number): RelevanceBand {
+  return bandForRelevance(relevance);
 }
 
 const DIMENSION_LABELS: Record<CalibrationDimension, string> = {
@@ -93,9 +92,9 @@ const KEY_LABELS: Record<string, string> = {
   sectors: "Berita Sectors",
   filing: "Keterbukaan emiten",
   macro: "Makro",
-  high: "Tinggi (85+)",
-  medium: "Sedang (70-84)",
-  low: "Rendah (<70)",
+  high: `Tinggi (${RELEVANCE_BAND_SCORE.high}+)`,
+  medium: `Sedang (${RELEVANCE_BAND_SCORE.medium}-${RELEVANCE_BAND_SCORE.high - 1})`,
+  low: `Rendah (<${RELEVANCE_BAND_SCORE.medium})`,
   volumeRobustZ: "Volume tidak wajar",
   marketAdjustedMove: "Gerak di luar pasar",
   primary: "Pemicu utama",

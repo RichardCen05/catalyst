@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  BAND_SCORE,
   decide,
   emptyQueue,
   enqueue,
@@ -10,6 +9,7 @@ import {
   setOverlayForTests,
   type ReviewQueue,
 } from "@/lib/web-watch/queue";
+import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
 import type { MarketEvent } from "@/lib/types";
 
@@ -18,7 +18,9 @@ function candidate(id: string): MarketEvent {
     id,
     title: `Kandidat ${id}`,
     summary: "Ringkasan kandidat dari pantauan web.",
-    body: "Isi lengkap kandidat dari pantauan web untuk sitasi.",
+    // Long enough to be prose and naming a registry emiten, so triage sends
+    // it to review; distinct per id, so no two are duplicates of each other.
+    body: `Otoritas Jasa Keuangan menerbitkan aturan permodalan baru untuk bank umum, termasuk BBCA, dalam pengumuman ${id}. Aturan itu mengubah cara bank menghitung modal minimum dan berlaku mulai tahun depan bagi seluruh bank umum di Indonesia.`,
     category: "policy",
     sourceType: "policy",
     publishedAt: "2026-09-14T00:00:00.000Z",
@@ -47,7 +49,7 @@ describe("enqueue", () => {
       ...emptyQueue,
       decided: { "web-a": { candidateId: "web-a", status: "dismissed", decidedAt: "2026-09-14T00:00:00.000Z", reason: "duplikat" } },
     };
-    const next = enqueue(decided, [candidate("web-a"), candidate("web-b")]);
+    const next = enqueue(decided, [candidate("web-a"), candidate("web-b")], { sources: [] });
     expect(next.pending.map((e) => e.id)).toEqual(["web-b"]);
   });
 });
@@ -69,7 +71,7 @@ describe("decide", () => {
     expect(next.pending).toHaveLength(0);
     expect(next.accepted).toHaveLength(1);
     expect(next.accepted[0].impactLinks).toMatchObject([
-      { symbol: "BBCA", direction: "Supported", relevance: BAND_SCORE.high },
+      { symbol: "BBCA", direction: "Supported", relevance: RELEVANCE_BAND_SCORE.high },
     ]);
     expect(next.accepted[0].impactLinks[0].rationale).toContain("reviewer web-watch");
   });
@@ -97,7 +99,7 @@ describe("decide", () => {
 describe("saveQueue + overlay + providers", () => {
   it("persists decisions and exposes accepted events to the engine", async () => {
     const store = memoryQueueStore();
-    const saved = await saveQueue(store, (queue) => enqueue(queue, [candidate("web-9")]));
+    const saved = await saveQueue(store, (queue) => enqueue(queue, [candidate("web-9")], { sources: [] }));
     expect(saved.pending).toHaveLength(1);
     const decided = await saveQueue(store, (queue) =>
       decide(queue, "web-9", {

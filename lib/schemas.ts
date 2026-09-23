@@ -230,6 +230,17 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     candidateId: z.string().min(1).max(120),
     impacts: z.array(webWatchImpactSchema).min(1).max(18),
     reason: z.string().trim().max(500).optional(),
+    /** The impacts came from the model's verified proposal. Recorded, not trusted:
+     *  the impacts are validated exactly like hand-mapped ones. */
+    viaProposal: z.boolean().optional(),
+  }),
+  z.object({
+    action: z.literal("accept-proposals"),
+    candidateIds: z.array(z.string().min(1).max(120)).min(1).max(50),
+  }),
+  z.object({
+    action: z.literal("restore"),
+    candidateId: z.string().min(1).max(120),
   }),
   z.object({
     action: z.literal("dismiss"),

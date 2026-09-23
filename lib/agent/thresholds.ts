@@ -128,6 +128,69 @@ export const DEFAULT_THRESHOLDS = {
    *  Volume di engine.ts mengatakan "kurang dari 30 pengamatan" — teks
    *  menjanjikan penjaga yang tiga kali lebih ketat daripada kode. */
   comparatorMinObservations: 8,
+  /** Triage web-watch: karakter minimum dalam kalimat utuh sebelum teks hasil
+   *  ambil dianggap berisi. Kerangka navigasi yang dirender JS (kasus
+   *  peringatan dini BMKG) lolos `MIN_FETCH_CHARS` karena menunya panjang,
+   *  tetapi hampir tidak punya kalimat. Terukur 2026-09-24 pada salinan antrean
+   *  produksi: teks berita tertipis (halaman video) berisi 188 karakter kalimat,
+   *  jadi 150 tidak mengarsipkan satu pun berita yang ada. */
+  webWatchProseMinChars: 150,
+  /** Kata minimum agar satu potongan berakhiran titik dihitung kalimat, bukan
+   *  label menu. */
+  webWatchProseSentenceMinWords: 8,
+  /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
+   *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
+   *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
+   *  produksi: "asia" 23%, "rakyat" 10%, "resources" 7% — sementara nama yang
+   *  benar-benar nama ("timah", "mandiri", "telkom") di bawah 4%. */
+  webWatchAliasMaxDocShare: 0.05,
+  /** Jumlah kandidat minimum sebelum porsi di atas dihitung. Pada antrean
+   *  sekecil ini porsi tidak berarti apa-apa, jadi kata nama tetap dipakai —
+   *  lebih baik satu kandidat berlebih ditinjau daripada satu diarsipkan salah. */
+  webWatchAliasMinCorpus: 50,
+  /** Curah hujan per langkah prakiraan BMKG (3 jam), mm, yang membuat
+   *  prakiraan lokasi tambang layak ditinjau. */
+  webWatchRainMmPerStep: 10,
+  /** Kode cuaca BMKG mulai dari mana sebuah langkah prakiraan dianggap
+   *  peringatan. 63 = hujan lebat; kode di atasnya hujan lokal dan badai petir. */
+  webWatchWarningWeatherCode: 63,
+  /** Kecepatan angin per langkah prakiraan, km/jam, yang dianggap peringatan
+   *  (jendela pengapalan dan tongkang). */
+  webWatchWindKmh: 40,
+  /** Magnitudo minimum gempa di wilayah aset pantauan agar ditinjau. */
+  webWatchQuakeMinMagnitude: 5,
+  /** Magnitudo di atas ini selalu ditinjau walau teks wilayahnya tidak
+   *  menyebut wilayah aset: pencocokan teks bisa luput kabupaten tetangga. */
+  webWatchQuakeAlwaysReviewMagnitude: 6,
+  /** Kandidat terarsip yang disimpan di queue.json. Objek antrean dibaca dan
+   *  ditulis utuh setiap keputusan; batas ini menjaga ukurannya. */
+  webWatchArchiveMax: 200,
+  /** Keputusan reviewer terakhir yang ikut ke prompt draf pemetaan sebagai
+   *  contoh. Lebih banyak contoh = lebih banyak token per panggilan. */
+  webWatchFewShotMax: 6,
+  /** Kata minimum alasan penolakan agar ikut sebagai contoh. "jelek" dan
+   *  "gk ngaruh" tercatat di antrean produksi dan tidak mengajarkan apa pun. */
+  webWatchFewShotReasonMinWords: 3,
+  /** Panggilan model paling banyak dalam satu sapuan untuk draf pemetaan.
+   *  Sisanya tetap di review biasa dan dicoba pada sapuan berikutnya. */
+  webWatchSweepLlmCalls: 20,
+  /** Emiten paling banyak yang didrafkan per kandidat. Sumber resmi bank
+   *  sentral mendeklarasikan lima; tanpa batas ini satu siaran pers memakan
+   *  seperempat jatah sapuan. */
+  webWatchDraftSymbolsMax: 3,
+  /** Waktu paling lama, ms, yang boleh dipakai draf dalam satu sapuan. Job
+   *  Cloud Scheduler `catalyst-web-watch` punya tenggat 180 detik dan layanan
+   *  300 detik; sapuan sumber sendiri memakan sisanya. */
+  webWatchDraftTimeBudgetMs: 60000,
+  /** Karakter teks kandidat (judul dan kalimat utuh) yang masuk prompt draf. */
+  webWatchDraftContextChars: 2000,
+  /** Keputusan terakhir per sumber (diarsipkan, ditolak, diterima) yang
+   *  dibaca untuk saran kesehatan sumber. Di bawah jumlah ini tidak ada saran. */
+  webWatchSourceHealthWindow: 20,
+  /** Porsi arsip + tolak dalam jendela di atas yang memunculkan saran
+   *  "Pertimbangkan menonaktifkan sumber ini". Hanya saran; tidak ada yang
+   *  dinonaktifkan otomatis. */
+  webWatchSourceNoiseShare: 0.9,
 } as const;
 
 /**
@@ -204,6 +267,26 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   retrievalMemoMaxEntries: "convention",
   caseFocusCount: "convention",
   comparatorMinObservations: "convention",
+  // Triage web-watch. Ambang cuaca dan kata nama memutuskan kandidat mana yang
+  // sampai ke reviewer, jadi `guess`; sisanya penjaga kualitas dan ukuran.
+  webWatchProseMinChars: "convention",
+  webWatchProseSentenceMinWords: "convention",
+  webWatchAliasMaxDocShare: "guess",
+  webWatchAliasMinCorpus: "convention",
+  webWatchRainMmPerStep: "guess",
+  webWatchWarningWeatherCode: "guess",
+  webWatchWindKmh: "guess",
+  webWatchQuakeMinMagnitude: "guess",
+  webWatchQuakeAlwaysReviewMagnitude: "guess",
+  webWatchArchiveMax: "convention",
+  webWatchFewShotMax: "convention",
+  webWatchFewShotReasonMinWords: "convention",
+  webWatchSweepLlmCalls: "convention",
+  webWatchDraftSymbolsMax: "convention",
+  webWatchDraftTimeBudgetMs: "convention",
+  webWatchDraftContextChars: "convention",
+  webWatchSourceHealthWindow: "convention",
+  webWatchSourceNoiseShare: "guess",
 };
 
 /**
@@ -228,6 +311,35 @@ export const OBSERVATION_WINDOWS = {
     sentiment: [1, 5],
   } as Record<string, [number, number]>,
 } as const;
+
+/**
+ * Relevance score for each ordinal band.
+ *
+ * There used to be two of these. `lib/web-watch/queue.ts` scored a band a
+ * reviewer picked at 85 / 70 / 50, and `lib/agent/llm/exposure.ts` scored a
+ * band the model picked at 90 / 65 / 40, so "high" meant a different number
+ * depending on who said it — and calibration bucketed both by the first table
+ * only. One table now, read by the review queue, the model exposure path, the
+ * calibration buckets, and the Pantau form.
+ *
+ * The reviewer's values were kept because they are the ones already stored on
+ * accepted web-watch events and the ones calibration cut on. Against the
+ * default floors nothing moves: high still clears `relevanceFloor` (85),
+ * medium still clears `chainRelevanceFloor` (60) and low still does not.
+ *
+ * Provenance: `guess`, like every decision entry above.
+ */
+export const RELEVANCE_BANDS = ["high", "medium", "low"] as const;
+export type RelevanceBand = (typeof RELEVANCE_BANDS)[number];
+export const RELEVANCE_BAND_SCORE: Readonly<Record<RelevanceBand, number>> = { high: 85, medium: 70, low: 50 };
+export const RELEVANCE_BAND_PROVENANCE = "guess" as const;
+
+/** The band a stored relevance score falls in, cut at the table above. */
+export function bandForRelevance(relevance: number): RelevanceBand {
+  if (relevance >= RELEVANCE_BAND_SCORE.high) return "high";
+  if (relevance >= RELEVANCE_BAND_SCORE.medium) return "medium";
+  return "low";
+}
 
 /** Bobot relevansi hasil uji pada rantai sebab akibat. */
 export const OUTCOME_RELEVANCE = {
@@ -289,6 +401,24 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
     caseFocusCount: DEFAULT_THRESHOLDS.caseFocusCount,
     comparatorMinObservations: DEFAULT_THRESHOLDS.comparatorMinObservations,
+    webWatchProseMinChars: DEFAULT_THRESHOLDS.webWatchProseMinChars,
+    webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
+    webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
+    webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
+    webWatchRainMmPerStep: DEFAULT_THRESHOLDS.webWatchRainMmPerStep,
+    webWatchWarningWeatherCode: DEFAULT_THRESHOLDS.webWatchWarningWeatherCode,
+    webWatchWindKmh: DEFAULT_THRESHOLDS.webWatchWindKmh,
+    webWatchQuakeMinMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeMinMagnitude,
+    webWatchQuakeAlwaysReviewMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeAlwaysReviewMagnitude,
+    webWatchArchiveMax: DEFAULT_THRESHOLDS.webWatchArchiveMax,
+    webWatchFewShotMax: DEFAULT_THRESHOLDS.webWatchFewShotMax,
+    webWatchFewShotReasonMinWords: DEFAULT_THRESHOLDS.webWatchFewShotReasonMinWords,
+    webWatchSweepLlmCalls: DEFAULT_THRESHOLDS.webWatchSweepLlmCalls,
+    webWatchDraftSymbolsMax: DEFAULT_THRESHOLDS.webWatchDraftSymbolsMax,
+    webWatchDraftTimeBudgetMs: DEFAULT_THRESHOLDS.webWatchDraftTimeBudgetMs,
+    webWatchDraftContextChars: DEFAULT_THRESHOLDS.webWatchDraftContextChars,
+    webWatchSourceHealthWindow: DEFAULT_THRESHOLDS.webWatchSourceHealthWindow,
+    webWatchSourceNoiseShare: DEFAULT_THRESHOLDS.webWatchSourceNoiseShare,
   };
 }
 

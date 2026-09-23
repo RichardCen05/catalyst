@@ -16,7 +16,8 @@
  */
 
 import { checkSource, type CheckDeps } from "@/lib/web-watch/check";
-import { enqueue, saveQueue, type QueueStore } from "@/lib/web-watch/queue";
+import { applyDrafts, draftProposals, type DraftOptions } from "@/lib/web-watch/proposals";
+import { enqueue, normalizeQueue, saveQueue, type QueueStore } from "@/lib/web-watch/queue";
 import { listSources } from "@/lib/web-watch/registry";
 import type { ReviewStore } from "@/lib/web-watch/review";
 import { isDue, type CheckResult, type WatchAllResult, type WatchSummary } from "@/lib/web-watch/types";
@@ -24,6 +25,27 @@ import { isDue, type CheckResult, type WatchAllResult, type WatchSummary } from 
 export interface WatchAllDeps extends CheckDeps {
   review: ReviewStore;
   queue: QueueStore;
+  /** Model seam and clock for the drafting pass; tests stub the call. */
+  draft?: DraftOptions;
+}
+
+/**
+ * Draft proposals for whatever is pending without one, then merge them into
+ * the queue as it stands. Runs inside the request, under its own call cap and
+ * time budget, rather than after the response: Cloud Run throttles CPU once a
+ * response is sent, and the scheduler job only needs the sweep to finish.
+ * Best-effort — a failure here never fails the sweep.
+ */
+export async function draftPending(queue: QueueStore, options: DraftOptions = {}) {
+  try {
+    const loaded = await queue.load();
+    const { outcomes, report } = await draftProposals(normalizeQueue(loaded?.data), options);
+    if (outcomes.length) await saveQueue(queue, (current) => applyDrafts(current, outcomes));
+    return report;
+  } catch (error) {
+    console.warn(`[llm-fallback] triage drafting: ${(error instanceof Error ? error.message : String(error)).slice(0, 300)}`);
+    return null;
+  }
 }
 
 function count(results: CheckResult[], status: string): number {
@@ -77,10 +99,14 @@ export async function watchAll(deps: WatchAllDeps, force = false): Promise<Watch
   const output: WatchAllResult = { summary, results, checkedAt: nowIso };
   const runId = nowIso.replace(/[:.]/g, "-");
   await deps.review.saveCheck(runId, output);
-  // Fresh candidates join the review queue; already-decided ids never return.
+  // Fresh candidates go through triage into the review queue; already-decided
+  // and already-archived ids never return.
   const fresh = results.flatMap((r) => r.candidates ?? []);
   if (fresh.length) {
-    await saveQueue(deps.queue, (queue) => enqueue(queue, fresh)).catch(() => undefined);
+    await saveQueue(deps.queue, (queue) => enqueue(queue, fresh, { sources }, nowIso)).catch(() => undefined);
   }
-  return output;
+  // Drafting also picks up earlier candidates a closed budget left untried,
+  // so it runs whether or not this sweep found anything new.
+  const drafts = await draftPending(deps.queue, { nowIso, ...deps.draft });
+  return drafts ? { ...output, drafts } : output;
 }

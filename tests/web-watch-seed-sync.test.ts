@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { applySeedDeclarations, type RegistryFile } from "@/lib/web-watch/registry";
+import { isKnownSymbolCode } from "@/lib/web-watch/queue";
+import { applySeedDeclarations, listSources, memoryRegistryStore, type RegistryFile } from "@/lib/web-watch/registry";
+import { SEED_SOURCES } from "@/lib/web-watch/seeds";
 import { newSourceState, type WatchedSource } from "@/lib/web-watch/types";
 
 const seed = (over: Partial<WatchedSource> = {}): WatchedSource => ({
@@ -55,5 +57,40 @@ describe("applySeedDeclarations", () => {
   it("never drops a source the seed file no longer lists", () => {
     const next = applySeedDeclarations(registryWith({ checks: 1 }), []);
     expect(Object.keys(next.sources)).toEqual(["src-bmkg-forecast-sample"]);
+  });
+});
+
+describe("declared symbols and region", () => {
+  it("re-applies symbols and region from the seed onto an entry written before the fields existed", () => {
+    // The shape production held before this field: no `symbols`, no `region`.
+    const legacy = registryWith({ checks: 4, lastTextSha: "def" });
+    expect(legacy.sources["src-bmkg-forecast-sample"]).not.toHaveProperty("symbols");
+    const next = applySeedDeclarations(legacy, [seed({ symbols: ["ANTM"], region: "Kolaka" })]);
+    const state = next.sources["src-bmkg-forecast-sample"];
+    expect(state.symbols).toEqual(["ANTM"]);
+    expect(state.region).toBe("Kolaka");
+    expect(state.checks).toBe(4);
+    expect(state.lastTextSha).toBe("def");
+  });
+
+  it("loads a legacy registry file with no declared symbols", async () => {
+    const store = memoryRegistryStore(registryWith({ checks: 1 }));
+    const [source] = await listSources(store);
+    expect(source.id).toBe("src-bmkg-forecast-sample");
+    expect(source.symbols ?? []).toEqual([]);
+  });
+
+  it("declares only symbols the registry knows", () => {
+    for (const source of SEED_SOURCES) {
+      for (const symbol of source.symbols ?? []) expect(isKnownSymbolCode(symbol), `${source.id} → ${symbol}`).toBe(true);
+    }
+  });
+
+  it("names every declared region in the source's own label", () => {
+    // The region is read off the address the person registered, not typed
+    // from memory: the label quotes the place BMKG answered with.
+    const withRegion = SEED_SOURCES.filter((source) => source.region);
+    expect(withRegion.length).toBeGreaterThan(0);
+    for (const source of withRegion) expect(source.label, source.id).toContain(source.region);
   });
 });

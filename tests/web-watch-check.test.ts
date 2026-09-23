@@ -236,7 +236,12 @@ describe("watchAll", () => {
     expect(first.summary).toMatchObject({ checked: 2, changed: 1, candidates: 1 });
     expect(review.candidates.size).toBe(1);
     expect(review.latest?.summary.changed).toBe(1);
-    expect((await queue.load())?.data.pending).toHaveLength(1);
+    // The sweep enqueues through triage: this page names no registry emiten
+    // and its source declares none, so it is archived with a reason rather
+    // than sent to a reviewer — kept in the queue file, not dropped.
+    const stored = (await queue.load())?.data;
+    expect(stored?.pending).toHaveLength(0);
+    expect(Object.values(stored?.archived ?? {}).map((entry) => entry.rule)).toEqual(["no-watched-match"]);
 
     const second = await watchAll({ store, review, queue, fetchImpl, nowMs: 2_000 });
     expect(second.results.find((r) => r.sourceId === "src-doc")?.status).toBe("not_due");

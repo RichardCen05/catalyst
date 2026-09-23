@@ -131,19 +131,89 @@ function summarizeForecast(payload: Record<string, unknown>): JsonSummary | null
   return { title, summary: `${title}. ${steps.join("; ")}.` };
 }
 
+function parseRecord(text: string): Record<string, unknown> | null {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{")) return null;
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Derive a reviewer-readable title and summary from a JSON document, or null
  * when the text is not JSON or is a shape this file does not recognise.
  */
 export function summarizeJsonPayload(text: string): JsonSummary | null {
-  const trimmed = text.trim();
-  if (!trimmed.startsWith("{")) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(trimmed);
-  } catch {
-    return null;
-  }
-  if (!isRecord(parsed)) return null;
+  const parsed = parseRecord(text);
+  if (!parsed) return null;
   return summarizeQuake(parsed) ?? summarizeForecast(parsed);
+}
+
+/** The quake fields triage compares against thresholds and watched regions. */
+export interface QuakeReading {
+  magnitude: number;
+  /** BMKG `Wilayah`: where the epicentre is, in words. */
+  region: string;
+  /** BMKG `Dirasakan`: the places that felt it, or empty. */
+  feltAt: string;
+}
+
+export function readQuake(text: string): QuakeReading | null {
+  const parsed = parseRecord(text);
+  const info = parsed?.Infogempa;
+  const quake = isRecord(info) ? info.gempa : null;
+  if (!isRecord(quake)) return null;
+  const magnitude = Number(asString(quake.Magnitude));
+  if (!Number.isFinite(magnitude)) return null;
+  return { magnitude, region: asString(quake.Wilayah) ?? "", feltAt: asString(quake.Dirasakan) ?? "" };
+}
+
+/**
+ * The worst value across every step of one BMKG per-village forecast.
+ *
+ * Every step is read, not the first four the summary shows: a heavy-rain step
+ * on day three is still a warning. A field BMKG left out of every step is
+ * null rather than zero, so "no rain reported" never reads as "no rain".
+ */
+export interface ForecastReading {
+  place: string;
+  steps: number;
+  maxRainMm: number | null;
+  maxWeatherCode: number | null;
+  maxWindKmh: number | null;
+}
+
+export function readForecast(text: string): ForecastReading | null {
+  const parsed = parseRecord(text);
+  if (!parsed) return null;
+  const place = parsed.lokasi;
+  const rows = parsed.data;
+  if (!isRecord(place) || !Array.isArray(rows)) return null;
+  const name = [asString(place.desa), asString(place.kecamatan), asString(place.kotkab)].filter(Boolean).join(", ");
+  if (!name) return null;
+  const peak = (current: number | null, value: unknown) => {
+    const n = asNumber(value);
+    return n === null ? current : current === null ? n : Math.max(current, n);
+  };
+  let steps = 0;
+  let maxRainMm: number | null = null;
+  let maxWeatherCode: number | null = null;
+  let maxWindKmh: number | null = null;
+  for (const row of rows) {
+    if (!isRecord(row) || !Array.isArray(row.cuaca)) continue;
+    for (const day of row.cuaca) {
+      for (const entry of Array.isArray(day) ? day : [day]) {
+        if (!isRecord(entry)) continue;
+        steps += 1;
+        maxRainMm = peak(maxRainMm, entry.tp);
+        maxWeatherCode = peak(maxWeatherCode, entry.weather);
+        maxWindKmh = peak(maxWindKmh, entry.ws);
+      }
+    }
+  }
+  if (!steps) return null;
+  return { place: name, steps, maxRainMm, maxWeatherCode, maxWindKmh };
 }

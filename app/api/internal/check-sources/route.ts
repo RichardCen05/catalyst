@@ -23,11 +23,11 @@
 import { NextResponse } from "next/server";
 import { checkInternalAuth } from "@/lib/internal-auth";
 import { checkSource } from "@/lib/web-watch/check";
-import { enqueue, ensureOverlay, gcsQueueStore, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
+import { enqueue, ensureOverlay, gcsQueueStore, getOverlayStats, saveQueue, setOverlayForTests } from "@/lib/web-watch/queue";
 import { applySeedDeclarations, gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
 import { gcsReviewStore } from "@/lib/web-watch/review";
 import { SEED_SOURCES } from "@/lib/web-watch/seeds";
-import { watchAll } from "@/lib/web-watch/watch-all";
+import { draftPending, watchAll } from "@/lib/web-watch/watch-all";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,14 +94,16 @@ export async function POST(request: Request) {
         await gcsReviewStore.saveCandidate(date, candidate);
       }
       if (result.candidates?.length) {
-        await saveQueue(gcsQueueStore, (queue) => enqueue(queue, result.candidates ?? [])).catch(() => undefined);
+        const sources = await listSources(store);
+        await saveQueue(gcsQueueStore, (queue) => enqueue(queue, result.candidates ?? [], { sources })).catch(() => undefined);
+        await draftPending(gcsQueueStore);
       }
       await ensureOverlay().catch(() => []);
       return NextResponse.json(result);
     }
     const output = await watchAll({ store, review: gcsReviewStore, queue: gcsQueueStore }, body.force ?? false);
     const accepted = await ensureOverlay().catch(() => []);
-    setOverlayForTests(accepted);
+    setOverlayForTests(accepted, getOverlayStats());
     return NextResponse.json(output);
   } catch (error) {
     return NextResponse.json(

@@ -1,7 +1,7 @@
 "use client";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
@@ -11,6 +11,8 @@ import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
+import type { TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
+import { TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
 
 /** The fields this page reads. `/api/web-watch` also returns poll counters and
  *  a status enum, which the crawler's own ops route reports; a reviewer does
@@ -21,6 +23,17 @@ interface SourceRow {
   kind: string;
   lastError: string | null;
   lastCheckedAt: string | null;
+  health: { window: number; noisy: number; share: number; suggestDisable: boolean } | null;
+}
+
+interface ArchivedRow {
+  id: string;
+  title: string;
+  provider: string | null;
+  url: string | null;
+  rule: TriageRule;
+  reason: string;
+  at: string;
 }
 
 interface ImpactDraft {
@@ -33,20 +46,55 @@ interface ImpactDraft {
 interface QueueData {
   sources: SourceRow[];
   pending: MarketEvent[];
+  matches: Record<string, TriageMatch>;
+  proposals: Record<string, TriageProposal>;
+  batchable: string[];
+  archived: ArchivedRow[];
   accepted: MarketEvent[];
   decidedCount: number;
   symbols: SymbolCode[];
-  bands: Record<string, number>;
+  bands: Record<ImpactDraft["band"], number>;
   unavailable?: boolean;
 }
 
 const DIRECTIONS: ImpactDraft["direction"][] = ["Supported", "Adverse", "Mixed", "Unrelated"];
+const BANDS: ImpactDraft["band"][] = ["high", "medium", "low"];
+const BAND_ORDER: Record<ImpactDraft["band"], number> = { high: 0, medium: 1, low: 2 };
+const bandLabel: Record<ImpactDraft["band"], string> = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
 const directionLabel: Record<ImpactDraft["direction"], string> = {
   Supported: "Mendukung",
   Adverse: "Berlawanan",
   Mixed: "Bercampur",
   Unrelated: "Tidak terkait",
 };
+
+/** Names for the evidence kinds triage records. Field labels, true of every case. */
+const matchLabel: Record<MatchKind, string> = {
+  symbol: "kode",
+  name: "nama",
+  sector: "sektor",
+  subsector: "subsektor",
+  source: "sumber",
+  region: "wilayah",
+  weather: "cuaca",
+};
+
+type ProposalImpact = TriageProposal["impacts"][number];
+const mapsSomething = (impact: ProposalImpact) => impact.direction !== "Unrelated";
+const toDraft = ({ symbol, direction, band, path }: ProposalImpact): ImpactDraft => ({
+  symbol,
+  direction: direction as ImpactDraft["direction"],
+  band,
+  path,
+});
+
+/** Best band among the impacts that map something; unrelated-only sorts last. */
+function proposalRank(proposal: TriageProposal | undefined): number {
+  if (!proposal) return Number.POSITIVE_INFINITY;
+  const related = proposal.impacts.filter(mapsSomething);
+  if (!related.length) return BANDS.length;
+  return Math.min(...related.map((impact) => BAND_ORDER[impact.band]));
+}
 
 /**
  * The registry stores legal names — "Aneka Tambang Tbk.", "PT Bank Central
@@ -66,8 +114,9 @@ function tradingName(name: string): string {
  * kept: the ticker as its own word, or the registry's name for the company
  * behind it. Both come from the registry; neither is a per-symbol table.
  */
-function mentionsSymbol(candidate: MarketEvent, symbol: SymbolCode): boolean {
+function mentionsSymbol(candidate: MarketEvent, symbol: SymbolCode, match?: TriageMatch): boolean {
   if (candidate.impactLinks.some((link) => link.symbol === symbol)) return true;
+  if (match?.symbols.includes(symbol)) return true;
   const haystack = `${candidate.title} ${candidate.summary} ${candidate.body ?? ""}`.toUpperCase();
   const name = companies.find((company) => company.symbol === symbol)?.name;
   const named = name ? tradingName(name) : "";
@@ -103,13 +152,23 @@ function pathIsShort(path: string): boolean {
 function CandidateCard({
   candidate,
   symbols,
+  bands,
+  match,
+  proposal,
   onDecided,
 }: {
   candidate: MarketEvent;
   symbols: SymbolCode[];
+  bands: QueueData["bands"];
+  match?: TriageMatch;
+  proposal?: TriageProposal;
   onDecided: () => void;
 }) {
-  const [impacts, setImpacts] = useState<ImpactDraft[]>([{ symbol: symbols[0] ?? primarySymbol, direction: "Supported", band: "medium", path: "" }]);
+  const related = proposal?.impacts.filter(mapsSomething) ?? [];
+  const unrelated = proposal?.impacts.filter((impact) => !mapsSomething(impact)) ?? [];
+  const [impacts, setImpacts] = useState<ImpactDraft[]>(
+    related.length ? related.map(toDraft) : [{ symbol: match?.symbols[0] ?? symbols[0] ?? primarySymbol, direction: "Supported", band: "medium", path: "" }],
+  );
   const [reason, setReason] = useState("");
   const [dismissReason, setDismissReason] = useState("");
   const [showAccept, setShowAccept] = useState(false);
@@ -163,6 +222,63 @@ function CandidateCard({
         </details>
       ) : null}
 
+      {match?.matchedBy.length ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Cocok dengan:{" "}
+          {match.matchedBy.slice(0, 6).map((evidence, index) => (
+            <span key={`${evidence.symbol}-${evidence.by}-${index}`}>
+              {index ? " · " : ""}
+              <span className="font-mono">{evidence.symbol}</span> ({matchLabel[evidence.by]}: {evidence.term})
+            </span>
+          ))}
+        </p>
+      ) : null}
+
+      {proposal ? (
+        <section aria-label="Usulan model" className="mt-4 rounded-lg border border-border bg-muted/40 p-3">
+          <h4 className="text-sm font-semibold">Usulan model</h4>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Lolos pemeriksaan angka dan bahasa. Belum masuk engine sampai Anda menerimanya.
+          </p>
+          <ul className="mt-2 space-y-2 text-sm">
+            {proposal.impacts.map((impact) => (
+              <li key={impact.symbol}>
+                <span className="font-mono font-semibold">{impact.symbol}</span> · {directionLabel[impact.direction as ImpactDraft["direction"]] ?? impact.direction} · {bandLabel[impact.band]}
+                <p className="text-xs leading-5 text-muted-foreground">{impact.path}</p>
+                <p className="text-xs leading-5 text-muted-foreground">{impact.rationale}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {related.length ? (
+              <>
+                <Button
+                  disabled={busy}
+                  onClick={() => post({ action: "accept", candidateId: candidate.id, impacts: related.map(toDraft), viaProposal: true })}
+                >
+                  {busy ? "Menyimpan…" : "Terima usulan"}
+                </Button>
+                <Button variant="secondary" disabled={busy} onClick={() => setShowAccept(true)}>Ubah dulu</Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() =>
+                  post({
+                    action: "dismiss",
+                    candidateId: candidate.id,
+                    reason: `Usulan model: tidak terkait dengan ${unrelated.map((impact) => impact.symbol).join(", ")}.`,
+                  })
+                }
+              >
+                Tolak: tidak terkait
+              </Button>
+            )}
+          </div>
+        </section>
+      ) : null}
+
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Terima — petakan ke emiten</h4>
         {!showAccept ? (
@@ -171,7 +287,7 @@ function CandidateCard({
           </div>
         ) : (
           <>
-        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih reviewer di sini, bukan dihitung mesin: tinggi 85 · sedang 70 · rendah 50.</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih reviewer di sini, bukan dihitung mesin: {BANDS.map((band) => `${bandLabel[band].toLowerCase()} ${bands[band]}`).join(" · ")}.</p>
         <div className="mt-2 space-y-2">
           {impacts.map((impact, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[110px_130px_110px_minmax(0,1fr)_auto]">
@@ -201,9 +317,9 @@ function CandidateCard({
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, band: event.target.value as ImpactDraft["band"] } : row)))}
                 className="h-10 rounded-lg border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
               >
-                <option value="high">Tinggi · 85</option>
-                <option value="medium">Sedang · 70</option>
-                <option value="low">Rendah · 50</option>
+                {BANDS.map((band) => (
+                  <option key={band} value={band}>{bandLabel[band]} · {bands[band]}</option>
+                ))}
               </select>
               <input
                 aria-label={`Jalur eksposur ${index + 1}`}
@@ -245,7 +361,15 @@ function CandidateCard({
         <div className="mt-2">
           <Button
             disabled={busy || unmappedRows > 0}
-            onClick={() => post({ action: "accept", candidateId: candidate.id, impacts, reason: reason || undefined })}
+            onClick={() =>
+              post({
+                action: "accept",
+                candidateId: candidate.id,
+                impacts,
+                reason: reason || undefined,
+                ...(proposal && JSON.stringify(impacts) === JSON.stringify(related.map(toDraft)) ? { viaProposal: true } : {}),
+              })
+            }
           >
             {busy ? "Menyimpan…" : "Terima ke engine"}
           </Button>
@@ -282,6 +406,125 @@ function CandidateCard({
       </div>
       {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
     </Panel>
+  );
+}
+
+/**
+ * Accept every high-band verified proposal at once, after a confirm that
+ * lists each one. A native <dialog>: focus moves in, Esc closes, and the
+ * page behind is inert while it is open.
+ */
+function BatchAccept({ candidates, proposals, onDone }: { candidates: MarketEvent[]; proposals: QueueData["proposals"]; onDone: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!candidates.length) return null;
+  const confirm = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(apiUrl("/api/web-watch"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "accept-proposals", candidateIds: candidates.map((candidate) => candidate.id) }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(fieldMessage(body) ?? body.error ?? "Gagal menyimpan");
+      dialog.current?.close();
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <Button variant="secondary" size="sm" onClick={() => dialog.current?.showModal()}>
+        Terima usulan band tinggi ({candidates.length})
+      </Button>
+      <dialog
+        ref={dialog}
+        aria-labelledby="batch-accept-title"
+        className="m-auto w-[min(640px,calc(100vw-32px))] rounded-lg border border-border bg-surface p-5 text-foreground backdrop:bg-black/40"
+      >
+        <h2 id="batch-accept-title" className="text-base font-semibold">Terima {candidates.length} usulan sekaligus?</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Setiap kandidat dicatat sebagai keputusan Anda, satu per satu. Hanya usulan band tinggi yang lolos pemeriksaan.</p>
+        <ul className="mt-3 max-h-72 space-y-2 overflow-auto text-sm">
+          {candidates.map((candidate) => (
+            <li key={candidate.id}>
+              <p className="font-medium leading-snug">{candidate.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {proposals[candidate.id]?.impacts.map((impact) => `${impact.symbol} · ${directionLabel[impact.direction as ImpactDraft["direction"]] ?? impact.direction}`).join(" · ")}
+              </p>
+            </li>
+          ))}
+        </ul>
+        {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <Button variant="ghost" disabled={busy} onClick={() => dialog.current?.close()}>Batal</Button>
+          <Button disabled={busy} onClick={confirm}>{busy ? "Menyimpan…" : `Terima ${candidates.length} usulan`}</Button>
+        </div>
+      </dialog>
+    </>
+  );
+}
+
+function ArchivedList({ items, onRestored }: { items: ArchivedRow[]; onRestored: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const restore = async (id: string) => {
+    setBusy(id);
+    setError(null);
+    try {
+      const response = await fetch(apiUrl("/api/web-watch"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restore", candidateId: id }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Gagal mengembalikan");
+      onRestored();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal mengembalikan");
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <details aria-label="Diarsipkan otomatis" className="rounded-lg border border-border bg-surface">
+      <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+        Diarsipkan otomatis ({items.length})
+      </summary>
+      <div className="border-t border-border p-4">
+        <p className="text-xs text-muted-foreground">Disisihkan oleh aturan triase, bukan oleh reviewer. Tidak ada yang dihapus; kembalikan bila aturannya keliru.</p>
+        {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+        <ul className="mt-3 space-y-3">
+          {items.map((item) => (
+            <li key={item.id} className="flex flex-col gap-2 border-b border-border pb-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium leading-snug">{item.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  <span className="rounded-full border border-border px-2 py-0.5">{TRIAGE_RULE_LABEL[item.rule] ?? item.rule}</span>{" "}
+                  {item.provider ?? "sumber web"} · <time dateTime={item.at}>{item.at.slice(0, 10)}</time>
+                  {item.url ? (
+                    <>
+                      {" · "}
+                      <a href={item.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">Buka sumber asal</a>
+                    </>
+                  ) : null}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.reason}</p>
+              </div>
+              <Button variant="secondary" size="sm" disabled={busy !== null} onClick={() => restore(item.id)} className="shrink-0">
+                {busy === item.id ? "Mengembalikan…" : "Kembalikan"}
+              </Button>
+            </li>
+          ))}
+        </ul>
+        {!items.length ? <p className="mt-3 text-sm text-muted-foreground">Belum ada yang diarsipkan.</p> : null}
+      </div>
+    </details>
   );
 }
 
@@ -328,11 +571,23 @@ export function WebWatchReview() {
   }, []);
 
   const categories = ["semua", "company", "commodity", "rates", "currency", "policy", "weather"];
-  const visiblePending = (data?.pending ?? []).filter((candidate) => {
-    if (category !== "semua" && candidate.category !== category) return false;
-    if (symbol !== "semua" && !mentionsSymbol(candidate, symbol as SymbolCode)) return false;
-    return fuzzyIncludes(`${candidate.title} ${candidate.summary} ${candidate.citations[0]?.provider ?? ""}`, query);
-  });
+  // Proposals first, strongest band first, newest first within a band; then
+  // the items a person still has to map by hand.
+  const visiblePending = (data?.pending ?? [])
+    .filter((candidate) => {
+      if (category !== "semua" && candidate.category !== category) return false;
+      if (symbol !== "semua" && !mentionsSymbol(candidate, symbol as SymbolCode, data?.matches[candidate.id])) return false;
+      return fuzzyIncludes(`${candidate.title} ${candidate.summary} ${candidate.citations[0]?.provider ?? ""}`, query);
+    })
+    .sort(
+      (a, b) =>
+        proposalRank(data?.proposals[a.id]) - proposalRank(data?.proposals[b.id]) ||
+        b.publishedAt.localeCompare(a.publishedAt),
+    );
+  const proposalCount = (data?.pending ?? []).filter((candidate) => data?.proposals[candidate.id]).length;
+  const batchable = (data?.batchable ?? [])
+    .map((id) => data?.pending.find((candidate) => candidate.id === id))
+    .filter((candidate): candidate is MarketEvent => Boolean(candidate));
 
   return (
     <div>
@@ -349,7 +604,13 @@ export function WebWatchReview() {
         <div className="space-y-8">
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="editorial mr-auto text-xl">Antrean ({visiblePending.length})</h2>
+              <div className="mr-auto">
+                <h2 className="editorial text-xl">Antrean ({visiblePending.length})</h2>
+                <p className="text-xs text-muted-foreground">
+                  {proposalCount} dengan usulan model · {data.archived.length} diarsipkan otomatis
+                </p>
+              </div>
+              <BatchAccept candidates={batchable} proposals={data.proposals} onDone={load} />
               <select aria-label="Saring emiten" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary">
                 <option value="semua">Semua emiten</option>
                 {data.symbols.map((code) => (
@@ -372,13 +633,23 @@ export function WebWatchReview() {
             {visiblePending.length ? (
               <div className="space-y-4">
                 {visiblePending.map((candidate) => (
-                  <CandidateCard key={candidate.id} candidate={candidate} symbols={data.symbols} onDecided={load} />
+                  <CandidateCard
+                    key={candidate.id}
+                    candidate={candidate}
+                    symbols={data.symbols}
+                    bands={data.bands}
+                    match={data.matches[candidate.id]}
+                    proposal={data.proposals[candidate.id]}
+                    onDecided={load}
+                  />
                 ))}
               </div>
             ) : (
               <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong. Tidak ada perubahan baru yang menunggu tinjauan."}</Panel>
             )}
           </section>
+
+          <ArchivedList items={data.archived} onRestored={load} />
 
           <section aria-label="Diterima engine">
             <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
@@ -421,6 +692,11 @@ export function WebWatchReview() {
                   ) : null}
                   {source.lastCheckedAt ? (
                     <p className="mt-1 text-xs text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
+                  ) : null}
+                  {source.health?.suggestDisable ? (
+                    <p className="mt-2 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">
+                      Pertimbangkan menonaktifkan sumber ini: {source.health.noisy} dari {source.health.window} hasil terakhirnya diarsipkan atau ditolak.
+                    </p>
                   ) : null}
                 </Panel>
               ))}

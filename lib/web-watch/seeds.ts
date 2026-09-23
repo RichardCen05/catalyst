@@ -5,7 +5,10 @@
  * small enough to read in one piece.
  *
  * Relevance notes name the Catalyst exposures each source feeds (see
- * `defaultPlaybook.knownExposures` in `lib/store.ts`).
+ * `defaultPlaybook.knownExposures` in `lib/store.ts`). Where a note names
+ * emiten, the same symbols are declared in `symbols` so triage can read them;
+ * the note stays the reason, the field is what a machine acts on. General news
+ * feeds, the quake feed and sources with no named emiten declare none.
  */
 
 import type { WatchedSource } from "@/lib/web-watch/types";
@@ -54,6 +57,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "commodity",
     sourceType: "commodity",
+    symbols: ["PGAS", "ADRO", "PTBA"],
   },
 
   // -- Listings: regulations published *tomorrow* appear here first --------
@@ -74,6 +78,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/berita-dan-kegiatan/siaran-pers/Pages/[^\"']+\\.aspx",
     category: "policy",
     sourceType: "policy",
+    symbols: ["BBCA", "BBRI"],
   },
   {
     // BI-Rate decisions move BBCA/BBRI/BMRI; JISDOR moves exporters
@@ -90,6 +95,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/publikasi/ruang-media/news-release/Pages/sp_[^\"']+\\.aspx",
     category: "rates",
     sourceType: "macro",
+    symbols: ["BBCA", "BBRI", "BMRI", "ANTM", "INCO"],
   },
   {
     // ICP (Indonesian Crude Price) is published here first — it moves
@@ -107,6 +113,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/media-center/arsip-berita/[^\"']+",
     category: "policy",
     sourceType: "policy",
+    symbols: ["ADRO", "PTBA", "PGAS", "TINS"],
   },
   {
     // CPO chain: B50/B60 biodiesel pace and supply-chain rules. A cost line
@@ -120,6 +127,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "https://gapki\\.id/news/\\d{4}/\\d{2}/\\d{2}/[^\"']+",
     category: "commodity",
     sourceType: "commodity",
+    symbols: ["ICBP", "MYOR", "AMRT"],
   },
 
   // -- Documents & machine-readable weather --------------------------------
@@ -140,6 +148,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["TINS", "ADRO", "PTBA", "INCO"],
   },
   {
     // Latest-earthquake JSON. Changes on every felt quake — mine hours and
@@ -183,6 +192,8 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["TINS"],
+    region: "Bangka",
   },
   {
     // ADRO: Tanjung, Tabalong, Kalimantan Selatan — pit and haul road.
@@ -194,6 +205,8 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["ADRO"],
+    region: "Tabalong",
   },
   {
     // PTBA: Tanjung Enim, Lawang Kidul, Muara Enim — pit and rail loading.
@@ -205,6 +218,8 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["PTBA"],
+    region: "Muara Enim",
   },
   {
     // ANTM: Pomalaa, Kolaka — nickel mine and jetty.
@@ -216,6 +231,8 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["ANTM"],
+    region: "Kolaka",
   },
   {
     // INCO: Sorowako, Nuha, Luwu Timur — mine, smelter, and hydro catchment.
@@ -227,6 +244,8 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    symbols: ["INCO"],
+    region: "Luwu Timur",
   },
 
   // -- Awaiting datacenter verification (disabled until checked) -----------
@@ -246,6 +265,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/pressrelease/[^\"']+\\.html",
     category: "rates",
     sourceType: "macro",
+    symbols: ["BBCA", "BBRI", "BMRI", "ANTM", "INCO"],
   },
   {
     // US 10Y constant-maturity series as plain CSV — the datacenter-safe end
@@ -273,6 +293,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/index-announcements/[^\"']+",
     category: "flows",
     sourceType: "macro",
+    symbols: ["BBCA", "BBRI", "BMRI", "GOTO"],
   },
   {
     // KPBN auction posts: transacted CPO price leg for ICBP/MYOR/AMRT cost
@@ -286,6 +307,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "kpbn\\.co\\.id/[^\"']*",
     category: "commodity",
     sourceType: "commodity",
+    symbols: ["ICBP", "MYOR", "AMRT"],
   },
   {
     // Antam Logam Mulia daily price page: gold proxy leg for ANTM until an
@@ -299,6 +321,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "commodity",
     sourceType: "commodity",
+    symbols: ["ANTM"],
   },
 
   // -- Deliberately NOT enabled --------------------------------------------
