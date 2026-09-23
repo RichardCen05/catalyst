@@ -199,18 +199,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/case-verdict.tsx",
   },
   {
-    id: "chrome:case:hipotesis",
-    heading: "Hipotesis",
-    view: "case",
-    file: "components/research-case-workspace.tsx",
-  },
-  {
-    id: "chrome:case:indikator",
-    heading: "Indikator",
-    view: "case",
-    file: "components/research-case-workspace.tsx",
-  },
-  {
     id: "chrome:case:klaim-yang-diuji",
     heading: "Klaim yang diuji",
     view: "case",
@@ -221,6 +209,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Konfirmasi pasar",
     view: "case",
     description: "Langkah 1 · tanda pasar",
+    actions: ["Buka peta sebab akibat"],
     file: "components/research-case-workspace.tsx",
   },
   {
@@ -239,23 +228,10 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/research-case-workspace.tsx",
   },
   {
-    id: "chrome:case:rencana-analisis",
-    heading: "Rencana analisis",
-    view: "case",
-    labels: ["Rencana analisis","Lihat hipotesis, sumber, dan indikator","Sumber utama","Buka peta sebab akibat (opsional)"],
-    file: "components/research-case-workspace.tsx",
-  },
-  {
     id: "chrome:case:riwayat",
     heading: "Riwayat",
     view: "case",
     file: "components/analysis-review.tsx",
-  },
-  {
-    id: "chrome:case:sumber-utama",
-    heading: "Sumber utama",
-    view: "case",
-    file: "components/research-case-workspace.tsx",
   },
   {
     id: "chrome:case:tahap-kasus",
@@ -306,7 +282,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:cases:perubahan-saham-yang-perlu-diperiksa",
     heading: "Perubahan Saham yang perlu diperiksa",
     view: "cases",
-    eyebrow: "Analisis dan Riset",
+    eyebrow: "Riset dan Analisis",
     description: "Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset.",
     file: "app/cases/page.tsx",
   },
@@ -377,8 +353,8 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/price-chart.tsx",
   },
   {
-    id: "chrome:dashboard:jejak-bukti-2",
-    heading: "Jejak bukti",
+    id: "chrome:dashboard:pergerakan-saham",
+    heading: "Pergerakan saham",
     view: "dashboard",
     file: "components/price-compare-chart.tsx",
   },
@@ -396,13 +372,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     view: "dashboard",
     labels: ["Kartu dapat Anda uraikan","Susun Ulang Kartu"],
     file: "components/market-causal-map.tsx",
-  },
-  {
-    id: "chrome:dashboard:semua-kasus-dalam-satu-jalur",
-    heading: "Semua kasus dalam satu jalur",
-    view: "dashboard",
-    eyebrow: "Peta sebab akibat",
-    file: "app/page.tsx",
   },
   {
     id: "chrome:impact:ambang-relevansi-rantai",
@@ -441,7 +410,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
   },
   {
     id: "chrome:impact:hipotesis-dan-jalur-dampak",
-    heading: "Hipotesis dan jalur dampak",
+    heading: "Hipotesis dan Jalur Dampak",
     view: "impact",
     eyebrow: "Ruang uji sebab akibat",
     file: "app/impact/page.tsx",

@@ -1,3 +1,4 @@
+import { CHROME_BLOCKS } from "@/lib/data/chrome.generated";
 import { describe, expect, it } from "vitest";
 import { scoreCorpus } from "@/lib/agent/retrieval/score";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
@@ -8,13 +9,15 @@ const base: RequestContext = { profile: demoProfiles[0], history: [] };
 
 describe("scoreCorpus", () => {
   it("mengenali judul panel yang dikutip pembaca dari layar", () => {
-    // Pertanyaan pada tangkapan layar yang memicu pekerjaan ini. "Semua kasus
-    // dalam satu jalur" adalah judul peta di Dashboard, dan dulu dijawab
-    // dengan cakupan kasus karena "semua kasus" kebetulan cocok ke sana.
-    const ranked = scoreCorpus("apa maksud dari Semua kasus dalam satu jalur", { ...base, view: "dashboard" });
+    // Pertanyaan pada tangkapan layar yang memicu pekerjaan ini: judul peta di
+    // Dashboard dulu dijawab dengan cakupan kasus, karena kata jamak di dalam
+    // judul itu kebetulan cocok ke sana. Judulnya dibaca dari registri supaya
+    // perubahan nama panel tidak terbaca sebagai perubahan peringkat.
+    const heading = CHROME_BLOCKS.find((row) => row.id === "chrome:dashboard:peta-sebab-akibat-seluruh-kasus")!.heading;
+    const ranked = scoreCorpus(`apa maksud dari ${heading}`, { ...base, view: "dashboard" });
     expect(ranked.length).toBeGreaterThan(0);
     expect(ranked[0].entry.kind).toBe("chrome");
-    expect(ranked[0].entry.id).toBe("chrome:dashboard:semua-kasus-dalam-satu-jalur");
+    expect(ranked[0].entry.id).toBe("chrome:dashboard:peta-sebab-akibat-seluruh-kasus");
     // Judul yang cocok utuh harus mengungguli entri yang hanya berbagi dua kata.
     const cases = ranked.findIndex((row) => row.entry.id === "view:cases");
     expect(cases === -1 || ranked[0].score > ranked[cases].score).toBe(true);

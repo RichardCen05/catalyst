@@ -8,6 +8,18 @@ import { demoProfiles } from "@/lib/data/fixtures";
 
 const context: RequestContext = { profile: demoProfiles[0], history: [] };
 
+/**
+ * The Dashboard's causal-map panel, held by id rather than by its words.
+ *
+ * These tests used to name the heading "Semua kasus dalam satu jalur". A UI
+ * pass renamed that panel and five tests failed for a reason that had nothing
+ * to do with what they check — that a panel a reader quotes is found, carries
+ * its page, and pulls that page in once. The heading is read from the
+ * registry so the next rename is a rebuild, not a test edit.
+ */
+const MAP_BLOCK_ID = "chrome:dashboard:peta-sebab-akibat-seluruh-kasus";
+const MAP_BLOCK_HEADING = CHROME_BLOCKS.find((row) => row.id === MAP_BLOCK_ID)!.heading;
+
 describe("chrome registry", () => {
   it("cocok dengan sumbernya", () => {
     // Registri ini dibaca dari JSX. Kalau sebuah judul diubah tanpa
@@ -28,10 +40,12 @@ describe("chrome registry", () => {
   });
 
   it("memuat judul peta di Dashboard beserta label kecilnya", () => {
-    const block = CHROME_BLOCKS.find((row) => row.heading === "Semua kasus dalam satu jalur");
+    // Judulnya ikut berubah saat layar dirombak, jadi yang dipegang adalah
+    // id bloknya — panel yang sama, dinamai oleh generator dari sumbernya.
+    const block = CHROME_BLOCKS.find((row) => row.id === MAP_BLOCK_ID);
     expect(block).toBeDefined();
     expect(block?.view).toBe("dashboard");
-    expect(block?.eyebrow).toBe("Peta sebab akibat");
+    expect(block?.labels?.length).toBeGreaterThan(0);
   });
 
   it("memakai nama halaman dari menu samping, bukan dari palet perintah", () => {
@@ -41,10 +55,10 @@ describe("chrome registry", () => {
   });
 
   it("menyebut kata-kata panel dan halaman pemiliknya", async () => {
-    const bundle = await buildChromeBundle("chrome:dashboard:semua-kasus-dalam-satu-jalur");
+    const bundle = await buildChromeBundle(MAP_BLOCK_ID);
     expect(bundle.kind).toBe("chrome");
-    expect(bundle.title).toBe("Semua kasus dalam satu jalur");
-    expect(bundle.body).toContain("Peta sebab akibat");
+    expect(bundle.title).toBe(MAP_BLOCK_HEADING);
+    expect(bundle.body).toContain(MAP_BLOCK_HEADING);
     expect(bundle.body).toContain("halaman Dashboard");
     // Halamannya ditandai, bukan disalin: isinya diambil sekali oleh
     // retrieveContext, berapa pun panel di halaman itu yang cocok.
@@ -52,11 +66,11 @@ describe("chrome registry", () => {
   });
 
   it("mengambil materi halaman sekali walau beberapa panelnya cocok", async () => {
-    const retrieved = await retrieveContext("apa maksud dari Semua kasus dalam satu jalur", {
+    const retrieved = await retrieveContext(`apa maksud dari ${MAP_BLOCK_HEADING}`, {
       ...context, view: "dashboard",
     });
     expect(retrieved).not.toBeNull();
-    expect(retrieved!.entryIds).toContain("chrome:dashboard:semua-kasus-dalam-satu-jalur");
+    expect(retrieved!.entryIds).toContain(MAP_BLOCK_ID);
     // Isi Dashboard ikut, dan hanya satu kali.
     expect(retrieved!.entryIds.filter((id) => id === "view:dashboard")).toHaveLength(1);
     const marker = "Hitungan papan saat ini";

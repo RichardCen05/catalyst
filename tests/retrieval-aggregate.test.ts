@@ -1,3 +1,4 @@
+import { CHROME_BLOCKS } from "@/lib/data/chrome.generated";
 import { describe, expect, it } from "vitest";
 import { aggregateBundle, isAggregateQuestion } from "@/lib/agent/retrieval/aggregate";
 import { scoreCorpus } from "@/lib/agent/retrieval/score";
@@ -32,11 +33,13 @@ describe("isAggregateQuestion", () => {
   });
 
   it("tidak menghitung penanda jamak yang dikutip dari judul di layar", () => {
-    // "Semua kasus dalam satu jalur" adalah judul panel di Dashboard. Pembaca
-    // yang menanyakan artinya tidak sedang meminta daftar segalanya; "semua"
-    // itu milik aplikasi, bukan milik pertanyaan.
-    expect(isAggregateQuestion("apa maksud dari Semua kasus dalam satu jalur")).toBe(false);
-    expect(isAggregateQuestion("jelaskan semua kasus dalam satu jalur")).toBe(false);
+    // Judul panel di Dashboard memuat penanda jamak milik aplikasi. Pembaca
+    // yang menanyakan artinya tidak sedang meminta daftar segalanya, jadi
+    // "seluruh" di dalam judul itu tidak dihitung. Judul dibaca dari registri:
+    // saat panel ini berganti nama, yang diuji tetap perilakunya.
+    const heading = CHROME_BLOCKS.find((row) => row.id === "chrome:dashboard:peta-sebab-akibat-seluruh-kasus")!.heading;
+    expect(isAggregateQuestion(`apa maksud dari ${heading}`)).toBe(false);
+    expect(isAggregateQuestion(`jelaskan ${heading.toLowerCase()}`)).toBe(false);
     // Kata yang sama, tanpa kutipan judul, tetap jamak.
     expect(isAggregateQuestion("jelaskan semua kasus yang terbuka")).toBe(true);
   });
