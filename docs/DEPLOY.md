@@ -16,7 +16,7 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00055-cdt`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built from `aea21d0` on `main`, the merge of `feat/alief/wire-ui` into `origin/main`. Two live `/api/chat` calls returned 200 with no `llmFallbackNote`; the revision's logs carry no AI Studio error | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
+| Serving revision | `catalyst-web-00061-ctm`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built by the scheduled refresh (§11) from `be706ef` on `feat/alief/wire-ui`. Running the Gemini variant (§6b) with `LLM_RATE_LIMIT_STRIKES=3`. Live `/api/fact` calls return model-written prose over the 2026-09-22 window, so the AI Studio cap that produced 429s on 2026-09-22 is lifted | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
 | Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:cd0cbab4…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
@@ -217,11 +217,11 @@ gcloud run deploy catalyst-web \
   --service-account=catalyst-run@ada-sectors-508410.iam.gserviceaccount.com \
   --allow-unauthenticated \
   --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
-  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=1,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+  --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=3,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
   --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
 ```
 
-Unset `LLM_PROVIDER` means `gemini`, so no provider variable is needed. `LLM_RATE_LIMIT_STRIKES=1`
+Unset `LLM_PROVIDER` means `gemini`, so no provider variable is needed. `LLM_RATE_LIMIT_STRIKES=3`
 restores the per-key-quota behaviour: on Gemini the first 429 means the allowance is gone, so one
 strike closes the gate (see §2). `LLM_API_KEY` and the `LLM_MODEL` group are dropped — fully
 Gemini, no dangling OpenRouter secrets. Prerequisite: raise the AI Studio spend cap first
@@ -307,7 +307,61 @@ gcloud run services update-traffic catalyst-web --region=us-central1 \
 
 Send traffic back to `LATEST` with `--to-latest` once the fix is deployed.
 
-## 10. Rotate a secret
+## 10. Scheduled data refresh
+
+`cloudbuild-refresh.yaml` re-records the Sectors feeds, rebuilds
+`lib/data/market.generated.ts` from them, runs the gate of §5, and deploys only if it passes. A
+red gate aborts the build and leaves the serving revision untouched.
+
+| What | Value |
+|---|---|
+| Scheduler job | `catalyst-data-refresh`, `30 17 * * 1-5` Asia/Jakarta, region `us-central1` |
+| Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
+| Build identity | `1019003607640-compute@developer.gserviceaccount.com` |
+| Source | `gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz` |
+| Cost | 85 Sectors credits per run that advances the window; 0 when it is already current |
+
+This is the one thing that ships without a human. Pushing a branch still deploys nothing.
+
+### Why the whole window moves at once
+
+`scripts/build_market_data.py` loads daily, news, filings and foreign-flow for all eighteen
+symbols at one shared window, and derives the timeline from the intersection of the IHSG dates
+with every symbol's daily dates. Refreshing a subset cannot advance that intersection — the
+unrefreshed symbols hold it back — and the build fails on filenames that no longer exist. The way
+to stretch a non-renewable grant is therefore a longer cadence, not a narrower scope:
+
+```bash
+gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
+  --schedule="30 17 * * 1,4"        # twice a week instead of five times
+gcloud scheduler jobs pause http catalyst-data-refresh --location=us-central1
+```
+
+### The source snapshot
+
+The scheduled build runs from a tarball in GCS, not from git, because no Cloud Build trigger is
+connected to the GitHub repository. Code changes do not reach the scheduled run until the snapshot
+is replaced:
+
+```bash
+gcloud builds submit --config=cloudbuild-refresh.yaml --region=us-central1   # also validates it
+gcloud storage cp "gs://ada-sectors-508410_cloudbuild/source/<the tarball just uploaded>.tgz" \
+  gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
+```
+
+Data is not affected by a stale snapshot: `scripts/refresh_sectors.py` extends from whatever
+window the snapshot carries to today in one call per feed, and a window call costs the same credit
+whether it spans a day or a month.
+
+### Refreshing by hand
+
+```bash
+python3 scripts/refresh_sectors.py                 # plan and cost, spends nothing
+python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY
+python3 scripts/build_market_data.py
+```
+
+## 11. Rotate a secret
 
 ```bash
 printf %s "$NEW_VALUE" | gcloud secrets versions add GOOGLE_API_KEY --data-file=-
@@ -318,7 +372,7 @@ gcloud run services update catalyst-web --region=us-central1 \
 A new secret version does not reach a running revision on its own — the service needs a new
 revision, which the `update` above creates.
 
-## 11. Which document to trust
+## 12. Which document to trust
 
 | Document | Status |
 |---|---|

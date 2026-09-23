@@ -18,7 +18,11 @@ before answering any question about where the app runs, where its data is stored
 its logs. It is the only document in this repository that is verified against the live project;
 the plans under `docs/` describe intent at the time they were written and drift from what exists.
 
-Deployment is manual — there is no CI trigger. Nothing ships because a branch was pushed.
+Nothing ships because a branch was pushed — there is no CI trigger on the repository.
+One job does deploy without a human: the scheduled data refresh in `cloudbuild-refresh.yaml`,
+which re-records the Sectors feeds each trading day, rebuilds the bundle, runs the gate and
+deploys only if it passes. See `docs/DEPLOY.md` §10. Every other deploy is a person running
+the command.
 
 # No hard-coded values
 

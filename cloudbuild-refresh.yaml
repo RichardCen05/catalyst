@@ -79,7 +79,7 @@ steps:
           --service-account="${_SERVICE_ACCOUNT}" \
           --allow-unauthenticated \
           --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
-          --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=1,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+          --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=3,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
           --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
 
 availableSecrets:
