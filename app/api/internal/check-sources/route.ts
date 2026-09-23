@@ -94,7 +94,8 @@ export async function POST(request: Request) {
         await gcsReviewStore.saveCandidate(date, candidate);
       }
       if (result.candidates?.length) {
-        await saveQueue(gcsQueueStore, (queue) => enqueue(queue, result.candidates ?? [])).catch(() => undefined);
+        const sources = await listSources(store);
+        await saveQueue(gcsQueueStore, (queue) => enqueue(queue, result.candidates ?? [], { sources })).catch(() => undefined);
       }
       await ensureOverlay().catch(() => []);
       return NextResponse.json(result);

@@ -77,10 +77,11 @@ export async function watchAll(deps: WatchAllDeps, force = false): Promise<Watch
   const output: WatchAllResult = { summary, results, checkedAt: nowIso };
   const runId = nowIso.replace(/[:.]/g, "-");
   await deps.review.saveCheck(runId, output);
-  // Fresh candidates join the review queue; already-decided ids never return.
+  // Fresh candidates go through triage into the review queue; already-decided
+  // and already-archived ids never return.
   const fresh = results.flatMap((r) => r.candidates ?? []);
   if (fresh.length) {
-    await saveQueue(deps.queue, (queue) => enqueue(queue, fresh)).catch(() => undefined);
+    await saveQueue(deps.queue, (queue) => enqueue(queue, fresh, { sources }, nowIso)).catch(() => undefined);
   }
   return output;
 }

@@ -1,13 +1,23 @@
 /**
- * Review queue — one GCS object, three sections.
+ * Review queue — one GCS object.
  *
  *   catalyst/web-watch/queue.json = {
- *     pending:  MarketEvent[]                 // accepted or dismissed yet
+ *     pending:  MarketEvent[]                 // waiting for a human
  *     accepted: MarketEvent[]                 // reviewed, mapped, engine-visible
  *     decided:  Record<candidateId, ReviewDecision>
+ *     archived: Record<candidateId, ArchivedCandidate>   // set aside by triage
+ *     matches:  Record<candidateId, TriageMatch>         // why a pending item is here
+ *     restored: Record<candidateId, RestoredCandidate>   // triage overruled by a human
  *   }
  *
- * Candidates enter via `enqueue` (called by the sweep). A reviewer maps each
+ * The last three were added with triage (`lib/web-watch/triage.ts`). A file
+ * written before them loads with each defaulted to empty (`normalizeQueue`),
+ * and nothing in the first three changed shape.
+ *
+ * Candidates enter via `enqueue` (called by the sweep), which triages every
+ * one of them: an item that repeats one already held, carries no prose,
+ * reports ordinary weather, or touches no watched emiten is archived with the
+ * rule and a reason, never deleted and never accepted. A reviewer maps each
  * one to symbols with a direction, a relevance *band*, and a written exposure
  * path — the band is chosen by a human in the open, never computed by the
  * fetcher. Dismissed candidates stay in `decided` so a re-run of the same
@@ -21,7 +31,9 @@
 import { GcsPreconditionFailed, gcsGetJson, gcsPutJson } from "@/lib/gcp/gcs";
 import { companies } from "@/lib/data/fixtures";
 import { bucket } from "@/lib/web-watch/registry";
-import { RELEVANCE_BAND_SCORE, type RelevanceBand } from "@/lib/agent/thresholds";
+import { RELEVANCE_BAND_SCORE, resolveThresholds, type RelevanceBand } from "@/lib/agent/thresholds";
+import { TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
+import type { WatchedSource } from "@/lib/web-watch/types";
 import type { ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
 
 export const QUEUE_PATH = "catalyst/web-watch/queue.json";
@@ -44,13 +56,53 @@ export interface ReviewDecision {
   impacts?: ReviewImpact[];
 }
 
+export interface ArchivedCandidate {
+  event: MarketEvent;
+  rule: TriageRule;
+  reason: string;
+  at: string;
+}
+
+/** What triage matched for a candidate it sent to review. */
+export interface TriageMatch {
+  symbols: SymbolCode[];
+  matchedBy: MatchEvidence[];
+  at: string;
+}
+
+/** A human moved an archived candidate back. Triage never archives it again. */
+export interface RestoredCandidate {
+  restoredAt: string;
+  rule: TriageRule;
+  reason: string;
+}
+
 export interface ReviewQueue {
   pending: MarketEvent[];
   accepted: MarketEvent[];
   decided: Record<string, ReviewDecision>;
+  archived: Record<string, ArchivedCandidate>;
+  matches: Record<string, TriageMatch>;
+  restored: Record<string, RestoredCandidate>;
 }
 
-export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {} };
+export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {} };
+
+const asRecord = <T>(value: unknown): Record<string, T> =>
+  value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, T>) : {};
+
+/** Read any stored shape — including one written before triage existed — as
+ *  a full queue. Missing sections are empty; present ones are kept as-is. */
+export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): ReviewQueue {
+  return {
+    pending: Array.isArray(raw?.pending) ? raw.pending : [],
+    accepted: Array.isArray(raw?.accepted) ? raw.accepted : [],
+    decided: asRecord<ReviewDecision>(raw?.decided),
+    archived: asRecord<ArchivedCandidate>(raw?.archived),
+    matches: asRecord<TriageMatch>(raw?.matches),
+    restored: asRecord<RestoredCandidate>(raw?.restored),
+  };
+}
 
 export interface QueueStore {
   load(): Promise<{ data: ReviewQueue; generation: string } | null>;
@@ -59,7 +111,8 @@ export interface QueueStore {
 
 export const gcsQueueStore: QueueStore = {
   async load() {
-    return gcsGetJson<ReviewQueue>(bucket(), QUEUE_PATH);
+    const loaded = await gcsGetJson<Partial<ReviewQueue>>(bucket(), QUEUE_PATH);
+    return loaded ? { data: normalizeQueue(loaded.data), generation: loaded.generation } : null;
   },
   async save(data, options) {
     await gcsPutJson(bucket(), QUEUE_PATH, data, options);
@@ -67,7 +120,7 @@ export const gcsQueueStore: QueueStore = {
 };
 
 export function memoryQueueStore(initial?: ReviewQueue): QueueStore {
-  let file: ReviewQueue = structuredClone(initial ?? emptyQueue);
+  let file: ReviewQueue = normalizeQueue(structuredClone(initial ?? emptyQueue));
   let generation = "0";
   let counter = 0;
   return {
@@ -95,13 +148,139 @@ export function listKnownSymbols(): SymbolCode[] {
   return companies.map((c) => c.symbol);
 }
 
-/** Add fresh candidates. Already-decided ids (accepted or dismissed) never
- *  re-enter pending — a re-run must not resurrect a reviewed item. */
-export function enqueue(queue: ReviewQueue, candidates: MarketEvent[]): ReviewQueue {
+const PENDING_MAX = 200;
+
+/** What triage needs beyond the queue itself. Required, so no caller can
+ *  enqueue without triage. */
+export interface EnqueueContext {
+  sources: WatchedSource[];
+}
+
+function seenEvents(queue: ReviewQueue, pending: MarketEvent[] = queue.pending): Array<{ event: MarketEvent; where: SeenWhere }> {
+  return [
+    ...pending.map((event) => ({ event, where: "pending" as const })),
+    ...queue.accepted.map((event) => ({ event, where: "accepted" as const })),
+    ...Object.values(queue.archived).map(({ event }) => ({ event, where: "archived" as const })),
+  ];
+}
+
+/** Keep the newest archive entries up to the configured cap. */
+function capArchive(archived: Record<string, ArchivedCandidate>): Record<string, ArchivedCandidate> {
+  const max = resolveThresholds().webWatchArchiveMax;
+  const entries = Object.entries(archived);
+  if (entries.length <= max) return archived;
+  return Object.fromEntries(entries.sort(([, a], [, b]) => b.at.localeCompare(a.at)).slice(0, max));
+}
+
+/** Drop bookkeeping for ids that are no longer pending. */
+function prunePendingRecords<T>(records: Record<string, T>, pending: MarketEvent[]): Record<string, T> {
+  const ids = new Set(pending.map((e) => e.id));
+  return Object.fromEntries(Object.entries(records).filter(([id]) => ids.has(id)));
+}
+
+/** Add fresh candidates through triage. Already-decided ids (accepted or
+ *  dismissed) and already-archived ids never re-enter — a re-run must not
+ *  resurrect an item a human or triage has already dealt with. */
+export function enqueue(
+  queue: ReviewQueue,
+  candidates: MarketEvent[],
+  ctx: EnqueueContext,
+  nowIso: string = new Date().toISOString(),
+): ReviewQueue {
   const known = new Set([...queue.pending.map((e) => e.id), ...queue.accepted.map((e) => e.id)]);
-  const fresh = candidates.filter((c) => !known.has(c.id) && !queue.decided[c.id]);
+  const fresh = candidates.filter((c) => !known.has(c.id) && !queue.decided[c.id] && !queue.archived[c.id]);
   if (!fresh.length) return queue;
-  return { ...queue, pending: [...fresh, ...queue.pending].slice(0, 200) };
+  const judged = triageAll(fresh, { sources: ctx.sources, seen: seenEvents(queue) });
+  const kept: MarketEvent[] = [];
+  const archived = { ...queue.archived };
+  const matches = { ...queue.matches };
+  for (const { candidate, result } of judged) {
+    if (result.verdict === "archive") {
+      archived[candidate.id] = { event: candidate, rule: result.rule, reason: result.reason, at: nowIso };
+    } else {
+      kept.push(candidate);
+      matches[candidate.id] = { symbols: result.symbols, matchedBy: result.matchedBy, at: nowIso };
+    }
+  }
+  const pending = [...kept, ...queue.pending].slice(0, PENDING_MAX);
+  return { ...queue, pending, archived: capArchive(archived), matches: prunePendingRecords(matches, pending) };
+}
+
+/** Move an archived candidate back to review, and remember a human did so. */
+export function restore(queue: ReviewQueue, candidateId: string, nowIso: string): ReviewQueue {
+  const entry = queue.archived[candidateId];
+  if (!entry) throw new ReviewError("Kandidat tidak ada di arsip (mungkin sudah dikembalikan).");
+  const { [candidateId]: _removed, ...archived } = queue.archived;
+  void _removed;
+  return {
+    ...queue,
+    pending: [entry.event, ...queue.pending.filter((e) => e.id !== candidateId)],
+    archived,
+    restored: { ...queue.restored, [candidateId]: { restoredAt: nowIso, rule: entry.rule, reason: entry.reason } },
+  };
+}
+
+export interface BackfillReport {
+  pendingBefore: number;
+  pendingAfter: number;
+  archived: number;
+  perRule: Record<TriageRule, { count: number; samples: Array<{ title: string; reason: string }> }>;
+  review: { count: number; withSymbols: number; samples: Array<{ title: string; symbols: SymbolCode[]; matchedBy: string[] }> };
+}
+
+/**
+ * Triage the items already pending. Pure: the caller decides whether the
+ * returned queue is written (the internal route defaults to not writing).
+ *
+ * Oldest first, so of two copies the older one stays in review. Items a human
+ * restored are left where they are.
+ */
+export function backfillTriage(
+  queue: ReviewQueue,
+  ctx: EnqueueContext,
+  nowIso: string,
+  sampleSize = 5,
+): { next: ReviewQueue; report: BackfillReport } {
+  const restored = queue.pending.filter((e) => queue.restored[e.id]);
+  const candidates = queue.pending.filter((e) => !queue.restored[e.id]).reverse();
+  const judged = triageAll(candidates, { sources: ctx.sources, seen: seenEvents(queue, restored) });
+  const archivedIds = new Set<string>();
+  const archived = { ...queue.archived };
+  const matches = { ...queue.matches };
+  const perRule = Object.fromEntries(TRIAGE_RULES.map((rule) => [rule, { count: 0, samples: [] as Array<{ title: string; reason: string }> }])) as BackfillReport["perRule"];
+  const review: BackfillReport["review"] = { count: 0, withSymbols: 0, samples: [] };
+  for (const { candidate, result } of judged) {
+    if (result.verdict === "archive") {
+      archivedIds.add(candidate.id);
+      archived[candidate.id] = { event: candidate, rule: result.rule, reason: result.reason, at: nowIso };
+      const bucket = perRule[result.rule];
+      bucket.count += 1;
+      if (bucket.samples.length < sampleSize) bucket.samples.push({ title: candidate.title, reason: result.reason });
+    } else {
+      matches[candidate.id] = { symbols: result.symbols, matchedBy: result.matchedBy, at: nowIso };
+      review.count += 1;
+      if (result.symbols.length) review.withSymbols += 1;
+      if (review.samples.length < sampleSize * 4) {
+        review.samples.push({
+          title: candidate.title,
+          symbols: result.symbols,
+          matchedBy: result.matchedBy.map((e) => `${e.symbol}:${e.by}:${e.term}`),
+        });
+      }
+    }
+  }
+  const pending = queue.pending.filter((e) => !archivedIds.has(e.id));
+  const next: ReviewQueue = { ...queue, pending, archived: capArchive(archived), matches: prunePendingRecords(matches, pending) };
+  return {
+    next,
+    report: {
+      pendingBefore: queue.pending.length,
+      pendingAfter: pending.length,
+      archived: archivedIds.size,
+      perRule,
+      review,
+    },
+  };
 }
 
 export class ReviewError extends Error {
@@ -126,9 +305,11 @@ export function decide(
 
   if (action.action === "dismiss") {
     if (!action.reason.trim()) throw new ReviewError("Alasan dismiss wajib diisi.");
+    const pending = queue.pending.filter((e) => e.id !== candidateId);
     return {
-      pending: queue.pending.filter((e) => e.id !== candidateId),
-      accepted: queue.accepted,
+      ...queue,
+      pending,
+      matches: prunePendingRecords(queue.matches, pending),
       decided: {
         ...queue.decided,
         [candidateId]: { candidateId, status: "dismissed", decidedAt: nowIso, reason: action.reason.trim().slice(0, 500) },
@@ -156,8 +337,11 @@ export function decide(
   });
 
   const accepted: MarketEvent = { ...candidate, impactLinks, asOf: nowIso };
+  const pending = queue.pending.filter((e) => e.id !== candidateId);
   return {
-    pending: queue.pending.filter((e) => e.id !== candidateId),
+    ...queue,
+    pending,
+    matches: prunePendingRecords(queue.matches, pending),
     accepted: [accepted, ...queue.accepted].slice(0, 200),
     decided: {
       ...queue.decided,
@@ -175,7 +359,7 @@ export function decide(
 /** Generation-guarded save with one read-merge retry. */
 export async function saveQueue(store: QueueStore, mutate: (queue: ReviewQueue) => ReviewQueue): Promise<ReviewQueue> {
   const loaded = await store.load().catch(() => null);
-  const base: ReviewQueue = loaded?.data ?? structuredClone(emptyQueue);
+  const base: ReviewQueue = normalizeQueue(loaded?.data);
   try {
     const next = mutate(structuredClone(base));
     await store.save(next, loaded ? { ifGenerationMatch: loaded.generation } : { ifGenerationMatch: "0" });
@@ -183,7 +367,7 @@ export async function saveQueue(store: QueueStore, mutate: (queue: ReviewQueue) 
   } catch (error) {
     if (!(error instanceof GcsPreconditionFailed)) throw error;
     const retry = await store.load().catch(() => null);
-    const retryBase: ReviewQueue = retry?.data ?? structuredClone(emptyQueue);
+    const retryBase: ReviewQueue = normalizeQueue(retry?.data);
     const next = mutate(structuredClone(retryBase));
     await store.save(next, retry ? { ifGenerationMatch: retry.generation } : { ifGenerationMatch: "0" });
     return next;

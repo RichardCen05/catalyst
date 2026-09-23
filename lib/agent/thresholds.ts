@@ -128,6 +128,43 @@ export const DEFAULT_THRESHOLDS = {
    *  Volume di engine.ts mengatakan "kurang dari 30 pengamatan" — teks
    *  menjanjikan penjaga yang tiga kali lebih ketat daripada kode. */
   comparatorMinObservations: 8,
+  /** Triage web-watch: karakter minimum dalam kalimat utuh sebelum teks hasil
+   *  ambil dianggap berisi. Kerangka navigasi yang dirender JS (kasus
+   *  peringatan dini BMKG) lolos `MIN_FETCH_CHARS` karena menunya panjang,
+   *  tetapi hampir tidak punya kalimat. Terukur 2026-09-24 pada salinan antrean
+   *  produksi: teks berita tertipis (halaman video) berisi 188 karakter kalimat,
+   *  jadi 150 tidak mengarsipkan satu pun berita yang ada. */
+  webWatchProseMinChars: 150,
+  /** Kata minimum agar satu potongan berakhiran titik dihitung kalimat, bukan
+   *  label menu. */
+  webWatchProseSentenceMinWords: 8,
+  /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
+   *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
+   *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
+   *  produksi: "asia" 23%, "rakyat" 10%, "resources" 7% — sementara nama yang
+   *  benar-benar nama ("timah", "mandiri", "telkom") di bawah 4%. */
+  webWatchAliasMaxDocShare: 0.05,
+  /** Jumlah kandidat minimum sebelum porsi di atas dihitung. Pada antrean
+   *  sekecil ini porsi tidak berarti apa-apa, jadi kata nama tetap dipakai —
+   *  lebih baik satu kandidat berlebih ditinjau daripada satu diarsipkan salah. */
+  webWatchAliasMinCorpus: 50,
+  /** Curah hujan per langkah prakiraan BMKG (3 jam), mm, yang membuat
+   *  prakiraan lokasi tambang layak ditinjau. */
+  webWatchRainMmPerStep: 10,
+  /** Kode cuaca BMKG mulai dari mana sebuah langkah prakiraan dianggap
+   *  peringatan. 63 = hujan lebat; kode di atasnya hujan lokal dan badai petir. */
+  webWatchWarningWeatherCode: 63,
+  /** Kecepatan angin per langkah prakiraan, km/jam, yang dianggap peringatan
+   *  (jendela pengapalan dan tongkang). */
+  webWatchWindKmh: 40,
+  /** Magnitudo minimum gempa di wilayah aset pantauan agar ditinjau. */
+  webWatchQuakeMinMagnitude: 5,
+  /** Magnitudo di atas ini selalu ditinjau walau teks wilayahnya tidak
+   *  menyebut wilayah aset: pencocokan teks bisa luput kabupaten tetangga. */
+  webWatchQuakeAlwaysReviewMagnitude: 6,
+  /** Kandidat terarsip yang disimpan di queue.json. Objek antrean dibaca dan
+   *  ditulis utuh setiap keputusan; batas ini menjaga ukurannya. */
+  webWatchArchiveMax: 200,
 } as const;
 
 /**
@@ -204,6 +241,18 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   retrievalMemoMaxEntries: "convention",
   caseFocusCount: "convention",
   comparatorMinObservations: "convention",
+  // Triage web-watch. Ambang cuaca dan kata nama memutuskan kandidat mana yang
+  // sampai ke reviewer, jadi `guess`; sisanya penjaga kualitas dan ukuran.
+  webWatchProseMinChars: "convention",
+  webWatchProseSentenceMinWords: "convention",
+  webWatchAliasMaxDocShare: "guess",
+  webWatchAliasMinCorpus: "convention",
+  webWatchRainMmPerStep: "guess",
+  webWatchWarningWeatherCode: "guess",
+  webWatchWindKmh: "guess",
+  webWatchQuakeMinMagnitude: "guess",
+  webWatchQuakeAlwaysReviewMagnitude: "guess",
+  webWatchArchiveMax: "convention",
 };
 
 /**
@@ -318,6 +367,16 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
     caseFocusCount: DEFAULT_THRESHOLDS.caseFocusCount,
     comparatorMinObservations: DEFAULT_THRESHOLDS.comparatorMinObservations,
+    webWatchProseMinChars: DEFAULT_THRESHOLDS.webWatchProseMinChars,
+    webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
+    webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
+    webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
+    webWatchRainMmPerStep: DEFAULT_THRESHOLDS.webWatchRainMmPerStep,
+    webWatchWarningWeatherCode: DEFAULT_THRESHOLDS.webWatchWarningWeatherCode,
+    webWatchWindKmh: DEFAULT_THRESHOLDS.webWatchWindKmh,
+    webWatchQuakeMinMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeMinMagnitude,
+    webWatchQuakeAlwaysReviewMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeAlwaysReviewMagnitude,
+    webWatchArchiveMax: DEFAULT_THRESHOLDS.webWatchArchiveMax,
   };
 }
 

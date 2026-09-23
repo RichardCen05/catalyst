@@ -86,7 +86,7 @@ export const SYMBOL_ALIASES: Partial<Record<SymbolCode, string[]>> = buildSymbol
  * Longest first, so `-nya` is tried before `-ya` could ever be mistaken for
  * one. This is not a stemmer: it removes these six endings and nothing else.
  */
-const ENCLITICS = ["nya", "lah", "kah", "pun", "ku", "mu"];
+export const ENCLITICS = ["nya", "lah", "kah", "pun", "ku", "mu"];
 
 /** Every single-token alias of a recorded issuer, lowercased. */
 let aliasTokens: Set<string> | null = null;
