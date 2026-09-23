@@ -1,4 +1,4 @@
-import { demoProfiles } from "@/lib/data/fixtures";
+import { DATA_AS_OF_LABEL, demoProfiles } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle } from "@/lib/agent/retrieval/types";
 import type { SymbolCode } from "@/lib/types";
@@ -24,6 +24,10 @@ export async function buildCaseBundle(symbol: SymbolCode): Promise<ContextBundle
   }
   const body = [
     `${symbol} (${analysis.company.name}), sektor ${analysis.company.sector}.`,
+    // Every figure below was recorded, not fetched when the question was
+    // asked. Without the date in the material the model has nothing to
+    // qualify a price with, and the sentence reads as today's screen.
+    `Semua angka di bawah berasal dari rekaman ${DATA_AS_OF_LABEL}, bukan harga berjalan.`,
     `Perubahan material: ${analysis.materialChange.whatChanged}`,
     `Pembanding: ${analysis.materialChange.baseline}`,
     `Kenapa penting: ${analysis.materialChange.whyMaterial}`,

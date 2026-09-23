@@ -94,6 +94,7 @@ export async function aggregateBundle(
   const header = `Pertanyaan ini mencakup banyak hal. Yang cocok pada rekaman: ${coverage}.`;
   const lines = [header];
   const collected = new Map<string, Citation>();
+  const sourceIds: string[] = [];
   let used = header.length;
   let listed = 0;
 
@@ -106,6 +107,8 @@ export async function aggregateBundle(
     lines.push(line);
     used += line.length;
     listed += 1;
+    // What this summary was written from, kept for the audit trail.
+    sourceIds.push(row.entry.id);
     // An aggregate counted over recordings must carry those recordings'
     // sources. Summarising many cases is not a reason to drop the citations
     // every one of them arrived with.
@@ -125,5 +128,6 @@ export async function aggregateBundle(
     figures: extractNumerals(body),
     citations: [...collected.values()],
     symbols: [],
+    sourceIds,
   };
 }

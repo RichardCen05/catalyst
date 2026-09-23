@@ -102,6 +102,11 @@ export interface ContextBundle {
   figures: string[];
   citations: Citation[];
   symbols: SymbolCode[];
+  /** The entries this bundle was summarised from, when it summarises others.
+   *  An aggregate answer used to report its own slug as the whole audit
+   *  trail, so "which material said this" could not be answered about the one
+   *  shape of answer that draws on the most of it. */
+  sourceIds?: string[];
 }
 
 /**

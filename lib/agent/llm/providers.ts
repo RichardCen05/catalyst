@@ -50,6 +50,18 @@ export function getGenAiClient(): GoogleGenAI {
   return new GoogleGenAI({ apiKey });
 }
 
+/**
+ * The same question must not get two different sentences.
+ *
+ * Every draft here is written from material that was already retrieved and is
+ * verified against it afterwards, so sampling buys nothing but variance — and
+ * variance is what makes an answer impossible to check against the one a
+ * reader saw yesterday. Zero is the closest these APIs offer to "read the
+ * material back"; it is not a guarantee of identical bytes, because the
+ * vendors do not offer one.
+ */
+const ANSWER_TEMPERATURE = 0;
+
 const geminiProvider: LlmProvider = {
   id: "gemini",
   async generate(request) {
@@ -62,6 +74,7 @@ const geminiProvider: LlmProvider = {
         responseMimeType: "application/json",
         responseJsonSchema: request.schema,
         maxOutputTokens: request.maxOutputTokens,
+        temperature: ANSWER_TEMPERATURE,
       },
     });
     if (response.candidates?.[0]?.finishReason === "MAX_TOKENS") {
@@ -132,6 +145,7 @@ const openAiCompatibleProvider: LlmProvider = {
       body: JSON.stringify({
         model: request.model,
         max_tokens: request.maxOutputTokens,
+        temperature: ANSWER_TEMPERATURE,
         ...(reasoning ? { reasoning } : {}),
         messages: [
           { role: "system", content: request.systemInstruction },

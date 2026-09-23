@@ -38,6 +38,21 @@ const VIEW_BOOST = 0.12;
 const SYMBOL_BOOST = 0.25;
 
 /**
+ * The page the question named, which outranks the page the reader is on.
+ *
+ * "apa isi dashboard" asked from the causal map tied on words with a news
+ * event — both carried one of the two content words — and the page prior then
+ * broke the tie for the event, because the event belongs to the page the
+ * reader happened to be standing on. The answer described the dashboard using
+ * a spike in TLKM coverage.
+ *
+ * Naming a page is a stronger signal than standing on one, so it is worth
+ * more. It is still additive and still cannot move an entry above one that
+ * matched more of the question.
+ */
+const NAMED_VIEW_BOOST = VIEW_BOOST * 2;
+
+/**
  * Generic words that must not decide which entry a question is about.
  *
  * The second row is how a reader points at something on screen rather than
@@ -50,7 +65,8 @@ const QUESTION_WORDS = new Set([
   "mana", "jelaskan", "ceritakan", "tolong", "coba", "bisa", "dong", "sih",
   "what", "why", "how", "when", "where", "which", "explain", "tell", "please",
   "halaman", "laman", "panel", "bagian", "layar", "menu", "tombol", "tulisan",
-  "page", "screen", "section", "button", "label", "isinya", "maksud", "arti", "artinya",
+  "page", "screen", "section", "button", "label", "isi", "isinya", "berisi",
+  "maksud", "arti", "artinya",
 ]);
 
 /**
@@ -97,6 +113,38 @@ export function scoreCorpus(
     for (const id of ids) add(id, term.split(" ").length);
   }
 
+  // Which pages the question named, read off the page entries themselves so a
+  // renamed page renames the signal with it.
+  const namedViews = new Set<string>();
+  for (const [id, overlap] of hits) {
+    if (!overlap) continue;
+    const entry = index.byId.get(id);
+    if (entry?.kind === "view" && entry.view) namedViews.add(entry.view);
+  }
+
+  // One slip of the finger must not change which page the answer is about.
+  //
+  // "apa isi dashbord" reached no term at all, so the page bundle never
+  // entered the prompt and the answer was written from whichever recordings
+  // shared a word with the rest of the sentence. Only page names are matched
+  // this loosely, and only within one edit: a page is a closed, short list of
+  // words the reader is trying to type, unlike a company name or a figure.
+  if (!namedViews.size) {
+    for (const word of new Set(words)) {
+      if (word.length < 5) continue;
+      for (const [term, ids] of index.byTerm) {
+        if (term.includes(" ") || Math.abs(term.length - word.length) > 1) continue;
+        if (!withinOneEdit(word, term)) continue;
+        for (const id of ids) {
+          const entry = index.byId.get(id);
+          if (entry?.kind !== "view" || !entry.view) continue;
+          add(id, 1);
+          namedViews.add(entry.view);
+        }
+      }
+    }
+  }
+
   const scored: ScoredEntry[] = [];
   for (const [id, overlap] of hits) {
     const entry = index.byId.get(id);
@@ -105,6 +153,7 @@ export function scoreCorpus(
     let score = raw;
     if (symbols.length && entry.symbols.some((symbol) => symbols.includes(symbol))) score += SYMBOL_BOOST;
     if (context.view && entry.view === context.view) score += VIEW_BOOST;
+    if (entry.view && namedViews.has(entry.view)) score += NAMED_VIEW_BOOST;
     if (scoped && entry.scope === "user") score += DEFAULT_THRESHOLDS.retrievalScopeBoost;
     if (score >= DEFAULT_THRESHOLDS.retrievalScoreFloor) scored.push({ entry, score, raw });
   }
@@ -125,6 +174,33 @@ export function scoreCorpus(
     second.raw - first.raw
     || second.score - first.score
     || KIND_RANK[first.entry.kind] - KIND_RANK[second.entry.kind]);
+}
+
+/**
+ * Whether two words differ by at most one insertion, deletion or substitution.
+ *
+ * Written out rather than pulled from a library because it runs inside the
+ * ranking loop and only ever needs the "one edit" answer, never the distance.
+ */
+function withinOneEdit(first: string, second: string): boolean {
+  if (first === second) return true;
+  const [shorter, longer] = first.length <= second.length ? [first, second] : [second, first];
+  if (longer.length - shorter.length > 1) return false;
+  let short = 0;
+  let long = 0;
+  let edits = 0;
+  while (short < shorter.length && long < longer.length) {
+    if (shorter[short] === longer[long]) {
+      short += 1;
+      long += 1;
+      continue;
+    }
+    edits += 1;
+    if (edits > 1) return false;
+    if (shorter.length === longer.length) short += 1;
+    long += 1;
+  }
+  return true;
 }
 
 /** The best score any entry reached, or 0. What the retrieved handler bids with. */

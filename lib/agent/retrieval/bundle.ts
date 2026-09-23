@@ -163,7 +163,10 @@ export async function retrieveContext(
       kept.flatMap((bundle) => bundle.citations).map((citation) => [citation.id, citation]),
     ).values()],
     symbols: [...new Set(kept.flatMap((bundle) => bundle.symbols))],
-    entryIds: kept.map((bundle) => bundle.id),
+    // An aggregate names itself first and then everything it summarised, so
+    // the trail says both what shape of answer this was and which material
+    // reached it.
+    entryIds: kept.flatMap((bundle) => [bundle.id, ...(bundle.sourceIds ?? [])]),
     score,
     // The winning entry names the answer. A neutral entry riding along does
     // not turn a registry answer into a scoped one, or the other way round.

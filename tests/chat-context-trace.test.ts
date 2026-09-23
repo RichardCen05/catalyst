@@ -29,13 +29,17 @@ describe("jejak konteks pada jawaban", () => {
     expect(answer.entryIds ?? []).toContain("view:pantau");
   });
 
-  it("menandai jawaban agregat sebagai satu bundel agregat", async () => {
+  it("menandai jawaban agregat sebagai satu bundel agregat lalu menyebut sumbernya", async () => {
     // Pertanyaan "apa saja" dihitung atas seluruh himpunan yang cocok lalu
-    // diringkas menjadi satu bundel, jadi jejaknya satu entri agregat —
-    // bukan daftar entri yang kebetulan muat dalam batas karakter.
+    // diringkas menjadi satu bundel. Entri agregat berdiri paling depan —
+    // itu bentuk jawabannya — dan entri yang diringkas menyusul, supaya
+    // "bahan mana yang mengatakan ini" tetap bisa dijawab untuk bentuk
+    // jawaban yang justru membaca bahan paling banyak.
     const answer = await ask("mekanisme apa saja di peta sebab akibat");
-    expect(answer.entryIds ?? []).toHaveLength(1);
-    expect((answer.entryIds ?? [])[0]).toMatch(/^aggregate:/);
+    const ids = answer.entryIds ?? [];
+    expect(ids[0]).toMatch(/^aggregate:/);
+    expect(ids.length).toBeGreaterThan(1);
+    expect(ids.slice(1).every((id) => !id.startsWith("aggregate:"))).toBe(true);
   });
 
   it("menjawab pertanyaan cakupan kasus dari entri cakupan", async () => {

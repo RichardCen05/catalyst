@@ -197,7 +197,8 @@ export async function saveQueue(store: QueueStore, mutate: (queue: ReviewQueue) 
 // ---------------------------------------------------------------------------
 
 const OVERLAY_TTL_MS = 10 * 60 * 1000;
-let overlay: { events: MarketEvent[]; expiresAt: number } = { events: [], expiresAt: 0 };
+let overlay: { events: MarketEvent[]; pending: number; decided: number; expiresAt: number } =
+  { events: [], pending: 0, decided: 0, expiresAt: 0 };
 
 /** Best-effort refresh. GCS-unreachable keeps the previous overlay (or empty)
  *  — the engine degrades to fixtures-only, never errors. */
@@ -205,11 +206,27 @@ export async function ensureOverlay(store: QueueStore = gcsQueueStore, nowMs: nu
   if (overlay.expiresAt > nowMs) return overlay.events;
   try {
     const loaded = await store.load();
-    overlay = { events: loaded?.data.accepted ?? [], expiresAt: nowMs + OVERLAY_TTL_MS };
+    overlay = {
+      events: loaded?.data.accepted ?? [],
+      // Counted here because this is the only place the queue is read on the
+      // answer path. A reader asking how many sources are waiting was told
+      // nothing at all, since the assistant could see what review accepted
+      // and not what it has yet to decide.
+      pending: loaded?.data.pending.length ?? 0,
+      decided: Object.keys(loaded?.data.decided ?? {}).length,
+      expiresAt: nowMs + OVERLAY_TTL_MS,
+    };
   } catch {
-    overlay = { events: overlay.events, expiresAt: nowMs + OVERLAY_TTL_MS };
+    overlay = { ...overlay, expiresAt: nowMs + OVERLAY_TTL_MS };
   }
   return overlay.events;
+}
+
+/** What review has waiting and what it has settled, as of the last overlay
+ *  refresh. Zero before the first `ensureOverlay`, which is the same
+ *  fixtures-only state `getOverlayEvents` reports. */
+export function getOverlayStats(): { pending: number; decided: number; accepted: number } {
+  return { pending: overlay.pending, decided: overlay.decided, accepted: overlay.events.length };
 }
 
 /** Synchronous read for the providers. May be empty before the first
@@ -219,6 +236,11 @@ export function getOverlayEvents(): MarketEvent[] {
 }
 
 /** Tests and the check-sources route push freshly accepted events directly. */
-export function setOverlayForTests(events: MarketEvent[]): void {
-  overlay = { events, expiresAt: Date.now() + OVERLAY_TTL_MS };
+export function setOverlayForTests(events: MarketEvent[], counts?: { pending?: number; decided?: number }): void {
+  overlay = {
+    events,
+    pending: counts?.pending ?? 0,
+    decided: counts?.decided ?? 0,
+    expiresAt: Date.now() + OVERLAY_TTL_MS,
+  };
 }
