@@ -16,8 +16,8 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00054-gvr`, deployed 2026-09-22, 100% of traffic. Source commit untracked (source deploys carry none) — built from `b85b90f` on `feat/alief/wire-ui`. This image is the first one that reads `LLM_PROVIDER`: two live `/api/chat` calls returned 200 with no `llmFallbackNote`, and the revision's logs carry no AI Studio error | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
-| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:4a55412c…` | `gcloud run revisions describe` |
+| Serving revision | `catalyst-web-00055-cdt`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built from `aea21d0` on `main`, the merge of `feat/alief/wire-ui` into `origin/main`. Two live `/api/chat` calls returned 200 with no `llmFallbackNote`; the revision's logs carry no AI Studio error | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
+| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:cd0cbab4…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
