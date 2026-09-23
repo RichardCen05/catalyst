@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { agentEngine } from "@/lib/agent/engine";
-import { companies } from "@/lib/data/fixtures";
+import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
 import { formatAsOf, formatCurrency } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconArrowLeft aria-hidden="true" className="size-4" />Kasus</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?company=${symbol}`} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconBranch aria-hidden="true" className="size-3.5" />Sebab akibat</Link><CitationDialog citations={analysis.sources} label="Sumber" /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Kasus · ${symbol}`, question: `Lanjutkan pemeriksaan perubahan ${symbol} dari pertanyaan riset dan hal yang belum terjawab.`, symbol })}><IconCopilot aria-hidden="true" className="size-3.5" />Asisten</Button></div></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href="/cases" className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconArrowLeft aria-hidden="true" className="size-4" />Riset dan Analisis</Link><div className="flex w-full max-w-full flex-wrap gap-2 sm:w-auto"><Link href={`/impact?company=${symbol}`} data-tour-action={symbol === primarySymbol ? "open-impact" : undefined} className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-border bg-transparent px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconBranch aria-hidden="true" className="size-3.5" />Sebab akibat</Link><CitationDialog citations={analysis.sources} label="Sumber" /><Button variant="secondary" size="sm" onClick={() => openCopilot({ label: `Kasus · ${symbol}`, question: `Lanjutkan pemeriksaan perubahan ${symbol} dari pertanyaan riset dan hal yang belum terjawab.`, symbol })}><IconCopilot aria-hidden="true" className="size-3.5" />Asisten</Button></div></div>
 
       <header className="mb-6 border-b border-border pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">

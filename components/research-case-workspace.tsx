@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { matchesDimension } from "@/lib/agent/dimensions";
 import { primarySymbol, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { AnalysisReview } from "@/components/analysis-review";
@@ -31,11 +30,6 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
   const activePillar = marketPillars.some((item) => item.key === requestedPillar) ? requestedPillar : marketPillars[0]?.key;
   const marketPillar = marketPillars.find((item) => item.key === activePillar) ?? marketPillars[0];
   const catalystPillar = analysis.pillars.find((item) => item.key === "catalyst");
-  const focusDimensions = analysis.researchPlan.focuses;
-  // Focus vocabulary lives in lib/agent/dimensions.ts — one lexicon, so the
-  // rows highlighted here are the rows the case is actually testing. A case
-  // tests more than one dimension, so a row matching any of them is a focus row.
-  const isFocusRow = (label: string) => focusDimensions.some((dimension) => matchesDimension(label, dimension));
 
   return (
     <div>
@@ -54,20 +48,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
 
       <section id={`case-panel-${activeTab}`} role="tabpanel" aria-labelledby={`case-tab-${activeTab}`} tabIndex={0} className="focus:outline-none">
         {activeTab === "market" && marketPillar ? <section aria-labelledby="market-confirmation-title">
-          <section aria-label="Rencana analisis" className="mb-5 rounded-[10px] border border-border bg-surface px-4 py-4 sm:px-5">
-            <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Rencana analisis</p>{focusDimensions.map((dimension) => <span key={dimension} className="rounded border border-primary/35 bg-primary/8 px-2 py-0.5 font-mono text-[10px] text-primary">Fokus · {uiLabel(dimension)}</span>)}</div>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{analysis.researchPlan.rationale}</p>
-            <details className="group mt-3">
-              <summary className="inline-flex min-h-9 cursor-pointer list-none items-center text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Lihat hipotesis, sumber, dan indikator</summary>
-              <div className="mt-3 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border lg:grid-cols-3">
-                <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Hipotesis</h3><ol className="mt-3 space-y-2">{analysis.researchPlan.hypothesisTree.map((item, index) => <li key={item.id} className="flex gap-2 text-xs leading-5"><span className="font-mono text-primary">{index + 1}</span><span>{item.claim}</span></li>)}</ol></section>
-                <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Sumber utama</h3><ol className="mt-3 space-y-2">{analysis.sourcePlan.map((item, index) => <li key={item} className="flex gap-2 text-xs leading-5 text-muted-foreground"><span className="font-mono text-primary">{index + 1}</span>{item}</li>)}</ol></section>
-                <section className="bg-surface p-4"><h3 className="text-xs font-semibold">Indikator</h3><ul className="mt-3 space-y-2">{analysis.researchPlan.observables.map((item) => <li key={`${item.dimension}-${item.metric}`} className="text-xs leading-5 text-muted-foreground"><strong className="text-foreground">{uiLabel(item.dimension)}</strong><span className="block">{item.metric}</span></li>)}</ul></section>
-              </div>
-            </details>
-            <Link href={`/impact?company=${symbol}`} data-tour-action={symbol === primarySymbol ? "open-impact" : undefined} className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary"><GitBranch aria-hidden="true" className="size-3.5" />Buka peta sebab akibat (opsional)</Link>
-          </section>
-          <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p></header>
+          <header className="mb-5 max-w-2xl"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah 1 · tanda pasar</p><h2 id="market-confirmation-title" className="editorial mt-1 text-2xl sm:text-[28px]">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Periksa apakah konsentrasi, volume, dan momentum ikut berubah. Bagian ini belum menjelaskan penyebabnya.</p><Link href={`/impact?company=${symbol}`} data-tour-action={symbol === primarySymbol ? "open-impact" : undefined} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[6px] border border-primary/35 bg-primary/8 px-3 text-sm font-medium text-primary transition-colors hover:bg-primary/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><GitBranch aria-hidden="true" className="size-4" />Buka peta sebab akibat</Link></header> 
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 bg-surface px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-surface-raised")}><span className="block truncate text-sm font-medium">{item.label}</span><span className={cn("mt-1 block truncate font-mono text-[10px]", active && "text-primary")}>{uiLabel(item.status)}</span></Link>; })}</div>
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
           <p className="mt-3 text-xs text-muted-foreground">Jejak bukti {WINDOW_SESSIONS} hari sekarang ada di <Link href="/" className="text-primary hover:underline">dashboard</Link>, mode grafik.</p>
