@@ -9,8 +9,9 @@ import { companies } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel } from "@/components/ui/panel";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, strengthRank } from "@/components/ui/status-badge";
 import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
@@ -74,18 +75,27 @@ function ResearchCasesContent() {
   const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setQuery(""); setOpenSlot(null); };
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
 
+  const rawFigure = (item: AnalysisCase, pillar: string, label: string) => item.pillars.find((entry) => entry.key === pillar)?.metrics.find((metric) => metric.label === label)?.value;
   const figureOf = (item: AnalysisCase, pillar: string, label: string) => {
-    const value = item.pillars.find((entry) => entry.key === pillar)?.metrics.find((metric) => metric.label === label)?.value;
+    const value = rawFigure(item, pillar, label);
     return value ? displayFigure(value) : "—";
   };
+  /** The size of a recorded figure, sign dropped: the strongest signal in a
+   *  row is the one furthest from zero, whichever way it points. */
+  const magnitudeOf = (item: AnalysisCase, pillar: string, label: string) => {
+    const value = Number.parseFloat((rawFigure(item, pillar, label) ?? "").replace(/[−–]/g, "-").replace(",", ".").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(value) ? Math.abs(value) : undefined;
+  };
 
-  const compareRows: Array<{ label: string; render: (item: AnalysisCase) => ReactNode }> = [
-    { label: "Harga saham", render: (item) => <span className="flex items-center gap-2"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><PriceChange value={item.company.changePct} className="text-xs" /></span> },
-    { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} /> },
+  const firstOpen = orderedCases.find((item) => (caseStatuses[item.company.symbol] ?? item.status) !== "closed");
+
+  const compareRows: Array<{ label: string; render: (item: AnalysisCase) => ReactNode; score?: (item: AnalysisCase) => number | undefined }> = [
+    { label: "Harga saham", render: (item) => <span className="flex items-center gap-2"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><PriceChange value={item.company.changePct} className="text-xs" /></span>, score: (item) => Math.abs(item.company.changePct) },
+    { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} />, score: (item) => strengthRank(item.evidenceState) },
     { label: "Uji bisnis utama", render: (item) => item.businessImpact.find((impact) => impact.status === "Primary test")?.label ?? "—" },
-    { label: "Konsentrasi (HHI)", render: (item) => figureOf(item, "concentration", "HHI") },
-    { label: "Volume (skor z)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan") },
-    { label: "Residual vs IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta") },
+    { label: "Konsentrasi (HHI)", render: (item) => figureOf(item, "concentration", "HHI"), score: (item) => magnitudeOf(item, "concentration", "HHI") },
+    { label: "Volume (skor z)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan"), score: (item) => magnitudeOf(item, "volume", "Skor z tahan pencilan") },
+    { label: "Residual vs IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta"), score: (item) => magnitudeOf(item, "momentum", "Residual setelah beta") },
     { label: "Imbal hasil sektor", render: (item) => figureOf(item, "momentum", "Imbal hasil sektor") },
     { label: "Materialitas", render: (item) => `${uiLabel(item.priority.materiality)} · ${item.priority.reason}` },
     { label: "Tantangan utama", render: (item) => item.counterEvidence[0] },
@@ -99,7 +109,7 @@ function ResearchCasesContent() {
         {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative -mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 border-transparent text-sm font-medium text-subtle-foreground transition-colors hover:text-foreground", activeView === item.value && "border-foreground text-foreground")}>{item.label}</Link>)}
       </nav>
 
-      {activeView === "active" ? <div className="overflow-hidden rounded-lg border border-border">
+      {activeView === "active" ? <div><div className="overflow-hidden rounded-lg border border-border">
         <div aria-hidden="true" className="hidden grid-cols-[200px_minmax(0,1fr)_120px_150px_140px_110px_20px] gap-4 border-b border-border bg-surface px-4 py-2.5 text-xs font-medium text-muted-foreground lg:grid"><span>Emiten</span><span>Pemicu</span><span>Materialitas</span><span>Status bukti</span><span>Tindakan</span><span className="text-right">Harga</span><span /></div>
         <ul className="divide-y divide-border">
           {orderedCases.map((analysis) => {
@@ -116,6 +126,9 @@ function ResearchCasesContent() {
             </Link></li>;
           })}
         </ul>
+      </div>
+        <p className="mt-3 text-xs text-subtle-foreground">Urutan mengikuti materialitas dan feedback Anda. Setiap kasus diperiksa dalam tiga langkah: 1 Pasar, 2 Bisnis, 3 Keputusan.</p>
+        {firstOpen ? <NextStep title={`Mulai dari ${firstOpen.company.symbol}`} description={`${firstOpen.trigger.title}. Buka langkah 1 Pasar untuk memeriksa apakah pasar ikut bergerak.`} href={`/cases/${firstOpen.company.symbol}?tab=market`} action={`Buka ${firstOpen.company.symbol}`} secondary={{ href: "/cases?view=picker", label: "Bandingkan emiten" }} /> : <NextStep title="Semua kasus sudah ditutup" description="Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning." href="/ai-learning?section=tinjauan" action="Buka tinjauan dan usulan" />}
       </div> : null}
 
       {activeView === "picker" ? <div>
@@ -156,17 +169,28 @@ function ResearchCasesContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {compareRows.map((row) => <tr key={row.label}>
-                  <th className="px-4 py-3 align-top font-medium">{row.label}</th>
-                  {selected.map((symbol, index) => {
-                    const item = symbol ? compared.find((entry) => entry.company.symbol === symbol) : undefined;
-                    return <td key={index} className="px-4 py-3 align-top">{item ? row.render(item) : <span className="text-muted-foreground">—</span>}</td>;
-                  })}
-                </tr>)}
+                {compareRows.map((row) => {
+                  const items = selected.map((symbol) => (symbol ? compared.find((entry) => entry.company.symbol === symbol) : undefined));
+                  // A row is lit only when at least two columns can be compared
+                  // and one of them is strictly ahead; a tie lights nothing.
+                  const scores = items.map((item) => (item && row.score ? row.score(item) : undefined));
+                  const known = scores.filter((value): value is number => value !== undefined);
+                  const top = known.length >= 2 ? Math.max(...known) : undefined;
+                  const leader = top !== undefined && known.filter((value) => value === top).length === 1 ? scores.indexOf(top) : -1;
+                  return <tr key={row.label}>
+                    <th className="px-4 py-3 align-top font-medium">{row.label}</th>
+                    {items.map((item, index) => {
+                      const lit = index === leader;
+                      return <td key={index} className={cn("px-4 py-3 align-top transition-colors", lit && "bg-muted font-semibold")}>{item ? <span className="flex flex-wrap items-center gap-2">{row.render(item)}{lit ? <span className="inline-flex h-5 items-center rounded-lg border border-foreground px-1.5 text-xs font-medium">Terkuat</span> : null}</span> : <span className="text-muted-foreground">—</span>}</td>;
+                    })}
+                  </tr>;
+                })}
               </tbody>
             </table>
           </div>
+          <p className="border-t border-border px-4 py-3 text-xs text-subtle-foreground">Terkuat: sinyal paling jauh dari nol di baris itu, atau status bukti yang paling kuat. Ini urutan pemeriksaan, bukan peringkat investasi.</p>
         </Panel>
+        {activeSymbols.length ? <NextStep title={`Periksa ${activeSymbols[0]} lebih dalam`} description="Perbandingan menunjukkan di mana bukti berbeda. Buka kasusnya untuk membaca buktinya langkah demi langkah." href={`/cases/${activeSymbols[0]}`} action={`Buka ${activeSymbols[0]}`} secondary={{ href: "/cases", label: "Kembali ke Analisis aktif" }} /> : <NextStep title="Pilih emiten untuk dibandingkan" description="Tekan Tambah emiten di kepala kolom, lalu ketik kode saham." href="/cases" action="Kembali ke Analisis aktif" />}
       </div> : null}
     </div>
   );

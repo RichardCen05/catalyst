@@ -14,6 +14,12 @@ function strengthFor(status: string): Strength | null {
   return null;
 }
 
+/** How strongly a status speaks for the claim, as a number to compare by:
+ *  3 full, 2 half, 1 empty, 0 open or descriptive. */
+export function strengthRank(status: string): number {
+  return { full: 3, half: 2, empty: 1, open: 0 }[strengthFor(status) ?? "open"];
+}
+
 export function StrengthMark({ strength, className }: { strength: Strength; className?: string }) {
   return (
     <svg viewBox="0 0 10 10" aria-hidden="true" className={cn("size-2.5 shrink-0", className)}>

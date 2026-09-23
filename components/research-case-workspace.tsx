@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { GitBranch } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { primarySymbol, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { companies, primarySymbol, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { useCatalystStore } from "@/lib/store";
+import { NextStep } from "@/components/next-step";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { AnalysisReview } from "@/components/analysis-review";
 import { CaseDisposition, CaseMemoActions } from "@/components/case-verdict";
@@ -45,6 +47,12 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
   const activePillar = marketPillars.some((item) => item.key === requestedPillar) ? requestedPillar : marketPillars[0]?.key;
   const marketPillar = marketPillars.find((item) => item.key === activePillar) ?? marketPillars[0];
   const catalystPillar = analysis.pillars.find((item) => item.key === "catalyst");
+  const watchlist = useCatalystStore((state) => state.profile.watchlist);
+  const caseStatuses = useCatalystStore((state) => state.caseStatuses);
+  // The next case to read: the next open, fully recorded issuer after this one
+  // in the reader's own watchlist order, wrapping round to the start.
+  const order = watchlist.filter((item) => item === symbol || (companies.some((company) => company.symbol === item && company.analyzed) && caseStatuses[item] !== "closed"));
+  const nextCase = order.length > 1 ? order[(order.indexOf(symbol) + 1) % order.length] : undefined;
   const openImpact = <Link href={`/impact?company=${symbol}`} data-tour-action={symbol === primarySymbol ? "open-impact" : undefined} className={impactLink}><GitBranch aria-hidden="true" className="size-4" />Buka peta sebab akibat</Link>;
 
   return (
@@ -69,6 +77,13 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
           <div role="tablist" aria-label="Pemeriksaan pasar" className="mb-4 grid gap-3 sm:grid-cols-3">{marketPillars.map((item) => { const active = item.key === marketPillar.key; return <Link key={item.key} role="tab" aria-selected={active} aria-controls={`pillar-panel-${item.key}`} tabIndex={active ? 0 : -1} href={`/cases/${symbol}?tab=market&pillar=${item.key}`} className={cn("min-w-0 rounded-lg border bg-background px-4 py-3 text-left transition-shadow hover:shadow-[0_0_0_3px_var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring", active ? "border-foreground" : "border-border")}><span className="block truncate text-xs font-medium text-subtle-foreground">{item.label}</span><span className="mt-0.5 block truncate text-base font-semibold">{uiLabel(item.status)}</span></Link>; })}</div>
           <div id={`pillar-panel-${marketPillar.key}`} role="tabpanel" tabIndex={0} className="focus:outline-none"><EvidenceCard pillar={marketPillar} symbol={symbol} /></div>
           <p className="mt-3 text-xs text-subtle-foreground">Jejak bukti {WINDOW_SESSIONS} hari ada di <Link href="/" className="underline underline-offset-2 hover:text-foreground">Dashboard</Link>, tampilan grafik indeks.</p>
+          {(() => {
+            // Walk the three market checks in order before moving on to Bisnis.
+            const next = marketPillars[marketPillars.findIndex((item) => item.key === marketPillar.key) + 1];
+            return next
+              ? <NextStep title={`Periksa ${next.label}`} description={`${marketPillar.label} terbaca: ${uiLabel(marketPillar.status).toLowerCase()}. Lanjutkan ke pemeriksaan pasar berikutnya.`} href={`/cases/${symbol}?tab=market&pillar=${next.key}`} action={`Buka ${next.label}`} secondary={{ href: `/cases/${symbol}?tab=business`, label: "Lewati ke 2 Bisnis" }} />
+              : <NextStep title="Lanjut ke 2 Bisnis" description={`Pasar terbaca: ${marketPillars.map((item) => `${item.label.toLowerCase()} ${uiLabel(item.status).toLowerCase()}`).join(", ")}. Sekarang uji apakah pemicunya bisa mencapai operasi atau keuangan ${symbol}.`} href={`/cases/${symbol}?tab=business`} action="Buka Bisnis" />;
+          })()}
         </section> : null}
 
         {activeTab === "business" && catalystPillar ? <section aria-labelledby="business-transmission-title" data-tour="business-transmission" className="rise-in">
@@ -81,10 +96,11 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
               {analysis.businessImpact.map((item) => <li key={item.dimension} className="grid gap-2 px-4 py-3 sm:grid-cols-[200px_160px_minmax(0,1fr)] sm:items-center"><span className="text-sm font-semibold">{item.label}</span><StatusBadge status={item.status} /><span className="text-sm text-muted-foreground">{item.observable}</span></li>)}
             </ul>
           </section>
+          <NextStep title="Lanjut ke 3 Keputusan" description="Bukti pasar dan bisnis sudah terbaca. Tinjau ringkasannya, lalu tentukan satu tindakan riset." href={`/cases/${symbol}?tab=review`} action="Buka Keputusan" secondary={{ href: `/cases/${symbol}?tab=market`, label: "Kembali ke Pasar" }} />
         </section> : null}
 
         {activeTab === "review" ? <section aria-labelledby="decision-title" className="rise-in">
-          <StepHeader id="decision-title" title="Keputusan" description="Ringkasan bukti, batas data, dan satu tindakan riset." />
+          <StepHeader id="decision-title" title="Keputusan" description="Baca ringkasan di kiri, lalu simpan hasil kasus di kanan: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang." />
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
             <div className="min-w-0 space-y-4">
               <dl className="grid overflow-hidden rounded-lg border border-border sm:grid-cols-4">
@@ -114,6 +130,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
             <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Koreksi analisis ini<span aria-hidden="true" className="ml-auto transition-transform group-open:rotate-180">▾</span></summary>
             <div className="border-t border-border p-4"><AnalysisReview symbol={symbol} /></div>
           </details>
+          {nextCase ? <NextStep title={`Lanjut ke kasus ${nextCase}`} description="Setelah hasil kasus ini tersimpan, periksa perubahan berikutnya di daftar pantauan Anda." href={`/cases/${nextCase}`} action={`Buka ${nextCase}`} secondary={{ href: "/cases", label: "Semua kasus" }} /> : <NextStep title="Kembali ke Riset & Analisis" description="Tidak ada kasus terbuka lain di daftar pantauan Anda." href="/cases" action="Buka daftar kasus" />}
         </section> : null}
       </section>
     </div>

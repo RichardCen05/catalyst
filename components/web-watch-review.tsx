@@ -7,6 +7,7 @@ import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { WEB_WATCH_PATH_MIN_CHARS, WEB_WATCH_REASON_MIN_CHARS } from "@/lib/schemas";
 import { uiLabel } from "@/lib/ui-labels";
+import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -334,7 +335,7 @@ export function WebWatchReview() {
   });
 
   return (
-    <div className="mx-auto max-w-[1240px]">
+    <div>
       <PageHeader
         title="Pantau"
         description="Perubahan sejak pemeriksaan terakhir. Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB."
@@ -348,7 +349,7 @@ export function WebWatchReview() {
         <div className="space-y-8">
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="mr-auto text-lg font-semibold">Antrean ({visiblePending.length})</h2>
+              <h2 className="editorial mr-auto text-xl">Antrean ({visiblePending.length})</h2>
               <select aria-label="Saring emiten" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary">
                 <option value="semua">Semua emiten</option>
                 {data.symbols.map((code) => (
@@ -380,7 +381,7 @@ export function WebWatchReview() {
           </section>
 
           <section aria-label="Diterima engine">
-            <h2 className="mb-3 text-lg font-semibold">Diterima ({data.accepted.length})</h2>
+            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
             {data.accepted.length ? (
               <div className="space-y-3">
                 {data.accepted.map((event) => (
@@ -407,7 +408,7 @@ export function WebWatchReview() {
               poll bookkeeping above them was answering a question nobody on
               this page had asked. */}
           <details aria-label="Kesehatan sumber" className="rounded-lg border border-border bg-surface">
-            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
               Sumber yang dipantau ({data.sources.length})
             </summary>
             <div className="grid gap-3 border-t border-border p-4 md:grid-cols-2">
@@ -428,6 +429,7 @@ export function WebWatchReview() {
               ) : null}
             </div>
           </details>
+          {data.pending.length ? <NextStep title={`Tinjau ${data.pending.length} temuan di antrean`} description="Terima temuan yang relevan agar masuk analisis, tolak yang tidak. Setelah itu buka kasusnya untuk melihat dampaknya." href="/cases" action="Buka Riset & Analisis" /> : <NextStep title="Tidak ada yang perlu ditinjau" description="Antrean kosong. Lanjutkan pemeriksaan kasus yang sudah terbuka." href="/cases" action="Buka Riset & Analisis" />}
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ import { useMemo, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronDown, ExternalLink, Info, Lightbulb, Trash2, X } from "lucide-react";
 import { LearningLayers } from "@/components/learning-layers";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { TeachAgent } from "@/components/teach-agent";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -363,6 +364,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           </div>
         )}
       </Panel>
+      <NextStep title="Ajarkan sambil membaca bukti" description="Catatan paling berguna ditulis saat membaca kasus: buka Keputusan, lalu Koreksi analisis ini." href="/cases" action="Buka Riset & Analisis" secondary={{ href: "/ai-learning?section=tinjauan", label: "Tinjauan dan usulan" }} />
       </> : null}
 
       {section === "tinjauan" ? <>
@@ -445,13 +447,10 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         </Panel>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link href="/cases" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka kasus riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka aturan riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-      </div>
+      <NextStep title="Tutup kasus untuk memunculkan usulan" description="Usulan aturan muncul dari hasil kasus yang disimpan di langkah 3 Keputusan." href="/cases" action="Buka Riset & Analisis" />
       </> : null}
 
-      {section === "pasar" ? <div>{predictionSlot}</div> : null}
+      {section === "pasar" ? <div>{predictionSlot}<NextStep title="Lihat klaim di kasusnya" description="Klaim dinilai dari rekaman sesudah tanggal berita. Buka kasusnya untuk membaca bukti yang sedang diuji." href="/cases" action="Buka Riset & Analisis" /></div> : null}
 
       {section === "memori" ? <>
       <div className="mb-4 flex flex-wrap gap-2">
@@ -517,6 +516,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
       </div>
 
       <p className="mt-4 rounded-lg border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
+      <NextStep title="Ubah aturan riset" description="Memori eksplisit di atas berasal dari aturan riset Anda. Ubah di sana bila cara Anda menguji tesis berubah." href="/playbook" action="Buka Aturan riset" />
       </> : null}
     </div>
   );

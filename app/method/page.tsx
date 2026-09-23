@@ -1,6 +1,7 @@
 import { DATA_AS_OF, DATA_AS_OF_LABEL, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { RESEARCH_LIFECYCLE } from "@/lib/agent/lifecycle";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
 import { IconAttention, IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
@@ -62,6 +63,7 @@ export default function MethodPage() {
         ].map((item) => <article key={item.title} className="bg-surface p-4"><item.icon aria-hidden="true" className="size-5 text-attention" /><h3 className="mt-3 font-semibold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p></article>)}</div>
         <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah penutupan sesi {DATA_AS_OF_LABEL}, disegarkan tiap hari bursa, bukan kutipan intrahari. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
       </Panel>
+      <NextStep title="Mulai memeriksa" description="Metode ini dipakai di setiap kasus: 1 Pasar, 2 Bisnis, 3 Keputusan." href="/cases" action="Buka Riset & Analisis" />
     </div>
   );
 }

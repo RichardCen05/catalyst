@@ -36,6 +36,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/ai-learning/learning-content.tsx",
   },
   {
+    id: "chrome:ai-learning:ajarkan-sambil-membaca-bukti",
+    heading: "Ajarkan sambil membaca bukti",
+    view: "ai-learning",
+    description: "Catatan paling berguna ditulis saat membaca kasus: buka Keputusan, lalu Koreksi analisis ini.",
+    file: "app/ai-learning/learning-content.tsx",
+  },
+  {
     id: "chrome:ai-learning:apa-yang-sudah-ditagih",
     heading: "Apa yang sudah ditagih",
     view: "ai-learning",
@@ -95,6 +102,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/ai-learning/learning-content.tsx",
   },
   {
+    id: "chrome:ai-learning:lihat-klaim-di-kasusnya",
+    heading: "Lihat klaim di kasusnya",
+    view: "ai-learning",
+    description: "Klaim dinilai dari rekaman sesudah tanggal berita. Buka kasusnya untuk membaca bukti yang sedang diuji.",
+    file: "app/ai-learning/learning-content.tsx",
+  },
+  {
     id: "chrome:ai-learning:memori-tersimpan",
     heading: "Memori tersimpan",
     view: "ai-learning",
@@ -115,6 +129,20 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     view: "ai-learning",
     eyebrow: "Tab",
     labels: ["Ajaran dan riwayat","Belajar dari pasar","Memori tersimpan"],
+    file: "app/ai-learning/learning-content.tsx",
+  },
+  {
+    id: "chrome:ai-learning:tutup-kasus-untuk-memunculkan-usulan",
+    heading: "Tutup kasus untuk memunculkan usulan",
+    view: "ai-learning",
+    description: "Usulan aturan muncul dari hasil kasus yang disimpan di langkah 3 Keputusan.",
+    file: "app/ai-learning/learning-content.tsx",
+  },
+  {
+    id: "chrome:ai-learning:ubah-aturan-riset",
+    heading: "Ubah aturan riset",
+    view: "ai-learning",
+    description: "Memori eksplisit di atas berasal dari aturan riset Anda. Ubah di sana bila cara Anda menguji tesis berubah.",
     file: "app/ai-learning/learning-content.tsx",
   },
   {
@@ -230,10 +258,17 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/research-case-workspace.tsx",
   },
   {
+    id: "chrome:case:kembali-ke-riset-analisis",
+    heading: "Kembali ke Riset & Analisis",
+    view: "case",
+    description: "Tidak ada kasus terbuka lain di daftar pantauan Anda.",
+    file: "components/research-case-workspace.tsx",
+  },
+  {
     id: "chrome:case:keputusan",
     heading: "Keputusan",
     view: "case",
-    description: "Ringkasan bukti, batas data, dan satu tindakan riset.",
+    description: "Baca ringkasan di kiri, lalu simpan hasil kasus di kanan: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang.",
     file: "components/research-case-workspace.tsx",
   },
   {
@@ -255,6 +290,19 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Konfirmasi pasar",
     view: "case",
     description: "Apakah konsentrasi, volume, dan momentum ikut berubah? Bagian ini belum menjelaskan penyebabnya.",
+    file: "components/research-case-workspace.tsx",
+  },
+  {
+    id: "chrome:case:lanjut-ke-2-bisnis",
+    heading: "Lanjut ke 2 Bisnis",
+    view: "case",
+    file: "components/research-case-workspace.tsx",
+  },
+  {
+    id: "chrome:case:lanjut-ke-3-keputusan",
+    heading: "Lanjut ke 3 Keputusan",
+    view: "case",
+    description: "Bukti pasar dan bisnis sudah terbaca. Tinjau ringkasannya, lalu tentukan satu tindakan riset.",
     file: "components/research-case-workspace.tsx",
   },
   {
@@ -335,10 +383,24 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/cases/page.tsx",
   },
   {
+    id: "chrome:cases:pilih-emiten-untuk-dibandingkan",
+    heading: "Pilih emiten untuk dibandingkan",
+    view: "cases",
+    description: "Tekan Tambah emiten di kepala kolom, lalu ketik kode saham.",
+    file: "app/cases/page.tsx",
+  },
+  {
     id: "chrome:cases:riset-analisis",
     heading: "Riset & Analisis",
     view: "cases",
     description: "Perubahan yang perlu diperiksa. Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset.",
+    file: "app/cases/page.tsx",
+  },
+  {
+    id: "chrome:cases:semua-kasus-sudah-ditutup",
+    heading: "Semua kasus sudah ditutup",
+    view: "cases",
+    description: "Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning.",
     file: "app/cases/page.tsx",
   },
   {
@@ -469,6 +531,12 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/competing-hypotheses.tsx",
   },
   {
+    id: "chrome:impact:pilih-kasus-yang-lengkap",
+    heading: "Pilih kasus yang lengkap",
+    view: "impact",
+    file: "app/impact/page.tsx",
+  },
+  {
     id: "chrome:impact:sebab-akibat",
     heading: "Sebab akibat",
     view: "impact",
@@ -505,6 +573,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:method:metode-dan-batas",
     heading: "Metode dan batas",
     view: "method",
+    file: "app/method/page.tsx",
+  },
+  {
+    id: "chrome:method:mulai-memeriksa",
+    heading: "Mulai memeriksa",
+    view: "method",
+    description: "Metode ini dipakai di setiap kasus: 1 Pasar, 2 Bisnis, 3 Keputusan.",
     file: "app/method/page.tsx",
   },
   {
@@ -552,6 +627,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:terima-petakan-ke-emiten",
     heading: "Terima — petakan ke emiten",
     view: "pantau",
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:tidak-ada-yang-perlu-ditinjau",
+    heading: "Tidak ada yang perlu ditinjau",
+    view: "pantau",
+    description: "Antrean kosong. Lanjutkan pemeriksaan kasus yang sudah terbuka.",
     file: "components/web-watch-review.tsx",
   },
   {
@@ -667,6 +749,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/playbook/page.tsx",
   },
   {
+    id: "chrome:playbook:lihat-efeknya-pada-kasus",
+    heading: "Lihat efeknya pada kasus",
+    view: "playbook",
+    description: "Aturan mengubah fokus dan urutan pemeriksaan. Buka daftar kasus untuk melihat urutan yang berlaku sekarang.",
+    file: "app/playbook/page.tsx",
+  },
+  {
     id: "chrome:playbook:pembanding-yang-bermakna-bagi-anda",
     heading: "Pembanding yang bermakna bagi Anda",
     view: "playbook",
@@ -712,6 +801,12 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/not-found.tsx",
   },
   {
+    id: "chrome:shared:langkah-berikutnya",
+    heading: "Langkah berikutnya",
+    labels: ["Langkah berikutnya"],
+    file: "components/next-step.tsx",
+  },
+  {
     id: "chrome:shared:pilar-terkait",
     heading: "Pilar terkait",
     labels: ["Seluruh analisis"],
@@ -751,10 +846,13 @@ export const CHROME_NAV: Array<{ href: string; label: string; source: "nav" | "c
   { href: "/ai-learning", label: "AI Learning", source: "command", view: "ai-learning", },
   { href: "/ai-learning", label: "Buka AI Learning", source: "command", view: "ai-learning", },
   { href: "/", label: "Buka Dashboard", source: "command", view: "dashboard", },
+  { href: "/cases?view=picker", label: "Bandingkan emiten", source: "command", view: "cases", },
   { href: "/cases?view=picker", label: "Buka perbandingan emiten", source: "command", view: "cases", },
   { href: "/cases?view=picker", label: "Perbandingan emiten", source: "command", view: "cases", },
   { href: "/cases", label: "Buka Riset & Analisis", source: "command", view: "cases", },
+  { href: "/cases", label: "Kembali ke Analisis aktif", source: "command", view: "cases", },
   { href: "/cases", label: "Riset & Analisis", source: "nav", view: "cases", },
+  { href: "/cases", label: "Semua kasus", source: "command", view: "cases", },
   { href: "/copilot", label: "Tanya Asisten", source: "command", view: "copilot", },
   { href: "/", label: "Dashboard", source: "nav", view: "dashboard", },
   { href: "/impact", label: "Sebab akibat", source: "nav", view: "impact", },

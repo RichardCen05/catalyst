@@ -10,6 +10,11 @@ import { downloadTextFile, toCsv } from "@/lib/utils";
  *  watchlist holds, and a repeated hue is still separated by its legend key. */
 /** Greyscale series: the first issuer in black, the rest in stepped greys. Each
  *  line is also named at its end, so no reader has to match a shade to a key. */
+/** Index points as the reader reads them: id-ID decimals, two places. The CSV
+ *  export keeps the raw values. */
+const indexNumber = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const indexFigure = (value: unknown) => (typeof value === "number" ? indexNumber.format(value) : "—");
+
 const SERIES_COLORS = ["var(--foreground)", "var(--muted-foreground)", "var(--subtle-foreground)", "var(--border-strong)", "var(--muted-foreground)", "var(--subtle-foreground)"];
 
 /**
@@ -87,7 +92,7 @@ export function PriceCompareChart({ series, ihsgFrom }: {
           <table className="w-full text-left text-xs">
             <caption className="sr-only">Indeks {series.map((item) => item.symbol).join(", ")} dan IHSG, 100 pada sesi pertama</caption>
             <thead className="sticky top-0 bg-surface text-muted-foreground"><tr>{columns.map((column, index) => <th key={column} className={`px-2 py-2${index ? " text-right" : ""}`}>{column}</th>)}</tr></thead>
-            <tbody>{rows.map((row) => <tr key={String(row.date)} className="border-t border-border"><td className="px-2 py-2 font-mono">{row.date}</td><td className="px-2 py-2 text-right font-mono">{row.IHSG}</td>{series.map((item) => <td key={item.symbol} className="px-2 py-2 text-right font-mono">{row[item.symbol] ?? "—"}</td>)}</tr>)}</tbody>
+            <tbody>{rows.map((row) => <tr key={String(row.date)} className="border-t border-border"><td className="px-2 py-2 font-mono">{row.date}</td><td className="px-2 py-2 text-right font-mono tabular-nums">{indexFigure(row.IHSG)}</td>{series.map((item) => <td key={item.symbol} className="px-2 py-2 text-right font-mono tabular-nums">{indexFigure(row[item.symbol])}</td>)}</tr>)}</tbody>
           </table>
         </div>
       </div>

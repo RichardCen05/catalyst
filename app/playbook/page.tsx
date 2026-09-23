@@ -8,6 +8,7 @@ import { useCatalystStore } from "@/lib/store";
 import { holdingExposure, holdingPnl } from "@/lib/portfolio";
 import type { InvestorResearchPlaybook, SymbolCode } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
@@ -173,6 +174,7 @@ export default function PlaybookPage() {
         <PanelHeader title="Cara penyajian yang Anda pilih" />
         {preferences.length ? <div className="divide-y divide-border">{preferences.map((preference) => <div key={preference.id} className="flex items-center gap-3 px-4 py-3"><button type="button" role="switch" aria-checked={preference.active} aria-label={preference.label} onClick={() => togglePreference(preference.id)} className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", preference.active ? "bg-primary" : "bg-muted")}><span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", preference.active ? "left-[22px]" : "left-0.5")} /></button><div className="min-w-0"><p className="text-sm font-medium">{preference.label}</p><p className="truncate text-xs text-muted-foreground">{preference.explanation}</p></div></div>)}</div> : <p className="px-4 py-5 text-sm text-muted-foreground">Belum ada preferensi. Masukan dan catatan Anda akan muncul di sini.</p>}
       </Panel>
+      <NextStep title="Lihat efeknya pada kasus" description="Aturan mengubah fokus dan urutan pemeriksaan. Buka daftar kasus untuk melihat urutan yang berlaku sekarang." href="/cases" action="Buka Riset & Analisis" />
     </div>
   );
 }

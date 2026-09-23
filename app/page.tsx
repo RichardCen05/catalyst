@@ -11,6 +11,7 @@ import { DashboardTimeline } from "@/components/dashboard-timeline";
 import { SymbolMultiselect } from "@/components/symbol-multiselect";
 import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel } from "@/components/ui/panel";
 import { IconArrowRight, IconBranch, IconChart, IconGraph } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
@@ -92,12 +93,16 @@ export default function DashboardPage() {
     </div>
   );
 
+  const openCases = openSymbols.filter((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed));
   const header = (
-    <PageHeader
-      title="Dashboard"
-      description="Peta sebab akibat semua emiten pantauan: sumber, mekanisme, emiten, sampai dampak bisnis."
-      action={modeSwitch}
-    />
+    <>
+      <PageHeader
+        title="Dashboard"
+        description="Peta sebab akibat semua emiten pantauan: sumber, mekanisme, emiten, sampai dampak bisnis."
+        action={modeSwitch}
+      />
+      {openCases.length ? <NextStep className="mb-6 mt-0" title={`${openCases.length} kasus menunggu pemeriksaan`} description={`Peta ini menunjukkan apa yang terhubung. Untuk memeriksa satu perubahan sampai ke keputusan, buka kasusnya: ${openCases.join(", ")}.`} href="/cases" action="Buka Riset & Analisis" /> : null}
+    </>
   );
 
   const picker = openSymbols.length
