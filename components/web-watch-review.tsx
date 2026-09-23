@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
+import { WEB_WATCH_PATH_MIN_CHARS, WEB_WATCH_REASON_MIN_CHARS } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -72,6 +73,31 @@ function mentionsSymbol(candidate: MarketEvent, symbol: SymbolCode): boolean {
   return new RegExp(`\\b${symbol.replace(/[^\p{L}\p{N}]/gu, "")}\\b`).test(haystack);
 }
 
+/**
+ * A rejected review names the field it tripped on.
+ *
+ * `/api/web-watch` answers a schema failure with zod's flattened errors, and
+ * the form used to drop them: every bad row, missing reason and short path
+ * read the same "Masukan review tidak valid", which tells a reviewer nothing
+ * about which box to fix. The issue text comes from the route, so nothing is
+ * re-stated here.
+ */
+function fieldMessage(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const details = (data as { details?: { formErrors?: string[]; fieldErrors?: Record<string, string[] | undefined> } }).details;
+  if (!details) return null;
+  const fields = Object.entries(details.fieldErrors ?? {}).flatMap(([field, issues]) =>
+    (issues ?? []).map((issue) => `${field}: ${issue}`),
+  );
+  const all = [...(details.formErrors ?? []), ...fields];
+  return all.length ? all.join(" · ") : null;
+}
+
+/** Same bound the route enforces, read from the schema rather than retyped. */
+function pathIsShort(path: string): boolean {
+  return path.trim().length < WEB_WATCH_PATH_MIN_CHARS;
+}
+
 function CandidateCard({
   candidate,
   symbols,
@@ -88,6 +114,8 @@ function CandidateCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sourceUrl = candidate.citations[0]?.url;
+  const unmappedRows = impacts.filter((impact) => pathIsShort(impact.path)).length;
+  const dismissTooShort = dismissReason.trim().length < WEB_WATCH_REASON_MIN_CHARS;
 
   const post = useCallback(
     async (payload: Record<string, unknown>) => {
@@ -100,7 +128,7 @@ function CandidateCard({
           body: JSON.stringify(payload),
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error ?? "Gagal menyimpan");
+        if (!response.ok) throw new Error(fieldMessage(data) ?? data.error ?? "Gagal menyimpan");
         onDecided();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal menyimpan");
@@ -180,7 +208,8 @@ function CandidateCard({
                 value={impact.path}
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, path: event.target.value } : row)))}
                 placeholder="Jalur eksposur, mis. ICP naik → lifting cost ADRO → margin"
-                className="h-10 rounded-[6px] border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
+                aria-invalid={pathIsShort(impact.path)}
+                className={`h-10 rounded-[6px] border bg-surface px-3 text-sm outline-none focus:border-primary ${pathIsShort(impact.path) ? "border-red-500" : "border-border"}`}
               />
               <Button
                 variant="ghost"
@@ -206,8 +235,16 @@ function CandidateCard({
           placeholder="Catatan reviewer (opsional)"
           className="mt-2 h-10 w-full rounded-[6px] border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
         />
+        {unmappedRows > 0 ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Setiap baris butuh jalur eksposur minimal {WEB_WATCH_PATH_MIN_CHARS} karakter. Belum terisi: {unmappedRows}.
+          </p>
+        ) : null}
         <div className="mt-2">
-          <Button disabled={busy} onClick={() => post({ action: "accept", candidateId: candidate.id, impacts, reason: reason || undefined })}>
+          <Button
+            disabled={busy || unmappedRows > 0}
+            onClick={() => post({ action: "accept", candidateId: candidate.id, impacts, reason: reason || undefined })}
+          >
             {busy ? "Menyimpan…" : "Terima ke engine"}
           </Button>
           <Button variant="ghost" disabled={busy} onClick={() => setShowAccept(false)} className="ml-2">
@@ -226,12 +263,20 @@ function CandidateCard({
             value={dismissReason}
             onChange={(event) => setDismissReason(event.target.value)}
             placeholder="Alasan (wajib), mis. tidak material untuk watchlist"
-            className="h-10 min-w-52 flex-1 rounded-[6px] border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
+            aria-invalid={dismissTooShort}
+            className={`h-10 min-w-52 flex-1 rounded-[6px] border bg-surface px-3 text-sm outline-none focus:border-primary ${dismissTooShort && dismissReason.length > 0 ? "border-red-500" : "border-border"}`}
           />
-          <Button variant="ghost" disabled={busy} onClick={() => post({ action: "dismiss", candidateId: candidate.id, reason: dismissReason })}>
+          <Button
+            variant="ghost"
+            disabled={busy || dismissTooShort}
+            onClick={() => post({ action: "dismiss", candidateId: candidate.id, reason: dismissReason })}
+          >
             Tolak
           </Button>
         </div>
+        {dismissTooShort ? (
+          <p className="mt-2 text-xs text-muted-foreground">Alasan penolakan minimal {WEB_WATCH_REASON_MIN_CHARS} karakter.</p>
+        ) : null}
       </div>
       {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
     </Panel>
