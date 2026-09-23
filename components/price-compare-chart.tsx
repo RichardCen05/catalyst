@@ -61,7 +61,7 @@ export function PriceCompareChart({ series, ihsgFrom }: {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{dates.length} sesi · {series.length} emiten dibanding IHSG</p>
-          <h2 className="mt-1 text-base font-semibold">Jejak bukti</h2>
+          <h2 className="mt-1 text-base font-semibold">Pergerakan saham</h2>
         </div>
         <Button variant="secondary" size="sm" onClick={exportCsv}><Download aria-hidden="true" className="size-3.5" />Unduh CSV</Button>
       </div>
@@ -80,16 +80,15 @@ export function PriceCompareChart({ series, ihsgFrom }: {
           </ResponsiveContainer>
         </div>
       </div>
-      <details className="border-t border-border px-4 py-3">
-        <summary className="min-h-8 cursor-pointer font-mono text-xs text-primary">Buka tabel data</summary>
-        <div className="mt-3 max-h-72 overflow-auto">
+      <div className="border-t border-border px-4 py-3">
+        <div className="max-h-72 overflow-auto">
           <table className="w-full text-left text-xs">
             <caption className="sr-only">Indeks {series.map((item) => item.symbol).join(", ")} dan IHSG, 100 pada sesi pertama</caption>
             <thead className="sticky top-0 bg-surface text-muted-foreground"><tr>{columns.map((column, index) => <th key={column} className={`px-2 py-2${index ? " text-right" : ""}`}>{column}</th>)}</tr></thead>
             <tbody>{rows.map((row) => <tr key={String(row.date)} className="border-t border-border"><td className="px-2 py-2 font-mono">{row.date}</td><td className="px-2 py-2 text-right font-mono">{row.IHSG}</td>{series.map((item) => <td key={item.symbol} className="px-2 py-2 text-right font-mono">{row[item.symbol] ?? "—"}</td>)}</tr>)}</tbody>
           </table>
         </div>
-      </details>
+      </div>
     </div>
   );
 }

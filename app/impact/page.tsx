@@ -73,16 +73,19 @@ function ImpactWorkspace() {
     <div className="mx-auto max-w-[1240px]">
       <PageHeader
         eyebrow="Ruang uji sebab akibat"
-        title="Hipotesis dan jalur dampak"
-        action={<div className="text-xs font-medium text-muted-foreground">Emiten
-          <div className="relative mt-1">
+        title="Hipotesis dan Jalur Dampak"
+      />
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Emiten
+          <div className="relative">
             <button
               type="button"
               onClick={() => setEmitenOpen((open) => !open)}
               onBlur={() => setEmitenOpen(false)}
               aria-haspopup="listbox"
               aria-expanded={emitenOpen}
-              className="flex h-10 min-w-36 items-center gap-2 rounded-[6px] border border-border bg-surface px-3 font-mono text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+              className="flex h-9 min-w-36 items-center gap-2 rounded-[6px] border border-border bg-surface px-3 font-mono text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
             >
               <TickerAvatar symbol={symbol} size="sm" />
               <span>{symbol}</span>
@@ -104,11 +107,9 @@ function ImpactWorkspace() {
               </li>)}
             </ul> : null}
           </div>
-        </div>}
-      />
-
-      {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
+        </div>
+        {graph ? <>
+          <p className="text-xs text-muted-foreground">{reloading ? "Memuat ulang rantai…" : graph.hiddenRelationshipCount > 0 ? `${graph.hiddenRelationshipCount} hubungan di bawah ambang.` : "Semua hubungan yang lolos ditampilkan."}</p>
           <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Ambang relevansi
             <select aria-label="Ambang relevansi rantai" value={minRelevance} onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary">
               <option value={40}>≥ 40 · lebar</option>
@@ -117,8 +118,10 @@ function ImpactWorkspace() {
               <option value={90}>≥ 90 · terkuat</option>
             </select>
           </label>
-          <p className="text-xs text-muted-foreground">{reloading ? "Memuat ulang rantai…" : graph.hiddenRelationshipCount > 0 ? `${graph.hiddenRelationshipCount} hubungan di bawah ambang.` : "Semua hubungan yang lolos ditampilkan."}</p>
-        </div>
+        </> : null}
+      </div>
+
+      {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">
         {sharedShocks.length > 1 ? <section aria-label="Guncangan bersama" className="rounded-[12px] border border-border bg-surface px-4 py-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Guncangan bersama pantauan</p><ul className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">{sharedShocks.slice(0, 4).map((event) => <li key={event.id}><strong className="text-foreground">{event.title}</strong> — {event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)).map((link) => link.symbol).join(" · ")}</li>)}</ul></section> : null}
         {analysis && graph.nodes.find((node) => node.kind === "source") ? (() => {
           const firstSource = graph.nodes.find((node) => node.kind === "source")!;
