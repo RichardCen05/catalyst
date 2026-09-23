@@ -90,7 +90,6 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
   return (
     <Panel className={className}>
       <PanelHeader
-        eyebrow="Mulai di sini"
         title={symbol ? `Ajari Catalyst tentang ${symbol}` : "Ajari Catalyst tentang satu saham"}
       />
       {/* Plain rows, top to bottom. An earlier two-column version left a hole
@@ -144,7 +143,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
         <div>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <label htmlFor={noteId} className="text-xs font-medium">Yang ingin Anda ajarkan</label>
-            <span className="font-mono text-[11px] text-muted-foreground">{note.length}/{NOTE_MAX}</span>
+            <span className="font-mono text-xs text-muted-foreground">{note.length}/{NOTE_MAX}</span>
           </div>
           <textarea
             id={noteId}
@@ -179,7 +178,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
               Tersimpan untuk {saved}
             </p>
           ) : null}
-          <p id={`${noteId}-help`} className="ml-auto text-[11px] text-muted-foreground">Tersimpan di peramban ini.</p>
+          <p id={`${noteId}-help`} className="ml-auto text-xs text-muted-foreground">Tersimpan di peramban ini.</p>
         </div>
 
         {advanced ? (

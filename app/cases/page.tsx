@@ -11,6 +11,7 @@ import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui/panel";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -20,7 +21,7 @@ import { orderByFeedback } from "@/lib/learning";
 type CaseHubView = "active" | "picker";
 
 const views: Array<{ value: CaseHubView; label: string }> = [
-  { value: "active", label: "Analisis Aktif" },
+  { value: "active", label: "Analisis aktif" },
   { value: "picker", label: "Perbandingan emiten" },
 ];
 
@@ -74,7 +75,7 @@ function ResearchCasesContent() {
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
 
   const compareRows: Array<{ label: string; render: (item: AnalysisCase) => ReactNode }> = [
-    { label: "Harga saham", render: (item) => <span className="flex items-center gap-1.5"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><span className={cn("font-mono text-[11px]", item.company.changePct >= 0 ? "text-positive" : "text-danger")}>{item.company.changePct >= 0 ? "+" : ""}{item.company.changePct.toFixed(1)}%</span></span> },
+    { label: "Harga saham", render: (item) => <span className="flex items-center gap-2"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><PriceChange value={item.company.changePct} className="text-xs" /></span> },
     { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} /> },
     { label: "Uji bisnis utama", render: (item) => item.businessImpact.find((impact) => impact.status === "Primary test")?.label ?? "—" },
     { label: "Konsentrasi (HHI)", render: (item) => item.pillars.find((pillar) => pillar.key === "concentration")?.metrics.find((metric) => metric.label === "HHI")?.value ?? "—" },
@@ -87,27 +88,36 @@ function ResearchCasesContent() {
 
   return (
     <div data-tour="research-cases">
-      <PageHeader eyebrow="Riset dan Analisis" title="Perubahan Saham yang perlu diperiksa" description="Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
+      <PageHeader title="Riset & Analisis" description="Perubahan yang perlu diperiksa. Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset." />
 
-      <nav aria-label="Bagian kasus" className="mb-4 flex min-w-0 overflow-x-auto border-b border-border">
-        {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground", activeView === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand")}>{item.label}</Link>)}
+      <nav aria-label="Bagian kasus" className="mb-6 flex min-w-0 gap-6 overflow-x-auto border-b border-border">
+        {views.map((item) => <Link key={item.value} href={item.value === "active" ? "/cases" : `/cases?view=${item.value}`} aria-current={activeView === item.value ? "page" : undefined} className={cn("relative -mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 border-transparent text-sm font-medium text-subtle-foreground transition-colors hover:text-foreground", activeView === item.value && "border-foreground text-foreground")}>{item.label}</Link>)}
       </nav>
 
-      {activeView === "active" ? <Panel>
-        <div className="divide-y divide-border">
+      {activeView === "active" ? <div className="overflow-hidden rounded-lg border border-border">
+        <div aria-hidden="true" className="hidden grid-cols-[200px_minmax(0,1fr)_120px_150px_140px_110px_20px] gap-4 border-b border-border bg-surface px-4 py-2.5 text-xs font-medium text-muted-foreground lg:grid"><span>Emiten</span><span>Pemicu</span><span>Materialitas</span><span>Status bukti</span><span>Tindakan</span><span className="text-right">Harga</span><span /></div>
+        <ul className="divide-y divide-border">
           {orderedCases.map((analysis) => {
             const status = caseStatuses[analysis.company.symbol] ?? analysis.status;
-            return <Link key={analysis.company.symbol} href={`/cases/${analysis.company.symbol}`} className="grid min-h-28 gap-3 p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center"><TickerAvatar symbol={analysis.company.symbol} size="lg" /><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><strong className="font-mono text-sm">{analysis.company.symbol}</strong><span className="text-sm font-medium">{analysis.trigger.title}</span><span className="rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{uiLabel(analysis.priority.materiality)}</span>{status === "closed" ? <span className="rounded border border-positive/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-positive">Selesai</span> : null}</span><span className="mt-1 line-clamp-1 block text-xs leading-5 text-muted-foreground">{analysis.materialChange.baseline}</span><span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-primary">Tindakan · {dispositionLabel(analysis.researchDisposition.kind)}</span></span><span className="flex items-center gap-3"><StatusBadge status={analysis.evidenceState} /><IconArrowRight aria-hidden="true" className="size-4 text-primary" /></span></Link>;
+            const materiality = uiLabel(analysis.priority.materiality);
+            return <li key={analysis.company.symbol}><Link href={`/cases/${analysis.company.symbol}`} className="grid gap-3 px-4 py-4 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:grid-cols-[200px_minmax(0,1fr)_120px_150px_140px_110px_20px] lg:items-start lg:gap-4">
+              <span className="min-w-0"><strong className="block text-base font-semibold">{analysis.company.symbol}</strong><span className="block truncate text-xs text-subtle-foreground">{analysis.company.name}</span></span>
+              <span className="min-w-0"><span className="block text-sm font-medium">{analysis.trigger.title}</span><span className="mt-1 line-clamp-2 block text-xs text-subtle-foreground">{analysis.materialChange.baseline}</span></span>
+              <span className="flex flex-wrap gap-1.5"><span className={cn("inline-flex h-6 items-center rounded-lg border px-2 text-xs font-medium", analysis.priority.materiality === "High" ? "border-foreground" : "border-border text-muted-foreground")}>{materiality}</span>{status === "closed" ? <span className="inline-flex h-6 items-center rounded-lg border border-border px-2 text-xs font-medium text-muted-foreground">Selesai</span> : null}</span>
+              <span><StatusBadge status={analysis.evidenceState} /></span>
+              <span className="text-sm font-medium">{dispositionLabel(analysis.researchDisposition.kind)}</span>
+              <span className="flex items-center gap-2 lg:flex-col lg:items-end lg:gap-0.5"><span className="font-mono text-sm font-medium tabular-nums">{formatCurrency(analysis.company.price)}</span><PriceChange value={analysis.company.changePct} className="text-xs" /></span>
+              <IconArrowRight aria-hidden="true" className="hidden size-4 self-center text-subtle-foreground lg:block" />
+            </Link></li>;
           })}
-        </div>
-      </Panel> : null}
+        </ul>
+      </div> : null}
 
       {activeView === "picker" ? <div>
         <Panel className="overflow-hidden">
           <div className="border-b border-border p-4">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Perbandingan</p>
-            <h2 className="editorial mt-1 text-2xl">Bandingkan bukti, bukan skor</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Klik kolom emiten di bawah untuk menambah atau mengganti hingga tiga emiten.</p>
+            <h2 className="editorial text-xl">Bandingkan bukti, bukan skor</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Pilih kolom emiten untuk menambah atau mengganti, hingga tiga emiten berkasus lengkap.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] table-fixed text-left text-xs">
@@ -126,17 +136,17 @@ function ResearchCasesContent() {
                           onChange={(event) => setQuery(event.target.value)}
                           onBlur={() => setOpenSlot(null)}
                           placeholder="Cari emiten"
-                          className="h-9 w-full rounded-md border border-primary bg-surface pl-8 pr-2 font-mono text-xs outline-none focus:ring-2 focus:ring-ring/25"
+                          className="h-9 w-full rounded-lg border border-primary bg-surface pl-8 pr-2 font-mono text-xs outline-none focus:ring-2 focus:ring-ring/25"
                         />
                       </label>
                       {query.trim() ? <div className="absolute z-10 mt-1 max-h-56 w-56 overflow-y-auto rounded-lg border border-border bg-surface text-left shadow-lg">
-                        {searchMatches.length ? searchMatches.map((company) => <button key={company.symbol} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectSlot(index, company.symbol)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"><TickerAvatar symbol={company.symbol} size="sm" /><span className="font-mono font-semibold text-primary">{company.symbol}</span><span className="truncate text-muted-foreground">{company.name}</span></button>) : <p className="px-3 py-2 text-[11px] text-muted-foreground">Tidak ada emiten cocok.</p>}
+                        {searchMatches.length ? searchMatches.map((company) => <button key={company.symbol} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectSlot(index, company.symbol)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"><TickerAvatar symbol={company.symbol} size="sm" /><span className="font-mono font-semibold text-primary">{company.symbol}</span><span className="truncate text-muted-foreground">{company.name}</span></button>) : <p className="px-3 py-2 text-xs text-muted-foreground">Tidak ada emiten cocok.</p>}
                       </div> : null}
                     </div> : symbol ? <div className="flex items-center gap-1.5">
                       <TickerAvatar symbol={symbol} size="sm" />
                       <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="font-mono text-sm font-semibold text-primary hover:underline">{symbol}</button>
                       <button type="button" onClick={() => removeSlot(index)} aria-label={`Hapus ${symbol} dari perbandingan`} className="grid size-4 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"><IconClose aria-hidden="true" className="size-3" /></button>
-                    </div> : <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary"><IconSearch aria-hidden="true" className="size-3" />Tambah emiten</button>}
+                    </div> : <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"><IconSearch aria-hidden="true" className="size-3" />Tambah emiten</button>}
                   </th>)}
                 </tr>
               </thead>
@@ -158,5 +168,5 @@ function ResearchCasesContent() {
 }
 
 export default function ResearchCasesPage() {
-  return <Suspense fallback={<Panel className="h-72 animate-pulse bg-muted" aria-label="Memuat kasus" />}><ResearchCasesContent /></Suspense>;
+  return <Suspense fallback={<Panel className="h-72 shimmer" aria-label="Memuat kasus" />}><ResearchCasesContent /></Suspense>;
 }

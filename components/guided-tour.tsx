@@ -225,9 +225,9 @@ function GuidedTourContent() {
 
   if (complete) return (
     <div className="pointer-events-none fixed inset-0 z-[120] bg-background/70" aria-live="polite">
-      <section role="dialog" aria-labelledby="guided-tour-complete-title" className="pointer-events-auto absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-w-lg rounded-[12px] border border-primary/35 bg-surface p-5 shadow-2xl sm:bottom-6">
-        <span className="grid size-10 place-items-center rounded-[7px] bg-positive/10 text-positive"><Check aria-hidden="true" className="size-5" /></span>
-        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tur selesai</p>
+      <section role="dialog" aria-labelledby="guided-tour-complete-title" className="pointer-events-auto absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-w-lg rounded-lg border border-primary/35 bg-surface p-5 shadow-2xl sm:bottom-6">
+        <span className="grid size-10 place-items-center rounded-lg bg-positive/10 text-positive"><Check aria-hidden="true" className="size-5" /></span>
+        <p className="mt-4 text-xs text-muted-foreground font-medium">Tur selesai</p>
         <h2 id="guided-tour-complete-title" className="editorial mt-1 text-2xl">Ritual harian selesai</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Anda sudah memilih perubahan, menetapkan pertanyaan, melacak sebab akibat, dan menentukan tindakan riset.</p>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4"><p className="text-xs text-muted-foreground">Ulangi alur ini saat ada perubahan baru.</p><Button size="sm" onClick={finishTour}>Selesai<ArrowRight aria-hidden="true" className="size-4" /></Button></div>
@@ -237,27 +237,27 @@ function GuidedTourContent() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[120]" aria-live="polite">
-      {targetRect ? <div data-tour-spotlight className="fixed rounded-[10px] border-2 border-primary bg-primary/5 shadow-[0_0_0_9999px_rgba(8,5,7,0.76)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none" style={targetRect} /> : <div className="absolute inset-0 bg-background/72" />}
-      <section ref={coachRef} data-guided-tour-card role="dialog" aria-modal="false" aria-labelledby={current.title ? "guided-tour-title" : "guided-tour-action"} className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[56dvh] max-w-lg overflow-y-auto rounded-[12px] border border-border bg-surface p-4 shadow-2xl sm:bottom-6 md:inset-x-auto md:bottom-auto md:mx-0 md:max-h-none md:overflow-visible" style={desktopPosition}>
+      {targetRect ? <div data-tour-spotlight className="fixed rounded-lg border-2 border-primary bg-primary/5 shadow-[0_0_0_9999px_rgba(8,5,7,0.76)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none" style={targetRect} /> : <div className="absolute inset-0 bg-background/72" />}
+      <section ref={coachRef} data-guided-tour-card role="dialog" aria-modal="false" aria-labelledby={current.title ? "guided-tour-title" : "guided-tour-action"} className="pointer-events-none absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mx-auto max-h-[56dvh] max-w-lg overflow-y-auto rounded-lg border border-border bg-surface p-4 shadow-2xl sm:bottom-6 md:inset-x-auto md:bottom-auto md:mx-0 md:max-h-none md:overflow-visible" style={desktopPosition}>
         <div className={`flex gap-3 ${compact ? "items-center" : "items-start"}`}>
-          <span className={`grid shrink-0 place-items-center rounded-[6px] bg-brand text-white ${compact ? "size-7" : "size-8"}`}><Compass aria-hidden="true" className={compact ? "size-3.5" : "size-4"} /></span>
+          <span className={`grid shrink-0 place-items-center rounded-lg bg-brand text-white ${compact ? "size-7" : "size-8"}`}><Compass aria-hidden="true" className={compact ? "size-3.5" : "size-4"} /></span>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Langkah {step + 1}/{steps.length}</p><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{current.destination}</p></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-muted-foreground font-medium">Langkah {step + 1}/{steps.length}</p><p className=" text-xs text-muted-foreground">{current.destination}</p></div>
             {current.title ? <h2 id="guided-tour-title" className="editorial mt-1.5 text-lg">{current.title}</h2> : null}
             {current.body ? <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{current.body}</p> : null}
           </div>
         </div>
 
-        {current.action ? <div className={`rounded-[8px] border border-primary/30 bg-primary/8 p-2.5 ${compact ? "mt-2.5" : "mt-3"}`}>
+        {current.action ? <div className={`rounded-lg border border-primary/30 bg-primary/8 p-2.5 ${compact ? "mt-2.5" : "mt-3"}`}>
           <p className="flex items-center gap-2 text-xs font-semibold text-foreground"><MousePointerClick aria-hidden="true" className="size-4 text-primary" />Lakukan sekarang</p>
           <p id="guided-tour-action" className="mt-1 text-sm leading-5">{current.action}</p>
-          {current.outcome ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{current.outcome}</p> : null}
+          {current.outcome ? <p className="mt-1 text-xs leading-4 text-muted-foreground">{current.outcome}</p> : null}
         </div> : null}
 
         <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
           <div className="grid w-24 shrink-0 gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
           <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
-          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : current.actionSelector ? <p className="hidden font-mono text-[9px] uppercase tracking-wider text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
+          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : current.actionSelector ? <p className="hidden text-xs text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
         </div>
       </section>
     </div>

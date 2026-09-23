@@ -105,11 +105,11 @@ export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButt
           the tail is what says the line is being said by the creature under
           it, and the fixed width keeps the bubble from breathing in and out
           as the sentence types. */}
-      <span className="panel-chrome relative w-[min(17rem,calc(100vw-1.5rem))] rounded-[18px] rounded-br-[6px] border border-border bg-surface/85 px-4 py-2.5 text-left shadow-2xl backdrop-blur-xl transition-colors group-hover:border-foreground/30 group-focus-visible:ring-2 group-focus-visible:ring-ring">
+      <span className="panel-chrome relative w-[min(17rem,calc(100vw-1.5rem))] rounded-lg rounded-br-[6px] border border-border bg-surface/85 px-4 py-2.5 text-left shadow-2xl backdrop-blur-xl transition-colors group-hover:border-foreground/30 group-focus-visible:ring-2 group-focus-visible:ring-ring">
         {/* Hidden from the accessibility tree on purpose: a caret that changes
             twenty times a second is a live region nobody asked for, and the
             button already carries its name. */}
-        <span aria-hidden="true" className="block max-h-[2.9em] overflow-hidden text-[13px] leading-[1.45] text-foreground">
+        <span aria-hidden="true" className="block max-h-[2.9em] overflow-hidden text-sm leading-[1.45] text-foreground">
           {typed}
           <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-primary align-middle motion-reduce:hidden" />
         </span>

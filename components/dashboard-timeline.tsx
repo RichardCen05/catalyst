@@ -27,7 +27,7 @@ export function DashboardTimeline({ symbols }: { symbols: SymbolCode[] }) {
         <IconChart aria-hidden="true" className="mx-auto size-6 text-muted-foreground" />
         <h2 className="mt-3 font-semibold">Belum ada rekaman harian</h2>
         <p className="mt-1 text-sm text-muted-foreground">Emiten yang dipilih belum punya deret harga terekam, jadi tidak ada grafik untuk digambar.</p>
-        <Link href="/cases" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-[6px] border border-border px-3 text-sm font-medium text-primary hover:bg-muted">
+        <Link href="/cases" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-muted">
           Semua kasus<IconArrowRight aria-hidden="true" className="size-4" />
         </Link>
       </Panel>

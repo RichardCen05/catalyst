@@ -39,7 +39,7 @@ const TOOLTIP_STYLE = {
   border: "1px solid var(--border)",
   borderRadius: 8,
   fontFamily: "var(--font-mono)",
-  fontSize: 11,
+  fontSize: 12,
 } as const;
 
 export interface VerdictDatum {
@@ -49,10 +49,10 @@ export interface VerdictDatum {
 }
 
 const TONE_FILL: Record<VerdictDatum["tone"], string> = {
-  positive: "var(--positive)",
-  attention: "var(--attention)",
-  danger: "var(--danger)",
-  muted: "var(--muted-foreground)",
+  positive: "var(--foreground)",
+  attention: "var(--muted-foreground)",
+  danger: "var(--border-strong)",
+  muted: "var(--border)",
 };
 
 /** Sebaran vonis: berapa klaim yang tepat, meleset, atau benar tapi salah waktu. */
@@ -63,7 +63,7 @@ export function VerdictChart({ data }: { data: VerdictDatum[] }) {
         <BarChart data={data} margin={{ top: 18, right: 8, left: 8, bottom: 0 }}>
           <XAxis
             dataKey="label"
-            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             tickLine={false}
             axisLine={{ stroke: "var(--border)" }}
             interval={0}
@@ -74,8 +74,8 @@ export function VerdictChart({ data }: { data: VerdictDatum[] }) {
             contentStyle={TOOLTIP_STYLE}
             formatter={(value) => [`${value} klaim`, "Jumlah"]}
           />
-          <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-            <LabelList dataKey="value" position="top" fill="var(--muted-foreground)" fontSize={11} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={900}>
+            <LabelList dataKey="value" position="top" fill="var(--muted-foreground)" fontSize={12} />
             {data.map((entry) => <Cell key={entry.label} fill={TONE_FILL[entry.tone]} />)}
           </Bar>
         </BarChart>
@@ -122,11 +122,11 @@ export function CalibrationChart({ data }: { data: CalibrationDatum[] }) {
               return row ? `${row.dimension} · ${row.label} · ${row.n} tervonis` : label;
             }}
           />
-          <Bar dataKey="hitRate" name="Tepat waktu" fill="var(--positive)" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-            <LabelList dataKey="hitRate" position="right" formatter={(value) => `${value}%`} fill="var(--muted-foreground)" fontSize={10} />
+          <Bar dataKey="hitRate" name="Tepat waktu" fill="var(--positive)" radius={[0, 4, 4, 0]} animationDuration={900}>
+            <LabelList dataKey="hitRate" position="right" formatter={(value) => `${value}%`} fill="var(--muted-foreground)" fontSize={12} />
           </Bar>
-          <Bar dataKey="occurrenceRate" name="Terjadi, kapan pun" fill="var(--primary)" fillOpacity={0.45} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-            <LabelList dataKey="occurrenceRate" position="right" formatter={(value) => `${value}%`} fill="var(--muted-foreground)" fontSize={10} />
+          <Bar dataKey="occurrenceRate" name="Terjadi, kapan pun" fill="var(--primary)" fillOpacity={0.45} radius={[0, 4, 4, 0]} animationDuration={900}>
+            <LabelList dataKey="occurrenceRate" position="right" formatter={(value) => `${value}%`} fill="var(--muted-foreground)" fontSize={12} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

@@ -179,11 +179,11 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       role={dismissible ? "dialog" : undefined}
       aria-label={dismissible ? ASSISTANT_NAME : undefined}
       onKeyDown={dismissible ? (event) => { if (event.key === "Escape") { event.stopPropagation(); setCopilotOpen(false); } } : undefined}
-      className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-xl border border-border shadow-panel" : ""}`}
+      className={`flex h-full min-h-0 flex-col bg-surface focus:outline-none ${workspace ? "rounded-lg border border-border shadow-panel" : ""}`}
     >
       <div className="panel-chrome relative z-40 flex items-center gap-3 border-b border-border/60 bg-surface/85 px-4 py-2.5 backdrop-blur-xl">
         <Blobatar ref={faceRef} name={ASSISTANT_NAME} animate="always" expression={mood} background="squircle" size={36} aria-hidden="true" className="shrink-0" />
-        <p className="min-w-0 flex-1 truncate text-[15px] font-semibold tracking-[-0.01em]">{ASSISTANT_NAME}</p>
+        <p className="min-w-0 flex-1 truncate text-base font-semibold tracking-[-0.01em]">{ASSISTANT_NAME}</p>
         {dismissible
           ? <Button variant="ghost" size="icon" onClick={expand} aria-label="Perbesar asisten ke halaman penuh"><IconExpand aria-hidden="true" className="size-4" /></Button>
           : <Button variant="ghost" size="icon" onClick={collapse} aria-label="Ciutkan asisten ke panel"><IconCollapse aria-hidden="true" className="size-4" /></Button>}
@@ -196,8 +196,8 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           before that, competing with the recording date, it collapsed to an
           empty circle. The date is on the banner at the top of every page. */}
       <div className="relative z-30 flex items-center gap-1.5 border-b border-border/60 bg-background/80 px-4 py-2 backdrop-blur-xl">
-        <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={`${contextLabel} — klik untuk ganti kasus`} className="flex min-h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-full bg-muted px-3.5 text-left text-[13px] text-foreground transition-[transform,background-color] duration-100 hover:bg-surface-raised active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">Kasus</span>
+        <button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="listbox" aria-label={`Ganti kasus, sekarang ${contextLabel}`} title={`${contextLabel} — klik untuk ganti kasus`} className="flex min-h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-full bg-muted px-3.5 text-left text-sm text-foreground transition-[transform,background-color] duration-100 hover:bg-surface-raised active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">Kasus</span>
           <span className="min-w-0 flex-1 truncate font-medium">{contextLabel}</span>
           <IconCaretDown aria-hidden="true" className="size-3 shrink-0 text-muted-foreground" />
         </button>
@@ -205,11 +205,11 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         {/* Coverage comes from the same table the compare picker reads, so a
             symbol without a full case says so here instead of being offered
             as if it had one. */}
-        {pickerOpen ? <div role="listbox" aria-label="Pilih kasus" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPickerOpen(false); } }} className="absolute inset-x-4 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-2xl">
-          <button type="button" role="option" aria-selected={!activeContext?.symbol} onClick={() => { setCopilotContext({ label: "Tanpa kasus", question: "" }); setPickerOpen(false); }} className="w-full cursor-pointer rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-[14px] font-medium">Tanpa kasus</span><span className="mt-0.5 block text-[12px] leading-[1.35] text-muted-foreground">Hanya menjawab pertanyaan yang menyebut emitennya sendiri.</span></button>
+        {pickerOpen ? <div role="listbox" aria-label="Pilih kasus" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPickerOpen(false); } }} className="absolute inset-x-4 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface p-1.5 shadow-2xl">
+          <button type="button" role="option" aria-selected={!activeContext?.symbol} onClick={() => { setCopilotContext({ label: "Tanpa kasus", question: "" }); setPickerOpen(false); }} className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-sm font-medium">Tanpa kasus</span><span className="mt-0.5 block text-xs leading-[1.35] text-muted-foreground">Hanya menjawab pertanyaan yang menyebut emitennya sendiri.</span></button>
           {profile.watchlist.map((symbol) => {
             const coverage = coverageInfo[symbol];
-            return <button key={symbol} type="button" role="option" aria-selected={activeContext?.symbol === symbol} onClick={() => { bindTo(symbol); setPickerOpen(false); }} className="w-full cursor-pointer rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-[14px] font-medium">{symbol}</span><span className="mt-0.5 block text-[12px] leading-[1.35] text-muted-foreground">{coverage?.analyzed ? "Kasus lengkap" : `Belum ada kasus lengkap — ${coverage?.missing.length ? `${coverage.missing.join(", ")} belum ada` : "rekaman belum lengkap"}`}</span></button>;
+            return <button key={symbol} type="button" role="option" aria-selected={activeContext?.symbol === symbol} onClick={() => { bindTo(symbol); setPickerOpen(false); }} className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-sm font-medium">{symbol}</span><span className="mt-0.5 block text-xs leading-[1.35] text-muted-foreground">{coverage?.analyzed ? "Kasus lengkap" : `Belum ada kasus lengkap — ${coverage?.missing.length ? `${coverage.missing.join(", ")} belum ada` : "rekaman belum lengkap"}`}</span></button>;
           })}
         </div> : null}
       </div>
@@ -218,17 +218,17 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         {messages.length === 0 ? (
           <div className="bubble-in flex items-end gap-2">
             <Blobatar name={ASSISTANT_NAME} animate="hover" background="circle" size={28} aria-hidden="true" className="mb-0.5 shrink-0" />
-            <div className={`relative min-w-0 flex-1 rounded-[18px] rounded-bl-[6px] px-4 py-3 ${BUBBLE_TONE.assistant}`}>
+            <div className={`relative min-w-0 flex-1 rounded-lg rounded-bl-[6px] px-4 py-3 ${BUBBLE_TONE.assistant}`}>
               <span aria-hidden="true" className={`absolute -left-1 bottom-2.5 size-3 rotate-45 ${BUBBLE_TONE.assistant}`} />
-              <p className="relative text-[15px] font-semibold leading-[1.35] tracking-[-0.01em]">{activeContext?.symbol ? `Siap menjawab tentang ${activeContext.symbol}.` : "Sebut kode emiten, lalu tanyakan buktinya."}</p>
-              <ul className="relative mt-2 space-y-1.5 text-[13px] leading-[1.45] text-muted-foreground">
+              <p className="relative text-base font-semibold leading-[1.35] tracking-[-0.01em]">{activeContext?.symbol ? `Siap menjawab tentang ${activeContext.symbol}.` : "Sebut kode emiten, lalu tanyakan buktinya."}</p>
+              <ul className="relative mt-2 space-y-1.5 text-sm leading-[1.45] text-muted-foreground">
                 <li>Kenapa emiten ini masuk daftar, dan apa yang berubah.</li>
                 <li>Arti sebuah angka, asal rekamannya, dan cara hitungnya.</li>
                 <li>Dampak sebuah peristiwa ke emiten pantauan Anda.</li>
                 <li>Perbandingan dua emiten yang sama-sama berkasus lengkap.</li>
                 <li>Data yang belum ada pada rekaman {RECORD_SHORT}.</li>
               </ul>
-              {openNotes ? <p className="relative mt-2 text-[13px] leading-[1.45] text-muted-foreground">{openNotes} catatan Anda masih terbuka dan dibaca sebagai hipotesis.</p> : null}
+              {openNotes ? <p className="relative mt-2 text-sm leading-[1.45] text-muted-foreground">{openNotes} catatan Anda masih terbuka dan dibaca sebagai hipotesis.</p> : null}
             </div>
           </div>
         ) : null}
@@ -250,22 +250,22 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
                   tooltip on the face: it is what a screen reader and the
                   production sweep both read to tell the turns apart. */}
               <div className={`flex min-w-0 max-w-[85%] flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
-                {grouped ? null : <span className="px-1 text-[11px] font-medium leading-4 text-muted-foreground">{mine ? "Anda" : "Asisten"}</span>}
-                <div className={`relative w-full rounded-[18px] px-4 py-2.5 text-[15px] leading-[1.45] ${tone} ${mine ? "rounded-br-[6px]" : "rounded-bl-[6px]"}`}>
+                {grouped ? null : <span className="px-1 text-xs font-medium leading-4 text-muted-foreground">{mine ? "Anda" : "Asisten"}</span>}
+                <div className={`relative w-full rounded-lg px-4 py-2.5 text-base leading-[1.45] ${tone} ${mine ? "rounded-br-[6px]" : "rounded-bl-[6px]"}`}>
                   {grouped ? null : <span aria-hidden="true" className={`absolute bottom-2.5 size-3 rotate-45 ${tone} ${mine ? "-right-1" : "-left-1"}`} />}
                   {message.failed ? <p className="relative flex gap-2"><IconAttention aria-hidden="true" className="mt-1 size-4 shrink-0" /><span>{message.text}</span></p>
                     : mine ? <p className="relative whitespace-pre-line">{message.text}</p>
                     : <div className="relative space-y-2.5">
                         {answerBlocks(message.text).map((block) => block.label
                           ? <div key={block.key}>
-                              <p className="text-[12px] font-semibold leading-4 text-muted-foreground">{block.label}</p>
-                              <p className={block.technical ? "mt-1 select-all break-all font-mono text-[12px] leading-[1.5] text-foreground" : "mt-0.5 text-[15px] leading-[1.45]"}>{block.body}</p>
+                              <p className="text-xs font-semibold leading-4 text-muted-foreground">{block.label}</p>
+                              <p className={block.technical ? "mt-1 select-all break-all font-mono text-xs leading-[1.5] text-foreground" : "mt-0.5 text-base leading-[1.45]"}>{block.body}</p>
                             </div>
                           : <p key={block.key}>{block.body}</p>)}
                       </div>}
-                  {message.answer?.clarification ? <div className="relative mt-3 flex flex-wrap gap-2">{message.answer.clarification.choices.map((symbol) => <button key={symbol} type="button" onClick={() => { const clarification = message.answer?.clarification; if (!clarification) return; bindTo(symbol); void submit(clarification.question, symbol); }} className="min-h-11 cursor-pointer rounded-full bg-surface px-4 text-[13px] font-medium text-foreground transition-transform duration-100 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{symbol}</button>)}</div> : null}
-                  {message.answer?.llmFallbackNote ? <p className="relative mt-2.5 rounded-xl bg-attention/12 px-3 py-2 text-[12px] leading-[1.45] text-attention-foreground">{message.answer.llmFallbackNote}</p> : null}
-                  {message.answer ? <details className="relative mt-3 border-t border-foreground/10 pt-2"><summary className="flex min-h-8 cursor-pointer list-none items-center gap-1 text-[13px] font-medium text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3.5" /></summary><p className="mt-2 text-[12px] leading-[1.45] text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded-xl bg-attention/12 px-3 py-2 text-[12px] leading-[1.45] text-attention-foreground">Catatan pengguna hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-2.5"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
+                  {message.answer?.clarification ? <div className="relative mt-3 flex flex-wrap gap-2">{message.answer.clarification.choices.map((symbol) => <button key={symbol} type="button" onClick={() => { const clarification = message.answer?.clarification; if (!clarification) return; bindTo(symbol); void submit(clarification.question, symbol); }} className="min-h-11 cursor-pointer rounded-full bg-surface px-4 text-sm font-medium text-foreground transition-transform duration-100 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{symbol}</button>)}</div> : null}
+                  {message.answer?.llmFallbackNote ? <p className="relative mt-2.5 rounded-lg bg-attention/12 px-3 py-2 text-xs leading-[1.45] text-attention-foreground">{message.answer.llmFallbackNote}</p> : null}
+                  {message.answer ? <details className="relative mt-3 border-t border-foreground/10 pt-2"><summary className="flex min-h-8 cursor-pointer list-none items-center gap-1 text-sm font-medium text-primary">Periksa jawaban<IconCaretDown aria-hidden="true" className="size-3.5" /></summary><p className="mt-2 text-xs leading-[1.45] text-muted-foreground">{message.answer.preferenceNote}</p>{message.answer.hypotheses.some((item) => item.id.startsWith("insight-")) ? <p className="mt-2 rounded-lg bg-attention/12 px-3 py-2 text-xs leading-[1.45] text-attention-foreground">Catatan pengguna hanya dipakai sebagai hipotesis terbuka sampai sumber memverifikasinya.</p> : null}{message.answer.citations.length ? <div className="mt-2.5"><CitationDialog citations={message.answer.citations} label="Buka bukti jawaban" /></div> : null}</details> : null}
                 </div>
               </div>
             </div>
@@ -278,7 +278,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
         {loading ? (
           <div role="status" className="bubble-in mt-4 flex items-end gap-2">
             <Blobatar name={ASSISTANT_NAME} animate="always" background="circle" size={28} expression={thinking} aria-hidden="true" className="mb-0.5 shrink-0" />
-            <div className={`relative rounded-[18px] rounded-bl-[6px] px-4 py-3.5 ${BUBBLE_TONE.assistant}`}>
+            <div className={`relative rounded-lg rounded-bl-[6px] px-4 py-3.5 ${BUBBLE_TONE.assistant}`}>
               <span aria-hidden="true" className={`absolute -left-1 bottom-2.5 size-3 rotate-45 ${BUBBLE_TONE.assistant}`} />
               <span aria-hidden="true" className="relative flex items-center gap-1.5">
                 <span className="bubble-dot size-1.5 rounded-full bg-muted-foreground" />
@@ -297,12 +297,12 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
       <div className="panel-chrome border-t border-border/60 bg-surface/85 px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.5rem))] pt-3 backdrop-blur-xl xl:pb-8">
         <div className="mb-2.5 flex gap-2 overflow-x-auto pb-1">
           {(workspace ? quickPrompts : quickPrompts.slice(0, 3)).map((prompt) => (
-            <button key={prompt} onClick={() => void submit(prompt)} className="min-h-10 max-w-[min(18rem,72%)] shrink-0 cursor-pointer truncate rounded-full bg-muted/70 px-3.5 text-[13px] leading-[1.35] text-muted-foreground transition-[transform,color,background-color] duration-100 hover:bg-muted hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{prompt}</button>
+            <button key={prompt} onClick={() => void submit(prompt)} className="min-h-10 max-w-[min(18rem,72%)] shrink-0 cursor-pointer truncate rounded-full bg-muted/70 px-3.5 text-sm leading-[1.35] text-muted-foreground transition-[transform,color,background-color] duration-100 hover:bg-muted hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{prompt}</button>
           ))}
         </div>
-        <form onSubmit={onSubmit} className="flex items-end gap-1.5 rounded-[22px] border border-border bg-background p-1 transition-colors focus-within:border-foreground/35">
-          <label htmlFor="copilot-input" className="sr-only">Tanya Catalyst</label>
-          <textarea id="copilot-input" ref={composerRef} rows={1} maxLength={DEFAULT_THRESHOLDS.copilotQuestionChars} value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(input); } }} placeholder="Tanya bukti atau dampak..." className="max-h-[132px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-[7px] text-[15px] leading-[1.45] outline-none placeholder:text-muted-foreground" />
+        <form onSubmit={onSubmit} className="flex items-end gap-1.5 rounded-lg border border-border bg-background p-1 transition-colors focus-within:border-foreground/35">
+          <label htmlFor="copilot-input" className="sr-only">Tanya Asisten</label>
+          <textarea id="copilot-input" ref={composerRef} rows={1} maxLength={DEFAULT_THRESHOLDS.copilotQuestionChars} value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(input); } }} placeholder="Tanya bukti atau dampak..." className="max-h-[132px] min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-[7px] text-base leading-[1.45] outline-none placeholder:text-muted-foreground" />
           <button
             type="submit"
             disabled={input.trim().length < DEFAULT_THRESHOLDS.copilotQuestionMinChars || loading}

@@ -26,17 +26,13 @@ export function CaseDisposition({ researchCase, symbol }: { researchCase: Resear
   };
 
   return (
-    <section aria-label="Tindakan riset" className="mb-4 grid gap-4 overflow-hidden rounded-[12px] border border-border bg-primary/6 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-      <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">Tindakan riset</p>
-        <div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="editorial text-2xl">{dispositionLabel(researchCase.researchDisposition.kind)}</h2></div>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{researchCase.researchDisposition.reason}</p>
-        <p className="mt-3 font-mono text-[10px] text-muted-foreground">PEMICU · {researchCase.caseId}</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground"><strong className="font-medium text-foreground">{researchCase.trigger.title}</strong> — {researchCase.materialChange.baseline}</p>
-      </div>
-      <dl className="grid gap-px self-start overflow-hidden rounded-[8px] border border-border bg-border sm:grid-cols-2">
-        <div className="bg-surface p-3"><dt className="text-[11px] font-medium">Pantau <span className="font-normal text-muted-foreground">· opsional, bisa nanti</span></dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{researchCase.researchDisposition.monitorObservable}<button type="button" onClick={trackObservable} className="mt-2 inline-flex min-h-8 items-center rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10">{tracked ? "Sudah masuk antrean pantauan" : "Jadikan item pantauan"}</button></dd></div>
-        <div className="bg-surface p-3"><dt className="text-[11px] font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{researchCase.researchDisposition.reopenWhen}</dd></div>
+    <section aria-label="Tindakan riset" className="rounded-lg border border-foreground bg-background p-4">
+      <p className="text-xs font-medium text-muted-foreground">Tindakan riset yang disarankan dari bukti</p>
+      <h2 className="editorial mt-1 text-xl">{dispositionLabel(researchCase.researchDisposition.kind)}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{researchCase.researchDisposition.reason}</p>
+      <dl className="mt-4 space-y-3 border-t border-border pt-4">
+        <div><dt className="text-xs font-medium text-muted-foreground">Pantau</dt><dd className="mt-0.5 text-sm">{researchCase.researchDisposition.monitorObservable}<button type="button" onClick={trackObservable} className="mt-2 flex min-h-9 items-center rounded-lg border border-border-strong px-3 text-sm font-medium transition-shadow hover:shadow-[0_0_0_3px_var(--muted)]">{tracked ? "Sudah masuk antrean pantauan" : "Jadikan item pantauan"}</button></dd></div>
+        <div><dt className="text-xs font-medium text-muted-foreground">Kapan dibuka kembali</dt><dd className="mt-0.5 text-sm text-muted-foreground">{researchCase.researchDisposition.reopenWhen}</dd></div>
       </dl>
     </section>
   );
@@ -46,7 +42,7 @@ export function CaseAuditDetails({ researchCase, symbol }: { researchCase: Resea
   const caseStatuses = useCatalystStore((state) => state.caseStatuses);
   const status = caseStatuses[symbol] ?? researchCase.status;
   return (
-    <details className="group mb-4 overflow-hidden rounded-[12px] border border-border bg-surface">
+    <details className="group mb-4 overflow-hidden rounded-lg border border-border bg-surface">
       <summary className="flex min-h-12 cursor-pointer list-none items-center px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5">Lihat rincian audit<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary>
       <div className="grid gap-6 border-t border-border bg-background p-4 sm:p-5 lg:grid-cols-2">
         <section><h3 className="text-xs font-semibold">Aturan yang memengaruhi urutan</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.priority.ruleTrace.slice(0, 3).map((item) => <li key={item.id}><strong className="text-foreground">{item.rule}</strong>. {item.effect}</li>)}</ul></section>
@@ -61,14 +57,14 @@ export function CaseAuditDetails({ researchCase, symbol }: { researchCase: Resea
 export function CaseMonitorQueue({ researchCase }: { researchCase: ResearchCase }) {
   const triggers = deriveMonitorTriggers(researchCase);
   return (
-    <section aria-label="Antrean pantauan" className="mb-4 overflow-hidden rounded-[12px] border border-border bg-surface px-4 py-4 sm:px-5">
-      <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Antrean pantauan · {triggers.length} pemicu menunggu rekaman baru</p>
+    <section aria-label="Antrean pantauan" className="mb-4 overflow-hidden rounded-lg border border-border bg-surface px-4 py-4 sm:px-5">
+      <p className="text-xs text-muted-foreground font-medium">Antrean pantauan · {triggers.length} pemicu menunggu rekaman baru</p>
       <ul className="mt-3 space-y-2">
         {triggers.map((trigger) => (
-          <li key={trigger.id} className="rounded-[8px] border border-border bg-background p-3 text-xs leading-5">
-            <strong className="block text-[13px]">{trigger.label}</strong>
+          <li key={trigger.id} className="rounded-lg border border-border bg-background p-3 text-xs leading-5">
+            <strong className="block text-sm">{trigger.label}</strong>
             <span className="mt-1 block text-muted-foreground">{trigger.condition}</span>
-            <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Menunggu · {trigger.source}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">Menunggu · {trigger.source}</span>
           </li>
         ))}
       </ul>
@@ -118,10 +114,10 @@ export function CaseMemoActions({ researchCase, symbol }: { researchCase: Resear
   };
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-      <button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">{shared ? "Ringkasan tersalin" : "Salin ringkasan"}</button>
-      <button type="button" onClick={shareMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">{memoShared ? "Memo tersalin" : "Salin memo"}</button>
-      <button type="button" onClick={downloadMemo} className="inline-flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-primary">Unduh .md</button>
+    <div className="flex flex-wrap items-center gap-2">
+      <button type="button" onClick={shareSummary} className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">{shared ? "Ringkasan tersalin" : "Salin ringkasan"}</button>
+      <button type="button" onClick={shareMemo} className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">{memoShared ? "Memo tersalin" : "Salin memo"}</button>
+      <button type="button" onClick={downloadMemo} className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">Unduh .md</button>
     </div>
   );
 }

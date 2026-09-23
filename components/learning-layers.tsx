@@ -32,7 +32,7 @@ function TeacherBadge({ teacher }: { teacher: Teacher }) {
   return (
     <span
       className={cn(
-        "rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider",
+        "rounded-lg border px-1.5 py-0.5 text-xs",
         teacher === "Pasar" ? "border-positive/35 bg-positive/10 text-positive" : "border-primary/35 bg-primary/10 text-primary",
       )}
     >
@@ -52,10 +52,10 @@ export function LearningLayers() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed inset-x-3 top-1/2 z-100 mx-auto flex max-h-[90dvh] w-auto max-w-3xl -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl focus:outline-none sm:inset-x-6">
+        <Dialog.Content className="fixed inset-x-3 top-1/2 z-100 mx-auto flex max-h-[90dvh] w-auto max-w-3xl -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-2xl focus:outline-none sm:inset-x-6">
           <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
             <div className="min-w-0">
-              <Dialog.Title className="editorial text-[19px] text-foreground">Tiga cara Catalyst belajar</Dialog.Title>
+              <Dialog.Title className="editorial text-xl text-foreground">Tiga cara Catalyst belajar</Dialog.Title>
               <Dialog.Description className="mt-1 text-sm leading-6 text-muted-foreground">
                 Perilaku Catalyst berubah dari tiga arah. Dua butuh Anda, satu berjalan sendiri.
               </Dialog.Description>
@@ -75,7 +75,7 @@ export function LearningLayers() {
               <article key={layer.index} className="grid gap-x-5 gap-y-3 px-5 py-4 sm:grid-cols-[168px_minmax(0,1fr)]">
                 <div className="flex flex-wrap items-center gap-2 sm:block">
                   <div className="flex items-center gap-2">
-                    <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary/10 font-mono text-xs font-semibold text-primary">
+                    <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 font-mono text-xs font-semibold text-muted-foreground font-medium">
                       {layer.index}
                     </span>
                     <h3 className="font-semibold">{layer.name}</h3>
@@ -83,7 +83,7 @@ export function LearningLayers() {
                   <div className="flex flex-wrap gap-1.5 sm:mt-2">
                     <TeacherBadge teacher={layer.teacher} />
                     {layer.caveat ? (
-                      <span className="rounded border border-attention/35 bg-attention/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">
+                      <span className="rounded-lg border border-attention/35 bg-attention/10 px-1.5 py-0.5 text-xs text-attention-foreground">
                         {layer.caveat.badge}
                       </span>
                     ) : null}
@@ -96,17 +96,17 @@ export function LearningLayers() {
 
                   <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-lg border border-positive/25 bg-positive/6 p-3">
-                      <dt className="font-mono text-[10px] uppercase tracking-wider text-positive">Yang berubah</dt>
+                      <dt className=" text-xs text-positive">Yang berubah</dt>
                       <dd className="mt-1 text-xs leading-5">{layer.changes}</dd>
                     </div>
                     <div className="rounded-lg border border-border bg-background p-3">
-                      <dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Yang tidak berubah</dt>
+                      <dt className=" text-xs text-muted-foreground">Yang tidak berubah</dt>
                       <dd className="mt-1 text-xs leading-5 text-muted-foreground">{layer.keeps}</dd>
                     </div>
                   </dl>
 
                   <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                    <span className="font-mono text-[10px] uppercase tracking-wider">Contoh · </span>
+                    <span className=" text-xs">Contoh · </span>
                     {layer.example}
                   </p>
 

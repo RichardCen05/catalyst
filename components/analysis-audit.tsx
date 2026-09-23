@@ -39,8 +39,8 @@ export function AnalysisAudit({ symbol, traces, missingEvidence, sourceCount }: 
 
           <div className="mt-4"><AgentTrace traces={traces} /></div>
 
-          <section className="mt-4 rounded-xl border border-border bg-background" aria-labelledby="missing-evidence-title">
-            <div className="border-b border-border px-4 py-3"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-attention">Berhenti saat bukti kurang</p><h2 id="missing-evidence-title" className="mt-1 text-base font-semibold">Belum diperiksa</h2></div>
+          <section className="mt-4 rounded-lg border border-border bg-background" aria-labelledby="missing-evidence-title">
+            <div className="border-b border-border px-4 py-3"><p className=" text-xs text-attention">Berhenti saat bukti kurang</p><h2 id="missing-evidence-title" className="mt-1 text-base font-semibold">Belum diperiksa</h2></div>
             <ul className="divide-y divide-border px-4">{missingEvidence.map((item) => <li key={item} className="flex gap-2 py-3 text-sm leading-6 text-muted-foreground"><AlertTriangle aria-hidden="true" className="mt-1 size-3.5 shrink-0 text-attention" />{item}</li>)}</ul>
           </section>
         </Dialog.Content>

@@ -20,13 +20,13 @@ import {
 
 const actions = [
   { label: "Buka Dashboard", href: "/", icon: BarChart3 },
-  { label: "Buka Kasus", href: "/cases", icon: BriefcaseBusiness },
+  { label: "Buka Riset & Analisis", href: "/cases", icon: BriefcaseBusiness },
   { label: `Buka Sebab akibat ${primarySymbol}`, href: `/impact?company=${primarySymbol}`, icon: GitBranch },
-  { label: "Buka Pantau web", href: "/pantau", icon: Radar },
-  { label: "Tanya asisten Catalyst", href: "/copilot", icon: Bot },
+  { label: "Buka Pantau", href: "/pantau", icon: Radar },
+  { label: "Tanya Asisten", href: "/copilot", icon: Bot },
   { label: "Buka AI Learning", href: "/ai-learning", icon: BrainCircuit },
   { label: "Edit aturan riset", href: "/playbook", icon: BookOpenCheck },
-  { label: "Buka daftar emiten", href: "/companies", icon: Building2 },
+  { label: "Buka perbandingan emiten", href: "/cases?view=picker", icon: Building2 },
   { label: "Baca metode dan batas", href: "/method", icon: FlaskConical },
 ];
 
@@ -59,12 +59,12 @@ export function CommandPalette() {
       <Dialog.Trigger asChild>
         <Button variant="secondary" size="sm" aria-label="Buka pencarian" className="hidden w-full justify-start text-muted-foreground lg:flex">
           <Search aria-hidden="true" className="size-4" />
-          <span>Cari atau buka</span><kbd className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-[10px]">/</kbd>
+          <span>Cari atau buka</span><kbd className="ml-auto rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs">/</kbd>
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-[16vh] z-100 w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-2xl focus:outline-none">
+        <Dialog.Content className="fixed left-1/2 top-[16vh] z-100 w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-lg border border-border bg-surface shadow-2xl focus:outline-none">
           <Dialog.Title className="sr-only">Pencarian halaman</Dialog.Title>
           <div className="flex items-center gap-2 border-b border-border px-4">
             <Search aria-hidden="true" className="size-4 text-muted-foreground" />
@@ -73,16 +73,16 @@ export function CommandPalette() {
           </div>
           <div className="p-2">
             {filtered.map((action) => (
-              <button key={action.href} onClick={() => { router.push(action.href); setOpen(false); }} className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[6px] px-3 text-left text-[13px] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <button key={action.href} onClick={() => { router.push(action.href); setOpen(false); }} className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <action.icon className="size-4 text-muted-foreground" />{action.label}
               </button>
             ))}
-            {filtered.length === 0 ? <p className="p-4 text-[13px] text-muted-foreground">Tidak ada halaman yang cocok.</p> : null}
+            {filtered.length === 0 ? <p className="p-4 text-sm text-muted-foreground">Tidak ada halaman yang cocok.</p> : null}
           </div>
           <div className="flex items-center gap-4 border-t border-border bg-surface-raised px-4 py-2.5">
             <span className="meta text-muted-foreground">Navigasi</span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><kbd>/</kbd> buka</span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><kbd>esc</kbd> tutup</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><kbd>/</kbd> buka</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><kbd>esc</kbd> tutup</span>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

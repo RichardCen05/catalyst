@@ -51,15 +51,21 @@ const sourceIcons = {
   financial: IconDocument,
 };
 
-/* Same hues as the single-issuer chain: values chosen to read on bone and on
-   ink without a second palette. Non-text, so they answer to the restraint
-   rule rather than to a contrast ratio. */
+/* Same greys as the single-issuer chain. */
 const edgeColor: Record<ImpactDirection, string> = {
-  Supported: "var(--positive)",
-  Adverse: "var(--danger)",
-  Mixed: "var(--attention)",
-  Unrelated: "var(--muted-foreground)",
-  Unverified: "var(--muted-foreground)",
+  Supported: "var(--foreground)",
+  Adverse: "var(--foreground)",
+  Mixed: "var(--muted-foreground)",
+  Unrelated: "var(--border-strong)",
+  Unverified: "var(--border-strong)",
+};
+
+/** Greyscale has no red for "berlawanan", so direction is told by the line:
+ *  solid supports, long dash opposes, short dash is not yet verified. */
+const edgeDash: Partial<Record<ImpactDirection, string>> = {
+  Adverse: "6 4",
+  Unrelated: "2 4",
+  Unverified: "2 4",
 };
 
 type MapNodeData = {
@@ -86,7 +92,7 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
       <div
         style={size}
         className={cn(
-          "overflow-hidden rounded-xl border-2 border-primary bg-surface shadow-sm ring-4 ring-primary/12 transition-opacity",
+          "overflow-hidden rounded-lg border-2 border-primary bg-surface shadow-sm ring-4 ring-primary/12 transition-opacity",
           data.dimmed && "opacity-20",
         )}
       >
@@ -97,13 +103,13 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
           className="flex h-full w-full cursor-pointer flex-col justify-center rounded-[inherit] px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
         >
           <span className="flex items-center gap-2">
-            <span className="grid size-5 shrink-0 place-items-center rounded bg-primary/12 text-primary">
+            <span className="grid size-5 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
               <Icon aria-hidden="true" className="size-3" />
             </span>
-            <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Emiten</span>
+            <span className=" text-xs text-muted-foreground">Emiten</span>
           </span>
           <span className="mt-1 block font-mono text-base font-semibold leading-5 tracking-tight">{node.label}</span>
-          <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Titik penghubung</span>
+          <span className="block text-xs text-muted-foreground">Titik penghubung</span>
         </button>
         <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" />
       </div>
@@ -114,7 +120,7 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
     <div
       style={size}
       className={cn(
-        "overflow-hidden rounded-xl border bg-surface shadow-sm transition-opacity",
+        "overflow-hidden rounded-lg border bg-surface shadow-sm transition-opacity",
         node.kind === "source" ? "border-attention/45" : "border-border",
         data.hub && "border-attention ring-2 ring-attention/25",
         group && "border-dashed",
@@ -128,22 +134,22 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
         className="flex h-full w-full cursor-pointer flex-col rounded-[inherit] px-2.5 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <span className="flex items-center gap-1.5">
-          <span className="grid size-5 shrink-0 place-items-center rounded bg-primary/10 text-primary">
+          <span className="grid size-5 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
             <Icon aria-hidden="true" className="size-3" />
           </span>
-          <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{uiLabel(node.kind)}</span>
+          <span className=" text-xs text-muted-foreground">{uiLabel(node.kind)}</span>
           {group ? (
-            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-border bg-muted px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
               <IconExpand aria-hidden="true" className="size-2.5" />+{node.groupedSourceIds!.length - 1} sumber
             </span>
           ) : data.hub ? (
-            <span className="ml-auto rounded-full border border-attention/50 bg-attention/12 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-attention-foreground">
+            <span className="ml-auto rounded-full border border-attention/50 bg-attention/12 px-1.5 py-0.5 text-xs text-attention-foreground">
               {node.symbols.length} emiten
             </span>
           ) : null}
         </span>
-        <span className="mt-1 line-clamp-2 block text-[12px] font-semibold leading-[1.3]">{node.kind === "mechanism" ? node.label.charAt(0).toUpperCase() + node.label.slice(1) : node.label}</span>
-        <span className="mt-auto flex items-center gap-1.5 font-mono text-[9px] text-muted-foreground">
+        <span className="mt-1 line-clamp-2 block text-xs font-semibold leading-[1.3]">{node.kind === "mechanism" ? node.label.charAt(0).toUpperCase() + node.label.slice(1) : node.label}</span>
+        <span className="mt-auto flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
           <span className="truncate">{node.symbols.join(" · ")}</span>
           {node.relevance ? <span className="ml-auto shrink-0">{node.relevance}</span> : null}
         </span>
@@ -357,7 +363,7 @@ export function MarketCausalMap({
     // enough to stay a signal, takes the accent.
     const fanOut = hubIds.has(edge.from) || hubIds.has(edge.to);
     const shared = sharedIds.has(edge.from);
-    const stroke = shared ? "var(--attention)" : edgeColor[edge.direction];
+    const stroke = shared ? "var(--foreground)" : edgeColor[edge.direction];
     const weight = 0.9 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.1;
     return {
       id: edge.id,
@@ -376,13 +382,14 @@ export function MarketCausalMap({
       markerEnd: { type: MarkerType.ArrowClosed, color: stroke, width: 14, height: 14 },
       style: {
         stroke,
+        strokeDasharray: shared ? undefined : edgeDash[edge.direction],
         strokeWidth: active ? 2.6 : shared ? weight + 0.8 : fanOut ? weight + 0.3 : weight,
         // Lines are the densest thing on the board, so they sit back from the
         // cards they connect: enough to trace one, not enough to compete with
         // the text. A picked or hovered line comes forward on its own.
         opacity: dimmed ? 0.08 : active ? 1 : shared ? 0.95 : fanOut ? 0.55 : 0.4,
       },
-      labelStyle: { fill: "var(--foreground)", fontSize: 11, fontFamily: "var(--font-mono)" },
+      labelStyle: { fill: "var(--foreground)", fontSize: 12, fontFamily: "var(--font-mono)" },
       labelBgStyle: { fill: "var(--surface)", fillOpacity: 0.94 },
       labelBgPadding: [6, 3] as [number, number],
       labelBgBorderRadius: 4,
@@ -394,7 +401,7 @@ export function MarketCausalMap({
   const foldedCount = view.nodes.reduce((count, node) => count + Math.max(0, (node.groupedSourceIds?.length ?? 1) - 1), 0);
 
   return (
-    <section data-tour="market-map" className="overflow-hidden rounded-[12px] border border-border bg-surface">
+    <section data-tour="market-map" className="overflow-hidden rounded-lg border border-border bg-surface">
       {toolbar}
 
       {view.skipped.length ? (
@@ -405,7 +412,7 @@ export function MarketCausalMap({
 
       <div
         ref={canvasRef}
-        className={cn("relative h-[min(76dvh,720px)] w-full transition-opacity", reloading && "opacity-50")}
+        className={cn("map-in relative h-[min(76dvh,720px)] w-full transition-opacity", reloading && "opacity-50")}
         aria-label="Peta sebab akibat seluruh kasus"
       >
         {/* Susun Ulang Kartu — top-trailing inside the canvas */}
@@ -414,18 +421,18 @@ export function MarketCausalMap({
             <button
               type="button"
               onClick={() => { setExpanded(new Set()); closeInspector(); }}
-              className="min-h-8 cursor-pointer rounded-full border border-primary/40 bg-primary/10 px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-8 cursor-pointer rounded-lg border border-foreground bg-background px-3 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Ringkas sumber
             </button>
           ) : null}
-          <span className="font-mono text-[10px] text-muted-foreground">Kartu dapat Anda uraikan</span>
+          <span className="text-xs text-subtle-foreground">Kartu dapat Anda uraikan</span>
           <button
             type="button"
             onClick={resetLayout}
-            className="min-h-8 cursor-pointer rounded-full border border-border bg-surface/90 px-3 font-mono text-[11px] text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-h-8 cursor-pointer rounded-lg border border-border-strong bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Susun Ulang Kartu
+            Susun ulang kartu
           </button>
         </div>
         <ReactFlow
@@ -484,14 +491,14 @@ export function MarketCausalMap({
             className="absolute inset-y-0 right-0 z-10 flex w-[min(100%,360px)] flex-col border-l border-border bg-surface/98 shadow-2xl backdrop-blur"
           >
             <div className="flex items-center gap-2 border-b border-border px-4 py-2">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-primary">
+              <span className="text-xs text-muted-foreground font-medium">
                 {selectedEdge ? "Hubungan" : uiLabel(selected!.kind)}
               </span>
               <button
                 type="button"
                 onClick={closeInspector}
                 aria-label="Tutup detail"
-                className="ml-auto grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ml-auto grid size-7 cursor-pointer place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <IconClose aria-hidden="true" className="size-4" />
               </button>
@@ -518,9 +525,9 @@ function EdgeDetail({ graph, edge }: { graph: MarketCausalGraph; edge: MarketCau
   return (
     <>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">{edge.symbol}</span>
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Keyakinan {uiLabel(edge.confidence).toLowerCase()}</span>
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Jeda {edge.lag}</span>
+        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">{edge.symbol}</span>
+        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Keyakinan {uiLabel(edge.confidence).toLowerCase()}</span>
+        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Jeda {edge.lag}</span>
         <StatusBadge status={edge.direction} />
       </div>
       <h3 className="mt-2 text-sm font-semibold leading-5">{from} → {to}</h3>
@@ -577,10 +584,10 @@ function NodeDetail({
   return (
     <>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">{selected.lag}</span>
+        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
+        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">{selected.lag}</span>
         {selected.symbols.length > 1 ? (
-          <span className="rounded border border-attention/50 bg-attention/10 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">
+          <span className="rounded-lg border border-attention/50 bg-attention/10 px-1.5 py-0.5 font-mono text-xs text-attention-foreground">
             Dipakai {selected.symbols.length} emiten
           </span>
         ) : null}
@@ -595,14 +602,14 @@ function NodeDetail({
           </Link>
         ) : selected.label}
       </h3>
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{uiLabel(selected.basis)}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{uiLabel(selected.basis)}</p>
       <p className="mt-2 whitespace-pre-line text-xs leading-5 text-muted-foreground">{selected.detail}</p>
 
       {group ? (
         <button
           type="button"
           onClick={() => onExpand(group)}
-          className="mt-3 inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 font-mono text-[11px] text-primary transition-colors hover:bg-primary/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mt-3 inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 font-mono text-xs text-primary transition-colors hover:bg-primary/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <IconExpand aria-hidden="true" className="size-3" />
           Gambar {selected.groupedSourceIds!.length} sumber ini
@@ -620,7 +627,7 @@ function NodeDetail({
       </dl>
 
       {incomplete.length && coverage.length ? (
-        <p className="mt-3 rounded-[8px] border border-attention/30 bg-attention/8 px-3 py-2 text-xs leading-5 text-muted-foreground">
+        <p className="mt-3 rounded-lg border border-attention/30 bg-attention/8 px-3 py-2 text-xs leading-5 text-muted-foreground">
           Rantai {incomplete.join(", ")} berhenti di emiten — {[...new Set(incomplete.flatMap((symbol) => graph.coverage[symbol].missing))].join(", ")} belum terekam, jadi dampak bisnisnya belum dapat diuji.
         </p>
       ) : null}

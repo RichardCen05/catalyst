@@ -129,7 +129,7 @@ function RecordingReadout({ citation, reading }: { citation: Citation; reading?:
 function TechnicalDetails({ citation }: { citation: Citation }) {
   return (
     <details className="mt-3">
-      <summary className="min-h-8 cursor-pointer font-mono text-[10px] uppercase tracking-wider text-primary">Rincian teknis</summary>
+      <summary className="min-h-8 cursor-pointer text-xs text-primary">Rincian teknis</summary>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">Alamat dan nama kolom ditulis apa adanya supaya Anda bisa meminta data yang sama ke penyedia dan mencocokkan angkanya sendiri.</p>
       <dl className="mt-3 grid gap-2 text-xs">
         <div><dt className="text-muted-foreground">Lokasi data</dt><dd className="mt-0.5 overflow-wrap-anywhere font-mono text-foreground">{citation.endpoint}</dd></div>
@@ -159,13 +159,13 @@ export function CitationDialog({ citations, label = "Periksa sumber", trigger }:
           <Button variant="secondary" size="sm">
             <IconSource className="size-3.5" />
             {label}
-            <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{unique.length}</span>
+            <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">{unique.length}</span>
           </Button>
         )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed inset-0 z-100 m-auto h-fit max-h-[85dvh] w-[min(100vw-2rem,520px)] overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
+        <Dialog.Content className="fixed inset-0 z-100 m-auto h-fit max-h-[85dvh] w-[min(100vw-2rem,520px)] overflow-y-auto rounded-lg border border-border bg-surface p-5 shadow-2xl focus:outline-none sm:p-6">
           {/* Mounted with the panel, so the descriptions are requested once
               per opening rather than once per card. */}
           <EvidenceList citations={unique} />
@@ -199,7 +199,7 @@ function EvidenceList({ citations: unique }: { citations: Citation[] }) {
                   })()
                   : undefined;
               return (
-                <article key={citation.id} className="rounded-xl border border-border bg-background p-4">
+                <article key={citation.id} className="rounded-lg border border-border bg-background p-4">
                   <div className="flex items-center gap-2 text-primary"><IconDocument aria-hidden="true" className="size-4" /><h3 className="font-mono text-xs font-semibold">{citation.provider}</h3></div>
                   <p className="mt-3 text-sm font-medium">{citation.label}</p>
                   {/* Plain words first, address second. A reader checking a
@@ -213,7 +213,7 @@ function EvidenceList({ citations: unique }: { citations: Citation[] }) {
                   <RecordingReadout citation={citation} reading={summaries.get(`${citation.endpoint}\u0000${citation.field}`)} />
                   <TechnicalDetails citation={citation} />
                   {event?.body ? <div className="mt-4"><SourceText body={event.body} span={span} /></div> : null}
-                  {citation.url ? <div className="mt-4"><a href={citation.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconExternal aria-hidden="true" className="size-3.5" />{citation.urlLabel ?? "Buka dokumentasi sumber"}</a></div> : null}
+                  {citation.url ? <div className="mt-4"><a href={citation.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><IconExternal aria-hidden="true" className="size-3.5" />{citation.urlLabel ?? "Buka dokumentasi sumber"}</a></div> : null}
                 </article>
               );
             })}

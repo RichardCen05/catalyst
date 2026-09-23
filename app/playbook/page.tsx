@@ -47,9 +47,9 @@ export default function PlaybookPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Aturan kolaborasi" title="Aturan riset investor" description="Tulis cara Anda menguji tesis. Aturan ini mengubah fokus dan urutan penjelasan, bukan angka, rumus, atau sumber." />
+      <PageHeader title="Aturan riset investor" description="Tulis cara Anda menguji tesis. Aturan ini mengubah fokus dan urutan penjelasan, bukan angka, rumus, atau sumber." />
       <Panel className="mb-4">
-        <PanelHeader eyebrow="Daftar pantauan" title="Saham yang dipantau dan dimiliki" />
+        <PanelHeader title="Saham yang dipantau dan dimiliki" />
         <div className="grid gap-2 p-4 sm:grid-cols-2">
           {companies.map((company) => {
             const watched = profile.watchlist.includes(company.symbol);
@@ -73,7 +73,7 @@ export default function PlaybookPage() {
                   onClick={() => toggleOwned(company.symbol)}
                   aria-pressed={owned}
                   title={owned ? "Hapus tanda dimiliki" : "Tandai dimiliki"}
-                  className={cn("min-h-9 shrink-0 rounded-lg border px-2.5 font-mono text-[10px] uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", owned ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}
+                  className={cn("min-h-9 shrink-0 rounded-lg border px-2.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", owned ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}
                 >
                   {owned ? "Dimiliki" : "Tandai"}
                 </button>
@@ -85,7 +85,7 @@ export default function PlaybookPage() {
       </Panel>
 
       <Panel className="mb-4">
-        <PanelHeader eyebrow="Posisi portofolio" title="Lembar saham dan harga rata-rata" />
+        <PanelHeader title="Lembar saham dan harga rata-rata" />
         <div className="grid gap-2 p-4 sm:grid-cols-2">
           {profile.watchlist.map((symbol) => {
             const company = companies.find((item) => item.symbol === symbol);
@@ -96,17 +96,17 @@ export default function PlaybookPage() {
               <div key={symbol} className="rounded-lg border border-border bg-background px-3 py-2.5">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-mono text-sm font-semibold text-primary">{symbol}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{company ? `@${company.price.toLocaleString("id-ID")}` : "harga belum terekam"}</span>
+                  <span className="font-mono text-xs text-muted-foreground">{company ? `@${company.price.toLocaleString("id-ID")}` : "harga belum terekam"}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  <label className="text-[11px] text-muted-foreground">Lembar
-                    <input type="number" min={0} step={100} value={holding?.shares ?? ""} placeholder="0" onChange={(event) => { const shares = Number(event.target.value); if (shares > 0) setHolding(symbol, { shares, avgCost: holding?.avgCost ?? company?.price ?? 0 }); else removeHolding(symbol); }} className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Lembar ${symbol}`} />
+                  <label className="text-xs text-muted-foreground">Lembar
+                    <input type="number" min={0} step={100} value={holding?.shares ?? ""} placeholder="0" onChange={(event) => { const shares = Number(event.target.value); if (shares > 0) setHolding(symbol, { shares, avgCost: holding?.avgCost ?? company?.price ?? 0 }); else removeHolding(symbol); }} className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Lembar ${symbol}`} />
                   </label>
-                  <label className="text-[11px] text-muted-foreground">Rata-rata (Rp)
-                    <input type="number" min={0} step={50} value={holding?.avgCost ?? ""} placeholder="0" onChange={(event) => { const avgCost = Number(event.target.value); if (holding && avgCost >= 0) setHolding(symbol, { shares: holding.shares, avgCost }); }} className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Harga rata-rata ${symbol}`} />
+                  <label className="text-xs text-muted-foreground">Rata-rata (Rp)
+                    <input type="number" min={0} step={50} value={holding?.avgCost ?? ""} placeholder="0" onChange={(event) => { const avgCost = Number(event.target.value); if (holding && avgCost >= 0) setHolding(symbol, { shares: holding.shares, avgCost }); }} className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Harga rata-rata ${symbol}`} />
                   </label>
                 </div>
-                {holding ? (exposure === null || pnl === null ? <p className="mt-2 font-mono text-[10px] text-attention-foreground">Harga penutupan {symbol} tidak ada pada rekaman — eksposur dan laba/rugi tidak dihitung.</p> : <p className="mt-2 font-mono text-[10px] text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p>) : null}
+                {holding ? (exposure === null || pnl === null ? <p className="mt-2 font-mono text-xs text-attention-foreground">Harga penutupan {symbol} tidak ada pada rekaman — eksposur dan laba/rugi tidak dihitung.</p> : <p className="mt-2 font-mono text-xs text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p>) : null}
               </div>
             );
           })}
@@ -115,7 +115,7 @@ export default function PlaybookPage() {
       </Panel>
 
       <Panel className="mb-4">
-        <PanelHeader eyebrow="Pembanding pilihan" title="Pembanding yang bermakna bagi Anda" />
+        <PanelHeader title="Pembanding yang bermakna bagi Anda" />
         <div className="p-4">
           <label className="text-xs font-medium" htmlFor="playbook-symbol">Emiten utama</label>
           <select id="playbook-symbol" value={activeSymbol} onChange={(event) => setActiveSymbol(event.target.value as SymbolCode)} className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary sm:max-w-xs">{analyzed.map((company) => <option key={company.symbol} value={company.symbol}>{company.symbol} · {company.name}</option>)}</select>
@@ -124,7 +124,7 @@ export default function PlaybookPage() {
       </Panel>
 
       <Panel>
-        <PanelHeader eyebrow="Penilaian riset" title="Aturan yang dapat dilihat dan diubah" />
+        <PanelHeader title="Aturan yang dapat dilihat dan diubah" />
         <div className="border-b border-border p-4">
           <label htmlFor="relevance-floor" className="text-xs font-medium">Ambang relevansi materialitas: <span className="font-mono text-primary">{relevanceFloor}</span></label>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">Eksposur dengan relevansi di atas ambang ini menandai kasus High. Kasus tanpa jalur eksposur tetap Low.</p>
@@ -150,13 +150,13 @@ export default function PlaybookPage() {
                 <div key={row.key}>
                   <label htmlFor={`threshold-${row.key}`} className="flex flex-wrap items-center gap-2 text-xs font-medium">
                     {row.label}: <span className="font-mono text-primary">{row.fmt(cur)}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">(bawaan {row.fmt(row.def)})</span>
-                    {changed ? <span className="rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-primary">diubah dari bawaan</span> : null}
+                    <span className="font-mono text-xs text-muted-foreground">(bawaan {row.fmt(row.def)})</span>
+                    {changed ? <span className="rounded-lg border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-xs text-muted-foreground font-medium">diubah dari bawaan</span> : null}
                   </label>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{row.hint}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <input id={`threshold-${row.key}`} type="range" min={row.min} max={row.max} step={row.step} value={cur} onChange={(event) => { setSaved(false); setThreshold(row.key, Number(event.target.value)); }} className="w-full max-w-md accent-[var(--primary)]" aria-valuetext={`${row.fmt(cur)} dari bawaan ${row.fmt(row.def)}`} />
-                    {changed ? <button type="button" onClick={() => { setSaved(false); resetThreshold(row.key); }} className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-primary">kembalikan ke bawaan</button> : null}
+                    {changed ? <button type="button" onClick={() => { setSaved(false); resetThreshold(row.key); }} className="shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground hover:text-primary">kembalikan ke bawaan</button> : null}
                   </div>
                 </div>
               );
@@ -170,7 +170,7 @@ export default function PlaybookPage() {
       </Panel>
 
       <Panel className="mt-4">
-        <PanelHeader eyebrow="Preferensi yang dipelajari" title="Cara penyajian yang Anda pilih" />
+        <PanelHeader title="Cara penyajian yang Anda pilih" />
         {preferences.length ? <div className="divide-y divide-border">{preferences.map((preference) => <div key={preference.id} className="flex items-center gap-3 px-4 py-3"><button type="button" role="switch" aria-checked={preference.active} aria-label={preference.label} onClick={() => togglePreference(preference.id)} className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", preference.active ? "bg-primary" : "bg-muted")}><span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", preference.active ? "left-[22px]" : "left-0.5")} /></button><div className="min-w-0"><p className="text-sm font-medium">{preference.label}</p><p className="truncate text-xs text-muted-foreground">{preference.explanation}</p></div></div>)}</div> : <p className="px-4 py-5 text-sm text-muted-foreground">Belum ada preferensi. Masukan dan catatan Anda akan muncul di sini.</p>}
       </Panel>
     </div>

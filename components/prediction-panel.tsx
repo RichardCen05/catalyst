@@ -32,10 +32,10 @@ import { cn } from "@/lib/utils";
  */
 
 const VERDICT_TONE: Record<PredictionVerdict, string> = {
-  hit: "border-positive/35 bg-positive/10 text-positive",
-  early: "border-attention/35 bg-attention/10 text-attention-foreground",
-  late: "border-attention/35 bg-attention/10 text-attention-foreground",
-  miss: "border-danger/30 bg-danger/8 text-danger",
+  hit: "border-foreground text-foreground",
+  early: "border-border-strong text-muted-foreground",
+  late: "border-border-strong text-muted-foreground",
+  miss: "border-dashed border-border-strong text-subtle-foreground",
   pending: "border-border bg-muted/50 text-muted-foreground",
   void: "border-border bg-muted/50 text-muted-foreground",
 };
@@ -68,7 +68,7 @@ function percent(value: number | null): string {
 
 function VerdictChip({ verdict }: { verdict: PredictionVerdict }) {
   return (
-    <span className={cn("shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", VERDICT_TONE[verdict])}>
+    <span className={cn("shrink-0 rounded-lg border px-1.5 py-0.5 text-xs", VERDICT_TONE[verdict])}>
       {PREDICTION_VERDICT_LABELS[verdict]}
     </span>
   );
@@ -88,10 +88,10 @@ function BucketRow({ bucket }: { bucket: CalibrationBucket }) {
       {bucket.sufficient ? (
         <span className="font-mono text-xs tabular-nums text-positive">{percent(bucket.hitRate)} tepat waktu</span>
       ) : (
-        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">belum cukup bukti</span>
+        <span className=" text-xs text-muted-foreground">belum cukup bukti</span>
       )}
 
-      <p className="min-w-0 font-mono text-[10px] text-muted-foreground">
+      <p className="min-w-0 font-mono text-xs text-muted-foreground">
         {bucket.sufficient ? `terjadi ${percent(bucket.occurrenceRate)} · ` : ""}
         {bucket.n} tervonis{bucket.n < MIN_SAMPLE ? `/${MIN_SAMPLE}` : ""}
         {bucket.verdicts.pending ? ` · ${bucket.verdicts.pending} menunggu` : ""}
@@ -107,15 +107,15 @@ function ClaimRow({ row }: { row: { claim: PredictionClaim; outcome: PredictionO
   return (
     <li className="grid gap-x-4 gap-y-1.5 px-4 py-3 md:grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] md:items-baseline">
       <span className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[11px] font-semibold text-primary">{claim.symbol}</span>
+        <span className="font-mono text-xs font-semibold text-muted-foreground font-medium">{claim.symbol}</span>
         <VerdictChip verdict={outcome.verdict} />
       </span>
       <span className="min-w-0 text-sm leading-6">
         {PREDICTION_METRIC_LABELS[claim.metric]}
-        {claim.shadow ? <span className="ml-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">kalah seleksi</span> : null}
+        {claim.shadow ? <span className="ml-2 text-xs text-muted-foreground">kalah seleksi</span> : null}
       </span>
       <span className="min-w-0 text-xs leading-5 text-muted-foreground">{outcome.note}</span>
-      <span className="min-w-0 font-mono text-[10px] text-muted-foreground">
+      <span className="min-w-0 font-mono text-xs text-muted-foreground">
         {claim.issuedAt} · {claim.windowSessions[0]}–{claim.windowSessions[1]} sesi · {claim.threshold}
       </span>
     </li>
@@ -197,7 +197,7 @@ export function PredictionPanel({
           setengah tinggi grafik di sebelahnya. */}
       <div className="mb-4 grid items-stretch gap-4 lg:grid-cols-2">
         <Panel className="overflow-hidden" aria-label="Ringkasan prediksi">
-          <PanelHeader eyebrow="Jendela penilaian" title="Berapa yang sudah bisa dinilai" />
+          <PanelHeader title="Berapa yang sudah bisa dinilai" />
           <div className="p-4">
             {/* Lebar batangnya adalah pangsa klaim yang jendelanya sudah
                 penuh, bukan lebar tetap yang kebetulan mirip. */}
@@ -230,7 +230,7 @@ export function PredictionPanel({
         </Panel>
 
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Sebaran vonis" title="Hasil klaim yang sudah ditagih" />
+          <PanelHeader title="Hasil klaim yang sudah ditagih" />
           {verdictData.length ? (
             <VerdictChart data={verdictData} />
           ) : (
@@ -243,7 +243,7 @@ export function PredictionPanel({
           tidak ada kolom yang berjalan sendirian. */}
       <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Usulan koreksi" title="Yang ingin Catalyst ubah" />
+          <PanelHeader title="Yang ingin Catalyst ubah" />
           {report.lagSuggestions.length ? (
             <ul className="divide-y divide-border">
               {report.lagSuggestions.map((suggestion) => (
@@ -252,7 +252,7 @@ export function PredictionPanel({
                     Jendela {suggestion.category}: {suggestion.current[0]}–{suggestion.current[1]} → {suggestion.suggested[0]}–{suggestion.suggested[1]} sesi
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{suggestion.reason}</p>
-                  <p className="mt-2 font-mono text-[10px] text-muted-foreground">dari {suggestion.n} kejadian</p>
+                  <p className="mt-2 font-mono text-xs text-muted-foreground">dari {suggestion.n} kejadian</p>
                 </li>
               ))}
             </ul>
@@ -265,7 +265,7 @@ export function PredictionPanel({
         </Panel>
 
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Batas klaim" title="Yang tidak dibuktikan" />
+          <PanelHeader title="Yang tidak dibuktikan" />
           <div className="p-4">
             <p className="text-sm leading-6">
               Vonis <strong>Tepat</strong> berarti kondisinya terjadi di jendela itu. Bukan berarti beritanya yang
@@ -282,10 +282,10 @@ export function PredictionPanel({
       {/* Satu baris = satu klaim. Judul metrik berulang-ulang, jadi yang
           dibedakan di kolom kiri adalah emitennya, bukan kalimatnya. */}
       <Panel className="mb-4 overflow-hidden">
-        <PanelHeader eyebrow="Vonis terbaru" title="Apa yang sudah ditagih" />
+        <PanelHeader title="Apa yang sudah ditagih" />
         {graded.length ? (
           <>
-            <div className="hidden grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] gap-4 border-b border-border bg-muted/40 px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:grid">
               <span>Saham</span>
               <span>Klaim</span>
               <span>Hasilnya</span>
@@ -314,7 +314,7 @@ export function PredictionPanel({
       </Panel>
 
       <Panel className="overflow-hidden">
-        <PanelHeader eyebrow="Kalibrasi" title="Di mana tebakannya tepat, di mana tidak" />
+        <PanelHeader title="Di mana tebakannya tepat, di mana tidak" />
         <p className="border-b border-border px-4 py-3 text-xs leading-5 text-muted-foreground">
           <strong className="text-foreground">Tepat waktu</strong> berarti kondisinya terjadi di dalam jendela yang
           diperkirakan. <strong className="text-foreground">Terjadi, kapan pun</strong> mengabaikan waktunya — selisih
@@ -324,12 +324,12 @@ export function PredictionPanel({
 
         {calibrationData.length ? (
           <div className="border-b border-border pt-4">
-            <div className="mb-1 flex flex-wrap gap-x-5 gap-y-1 px-4 text-[11px] text-muted-foreground">
+            <div className="mb-1 flex flex-wrap gap-x-5 gap-y-1 px-4 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-2">
-                <span aria-hidden="true" className="size-2 rounded-sm bg-positive" />Tepat waktu
+                <span aria-hidden="true" className="size-2 rounded-lg bg-positive" />Tepat waktu
               </span>
               <span className="inline-flex items-center gap-2">
-                <span aria-hidden="true" className="size-2 rounded-sm bg-primary/45" />Terjadi, kapan pun
+                <span aria-hidden="true" className="size-2 rounded-lg bg-primary/45" />Terjadi, kapan pun
               </span>
             </div>
             <CalibrationChart data={calibrationData} />
