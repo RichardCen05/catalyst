@@ -1,4 +1,4 @@
-import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF_LABEL, events } from "@/lib/data/fixtures";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
@@ -42,7 +42,7 @@ export async function buildDashboardBundle(context: RequestContext): Promise<Con
     `- Jalur dipakai bersama, yaitu mekanisme yang dilalui lebih dari satu emiten: ${hubCount}.`,
     `- Dampak bisnis dapat diuji: ${impactCount}.`,
     `- Hubungan di bawah ambang relevansi ${DEFAULT_THRESHOLDS.chainRelevanceFloor} sehingga tidak digambar: ${graph.hiddenRelationshipCount}.`,
-    `Angka papan ini tertanggal ${DATA_AS_OF}, yaitu penutupan sesi terakhir yang terekam.`,
+    `Angka papan ini tertanggal ${DATA_AS_OF_LABEL}, yaitu penutupan sesi terakhir yang terekam.`,
     ...(graph.skipped.length
       ? [`Tidak digambar: ${graph.skipped.map((row) => `${row.symbol} (${row.reason})`).join("; ")}.`]
       : []),
