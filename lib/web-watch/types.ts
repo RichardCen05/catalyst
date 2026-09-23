@@ -7,7 +7,7 @@
  * `rawEvents` / `market.generated.ts`.
  */
 
-import type { MarketEvent } from "@/lib/types";
+import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 export type WebWatchKind = "document" | "feed" | "listing";
 
@@ -36,6 +36,15 @@ export interface WatchedSource {
    *  get to upgrade itself. */
   category: MarketEvent["category"];
   sourceType: MarketEvent["sourceType"];
+  /** Emiten this address was registered for. Declared by the person adding
+   *  it, like `category`: a change here concerns these symbols whatever the
+   *  text says. Absent on sector-wide sources, and on registry entries written
+   *  before the field existed — both read as "no declared symbols". */
+  symbols?: SymbolCode[];
+  /** Administrative area the source reports on, spelled the way the source
+   *  itself spells it (a BMKG regency name). Triage matches quake reports
+   *  against it by text; no coordinates are stored or invented. */
+  region?: string;
 }
 
 export interface WatchedSourceState extends WatchedSource {
