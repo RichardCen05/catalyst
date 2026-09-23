@@ -4,8 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
-import { fuzzyIncludes } from "@/lib/text/fuzzy";
-import { companies } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF_LABEL } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -15,16 +14,45 @@ import { StatusBadge, strengthRank } from "@/components/ui/status-badge";
 import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
+import { SymbolCombobox } from "@/components/ui/symbol-combobox";
 import { cn, displayFigure, formatCurrency } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
+import { COVERAGE_ORDER, coverageRows, type CoverageStatus, type MovementCheck } from "@/lib/agent/coverage";
+import { resolveThresholds, type ResolvedThresholds } from "@/lib/agent/thresholds";
 
-type CaseHubView = "active" | "picker";
+type CaseHubView = "active" | "coverage" | "picker";
 
 const views: Array<{ value: CaseHubView; label: string }> = [
   { value: "active", label: "Analisis aktif" },
+  { value: "coverage", label: "Semua emiten" },
   { value: "picker", label: "Perbandingan emiten" },
 ];
+
+const coverageGroups: Record<CoverageStatus, { title: string; description: string }> = {
+  case: { title: "Kasus aktif", description: "Ada di pantauan Anda dan rekamannya lengkap." },
+  recorded: { title: "Terekam lengkap, di luar pantauan", description: "Kasus terbuka begitu emiten ditambahkan ke pantauan." },
+  partial: { title: "Di pantauan, rekaman belum lengkap", description: "Kasus belum bisa dibuka sampai rekaman yang kurang tersedia." },
+  outside: { title: "Di luar pantauan, rekaman belum lengkap", description: "Tidak dipantau dan rekamannya belum cukup untuk kasus." },
+};
+
+const decimal = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+/** A value that rounds to zero prints as 0,0, never −0,0. */
+const signed = (value: number) => (decimal.format(Math.abs(value)) === decimal.format(0) ? decimal.format(0) : `${value < 0 ? "−" : ""}${decimal.format(Math.abs(value))}`);
+const percentOf = (fraction: number) => `${signed(fraction * 100)}%`;
+
+/** One line per test, always naming the floor it was held to. */
+function MovementCell({ movement, thresholds }: { movement: MovementCheck; thresholds: ResolvedThresholds }) {
+  if (movement.status === "insufficient") return <span className="text-xs text-muted-foreground">Data belum cukup untuk diuji</span>;
+  const dropFloor = -Math.abs(thresholds.contagionDropFloor);
+  return <span className="block">
+    <span className={cn("inline-flex h-6 items-center rounded-lg border px-2 text-xs font-medium", movement.status === "crossed" ? "border-foreground" : "border-border text-muted-foreground")}>{movement.status === "crossed" ? "Melewati ambang" : "Tidak melewati ambang"}</span>
+    <span className="mt-1 block font-mono text-xs tabular-nums text-subtle-foreground">
+      <span className={cn("block", movement.volumeCrossed && "font-semibold text-foreground")}>Volume z {movement.volumeZ === null ? "—" : signed(movement.volumeZ)} {movement.volumeCrossed ? "≥" : "<"} {decimal.format(thresholds.volumeZFloor)}</span>
+      {movement.lastSessionChange !== null ? <span className={cn("block", movement.dropCrossed && "font-semibold text-foreground")}>Sesi terakhir {percentOf(movement.lastSessionChange)} {movement.dropCrossed ? "≤" : ">"} {percentOf(dropFloor)}</span> : null}
+    </span>
+  </span>;
+}
 
 function ResearchCasesContent() {
   const searchParams = useSearchParams();
@@ -32,8 +60,7 @@ function ResearchCasesContent() {
   // Koreksi pengguna, usulan aturan, dan memori hasil hidup di AI Learning —
   // itu memori yang diajarkan pembaca, bukan kasus yang sedang diperiksa.
   const activeView: CaseHubView = views.some((item) => item.value === requested) ? requested as CaseHubView : "active";
-  const { profile, playbook, caseStatuses, caseResolutions, insights, feedback, preferences } = useCatalystStore();
-  const [query, setQuery] = useState("");
+  const { profile, playbook, caseStatuses, caseResolutions, insights, feedback, preferences, setWatchlist } = useCatalystStore();
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [selected, setSelected] = useState<Array<SymbolCode | undefined>>(() => {
     const valid = (searchParams.get("compare") ?? "")
@@ -51,12 +78,6 @@ function ResearchCasesContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, profile.watchlist.join(","), playbook, insights, caseResolutions]);
   const activeSymbols = useMemo(() => selected.filter((symbol): symbol is SymbolCode => Boolean(symbol)), [selected]);
-  const searchMatches = useMemo(() => {
-    const value = query.trim().toLowerCase();
-    if (!value || openSlot === null) return [];
-    const others = selected.filter((_, index) => index !== openSlot);
-    return companies.filter((company) => company.analyzed && !others.includes(company.symbol) && fuzzyIncludes(`${company.symbol} ${company.name} ${company.sector}`, value)).slice(0, 8);
-  }, [query, selected, openSlot]);
   const [compared, setCompared] = useState<AnalysisCase[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +93,7 @@ function ResearchCasesContent() {
     [cases, feedback, preferences],
   );
 
-  const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setQuery(""); setOpenSlot(null); };
+  const selectSlot = (index: number, symbol: SymbolCode) => { setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? symbol : item))); setOpenSlot(null); };
   const removeSlot = (index: number) => setSelected((current) => current.map((item, itemIndex) => (itemIndex === index ? undefined : item)));
 
   const rawFigure = (item: AnalysisCase, pillar: string, label: string) => item.pillars.find((entry) => entry.key === pillar)?.metrics.find((metric) => metric.label === label)?.value;
@@ -86,6 +107,11 @@ function ResearchCasesContent() {
     const value = Number.parseFloat((rawFigure(item, pillar, label) ?? "").replace(/[−–]/g, "-").replace(",", ".").replace(/[^0-9.-]/g, ""));
     return Number.isFinite(value) ? Math.abs(value) : undefined;
   };
+
+  const thresholds = useMemo(() => resolveThresholds(playbook), [playbook]);
+  const coverage = useMemo(() => coverageRows(profile.watchlist, thresholds), [profile.watchlist, thresholds]);
+  const crossedCount = coverage.filter((row) => row.movement.status === "crossed").length;
+  const testedCount = coverage.filter((row) => row.movement.status !== "insufficient").length;
 
   const firstOpen = orderedCases.find((item) => (caseStatuses[item.company.symbol] ?? item.status) !== "closed");
 
@@ -128,7 +154,47 @@ function ResearchCasesContent() {
         </ul>
       </div>
         <p className="mt-3 text-xs text-subtle-foreground">Urutan mengikuti materialitas dan feedback Anda. Setiap kasus diperiksa dalam tiga langkah: 1 Pasar, 2 Bisnis, 3 Keputusan.</p>
+        <p className="mt-2 text-sm text-muted-foreground">{orderedCases.length} dari {companies.length} emiten punya kasus aktif. <Link href="/cases?view=coverage" className="font-medium text-foreground underline underline-offset-4 hover:no-underline">Lihat semua emiten</Link> untuk emiten yang tidak masuk daftar ini dan hasil uji ambangnya.</p>
         {firstOpen ? <NextStep title={`Mulai dari ${firstOpen.company.symbol}`} description={`${firstOpen.trigger.title}. Buka langkah 1 Pasar untuk memeriksa apakah pasar ikut bergerak.`} href={`/cases/${firstOpen.company.symbol}?tab=market`} action={`Buka ${firstOpen.company.symbol}`} secondary={{ href: "/cases?view=picker", label: "Bandingkan emiten" }} /> : <NextStep title="Semua kasus sudah ditutup" description="Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning." href="/ai-learning?section=tinjauan" action="Buka tinjauan dan usulan" />}
+      </div> : null}
+
+      {activeView === "coverage" ? <div>
+        <p className="mb-4 text-sm text-muted-foreground">{testedCount} dari {companies.length} emiten diuji pada sesi terakhir rekaman ({DATA_AS_OF_LABEL}); {crossedCount} melewati ambang volume atau penurunan harian. Uji ini hanya memakai harga dan volume, jadi juga berjalan untuk emiten tanpa kasus.</p>
+        <div className="space-y-6">
+          {COVERAGE_ORDER.map((status) => {
+            const rows = coverage.filter((row) => row.status === status);
+            if (!rows.length) return null;
+            const group = coverageGroups[status];
+            return <section key={status} aria-labelledby={`coverage-${status}`}>
+              <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
+                <h2 id={`coverage-${status}`} className="text-base font-semibold">{group.title}</h2>
+                <span className="font-mono text-xs tabular-nums text-subtle-foreground">{rows.length}</span>
+                <p className="w-full text-xs text-subtle-foreground">{group.description}</p>
+              </div>
+              <div className="overflow-hidden rounded-lg border border-border">
+                <div aria-hidden="true" className="hidden grid-cols-[200px_minmax(0,1fr)_minmax(0,1fr)_110px_170px] gap-4 border-b border-border bg-surface px-4 py-2.5 text-xs font-medium text-muted-foreground lg:grid"><span>Emiten</span><span>Rekaman</span><span>Uji ambang</span><span className="text-right">Harga</span><span className="text-right">Tindakan</span></div>
+                <ul className="divide-y divide-border">
+                  {rows.map((row) => {
+                    const company = companies.find((item) => item.symbol === row.symbol)!;
+                    return <li key={row.symbol} className="grid gap-3 px-4 py-4 lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,1fr)_110px_170px] lg:items-start lg:gap-4">
+                      <span className="flex min-w-0 items-center gap-2"><TickerAvatar symbol={row.symbol} size="sm" /><span className="min-w-0"><strong className="block text-base font-semibold">{row.symbol}</strong><span className="block truncate text-xs text-subtle-foreground">{company.name}</span></span></span>
+                      <span className="text-xs text-muted-foreground">{row.missing.length ? `Belum ada: ${row.missing.join(", ")}` : "Lengkap"}</span>
+                      <MovementCell movement={row.movement} thresholds={thresholds} />
+                      <span className="flex items-center gap-2 lg:flex-col lg:items-end lg:gap-0.5"><span className="font-mono text-sm font-medium tabular-nums">{formatCurrency(company.price)}</span><PriceChange value={company.changePct} className="text-xs" /></span>
+                      <span className="lg:text-right">
+                        {row.status === "case" ? <Link href={`/cases/${row.symbol}`} className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium hover:underline">Buka kasus<IconArrowRight aria-hidden="true" className="size-4" /></Link>
+                          : row.status === "recorded" ? <button type="button" onClick={() => setWatchlist([...profile.watchlist, row.symbol])} className="inline-flex min-h-9 cursor-pointer items-center whitespace-nowrap rounded-lg border border-border-strong bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Tambah ke pantauan</button>
+                          : <Link href={`/companies/${row.symbol}`} className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium hover:underline">Lihat emiten<IconArrowRight aria-hidden="true" className="size-4" /></Link>}
+                      </span>
+                    </li>;
+                  })}
+                </ul>
+              </div>
+            </section>;
+          })}
+        </div>
+        <p className="mt-3 text-xs text-subtle-foreground">Ambang yang sama dengan pilar kasus: Ambang volume (Meningkat) untuk skor z volume dan Ambang penurunan penularan untuk penurunan harga satu sesi. Keduanya diubah di Aturan riset investor.</p>
+        <NextStep title="Kembali ke kasus aktif" description="Emiten yang melewati ambang tetapi rekamannya belum lengkap belum bisa dibuka sebagai kasus. Kasus yang bisa diperiksa ada di Analisis aktif." href="/cases" action="Buka Analisis aktif" secondary={{ href: "/playbook", label: "Aturan riset investor" }} />
       </div> : null}
 
       {activeView === "picker" ? <div>
@@ -144,27 +210,16 @@ function ResearchCasesContent() {
                 <tr>
                   <th className="px-4 py-3 align-bottom">Pemeriksaan</th>
                   {selected.map((symbol, index) => <th key={index} className="px-4 py-3 align-bottom font-normal">
-                    {openSlot === index ? <div className="relative">
-                      <label className="relative block">
-                        <IconSearch aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                        <span className="sr-only">Cari emiten untuk kolom {index + 1}</span>
-                        <input
-                          autoFocus
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          onBlur={() => setOpenSlot(null)}
-                          placeholder="Cari emiten"
-                          className="h-9 w-full rounded-lg border border-primary bg-surface pl-8 pr-2 font-mono text-xs outline-none focus:ring-2 focus:ring-ring/25"
-                        />
-                      </label>
-                      {query.trim() ? <div className="absolute z-10 mt-1 max-h-56 w-56 overflow-y-auto rounded-lg border border-border bg-surface text-left shadow-lg">
-                        {searchMatches.length ? searchMatches.map((company) => <button key={company.symbol} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectSlot(index, company.symbol)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50"><TickerAvatar symbol={company.symbol} size="sm" /><span className="font-mono font-semibold text-primary">{company.symbol}</span><span className="truncate text-muted-foreground">{company.name}</span></button>) : <p className="px-3 py-2 text-xs text-muted-foreground">Tidak ada emiten cocok.</p>}
-                      </div> : null}
-                    </div> : symbol ? <div className="flex items-center gap-1.5">
+                    {openSlot === index ? <SymbolCombobox
+                      label={`Cari emiten untuk kolom ${index + 1}`}
+                      exclude={selected.filter((item, itemIndex): item is SymbolCode => Boolean(item) && itemIndex !== index)}
+                      onSelect={(picked) => selectSlot(index, picked)}
+                      onClose={() => setOpenSlot(null)}
+                    /> : symbol ? <div className="flex items-center gap-1.5">
                       <TickerAvatar symbol={symbol} size="sm" />
-                      <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="font-mono text-sm font-semibold text-primary hover:underline">{symbol}</button>
+                      <button type="button" onClick={() => setOpenSlot(index)} className="font-mono text-sm font-semibold text-primary hover:underline">{symbol}</button>
                       <button type="button" onClick={() => removeSlot(index)} aria-label={`Hapus ${symbol} dari perbandingan`} className="grid size-4 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"><IconClose aria-hidden="true" className="size-3" /></button>
-                    </div> : <button type="button" onClick={() => { setOpenSlot(index); setQuery(""); }} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"><IconSearch aria-hidden="true" className="size-3" />Tambah emiten</button>}
+                    </div> : <button type="button" onClick={() => setOpenSlot(index)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"><IconSearch aria-hidden="true" className="size-3" />Tambah emiten</button>}
                   </th>)}
                 </tr>
               </thead>
@@ -190,7 +245,7 @@ function ResearchCasesContent() {
           </div>
           <p className="border-t border-border px-4 py-3 text-xs text-subtle-foreground">Terkuat: sinyal paling jauh dari nol di baris itu, atau status bukti yang paling kuat. Ini urutan pemeriksaan, bukan peringkat investasi.</p>
         </Panel>
-        {activeSymbols.length ? <NextStep title={`Periksa ${activeSymbols[0]} lebih dalam`} description="Perbandingan menunjukkan di mana bukti berbeda. Buka kasusnya untuk membaca buktinya langkah demi langkah." href={`/cases/${activeSymbols[0]}`} action={`Buka ${activeSymbols[0]}`} secondary={{ href: "/cases", label: "Kembali ke Analisis aktif" }} /> : <NextStep title="Pilih emiten untuk dibandingkan" description="Tekan Tambah emiten di kepala kolom, lalu ketik kode saham." href="/cases" action="Kembali ke Analisis aktif" />}
+        {activeSymbols.length ? <NextStep title={`Periksa ${activeSymbols[0]} lebih dalam`} description="Perbandingan menunjukkan di mana bukti berbeda. Buka kasusnya untuk membaca buktinya langkah demi langkah." href={`/cases/${activeSymbols[0]}`} action={`Buka ${activeSymbols[0]}`} secondary={{ href: "/cases", label: "Kembali ke Analisis aktif" }} /> : <NextStep title="Pilih emiten untuk dibandingkan" description="Tekan Tambah emiten di kepala kolom, lalu pilih dari daftar atau ketik kode saham." href="/cases" action="Kembali ke Analisis aktif" />}
       </div> : null}
     </div>
   );

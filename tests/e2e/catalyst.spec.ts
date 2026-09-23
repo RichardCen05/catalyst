@@ -130,9 +130,10 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
   await expect(hub).toContainText("6 emiten");
   await expect(hub).toContainText("ANTM · INCO · TINS · PGAS · ADRO · PTBA");
 
-  // Cards can be pulled clear of each other, and put back.
-  await expect(hub).toHaveClass(/draggable/);
-  await expect(map.getByRole("button", { name: "Susun ulang" })).toBeVisible();
+  // Cards stay in their column: the layout is the argument, so nothing drags
+  // and there is no layout to put back.
+  await expect(hub).not.toHaveClass(/draggable/);
+  await expect(map.getByRole("button", { name: /Susun ulang/ })).toHaveCount(0);
 
   // The whole board is on screen at a zoom its headlines can be read at: no
   // scrolling to find out what else is on it, and no wall of grey slabs.

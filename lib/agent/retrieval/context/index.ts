@@ -62,8 +62,9 @@ const VIEWS: ViewSpec[] = [
     // Counted over every recording, so it answers "how many emiten are
     // covered" and never "what is on my list".
     scope: "registry",
-    vocabulary: ["kasus", "daftar kasus", "cakupan", "kasus lengkap", "semua kasus", "riset"],
-    load: () => buildCasesBundle(),
+    vocabulary: ["kasus", "daftar kasus", "cakupan", "kasus lengkap", "semua kasus", "riset",
+      "semua emiten", "emiten tanpa kasus", "tidak bergerak", "uji ambang", "melewati ambang"],
+    load: (context) => buildCasesBundle(context),
   },
   {
     // The reader's own open cases, beside the registry-wide coverage entry

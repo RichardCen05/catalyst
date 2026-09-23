@@ -297,12 +297,7 @@ export function MarketCausalMap({
     });
   }, [closeInspector]);
 
-  /** A drag ends with a click on the card that was under the pointer the
-   *  whole time, so the browser fires it as an ordinary click. Without this
-   *  guard every drag would also open that card's detail panel. */
-  const draggedAt = useRef(0);
   const selectNode = useCallback((id: string) => {
-    if (Date.now() - draggedAt.current < 200) return;
     setSelectedId(id);
     setSelectedEdgeId(null);
   }, []);
@@ -311,13 +306,11 @@ export function MarketCausalMap({
   const sharedIds = useMemo(() => new Set(view.sharedSourceIds), [view.sharedSourceIds]);
 
   /**
-   * Card positions live in React Flow's own state so they can be dragged.
-   *
-   * A laid-out board is a starting point, not a verdict: an analyst reading
-   * one path wants to pull its cards clear of the others, and a layout that
-   * snapped back on the next render would make that impossible. So the layout
-   * seeds this state and the drag owns it from then on, until "Susun ulang"
-   * puts every card back where the layout wants it.
+   * Card positions come from the layout alone. Cards are not draggable: the
+   * columns are the argument (source, channel, issuer, business impact), and
+   * a card pulled out of its column reads as a different claim. React Flow
+   * still holds the nodes in its own state so it can record their measured
+   * size, which the edges need to find their handles.
    */
   const baseNodes = useMemo<MapFlowNode[]>(() => view.nodes.map((node) => ({
     id: node.id,
@@ -338,10 +331,9 @@ export function MarketCausalMap({
 
   const [nodeState, setNodeState, onNodesChange] = useNodesState<MapFlowNode>(baseNodes);
   useEffect(() => { setNodeState(baseNodes); }, [baseNodes, setNodeState]);
-  const resetLayout = useCallback(() => { setNodeState(baseNodes); frameBoard(); }, [baseNodes, setNodeState, frameBoard]);
 
   // Dimming is derived, never stored: writing it back into node state on every
-  // hover would overwrite the positions a drag just produced.
+  // hover would re-seed every node for a change that concerns only a few.
   const nodes = useMemo(
     () => nodeState.map((node) => {
       const dimmed = highlighted ? !highlighted.has(node.id) : false;
@@ -415,7 +407,6 @@ export function MarketCausalMap({
         className={cn("map-in relative h-[min(76dvh,720px)] w-full transition-opacity", reloading && "opacity-50")}
         aria-label="Peta sebab akibat seluruh kasus"
       >
-        {/* Susun Ulang Kartu — top-trailing inside the canvas */}
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
           {expanded.size > 0 ? (
             <button
@@ -427,13 +418,6 @@ export function MarketCausalMap({
             </button>
           ) : null}
           <span className="text-xs text-subtle-foreground">Kartu dapat Anda uraikan</span>
-          <button
-            type="button"
-            onClick={resetLayout}
-            className="min-h-8 cursor-pointer rounded-lg border border-border-strong bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Susun ulang kartu
-          </button>
         </div>
         <ReactFlow
           nodes={nodes}
@@ -443,10 +427,8 @@ export function MarketCausalMap({
           onInit={(instance) => { flowRef.current = instance as ReactFlowInstance<MapFlowNode, Edge>; frameBoard(); }}
           minZoom={0.08}
           maxZoom={1.5}
+          nodesDraggable={false}
           nodesConnectable={false}
-          onNodeDragStart={() => { draggedAt.current = Date.now(); }}
-          onNodeDrag={() => { draggedAt.current = Date.now(); }}
-          onNodeDragStop={() => { draggedAt.current = Date.now(); }}
           // The board is framed whole, so the wheel is only needed when the
           // legibility floor makes it wider than the canvas. Zooming on the
           // wheel instead would undo that framing on the first flick.

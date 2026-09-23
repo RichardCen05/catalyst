@@ -364,7 +364,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Analisis aktif",
     view: "cases",
     eyebrow: "Tab",
-    labels: ["Perbandingan emiten"],
+    labels: ["Semua emiten","Perbandingan emiten"],
     file: "app/cases/page.tsx",
   },
   {
@@ -375,18 +375,25 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/cases/page.tsx",
   },
   {
+    id: "chrome:cases:kembali-ke-kasus-aktif",
+    heading: "Kembali ke kasus aktif",
+    view: "cases",
+    description: "Emiten yang melewati ambang tetapi rekamannya belum lengkap belum bisa dibuka sebagai kasus. Kasus yang bisa diperiksa ada di Analisis aktif.",
+    file: "app/cases/page.tsx",
+  },
+  {
     id: "chrome:cases:perbandingan-emiten",
     heading: "Perbandingan emiten",
     view: "cases",
     eyebrow: "Tab",
-    labels: ["Analisis aktif"],
+    labels: ["Analisis aktif","Semua emiten"],
     file: "app/cases/page.tsx",
   },
   {
     id: "chrome:cases:pilih-emiten-untuk-dibandingkan",
     heading: "Pilih emiten untuk dibandingkan",
     view: "cases",
-    description: "Tekan Tambah emiten di kepala kolom, lalu ketik kode saham.",
+    description: "Tekan Tambah emiten di kepala kolom, lalu pilih dari daftar atau ketik kode saham.",
     file: "app/cases/page.tsx",
   },
   {
@@ -394,6 +401,14 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Riset & Analisis",
     view: "cases",
     description: "Perubahan yang perlu diperiksa. Setiap kasus menghubungkan pemicu, bukti pasar, dampak bisnis, dan tindakan riset.",
+    file: "app/cases/page.tsx",
+  },
+  {
+    id: "chrome:cases:semua-emiten",
+    heading: "Semua emiten",
+    view: "cases",
+    eyebrow: "Tab",
+    labels: ["Analisis aktif","Perbandingan emiten"],
     file: "app/cases/page.tsx",
   },
   {
@@ -485,7 +500,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:dashboard:peta-sebab-akibat-seluruh-kasus",
     heading: "Peta sebab akibat seluruh kasus",
     view: "dashboard",
-    labels: ["Kartu dapat Anda uraikan","Susun ulang kartu"],
+    labels: ["Kartu dapat Anda uraikan"],
     file: "components/market-causal-map.tsx",
   },
   {
