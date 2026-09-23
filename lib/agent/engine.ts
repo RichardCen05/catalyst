@@ -32,7 +32,7 @@ import type {
   UserInsight,
   UserProfile,
 } from "@/lib/types";
-import { assessExposureWithLlm, RELEVANCE_BAND_SCORE } from "@/lib/agent/llm/exposure";
+import { assessExposureWithLlm } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, matchFigureWithStrength, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
@@ -53,7 +53,7 @@ import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
-import { namesAThreshold, PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
+import { namesAThreshold, PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, RELEVANCE_BAND_SCORE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";

@@ -229,6 +229,35 @@ export const OBSERVATION_WINDOWS = {
   } as Record<string, [number, number]>,
 } as const;
 
+/**
+ * Relevance score for each ordinal band.
+ *
+ * There used to be two of these. `lib/web-watch/queue.ts` scored a band a
+ * reviewer picked at 85 / 70 / 50, and `lib/agent/llm/exposure.ts` scored a
+ * band the model picked at 90 / 65 / 40, so "high" meant a different number
+ * depending on who said it — and calibration bucketed both by the first table
+ * only. One table now, read by the review queue, the model exposure path, the
+ * calibration buckets, and the Pantau form.
+ *
+ * The reviewer's values were kept because they are the ones already stored on
+ * accepted web-watch events and the ones calibration cut on. Against the
+ * default floors nothing moves: high still clears `relevanceFloor` (85),
+ * medium still clears `chainRelevanceFloor` (60) and low still does not.
+ *
+ * Provenance: `guess`, like every decision entry above.
+ */
+export const RELEVANCE_BANDS = ["high", "medium", "low"] as const;
+export type RelevanceBand = (typeof RELEVANCE_BANDS)[number];
+export const RELEVANCE_BAND_SCORE: Readonly<Record<RelevanceBand, number>> = { high: 85, medium: 70, low: 50 };
+export const RELEVANCE_BAND_PROVENANCE = "guess" as const;
+
+/** The band a stored relevance score falls in, cut at the table above. */
+export function bandForRelevance(relevance: number): RelevanceBand {
+  if (relevance >= RELEVANCE_BAND_SCORE.high) return "high";
+  if (relevance >= RELEVANCE_BAND_SCORE.medium) return "medium";
+  return "low";
+}
+
 /** Bobot relevansi hasil uji pada rantai sebab akibat. */
 export const OUTCOME_RELEVANCE = {
   primaryTest: 100,

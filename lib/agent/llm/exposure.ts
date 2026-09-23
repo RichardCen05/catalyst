@@ -1,12 +1,10 @@
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
+import { RELEVANCE_BANDS, type RelevanceBand } from "@/lib/agent/thresholds";
 import type { ImpactDirection } from "@/lib/types";
 
 const DIRECTIONS: ImpactDirection[] = ["Supported", "Adverse", "Mixed", "Unrelated", "Unverified"];
-const RELEVANCE_BANDS = ["high", "medium", "low"] as const;
-export type RelevanceBand = (typeof RELEVANCE_BANDS)[number];
-
-export const RELEVANCE_BAND_SCORE: Record<RelevanceBand, number> = { high: 90, medium: 65, low: 40 };
+export type { RelevanceBand };
 
 export interface ExposureAssessment {
   path: string;
@@ -58,6 +56,6 @@ export async function assessExposureWithLlm(
     schema: EXPOSURE_SCHEMA,
   });
   if (!DIRECTIONS.includes(result.direction)) throw new Error(`Model returned an invalid direction: ${result.direction}`);
-  if (!RELEVANCE_BANDS.includes(result.relevanceBand)) throw new Error(`Model returned an invalid relevanceBand: ${result.relevanceBand}`);
+  if (!(RELEVANCE_BANDS as readonly string[]).includes(result.relevanceBand)) throw new Error(`Model returned an invalid relevanceBand: ${result.relevanceBand}`);
   return result;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { assessExposureWithLlm, RELEVANCE_BAND_SCORE, type ExposureAssessment } from "@/lib/agent/llm/exposure";
+import { assessExposureWithLlm, type ExposureAssessment } from "@/lib/agent/llm/exposure";
+import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 
 describe("assessExposureWithLlm", () => {
   const baseInput = {
@@ -19,7 +20,7 @@ describe("assessExposureWithLlm", () => {
     } satisfies ExposureAssessment);
     const result = await assessExposureWithLlm(baseInput, call);
     expect(result.relevanceBand).toBe("high");
-    expect(RELEVANCE_BAND_SCORE[result.relevanceBand]).toBe(90);
+    expect(RELEVANCE_BAND_SCORE[result.relevanceBand]).toBe(RELEVANCE_BAND_SCORE.high);
     expect(result.direction).toBe("Adverse");
   });
 

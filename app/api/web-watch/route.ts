@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { webWatchReviewSchema } from "@/lib/schemas";
 import { listSources, gcsRegistryStore } from "@/lib/web-watch/registry";
 import {
-  BAND_SCORE,
   decide,
   ensureOverlay,
   gcsQueueStore,
@@ -43,7 +43,7 @@ export async function GET() {
       accepted: queue?.accepted ?? [],
       decidedCount: queue ? Object.keys(queue.decided).length : 0,
       symbols: listKnownSymbols(),
-      bands: BAND_SCORE,
+      bands: RELEVANCE_BAND_SCORE,
     });
   } catch (error) {
     return NextResponse.json(

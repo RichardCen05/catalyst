@@ -36,11 +36,13 @@ interface QueueData {
   accepted: MarketEvent[];
   decidedCount: number;
   symbols: SymbolCode[];
-  bands: Record<string, number>;
+  bands: Record<ImpactDraft["band"], number>;
   unavailable?: boolean;
 }
 
 const DIRECTIONS: ImpactDraft["direction"][] = ["Supported", "Adverse", "Mixed", "Unrelated"];
+const BANDS: ImpactDraft["band"][] = ["high", "medium", "low"];
+const bandLabel: Record<ImpactDraft["band"], string> = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
 const directionLabel: Record<ImpactDraft["direction"], string> = {
   Supported: "Mendukung",
   Adverse: "Berlawanan",
@@ -103,10 +105,12 @@ function pathIsShort(path: string): boolean {
 function CandidateCard({
   candidate,
   symbols,
+  bands,
   onDecided,
 }: {
   candidate: MarketEvent;
   symbols: SymbolCode[];
+  bands: QueueData["bands"];
   onDecided: () => void;
 }) {
   const [impacts, setImpacts] = useState<ImpactDraft[]>([{ symbol: symbols[0] ?? primarySymbol, direction: "Supported", band: "medium", path: "" }]);
@@ -171,7 +175,7 @@ function CandidateCard({
           </div>
         ) : (
           <>
-        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih reviewer di sini, bukan dihitung mesin: tinggi 85 · sedang 70 · rendah 50.</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih reviewer di sini, bukan dihitung mesin: {BANDS.map((band) => `${bandLabel[band].toLowerCase()} ${bands[band]}`).join(" · ")}.</p>
         <div className="mt-2 space-y-2">
           {impacts.map((impact, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[110px_130px_110px_minmax(0,1fr)_auto]">
@@ -201,9 +205,9 @@ function CandidateCard({
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, band: event.target.value as ImpactDraft["band"] } : row)))}
                 className="h-10 rounded-lg border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
               >
-                <option value="high">Tinggi · 85</option>
-                <option value="medium">Sedang · 70</option>
-                <option value="low">Rendah · 50</option>
+                {BANDS.map((band) => (
+                  <option key={band} value={band}>{bandLabel[band]} · {bands[band]}</option>
+                ))}
               </select>
               <input
                 aria-label={`Jalur eksposur ${index + 1}`}
@@ -372,7 +376,7 @@ export function WebWatchReview() {
             {visiblePending.length ? (
               <div className="space-y-4">
                 {visiblePending.map((candidate) => (
-                  <CandidateCard key={candidate.id} candidate={candidate} symbols={data.symbols} onDecided={load} />
+                  <CandidateCard key={candidate.id} candidate={candidate} symbols={data.symbols} bands={data.bands} onDecided={load} />
                 ))}
               </div>
             ) : (

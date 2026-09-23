@@ -21,14 +21,12 @@
 import { GcsPreconditionFailed, gcsGetJson, gcsPutJson } from "@/lib/gcp/gcs";
 import { companies } from "@/lib/data/fixtures";
 import { bucket } from "@/lib/web-watch/registry";
+import { RELEVANCE_BAND_SCORE, type RelevanceBand } from "@/lib/agent/thresholds";
 import type { ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
 
 export const QUEUE_PATH = "catalyst/web-watch/queue.json";
 
-export type RelevanceBand = "high" | "medium" | "low";
-
-/** Reviewer-chosen bands, recorded as what they are. Not computed. */
-export const BAND_SCORE: Record<RelevanceBand, number> = { high: 85, medium: 70, low: 50 };
+export type { RelevanceBand };
 
 export interface ReviewImpact {
   symbol: string;
@@ -150,7 +148,7 @@ export function decide(
     return {
       symbol: impact.symbol,
       direction: impact.direction,
-      relevance: BAND_SCORE[impact.band],
+      relevance: RELEVANCE_BAND_SCORE[impact.band],
       path: impact.path.trim().slice(0, 300),
       rationale: `Dipetakan reviewer web-watch (band ${impact.band}).${action.reason ? ` ${action.reason.trim().slice(0, 200)}` : ""}`,
       citations: candidate.citations,

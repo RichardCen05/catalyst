@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  BAND_SCORE,
   decide,
   emptyQueue,
   enqueue,
@@ -10,6 +9,7 @@ import {
   setOverlayForTests,
   type ReviewQueue,
 } from "@/lib/web-watch/queue";
+import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { fixtureMarketDataProvider, fixtureNewsProvider } from "@/lib/data/providers";
 import type { MarketEvent } from "@/lib/types";
 
@@ -69,7 +69,7 @@ describe("decide", () => {
     expect(next.pending).toHaveLength(0);
     expect(next.accepted).toHaveLength(1);
     expect(next.accepted[0].impactLinks).toMatchObject([
-      { symbol: "BBCA", direction: "Supported", relevance: BAND_SCORE.high },
+      { symbol: "BBCA", direction: "Supported", relevance: RELEVANCE_BAND_SCORE.high },
     ]);
     expect(next.accepted[0].impactLinks[0].rationale).toContain("reviewer web-watch");
   });
