@@ -46,12 +46,14 @@ import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
 import { resolveFollowUp, type FollowUp } from "@/lib/agent/retrieval/follow-up";
+import { unrecordedTickers } from "@/lib/agent/unknown-symbols";
+import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
 import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
-import { PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
+import { namesAThreshold, PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
@@ -509,7 +511,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         claim: "Aktivitas setelah pemicu menyimpang dari pembanding volume yang kuat terhadap pencilan.",
         supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos batas." : `Skor z tahan pencilan ${volume.robustZ.toFixed(2)} dengan status ${volume.status === "Normal" ? "normal" : volume.status === "Elevated" ? "meningkat" : "ekstrem"}.`,
         challengingEvidence: volume.status === "Normal" ? "Volume masih berada dalam rentang pembanding." : "Kenaikan volume sendiri tidak mengidentifikasi penyebab atau arah eksposur.",
-        insufficientWhen: "Pembanding kurang dari 30 pengamatan, MAD nol, atau median nilai harian di bawah batas likuiditas.",
+        insufficientWhen: `Pembanding kurang dari ${_DEFAULTS.comparatorMinObservations} pengamatan, MAD nol, atau median nilai harian di bawah batas likuiditas.`,
         nextQuestion: "Apakah anomali volume bertahan dan muncul setelah pemicu?",
       },
       metrics: [
@@ -1236,8 +1238,24 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const personalizedNote = () => preferenceNote(request, primary, insights.length);
   if (guarded.refused) {
     return {
-      text: guarded.text, refused: true, intent: "advice",
+      // An unrecorded resolution is a data gap, not a policy refusal, and the
+      // panel reads the intent to decide which of those it is looking at.
+      text: guarded.text, refused: true, intent: guarded.kind === "absent" ? "missing" : "advice",
       hypotheses: [...(analysis?.hypotheses ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 4) ?? [],
+      preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
+    };
+  }
+
+  // A name the recordings do not hold, said before any handler competes for
+  // the question. Ranking cannot answer this: every entry is about some other
+  // issuer, so the best match is always a confident answer about the wrong
+  // one.
+  const unrecorded = unrecordedTickers(request.question);
+  if (unrecorded.length) {
+    const recorded = SYMBOL_CODES.join(", ");
+    return {
+      text: `${unrecorded.join(" dan ")} tidak terekam di Catalyst, jadi tidak ada bukti yang bisa saya bacakan untuk nama itu. Rekaman ${DATA_AS_OF_LABEL} memuat ${SYMBOL_CODES.length} emiten: ${recorded}.`,
+      refused: false, intent: "missing", hypotheses: openInsightTraces, citations: [],
       preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
@@ -1385,7 +1403,15 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // "apa saja yang ada di daftar pantauan saya" contains "daftar" but is not
   // about one case, so retrieval answering it is right.
   const unboundFigure = !primary && (Boolean(matchFieldName(request.question)) || namesAMetric(request.question));
-  if (!primary && !mentions(question, EVENT_PHRASES)
+  // A threshold belongs to the whole app, not to a case. "berapa ambang
+  // relevansi default" names a figure, so it looked like an unbound figure
+  // question and was answered with "which case do you mean?" — a cut-off has
+  // the same value whichever case is open, and the table that holds it is
+  // what the reader asked about.
+  const thresholdLed = Boolean(retrieved) && (
+    retrieved!.entryIds[0]?.startsWith("threshold:") || namesAThreshold(request.question)
+  );
+  if (!primary && !thresholdLed && !mentions(question, EVENT_PHRASES)
     && (unboundFigure || (winner.id !== "retrieved" && mentions(question, WHY_PHRASES)))) {
     return {
       text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
@@ -1453,7 +1479,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     };
   }
 
-  if (winner.id === "retrieved" && retrieved) {
+  if ((winner.id === "retrieved" || thresholdLed) && retrieved) {
     // Cacheable once the question stands on its own. The old rule refused
     // every follow-up, which was right while nothing resolved pointers and
     // wrong the moment something did: two conversations that arrive at the

@@ -46,6 +46,17 @@ const ORDINAL_POINTERS: Array<[string[], number]> = [
 ];
 const VAGUE_POINTERS = ["yang itu", "itu tadi", "yang tadi", "tersebut", "tadi", "itu"];
 
+/**
+ * Pronouns that have no meaning without a referent.
+ *
+ * "kenapa dia naik" names nothing. Unlike the vague pointers above it is not
+ * an ordinary word in any other reading, so it counts as a pointer even when
+ * no earlier turn offered a candidate — which is exactly the case that has to
+ * end in a question back to the reader rather than in an answer about
+ * whichever entry ranked first.
+ */
+const PRONOUN_POINTERS = ["dia", "ia", "mereka", "beliau"];
+
 /** The symbols the most recent assistant turn put in front of the reader. */
 function candidatesFrom(history: HistoryTurn[]): SymbolCode[] {
   const known = new Set(companies.map((company) => company.symbol));
@@ -76,13 +87,14 @@ export function resolveFollowUp(question: string, history: HistoryTurn[]): Follo
   const standalone = STANDALONE_POINTERS.some((phrase) => containsPhrase(normalized, phrase));
   const ordinal = ORDINAL_POINTERS.find(([phrases]) => phrases.some((phrase) => containsPhrase(normalized, phrase)));
   const vague = VAGUE_POINTERS.some((phrase) => containsPhrase(normalized, phrase));
+  const pronoun = PRONOUN_POINTERS.some((phrase) => containsPhrase(normalized, phrase));
 
   // Ordinals and vague words are pointers only once there is something to
-  // point at; a standalone pointer is one either way.
-  const anaphoric = standalone || (Boolean(ordinal || vague) && candidates.length > 0);
+  // point at; a standalone pointer or a bare pronoun is one either way.
+  const anaphoric = standalone || pronoun || (Boolean(ordinal || vague) && candidates.length > 0);
   if (!anaphoric) return unchanged;
 
-  const picked = pick({ standalone, ordinalIndex: ordinal?.[1], vague, candidates });
+  const picked = pick({ standalone, ordinalIndex: ordinal?.[1], vague: vague || pronoun, candidates });
   if (!picked) return { question, anaphoric: true, resolved: false };
   // Naming the referent is the whole rewrite. The symbol reaches retrieval as
   // a word in the question, which is how every other question names one — it

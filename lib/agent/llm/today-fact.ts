@@ -1,3 +1,4 @@
+import { DRAFT_ADVICE_PATTERN } from "@/lib/agent/gates";
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
 import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
@@ -47,8 +48,8 @@ Aturan:
 6. Jangan menyebut "endpoint", "API", "kolom", "field", "JSON", "data yang diberikan", atau proses internal apa pun.
 7. Bahasa Indonesia, maksimal 20 kata, satu kalimat, nada ramah dan ringan. Tanpa daftar, tanpa tanda kutip.`;
 
-/** Words that turn a fact into a recommendation. */
-const ADVICE = /\b(beli sekarang|jual sekarang|sebaiknya beli|sebaiknya jual|target harga|stop loss|layak dikoleksi|rekomendasi)\b/i;
+/** Advisory language, from the one list every gate reads. */
+const ADVICE = DRAFT_ADVICE_PATTERN;
 
 /** Plumbing a reader never asked about. */
 const PLUMBING = /\b(endpoint|api|json|field|payload|request|url)\b/i;

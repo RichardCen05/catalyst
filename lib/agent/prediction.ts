@@ -1,5 +1,5 @@
 import type { MarketEvent, PricePoint, SymbolCode } from "@/lib/types";
-import { resolveThresholds } from "@/lib/agent/thresholds";
+import { DEFAULT_THRESHOLDS, resolveThresholds } from "@/lib/agent/thresholds";
 import type { InvestorResearchPlaybook } from "@/lib/types";
 
 /**
@@ -181,7 +181,7 @@ function seriesValues(claim: PredictionClaim, series: PricePoint[], beta: number
     // Baseline = seluruh sesi SAMPAI issuedAt. Tidak satu pun sesi masa depan
     // boleh masuk ke sini, termasuk lewat median atau MAD.
     const baseline = series.slice(0, issuedIndex + 1).map((point) => point.volume);
-    if (baseline.length < 8) return null;
+    if (baseline.length < DEFAULT_THRESHOLDS.comparatorMinObservations) return null;
     const center = median(baseline);
     const mad = median(baseline.map((value) => Math.abs(value - center)));
     if (mad === 0) return null;

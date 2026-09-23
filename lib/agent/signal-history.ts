@@ -45,7 +45,7 @@ function statusFor(z: number | null, floors?: VolumeFloors): string {
  * "Data belum cukup" instead of a number.
  */
 export function describeSignalStability(series: PricePoint[], floors?: VolumeFloors): SignalStability {
-  if (series.length < 8) {
+  if (series.length < DEFAULT_THRESHOLDS.comparatorMinObservations) {
     return {
       windowScores: [],
       agreement: "Jendela rekaman terlalu pendek untuk uji stabilitas.",

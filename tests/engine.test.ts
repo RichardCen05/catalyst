@@ -28,14 +28,15 @@ describe("Catalyst agent engine", async () => {
     expect(event?.impactLinks.every((link) => demoProfiles[0].watchlist.includes(link.symbol))).toBe(true);
   });
 
-  it("fails closed for an unknown ticker", async () => {
+  it("fails closed for an unknown ticker, and says the name is not recorded", async () => {
     expect(await agentEngine.analyzeCompany("XXXX", demoProfiles[0])).toBeNull();
     const answer = await agentEngine.answerFollowUp({ question: "Jelaskan XXXX", profile: demoProfiles[0] });
-    expect(answer.intent).toBe("unknown");
-    // Still fails closed. The wording now says the question could not be
-    // mapped to evidence and lists what can be asked, because "belum ada
-    // bukti yang cukup" read as a data gap when the recordings were fine.
-    expect(answer.text).toContain("belum bisa dipetakan ke bukti");
+    // The gap is named. Listing what the map does hold without ever saying
+    // "XXXX is not in it" reads as evasion, and it left the reader unable to
+    // tell a missing recording from a question the engine did not understand.
+    expect(answer.intent).toBe("missing");
+    expect(answer.text).toContain("XXXX");
+    expect(answer.text).toContain("tidak terekam");
     expect(answer.text).not.toMatch(/\d+,\d+%/);
   });
 

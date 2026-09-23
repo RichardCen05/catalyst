@@ -122,6 +122,12 @@ export const DEFAULT_THRESHOLDS = {
    *  dua. Gerbang itu hilang, keduanya kini diuji bersama — angkanya tetap
    *  satu nilai supaya rencana, sumber, dan tabel dampak tidak bisa berbeda. */
   caseFocusCount: 2,
+  /** Berapa sesi minimum yang harus ada di pembanding sebelum sebuah ukuran
+   *  tahan-pencilan boleh dibacakan. Dulu `baseline.length < 8` diketik di
+   *  metrics.ts, prediction.ts, dan signal-history.ts, sementara protokol
+   *  Volume di engine.ts mengatakan "kurang dari 30 pengamatan" — teks
+   *  menjanjikan penjaga yang tiga kali lebih ketat daripada kode. */
+  comparatorMinObservations: 8,
 } as const;
 
 /**
@@ -141,6 +147,21 @@ export const DEFAULT_THRESHOLDS = {
  * "berapa ambang konsentrasi" menemukan `concentrationFloor` — kunci ambang
  * ditulis dalam bahasa Inggris, pertanyaan pembaca tidak.
  */
+/**
+ * How a reader says "cut-off".
+ *
+ * A threshold has the same value whichever case is open, so a question
+ * carrying one of these words is not a question about a case — it used to be
+ * answered with "which case do you mean?" because it also named a figure.
+ */
+export const THRESHOLD_WORDS = ["ambang", "batas", "floor", "cutoff", "cut-off"] as const;
+
+/** Whether a question is asking for a cut-off rather than about a case. */
+export function namesAThreshold(question: string): boolean {
+  const lowered = ` ${question.toLowerCase()} `;
+  return THRESHOLD_WORDS.some((word) => lowered.includes(` ${word} `) || lowered.includes(`${word} `));
+}
+
 export const PILLAR_LABELS: Record<string, string> = {
   concentration: "Konsentrasi",
   volume: "Volume",
@@ -182,6 +203,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   answerMaxTokens: "convention",
   retrievalMemoMaxEntries: "convention",
   caseFocusCount: "convention",
+  comparatorMinObservations: "convention",
 };
 
 /**
@@ -266,6 +288,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     answerMaxTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
     caseFocusCount: DEFAULT_THRESHOLDS.caseFocusCount,
+    comparatorMinObservations: DEFAULT_THRESHOLDS.comparatorMinObservations,
   };
 }
 

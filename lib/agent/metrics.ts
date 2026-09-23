@@ -53,7 +53,7 @@ export function calculateVolumeSignal(
   medianDailyValue: number,
   floors?: VolumeFloors,
 ): { robustZ: number | null; status: "Normal" | "Elevated" | "Extreme" | "Insufficient Data" } {
-  if (baseline.length < 8 || medianDailyValue < 10) {
+  if (baseline.length < DEFAULT_THRESHOLDS.comparatorMinObservations || medianDailyValue < 10) {
     return { robustZ: null, status: "Insufficient Data" };
   }
   const center = median(baseline);

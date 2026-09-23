@@ -1,3 +1,4 @@
+import { DRAFT_ADVICE_PATTERN } from "@/lib/agent/gates";
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
 import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
@@ -61,8 +62,8 @@ Aturan:
 6. Bahasa Indonesia. "takeaway" maksimal 45 kata, "why" maksimal 35 kata. Tanpa pembuka, tanpa daftar.
 7. Bila angka terlihat kecil atau besar, katakan apa adanya lewat pembanding yang diberikan; jangan menilai bagus atau buruk.`;
 
-/** Words that turn a reading into a recommendation. */
-const ADVICE = /\b(beli sekarang|jual sekarang|sebaiknya beli|sebaiknya jual|target harga|stop loss|layak dikoleksi|rekomendasi)\b/i;
+/** Advisory language, from the one list every gate reads. */
+const ADVICE = DRAFT_ADVICE_PATTERN;
 
 /** Plumbing a reader never asked about. */
 const PLUMBING = /\b(endpoint|api|json|field|payload|request|url)\b/i;
