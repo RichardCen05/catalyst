@@ -8,9 +8,10 @@
  *     archived: Record<candidateId, ArchivedCandidate>   // set aside by triage
  *     matches:  Record<candidateId, TriageMatch>         // why a pending item is here
  *     restored: Record<candidateId, RestoredCandidate>   // triage overruled by a human
+ *     proposals: Record<candidateId, TriageProposal>     // verified model draft, for a human to accept
  *   }
  *
- * The last three were added with triage (`lib/web-watch/triage.ts`). A file
+ * The last four were added with triage (`lib/web-watch/triage.ts`). A file
  * written before them loads with each defaulted to empty (`normalizeQueue`),
  * and nothing in the first three changed shape.
  *
@@ -68,6 +69,23 @@ export interface TriageMatch {
   symbols: SymbolCode[];
   matchedBy: MatchEvidence[];
   at: string;
+  /** When a model draft was last attempted, and how it ended. Absent means
+   *  not yet tried; a budget that closed mid-sweep leaves it absent so the
+   *  next sweep tries again. */
+  drafted?: { at: string; outcome: "proposed" | "rejected" | "failed" };
+}
+
+/** One verified model-drafted impact. Same fields a reviewer fills in, plus
+ *  the model's reason, so accepting a proposal is the ordinary accept. */
+export interface ProposedImpact extends ReviewImpact {
+  rationale: string;
+}
+
+/** A verified draft mapping. Never applied by itself: a human accepts it. */
+export interface TriageProposal {
+  impacts: ProposedImpact[];
+  model: string;
+  verifiedAt: string;
 }
 
 /** A human moved an archived candidate back. Triage never archives it again. */
@@ -84,9 +102,10 @@ export interface ReviewQueue {
   archived: Record<string, ArchivedCandidate>;
   matches: Record<string, TriageMatch>;
   restored: Record<string, RestoredCandidate>;
+  proposals: Record<string, TriageProposal>;
 }
 
-export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {} };
+export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {}, proposals: {} };
 
 const asRecord = <T>(value: unknown): Record<string, T> =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, T>) : {};
@@ -101,6 +120,7 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
     archived: asRecord<ArchivedCandidate>(raw?.archived),
     matches: asRecord<TriageMatch>(raw?.matches),
     restored: asRecord<RestoredCandidate>(raw?.restored),
+    proposals: asRecord<TriageProposal>(raw?.proposals),
   };
 }
 
@@ -203,7 +223,13 @@ export function enqueue(
     }
   }
   const pending = [...kept, ...queue.pending].slice(0, PENDING_MAX);
-  return { ...queue, pending, archived: capArchive(archived), matches: prunePendingRecords(matches, pending) };
+  return {
+    ...queue,
+    pending,
+    archived: capArchive(archived),
+    matches: prunePendingRecords(matches, pending),
+    proposals: prunePendingRecords(queue.proposals, pending),
+  };
 }
 
 /** Move an archived candidate back to review, and remember a human did so. */
@@ -270,7 +296,13 @@ export function backfillTriage(
     }
   }
   const pending = queue.pending.filter((e) => !archivedIds.has(e.id));
-  const next: ReviewQueue = { ...queue, pending, archived: capArchive(archived), matches: prunePendingRecords(matches, pending) };
+  const next: ReviewQueue = {
+    ...queue,
+    pending,
+    archived: capArchive(archived),
+    matches: prunePendingRecords(matches, pending),
+    proposals: prunePendingRecords(queue.proposals, pending),
+  };
   return {
     next,
     report: {
@@ -310,6 +342,7 @@ export function decide(
       ...queue,
       pending,
       matches: prunePendingRecords(queue.matches, pending),
+      proposals: prunePendingRecords(queue.proposals, pending),
       decided: {
         ...queue.decided,
         [candidateId]: { candidateId, status: "dismissed", decidedAt: nowIso, reason: action.reason.trim().slice(0, 500) },
@@ -342,6 +375,7 @@ export function decide(
     ...queue,
     pending,
     matches: prunePendingRecords(queue.matches, pending),
+    proposals: prunePendingRecords(queue.proposals, pending),
     accepted: [accepted, ...queue.accepted].slice(0, 200),
     decided: {
       ...queue.decided,

@@ -27,7 +27,7 @@ import { enqueue, ensureOverlay, gcsQueueStore, saveQueue, setOverlayForTests } 
 import { applySeedDeclarations, gcsRegistryStore, listSources, saveRegistry } from "@/lib/web-watch/registry";
 import { gcsReviewStore } from "@/lib/web-watch/review";
 import { SEED_SOURCES } from "@/lib/web-watch/seeds";
-import { watchAll } from "@/lib/web-watch/watch-all";
+import { draftPending, watchAll } from "@/lib/web-watch/watch-all";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
       if (result.candidates?.length) {
         const sources = await listSources(store);
         await saveQueue(gcsQueueStore, (queue) => enqueue(queue, result.candidates ?? [], { sources })).catch(() => undefined);
+        await draftPending(gcsQueueStore);
       }
       await ensureOverlay().catch(() => []);
       return NextResponse.json(result);

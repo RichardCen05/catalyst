@@ -165,6 +165,25 @@ export const DEFAULT_THRESHOLDS = {
   /** Kandidat terarsip yang disimpan di queue.json. Objek antrean dibaca dan
    *  ditulis utuh setiap keputusan; batas ini menjaga ukurannya. */
   webWatchArchiveMax: 200,
+  /** Keputusan reviewer terakhir yang ikut ke prompt draf pemetaan sebagai
+   *  contoh. Lebih banyak contoh = lebih banyak token per panggilan. */
+  webWatchFewShotMax: 6,
+  /** Kata minimum alasan penolakan agar ikut sebagai contoh. "jelek" dan
+   *  "gk ngaruh" tercatat di antrean produksi dan tidak mengajarkan apa pun. */
+  webWatchFewShotReasonMinWords: 3,
+  /** Panggilan model paling banyak dalam satu sapuan untuk draf pemetaan.
+   *  Sisanya tetap di review biasa dan dicoba pada sapuan berikutnya. */
+  webWatchSweepLlmCalls: 20,
+  /** Emiten paling banyak yang didrafkan per kandidat. Sumber resmi bank
+   *  sentral mendeklarasikan lima; tanpa batas ini satu siaran pers memakan
+   *  seperempat jatah sapuan. */
+  webWatchDraftSymbolsMax: 3,
+  /** Waktu paling lama, ms, yang boleh dipakai draf dalam satu sapuan. Job
+   *  Cloud Scheduler `catalyst-web-watch` punya tenggat 180 detik dan layanan
+   *  300 detik; sapuan sumber sendiri memakan sisanya. */
+  webWatchDraftTimeBudgetMs: 60000,
+  /** Karakter teks kandidat (judul dan kalimat utuh) yang masuk prompt draf. */
+  webWatchDraftContextChars: 2000,
 } as const;
 
 /**
@@ -253,6 +272,12 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchQuakeMinMagnitude: "guess",
   webWatchQuakeAlwaysReviewMagnitude: "guess",
   webWatchArchiveMax: "convention",
+  webWatchFewShotMax: "convention",
+  webWatchFewShotReasonMinWords: "convention",
+  webWatchSweepLlmCalls: "convention",
+  webWatchDraftSymbolsMax: "convention",
+  webWatchDraftTimeBudgetMs: "convention",
+  webWatchDraftContextChars: "convention",
 };
 
 /**
@@ -377,6 +402,12 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchQuakeMinMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeMinMagnitude,
     webWatchQuakeAlwaysReviewMagnitude: DEFAULT_THRESHOLDS.webWatchQuakeAlwaysReviewMagnitude,
     webWatchArchiveMax: DEFAULT_THRESHOLDS.webWatchArchiveMax,
+    webWatchFewShotMax: DEFAULT_THRESHOLDS.webWatchFewShotMax,
+    webWatchFewShotReasonMinWords: DEFAULT_THRESHOLDS.webWatchFewShotReasonMinWords,
+    webWatchSweepLlmCalls: DEFAULT_THRESHOLDS.webWatchSweepLlmCalls,
+    webWatchDraftSymbolsMax: DEFAULT_THRESHOLDS.webWatchDraftSymbolsMax,
+    webWatchDraftTimeBudgetMs: DEFAULT_THRESHOLDS.webWatchDraftTimeBudgetMs,
+    webWatchDraftContextChars: DEFAULT_THRESHOLDS.webWatchDraftContextChars,
   };
 }
 

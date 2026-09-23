@@ -116,4 +116,13 @@ export interface WatchAllResult {
   summary: WatchSummary;
   results: CheckResult[];
   checkedAt: string;
+  /** What the drafting pass did after the sweep (`lib/web-watch/proposals.ts`). */
+  drafts?: {
+    attempted: number;
+    calls: number;
+    proposed: number;
+    rejected: number;
+    failed: number;
+    stoppedBy: string | null;
+  };
 }

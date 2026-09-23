@@ -1,0 +1,256 @@
+/**
+ * Model-drafted mappings for candidates triage sent to review.
+ *
+ * For each pending candidate with a triage match and no draft yet, the model
+ * proposes `{ direction, band, path, rationale }` per matched emiten through
+ * the same `assessExposureWithLlm` the engine uses. A proposal is only ever a
+ * pre-filled form: a human accepts it, edits it, or ignores it.
+ *
+ * A draft is kept only when every check passes:
+ *
+ *   - the symbol is in the registry and in triage's match set for this item;
+ *   - every numeral in the path and rationale appears in what the model was
+ *     given — the candidate's own text or the segment shares in the prompt;
+ *   - no advisory or transactional language (`assertSafeOutput`);
+ *   - direction and band are known values, and the path is long enough for
+ *     the accept form to take it as-is.
+ *
+ * A rejected or failed draft stores nothing and the candidate stays in plain
+ * review. A closed budget (daily ceiling, 429 gate, per-sweep cap, time
+ * budget) is not a failure: the remaining candidates are left untried and the
+ * next sweep picks them up.
+ */
+
+import { assertSafeOutput } from "@/lib/agent/gates";
+import { LlmBudgetError } from "@/lib/agent/llm/budget";
+import type { generateStructured } from "@/lib/agent/llm/client";
+import { assessExposureWithLlm, segmentLine, type ExposureAssessment } from "@/lib/agent/llm/exposure";
+import { strongModel } from "@/lib/agent/llm/models";
+import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
+import { agentMode } from "@/lib/agent/mode";
+import { RELEVANCE_BANDS, resolveThresholds, type ResolvedThresholds } from "@/lib/agent/thresholds";
+import { revenueSegments } from "@/lib/data/fixtures";
+import { WEB_WATCH_PATH_MIN_CHARS } from "@/lib/schemas";
+import { isKnownSymbolCode, type ProposedImpact, type ReviewQueue, type TriageMatch, type TriageProposal } from "@/lib/web-watch/queue";
+import { matchText, type MatchKind } from "@/lib/web-watch/triage";
+import type { MarketEvent, SymbolCode } from "@/lib/types";
+
+/** Directions a reviewer can accept. `Unverified` says the model could not
+ *  tell, which is not a mapping anyone should be offered. */
+const PROPOSABLE_DIRECTIONS = new Set(["Supported", "Adverse", "Mixed", "Unrelated"]);
+
+/** Stronger evidence first, so the per-candidate cap keeps the emiten the
+ *  text actually names over the ones its source merely declares. */
+const EVIDENCE_RANK: Record<MatchKind, number> = {
+  symbol: 0,
+  name: 1,
+  region: 2,
+  weather: 3,
+  source: 4,
+  subsector: 5,
+  sector: 6,
+};
+
+export function rankedSymbols(match: TriageMatch, max: number): SymbolCode[] {
+  const best = new Map<SymbolCode, number>();
+  for (const evidence of match.matchedBy) {
+    const rank = EVIDENCE_RANK[evidence.by];
+    if (!best.has(evidence.symbol) || rank < (best.get(evidence.symbol) as number)) best.set(evidence.symbol, rank);
+  }
+  return [...best.entries()].sort((a, b) => a[1] - b[1]).map(([symbol]) => symbol).slice(0, max);
+}
+
+export interface DraftCheck {
+  approved: boolean;
+  violations: string[];
+}
+
+/** Every check a draft must pass before it is stored as a proposal. */
+export function verifyExposureDraft(
+  draft: ExposureAssessment,
+  symbol: string,
+  matchSet: SymbolCode[],
+  allowedNumerals: string[],
+): DraftCheck {
+  const violations: string[] = [];
+  if (!isKnownSymbolCode(symbol)) violations.push(`${symbol} is not a registry symbol`);
+  if (!matchSet.includes(symbol as SymbolCode)) violations.push(`${symbol} is outside the triage match set`);
+  if (!PROPOSABLE_DIRECTIONS.has(draft.direction)) violations.push(`direction ${draft.direction} cannot be proposed`);
+  if (!(RELEVANCE_BANDS as readonly string[]).includes(draft.relevanceBand)) violations.push(`band ${draft.relevanceBand} is not a band`);
+  if (typeof draft.path !== "string" || draft.path.trim().length < WEB_WATCH_PATH_MIN_CHARS) violations.push("path too short");
+  const prose = `${draft.path ?? ""}\n${draft.rationale ?? ""}`;
+  violations.push(...verifyDraft(prose, allowedNumerals, []).violations);
+  try {
+    assertSafeOutput(prose);
+  } catch {
+    violations.push("advisory or transactional language");
+  }
+  return { approved: violations.length === 0, violations };
+}
+
+/**
+ * Past reviewer decisions as prompt examples. Titles come from the accepted
+ * list; a dismissal stores only its reason, so that is what it contributes.
+ * A reason too short to say anything ("jelek") is left out.
+ */
+export function fewShotExamples(queue: ReviewQueue, max: number, minWords = resolveThresholds().webWatchFewShotReasonMinWords): string[] {
+  const titleOf = new Map(queue.accepted.map((event) => [event.id, event.title]));
+  return Object.values(queue.decided)
+    .filter((decision) => decision.impacts?.length || decision.reason.trim().split(/\s+/).length >= minWords)
+    .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
+    .slice(0, max)
+    .map((decision) => {
+      const title = titleOf.get(decision.candidateId);
+      const head = decision.status === "accepted" ? "diterima" : "ditolak";
+      const impacts = (decision.impacts ?? []).map((i) => `${i.symbol} ${i.direction} ${i.band}: ${i.path}`).join("; ");
+      return [`- [${head}]`, title ? `"${title.slice(0, 160)}"` : "", impacts ? `→ ${impacts}` : "", decision.reason ? `alasan: ${decision.reason.slice(0, 200)}` : ""]
+        .filter(Boolean)
+        .join(" ");
+    });
+}
+
+export interface DraftReport {
+  attempted: number;
+  calls: number;
+  proposed: number;
+  rejected: number;
+  failed: number;
+  /** Why drafting stopped before the queue ran out, if it did. */
+  stoppedBy: "budget" | "rate-limit" | "sweep-cap" | "time" | "mode" | null;
+  rejections: Array<{ title: string; symbol: string; violations: string[] }>;
+  failures: Array<{ title: string; symbol: string; error: string }>;
+}
+
+export interface DraftOptions {
+  call?: typeof generateStructured;
+  nowIso?: string;
+  /** Clock for the time budget; injectable so tests do not sleep. */
+  now?: () => number;
+  thresholds?: ResolvedThresholds;
+  /** Draft even when AGENT_MODE is not `llm` (tests, dry-runs). */
+  force?: boolean;
+}
+
+export interface DraftOutcome {
+  id: string;
+  drafted?: TriageMatch["drafted"];
+  proposal?: TriageProposal;
+}
+
+/**
+ * Draft proposals for pending candidates that have none. Does not touch the
+ * queue: returns per-candidate outcomes for `applyDrafts`, so the caller can
+ * merge them into whatever the queue holds by the time the model is done.
+ */
+export async function draftProposals(queue: ReviewQueue, options: DraftOptions = {}): Promise<{ outcomes: DraftOutcome[]; report: DraftReport }> {
+  const t = options.thresholds ?? resolveThresholds();
+  const now = options.now ?? Date.now;
+  const nowIso = options.nowIso ?? new Date().toISOString();
+  const report: DraftReport = { attempted: 0, calls: 0, proposed: 0, rejected: 0, failed: 0, stoppedBy: null, rejections: [], failures: [] };
+  const outcomes: DraftOutcome[] = [];
+  if (!options.force && agentMode() !== "llm") return { outcomes, report: { ...report, stoppedBy: "mode" } };
+
+  const started = now();
+  const examples = fewShotExamples(queue, t.webWatchFewShotMax, t.webWatchFewShotReasonMinWords);
+  const todo = queue.pending.filter((event) => queue.matches[event.id]?.symbols.length && !queue.matches[event.id].drafted && !queue.proposals[event.id]);
+
+  for (const event of todo) {
+    const match = queue.matches[event.id];
+    const symbols = rankedSymbols(match, t.webWatchDraftSymbolsMax);
+    if (report.calls + symbols.length > t.webWatchSweepLlmCalls) {
+      report.stoppedBy = "sweep-cap";
+      break;
+    }
+    if (now() - started >= t.webWatchDraftTimeBudgetMs) {
+      report.stoppedBy = "time";
+      break;
+    }
+    report.attempted += 1;
+    const result = await draftOne(event, match, symbols, examples, t, options, report);
+    if (result === "stop") break;
+    outcomes.push({ id: event.id, proposal: result.proposal, drafted: { at: nowIso, outcome: result.proposal ? "proposed" : result.outcome } });
+    if (result.proposal) report.proposed += 1;
+    else if (result.outcome === "rejected") report.rejected += 1;
+    else report.failed += 1;
+    // The budget closed part-way through this candidate: what verified is
+    // kept, and nothing further is tried this sweep.
+    if (report.stoppedBy) break;
+  }
+  return { outcomes, report };
+}
+
+async function draftOne(
+  event: MarketEvent,
+  match: TriageMatch,
+  symbols: SymbolCode[],
+  examples: string[],
+  t: ResolvedThresholds,
+  options: DraftOptions,
+  report: DraftReport,
+): Promise<"stop" | { outcome: "rejected" | "failed"; proposal?: TriageProposal }> {
+  const text = matchText(event).slice(0, t.webWatchDraftContextChars);
+  const impacts: ProposedImpact[] = [];
+  let failed = false;
+  for (const symbol of symbols) {
+    const segments = revenueSegments[symbol] ?? [];
+    const allowed = extractNumerals(event.title, event.summary, event.body ?? "", segmentLine(segments));
+    report.calls += 1;
+    let draft: ExposureAssessment;
+    try {
+      draft = await assessExposureWithLlm(
+        {
+          symbol,
+          eventTitle: event.title,
+          eventSummary: text,
+          eventTags: [event.citations[0]?.label ?? event.category],
+          segments,
+          web: { examples },
+        },
+        options.call,
+      );
+    } catch (error) {
+      if (error instanceof LlmBudgetError) {
+        // Not this candidate's fault: leave it untried for the next sweep.
+        report.calls -= 1;
+        report.stoppedBy = error.reason === "budget" ? "budget" : "rate-limit";
+        if (impacts.length) break;
+        report.attempted -= 1;
+        return "stop";
+      }
+      failed = true;
+      const message = (error instanceof Error ? error.message : String(error)).slice(0, 300);
+      report.failures.push({ title: event.title, symbol, error: message });
+      console.warn(`[llm-fallback] triage ${symbol}/${event.id}: ${message}`);
+      continue;
+    }
+    const check = verifyExposureDraft(draft, symbol, match.symbols, allowed);
+    if (!check.approved) {
+      console.warn(`[llm-fallback] triage ${symbol}/${event.id}: rejected — ${check.violations.join("; ").slice(0, 300)}`);
+      report.rejections.push({ title: event.title, symbol, violations: check.violations });
+      continue;
+    }
+    impacts.push({
+      symbol,
+      direction: draft.direction,
+      band: draft.relevanceBand,
+      path: draft.path.trim().slice(0, 300),
+      rationale: draft.rationale.trim().slice(0, 500),
+    });
+  }
+  if (!impacts.length) return { outcome: failed ? "failed" : "rejected" };
+  return { outcome: "rejected", proposal: { impacts, model: strongModel(), verifiedAt: options.nowIso ?? new Date().toISOString() } };
+}
+
+/** Merge draft outcomes into the queue as it stands now. Outcomes for items
+ *  that were decided or archived meanwhile are dropped. */
+export function applyDrafts(queue: ReviewQueue, outcomes: DraftOutcome[]): ReviewQueue {
+  const pendingIds = new Set(queue.pending.map((event) => event.id));
+  const matches = { ...queue.matches };
+  const proposals = { ...queue.proposals };
+  for (const outcome of outcomes) {
+    if (!pendingIds.has(outcome.id) || !matches[outcome.id]) continue;
+    matches[outcome.id] = { ...matches[outcome.id], drafted: outcome.drafted };
+    if (outcome.proposal) proposals[outcome.id] = outcome.proposal;
+  }
+  return { ...queue, matches, proposals };
+}

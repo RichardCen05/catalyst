@@ -121,7 +121,7 @@ export function proseChars(text: string, minWords: number): number {
  * about PT Timah. Sidebar headlines end without punctuation; article prose
  * does not.
  */
-function matchText(event: MarketEvent): string {
+export function matchText(event: MarketEvent): string {
   return [event.title, ...sentences(event.body || event.summary)].join("\n");
 }
 
