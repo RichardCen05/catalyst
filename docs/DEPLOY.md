@@ -178,6 +178,12 @@ The gate runs on your machine, not inside the image:
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
+`pnpm build` runs `prebuild` first, which regenerates `lib/data/chrome.generated.ts` from the JSX
+in `app/` and `components/`. That happens again inside the image build, so the registry a deployed
+revision answers from is always built from the source it was built with — a heading edited without
+`pnpm chrome:build` can no longer ship a stale index. `tests/chrome-registry.test.ts` still fails on
+a stale committed file, so the diff stays honest too; commit the regenerated file with the change.
+
 Do not deploy with a red gate. `pnpm test:e2e` (Playwright) is the slower local check and is worth
 running when UI or routing changed.
 

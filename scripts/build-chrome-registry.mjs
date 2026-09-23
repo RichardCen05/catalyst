@@ -309,6 +309,56 @@ function regionsIn(source, rel, view) {
   return blocks;
 }
 
+/**
+ * Tab and toggle labels, which are words on screen that no tag holds.
+ *
+ * `{ value: "node", label: "Peta Sebab Akibat" }` renders the control a reader
+ * clicks, but it is an array entry rather than JSX, so every scraper above
+ * walks straight past it. A reader who asks what the "Grafik Indeks" tab
+ * shows was answered about whichever recording shared a word with it.
+ *
+ * The shape is required to be a switch: at least two entries, each an object
+ * carrying a literal label and the literal key the component switches on.
+ * That excludes chart series, option lists built from data, and anything
+ * whose text is computed — the bundles already answer for those.
+ */
+function switchesIn(source, rel, view) {
+  const blocks = [];
+  const KEY_PROPS = new Set(["value", "id", "key", "tab"]);
+  const literalProp = (object, names) => {
+    for (const property of object.properties) {
+      if (!ts.isPropertyAssignment(property)) continue;
+      const name = property.name.getText().replace(/['"]/g, "");
+      if (!names.has(name)) continue;
+      const initializer = property.initializer;
+      if (ts.isStringLiteral(initializer) || ts.isNoSubstitutionTemplateLiteral(initializer)) return initializer.text;
+    }
+    return null;
+  };
+  const visit = (node) => {
+    if (ts.isArrayLiteralExpression(node) && node.elements.length >= 2) {
+      const entries = [];
+      for (const element of node.elements) {
+        if (!ts.isObjectLiteralExpression(element)) return void node.forEachChild(visit);
+        const label = literalProp(element, new Set(["label"]));
+        const key = literalProp(element, KEY_PROPS);
+        if (!label || !key) return void node.forEachChild(visit);
+        entries.push(label);
+      }
+      for (const label of entries) {
+        blocks.push({
+          id: `chrome:${view ?? "shared"}:${slugOf(label)}`,
+          heading: label, view, file: rel,
+          eyebrow: "Tab", description: "", actions: [], labels: entries.filter((other) => other !== label),
+        });
+      }
+    }
+    node.forEachChild(visit);
+  };
+  visit(source);
+  return blocks;
+}
+
 /** The heading blocks in one file. */
 function blocksIn(path, view) {
   const source = ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -379,6 +429,7 @@ function blocksIn(path, view) {
   };
   visit(source);
   blocks.push(...regionsIn(source, rel, view));
+  blocks.push(...switchesIn(source, rel, view));
   return blocks;
 }
 
