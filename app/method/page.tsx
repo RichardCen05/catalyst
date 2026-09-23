@@ -1,12 +1,13 @@
 import { DATA_AS_OF, DATA_AS_OF_LABEL, events, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { RESEARCH_LIFECYCLE } from "@/lib/agent/lifecycle";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
 import { IconAttention, IconCheck, IconCode, IconDraftData, IconGate, IconScales, IconSource, IconVerified } from "@/components/ui/icons";
 
 const CATALYST_SOURCE_LABELS: Record<string, string> = {
-  sectors: "Sectors news",
+  sectors: "Berita Sectors",
   filing: "filing",
   macro: "makro",
   commodity: "komoditas",
@@ -31,11 +32,11 @@ export default function MethodPage() {
   const recordDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(DATA_AS_OF));
   return (
     <div>
-      <PageHeader eyebrow="Metode dan batas" title="Cara Catalyst menyusun bukti" description={`Prototipe memakai rekaman ${recordDate} dan perhitungan tetap. Halaman ini menjelaskan rumus, sumber, dan kondisi saat Catalyst harus berhenti.`} />
+      <PageHeader title="Metode dan batas" description={`Rumus, sumber, dan kondisi saat Catalyst harus berhenti. Prototipe memakai rekaman ${recordDate} dan perhitungan tetap.`} />
       <Panel>
-        <PanelHeader eyebrow="Dua lapisan bukti" title={`${COUNT_WORDS[pillars.length] ?? pillars.length} pemeriksaan, dua pertanyaan`} />
-        <div className="grid gap-px border-b border-border bg-border md:grid-cols-2"><section className="bg-surface p-4 sm:p-5"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Lapisan 1</p><h2 className="editorial mt-1 text-2xl">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Konsentrasi, volume, dan momentum menunjukkan apakah perubahan terlihat di pasar.</p></section><section className="bg-surface p-4 sm:p-5"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Lapisan 2</p><h2 className="editorial mt-1 text-2xl">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Katalis, eksposur, dan indikator keuangan menunjukkan apakah perubahan dapat mencapai bisnis.</p></section></div>
-        <div className="grid gap-px bg-border md:grid-cols-2">{pillars.map((pillar, index) => <article key={pillar.name} className="bg-surface p-4 sm:p-5"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-md bg-primary/10 font-mono text-xs font-semibold text-primary">{index + 1}</span><h2 className="font-semibold">{pillar.name}</h2></div><dl className="mt-4 space-y-3 text-sm"><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Masukan yang diwakili</dt><dd className="mt-1 leading-6">{pillar.input}</dd></div><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Proses</dt><dd className="mt-1 leading-6">{pillar.formula}</dd></div><div><dt className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Hasil</dt><dd className="mt-1 leading-6 text-muted-foreground">{pillar.output}</dd></div></dl></article>)}</div>
+        <PanelHeader title={`${COUNT_WORDS[pillars.length] ?? pillars.length} pemeriksaan, dua pertanyaan`} />
+        <div className="grid gap-px border-b border-border bg-border md:grid-cols-2"><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 1</p><h2 className="editorial mt-1 text-xl">Konfirmasi pasar</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Konsentrasi, volume, dan momentum menunjukkan apakah perubahan terlihat di pasar.</p></section><section className="bg-surface p-4 sm:p-5"><p className="text-xs text-muted-foreground font-medium">Lapisan 2</p><h2 className="editorial mt-1 text-xl">Dampak ke bisnis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Katalis, eksposur, dan indikator keuangan menunjukkan apakah perubahan dapat mencapai bisnis.</p></section></div>
+        <div className="grid gap-px bg-border md:grid-cols-2">{pillars.map((pillar, index) => <article key={pillar.name} className="bg-surface p-4 sm:p-5"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-lg bg-primary/10 font-mono text-xs font-semibold text-muted-foreground font-medium">{index + 1}</span><h2 className="font-semibold">{pillar.name}</h2></div><dl className="mt-4 space-y-3 text-sm"><div><dt className=" text-xs text-muted-foreground">Masukan yang diwakili</dt><dd className="mt-1 leading-6">{pillar.input}</dd></div><div><dt className=" text-xs text-muted-foreground">Proses</dt><dd className="mt-1 leading-6">{pillar.formula}</dd></div><div><dt className=" text-xs text-muted-foreground">Hasil</dt><dd className="mt-1 leading-6 text-muted-foreground">{pillar.output}</dd></div></dl></article>)}</div>
       </Panel>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -43,15 +44,15 @@ export default function MethodPage() {
             list the engine emits and the case page draws. This panel used to
             claim six hand-written stages that matched none of the five the app
             actually runs. */}
-        <Panel><PanelHeader eyebrow="Alur analisis" title={`${STAGE_COUNT_WORD} tahap pemeriksaan`} /><ol className="divide-y divide-border px-4">{RESEARCH_LIFECYCLE.map((stage, index) => <li key={stage.key} className="flex gap-3 py-3 text-sm leading-6"><span className="font-mono text-xs text-primary">{String(index + 1).padStart(2, "0")}</span><span><strong className="font-medium">{stage.label}.</strong> {stage.detail}</span></li>)}</ol></Panel>
+        <Panel><PanelHeader title={`${STAGE_COUNT_WORD} tahap pemeriksaan`} /><ol className="divide-y divide-border px-4">{RESEARCH_LIFECYCLE.map((stage, index) => <li key={stage.key} className="flex gap-3 py-3 text-sm leading-6"><span className="font-mono text-xs text-muted-foreground font-medium">{String(index + 1).padStart(2, "0")}</span><span><strong className="font-medium">{stage.label}.</strong> {stage.detail}</span></li>)}</ol></Panel>
         <div className="space-y-4">
-          <Panel><PanelHeader eyebrow="Kontrak data" title="Pemeriksaan sumber" /><div className="p-4"><div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/8 p-3"><IconSource aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-6">Setiap angka membawa penyedia, lokasi data, nama data, dan waktu sumber. Tautan bukan bukti bahwa peristiwa benar-benar terjadi.</p></div><pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] leading-5 text-muted-foreground"><code>{`{ penyedia, lokasi, data, waktu, tautan }`}</code></pre></div></Panel>
-          <Panel><PanelHeader eyebrow="Kolaborasi manusia" title="Belajar hanya setelah disetujui" /><div className="space-y-3 p-4">{["Koreksi Anda disimpan sebagai hipotesis terbuka", "Catatan dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau rumus", "Hasil kasus membuat usulan aturan", "Anda menerima atau menolak usulan", "AI Learning menyimpan memori personal; tidak melatih ulang model"].map((item) => <div key={item} className="flex items-center gap-2 text-sm"><IconVerified aria-hidden="true" className="size-4 text-positive" />{item}</div>)}</div></Panel>
+          <Panel><PanelHeader title="Pemeriksaan sumber" /><div className="p-4"><div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/8 p-3"><IconSource aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-6">Setiap angka membawa penyedia, lokasi data, nama data, dan waktu sumber. Tautan bukan bukti bahwa peristiwa benar-benar terjadi.</p></div><pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background p-3 font-mono text-xs leading-5 text-muted-foreground"><code>{`{ penyedia, lokasi, data, waktu, tautan }`}</code></pre></div></Panel>
+          <Panel><PanelHeader title="Belajar hanya setelah disetujui" /><div className="space-y-3 p-4">{["Koreksi Anda disimpan sebagai hipotesis terbuka", "Catatan dapat dikembalikan ke antrean", "Catatan tidak mengubah fakta atau rumus", "Hasil kasus membuat usulan aturan", "Anda menerima atau menolak usulan", "AI Learning menyimpan memori personal; tidak melatih ulang model"].map((item) => <div key={item} className="flex items-center gap-2 text-sm"><IconVerified aria-hidden="true" className="size-4 text-positive" />{item}</div>)}</div></Panel>
         </div>
       </div>
 
       <Panel className="mt-4">
-        <PanelHeader eyebrow="Batas yang diketahui" title="Faktor yang belum diperiksa" />
+        <PanelHeader title="Faktor yang belum diperiksa" />
         <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">{[
           { icon: IconCode, title: "Data statis", text: `Angka dihitung dari rekaman ${DATA_AS_OF_LABEL}. Lapisan opsional (model bahasa, pengambilan web, memori GCS) aktif bila dikonfigurasi, dan selalu jatuh ke hasil deterministik bila gagal.` },
           { icon: IconAttention, title: "Tanpa data intrahari", text: "Grafik memakai harga penutupan dan volume harian. Antrean transaksi tidak tersedia." },
@@ -62,6 +63,7 @@ export default function MethodPage() {
         ].map((item) => <article key={item.title} className="bg-surface p-4"><item.icon aria-hidden="true" className="size-5 text-attention" /><h3 className="mt-3 font-semibold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p></article>)}</div>
         <div className="flex gap-3 border-t border-border bg-background p-4"><IconGate aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-sm leading-6"><strong>Penafian:</strong> Catalyst adalah prototipe alat riset. Data adalah penutupan sesi {DATA_AS_OF_LABEL}, disegarkan tiap hari bursa, bukan kutipan intrahari. Hasil tidak menilai tindakan transaksi, target harga, atau hasil investasi.</p></div>
       </Panel>
+      <NextStep title="Mulai memeriksa" description="Metode ini dipakai di setiap kasus: 1 Pasar, 2 Bisnis, 3 Keputusan." href="/cases" action="Buka Riset & Analisis" />
     </div>
   );
 }

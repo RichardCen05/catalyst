@@ -42,10 +42,10 @@ function ChainNode({ data }: NodeProps<ChainFlowNode>) {
   const terminal = node.kind === "observation" || node.kind === "business-impact";
   return (
     <div
-      className={`h-[140px] w-[210px] overflow-hidden rounded-xl border bg-surface shadow-panel transition-opacity ${node.kind === "company" ? "border-primary ring-2 ring-primary/15" : node.kind === "source" ? "border-attention/40" : "border-border"} ${data.dimmed ? "opacity-25" : ""}`}
+      className={`h-[140px] w-[210px] overflow-hidden rounded-lg border bg-surface shadow-panel transition-opacity ${node.kind === "company" ? "border-primary ring-2 ring-primary/15" : node.kind === "source" ? "border-attention/40" : "border-border"} ${data.dimmed ? "opacity-25" : ""}`}
     >
       {node.kind !== "source" ? <Handle type="target" position={Position.Left} className="!size-2 !border-0 !bg-primary" /> : null}
-      <button type="button" onClick={() => data.onSelect(node.id)} className="w-full cursor-pointer rounded-[inherit] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><span className="flex items-center gap-2"><span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-3.5" /></span><span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{uiLabel(node.kind)}</span></span><span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5">{node.label}</span><span className="mt-2 block font-mono text-[9px] text-muted-foreground">{uiLabel(node.basis)}{node.relevance ? ` · ${node.relevance}/100` : ""}</span></button>
+      <button type="button" onClick={() => data.onSelect(node.id)} className="w-full cursor-pointer rounded-[inherit] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><span className="flex items-center gap-2"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-3.5" /></span><span className=" text-xs text-muted-foreground">{uiLabel(node.kind)}</span></span><span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5">{node.label}</span><span className="mt-2 block font-mono text-xs text-muted-foreground">{uiLabel(node.basis)}{node.relevance ? ` · ${node.relevance}/100` : ""}</span></button>
       {!terminal ? <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" /> : null}
     </div>
   );
@@ -53,15 +53,21 @@ function ChainNode({ data }: NodeProps<ChainFlowNode>) {
 
 const nodeTypes = { chain: ChainNode };
 
-/* Edge hues sit between the light and dark palettes so one value reads on
-   bone and on ink. Non-text, so they are held to the same restraint as the
-   pastels rather than to a contrast ratio. */
+/* Edge greys come from the theme tokens, so one map reads in both themes. */
 const edgeColor: Record<ImpactDirection, string> = {
-  Supported: "var(--positive)",
-  Adverse: "var(--danger)",
-  Mixed: "var(--attention)",
-  Unrelated: "var(--muted-foreground)",
-  Unverified: "var(--muted-foreground)",
+  Supported: "var(--foreground)",
+  Adverse: "var(--foreground)",
+  Mixed: "var(--muted-foreground)",
+  Unrelated: "var(--border-strong)",
+  Unverified: "var(--border-strong)",
+};
+
+/** Greyscale has no red for "berlawanan", so direction is told by the line:
+ *  solid supports, long dash opposes, short dash is not yet verified. */
+const edgeDash: Partial<Record<ImpactDirection, string>> = {
+  Adverse: "6 4",
+  Unrelated: "2 4",
+  Unverified: "2 4",
 };
 
 const eventById = new Map(events.map((event) => [event.id, event]));
@@ -119,7 +125,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         markerEnd: { type: MarkerType.ArrowClosed, color: isComove ? "var(--muted-foreground)" : edgeColor[edge.direction] },
         style: isComove
           ? { stroke: "var(--muted-foreground)", strokeWidth: active ? 2 : 1.2, strokeDasharray: "6 5", opacity: dimmed ? 0.15 : 0.6 }
-          : { stroke: edgeColor[edge.direction], strokeWidth: active ? 2.8 : 1.2 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.6, opacity: dimmed ? 0.15 : 0.78 },
+          : { stroke: edgeColor[edge.direction], strokeDasharray: edgeDash[edge.direction], strokeWidth: active ? 2.8 : 1.2 + (Math.min(Math.max(edge.relevance, 0), 100) / 100) * 1.6, opacity: dimmed ? 0.15 : 0.78 },
         labelStyle: { fill: "var(--foreground)", fontSize: zoom >= 1 ? 11 : 9, fontFamily: "var(--font-mono)" },
         labelBgStyle: { fill: "var(--surface)", fillOpacity: 0.92 },
         animated: active && !isComove,
@@ -129,8 +135,8 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
   }, [graph, highlighted, selectedEdgeId, hoveredEdgeId, zoom]);
 
   return (
-    <div data-tour="causal-chain" className="overflow-hidden rounded-xl border border-border bg-surface">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-[10px] text-muted-foreground"><span className="font-mono uppercase tracking-wider text-primary">Pilih titik atau garis untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span>{graph.coverage.analyzed ? <><span aria-hidden="true">→</span><span>Dampak bisnis</span></> : null}</div>
+    <div data-tour="causal-chain" className="overflow-hidden rounded-lg border border-border bg-surface">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-xs text-muted-foreground"><span className="font-medium text-foreground">Pilih titik atau garis untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span>{graph.coverage.analyzed ? <><span aria-hidden="true">→</span><span>Dampak bisnis</span></> : null}</div>
       {graph.coverage.analyzed ? null : (
         <p className="border-b border-border bg-attention/10 px-4 py-2 text-xs leading-5 text-muted-foreground">
           Rekaman {graph.targetSymbol} belum lengkap — {graph.coverage.missing.join(", ")} belum ada. Rantai berhenti di emiten: sumber dan mekanismenya terekam, dampak bisnisnya belum dapat diuji.
@@ -141,7 +147,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
           {graph.hiddenRelationshipCount} hubungan di bawah ambang relevansi tidak digambar — turunkan ambang di atas atau baca semuanya di daftar hubungan bawah.
         </p>
       ) : null}
-      <div className="h-[560px] w-full" aria-label={`Rangkaian sebab akibat ${graph.targetSymbol}`}>
+      <div role="group" className="map-in h-[560px] w-full" aria-label={`Rangkaian sebab akibat ${graph.targetSymbol}`}>
         <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.3} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} onMove={(_, viewport) => setZoom(viewport.zoom)} onNodeClick={(_, node) => { setSelectedId(node.id); setSelectedEdgeId(null); }} onEdgeClick={(_, edge) => setSelectedEdgeId(edge.id)} onEdgeMouseEnter={(_, edge) => setHoveredEdgeId(edge.id)} onEdgeMouseLeave={() => setHoveredEdgeId(null)}>
           <Background gap={20} size={1} color="var(--chart-grid)" />
           <Controls showInteractive={false} />
@@ -149,9 +155,9 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       </div>
       <section aria-label="Detail titik terpilih" className="border-t border-border bg-background p-4" aria-live="polite">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-primary">{uiLabel(selected.kind)}</span>
-          <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
-          <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">{selected.lag}</span>
+          <span className="text-xs text-muted-foreground font-medium">{uiLabel(selected.kind)}</span>
+          <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
+          <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">{selected.lag}</span>
         </div>
         <h3 className="mt-2 font-semibold">{uiLabel(selected.basis)}</h3>
         <p className="mt-1 text-sm font-medium">{selected.label}</p>
@@ -165,7 +171,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
           <AskAgentButton context={{ label: `${graph.targetSymbol} · ${selected.label}`, question: `Jelaskan jalur ${selected.label} untuk ${graph.targetSymbol}.`, symbol: graph.targetSymbol }} label="Tanya jalur ini" />
         </div>
       </section>
-      {selectedEdge ? <section aria-label="Detail hubungan terpilih" className="border-t border-primary/30 bg-primary/5 p-4" aria-live="polite"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Syarat pembatalan</span><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Keyakinan {uiLabel(selectedEdge.confidence).toLowerCase()}</span><span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">Jeda {selectedEdge.lag}</span><StatusBadge status={selectedEdge.direction} /></div><h3 className="mt-2 font-semibold">{graph.nodes.find((node) => node.id === selectedEdge.from)?.label} → {graph.nodes.find((node) => node.id === selectedEdge.to)?.label}</h3><dl className="mt-4 grid gap-3 text-xs leading-5 md:grid-cols-2 xl:grid-cols-3"><div><dt className="font-semibold">Eksposur</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.exposure}</dd></div><div><dt className="font-semibold">Indikator yang dicari</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.expectedObservable}</dd></div><div><dt className="font-semibold">Dampak bisnis</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.businessImpactDimension ? <span className="font-mono text-primary">{uiLabel(selectedEdge.businessImpactDimension)}</span> : null}<span className="mt-1 block">{selectedEdge.businessImpactImplication}</span></dd></div><div><dt className="font-semibold">Penjelasan lain</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.alternativeExplanation}</dd></div><div><dt className="font-semibold">Batal jika</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.falsificationCondition}</dd></div><div><dt className="font-semibold">Dasar keyakinan</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.confidenceBasis}</dd></div></dl><div className="mt-4 flex flex-wrap gap-2"><CitationDialog citations={selectedEdge.citations} label="Bukti hubungan" /><AskAgentButton context={{ label: `${graph.targetSymbol} · hubungan`, question: `Jelaskan hubungan ${graph.nodes.find((node) => node.id === selectedEdge.from)?.label} ke ${graph.nodes.find((node) => node.id === selectedEdge.to)?.label}`, symbol: graph.targetSymbol }} label="Uji lewat asisten" /></div>{selectedEdgeSpan ? <div className="mt-3"><p className="text-xs font-medium">{selectedEdgeSourceEvent?.title ?? "Sumber terlapor"}</p><SourceText span={selectedEdgeSpan} body={selectedEdgeSourceEvent?.body ?? null} /></div> : <p className="mt-3 text-xs text-muted-foreground">Klaim hubungan ini tidak tertaut ke kalimat sumber — perlakukan sebagai hipotesis, bukan kutipan.</p>}</section> : null}
+      {selectedEdge ? <section aria-label="Detail hubungan terpilih" className="border-t border-primary/30 bg-primary/5 p-4" aria-live="polite"><div className="flex flex-wrap items-center gap-2"><span className="text-xs text-muted-foreground font-medium">Syarat pembatalan</span><span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Keyakinan {uiLabel(selectedEdge.confidence).toLowerCase()}</span><span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Jeda {selectedEdge.lag}</span><StatusBadge status={selectedEdge.direction} /></div><h3 className="mt-2 font-semibold">{graph.nodes.find((node) => node.id === selectedEdge.from)?.label} → {graph.nodes.find((node) => node.id === selectedEdge.to)?.label}</h3><dl className="mt-4 grid gap-3 text-xs leading-5 md:grid-cols-2 xl:grid-cols-3"><div><dt className="font-semibold">Eksposur</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.exposure}</dd></div><div><dt className="font-semibold">Indikator yang dicari</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.expectedObservable}</dd></div><div><dt className="font-semibold">Dampak bisnis</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.businessImpactDimension ? <span className="font-mono text-primary">{uiLabel(selectedEdge.businessImpactDimension)}</span> : null}<span className="mt-1 block">{selectedEdge.businessImpactImplication}</span></dd></div><div><dt className="font-semibold">Penjelasan lain</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.alternativeExplanation}</dd></div><div><dt className="font-semibold">Batal jika</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.falsificationCondition}</dd></div><div><dt className="font-semibold">Dasar keyakinan</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.confidenceBasis}</dd></div></dl><div className="mt-4 flex flex-wrap gap-2"><CitationDialog citations={selectedEdge.citations} label="Bukti hubungan" /><AskAgentButton context={{ label: `${graph.targetSymbol} · hubungan`, question: `Jelaskan hubungan ${graph.nodes.find((node) => node.id === selectedEdge.from)?.label} ke ${graph.nodes.find((node) => node.id === selectedEdge.to)?.label}`, symbol: graph.targetSymbol }} label="Uji lewat asisten" /></div>{selectedEdgeSpan ? <div className="mt-3"><p className="text-xs font-medium">{selectedEdgeSourceEvent?.title ?? "Sumber terlapor"}</p><SourceText span={selectedEdgeSpan} body={selectedEdgeSourceEvent?.body ?? null} /></div> : <p className="mt-3 text-xs text-muted-foreground">Klaim hubungan ini tidak tertaut ke kalimat sumber — perlakukan sebagai hipotesis, bukan kutipan.</p>}</section> : null}
       <details className="border-t border-border"><summary className="flex min-h-11 cursor-pointer items-center px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Buka daftar hubungan</summary><div className="overflow-x-auto border-t border-border"><table className="w-full min-w-[860px] text-left text-xs"><thead className="bg-muted text-muted-foreground"><tr><th className="px-4 py-2 font-medium">Dari</th><th className="px-4 py-2 font-medium">Ke</th><th className="px-4 py-2 font-medium">Dasar</th><th className="px-4 py-2 font-medium">Arah</th><th className="px-4 py-2 font-medium">Relevansi</th></tr></thead><tbody className="divide-y divide-border">{graph.edges.map((edge) => { const from = graph.nodes.find((node) => node.id === edge.from)?.label ?? edge.from; const to = graph.nodes.find((node) => node.id === edge.to)?.label ?? edge.to; return <tr key={edge.id}><td className="px-4 py-2.5">{from}</td><td className="px-4 py-2.5">{to}</td><td className="px-4 py-2.5">{uiLabel(edge.basis)}</td><td className="px-4 py-2.5"><StatusBadge status={edge.direction} /></td><td className="px-4 py-2.5 font-mono">{edge.relevance}/100</td></tr>; })}</tbody></table></div></details>
     </div>
   );

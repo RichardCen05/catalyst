@@ -12,6 +12,7 @@ import { dispositionLabel } from "@/lib/ui-labels";
 import { CausalChain } from "@/components/causal-chain";
 import { CompetingHypotheses } from "@/components/competing-hypotheses";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel } from "@/components/ui/panel";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { IconArrowRight, IconBranch, IconCaretDown } from "@/components/ui/icons";
@@ -63,20 +64,20 @@ function ImpactWorkspace() {
 
   if (analysis === undefined || graph === undefined) {
     return (
-      <div className="mx-auto max-w-[1240px]">
-        <Panel className="h-72 animate-pulse bg-muted" aria-label="Memuat peta sebab akibat" />
+      <div>
+        <Panel className="h-72 shimmer" aria-label="Memuat peta sebab akibat" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-[1240px]">
+    <div>
       <PageHeader
-        eyebrow="Ruang uji sebab akibat"
-        title="Hipotesis dan Jalur Dampak"
+        title="Sebab akibat"
+        description="Bandingkan penyebab yang mungkin, lalu telusuri jalurnya sampai indikator bisnis."
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Emiten
           <div className="relative">
             <button
@@ -85,13 +86,13 @@ function ImpactWorkspace() {
               onBlur={() => setEmitenOpen(false)}
               aria-haspopup="listbox"
               aria-expanded={emitenOpen}
-              className="flex h-9 min-w-36 items-center gap-2 rounded-[6px] border border-border bg-surface px-3 font-mono text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
+              className="flex h-9 min-w-36 items-center gap-2 rounded-lg border border-border-strong bg-background px-3 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
             >
               <TickerAvatar symbol={symbol} size="sm" />
               <span>{symbol}</span>
               <IconCaretDown aria-hidden="true" className="ml-auto size-3.5 text-muted-foreground" />
             </button>
-            {emitenOpen ? <ul role="listbox" aria-label="Pilih emiten" className="absolute right-0 z-10 mt-1 max-h-56 w-44 overflow-y-auto rounded-[8px] border border-border bg-surface py-1 shadow-lg">
+            {emitenOpen ? <ul role="listbox" aria-label="Pilih emiten" className="absolute right-0 z-10 mt-1 max-h-56 w-44 overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg">
               {available.map((company) => <li key={company.symbol}>
                 <button
                   type="button"
@@ -111,7 +112,7 @@ function ImpactWorkspace() {
         {graph ? <>
           <p className="text-xs text-muted-foreground">{reloading ? "Memuat ulang rantai…" : graph.hiddenRelationshipCount > 0 ? `${graph.hiddenRelationshipCount} hubungan di bawah ambang.` : "Semua hubungan yang lolos ditampilkan."}</p>
           <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Ambang relevansi
-            <select aria-label="Ambang relevansi rantai" value={minRelevance} onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary">
+            <select aria-label="Ambang relevansi rantai" value={minRelevance} onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }} className="h-9 rounded-lg border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary">
               <option value={40}>≥ 40 · lebar</option>
               <option value={60}>≥ 60 · standar</option>
               <option value={75}>≥ 75 · kuat</option>
@@ -122,29 +123,30 @@ function ImpactWorkspace() {
       </div>
 
       {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">
-        {sharedShocks.length > 1 ? <section aria-label="Guncangan bersama" className="rounded-[12px] border border-border bg-surface px-4 py-3"><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Guncangan bersama pantauan</p><ul className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">{sharedShocks.slice(0, 4).map((event) => <li key={event.id}><strong className="text-foreground">{event.title}</strong> — {event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)).map((link) => link.symbol).join(" · ")}</li>)}</ul></section> : null}
+        {sharedShocks.length > 1 ? <section aria-label="Guncangan bersama" className="rounded-lg border border-border bg-surface px-4 py-3"><p className="text-xs text-muted-foreground font-medium">Guncangan bersama pantauan</p><ul className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">{sharedShocks.slice(0, 4).map((event) => <li key={event.id}><strong className="text-foreground">{event.title}</strong> — {event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)).map((link) => link.symbol).join(" · ")}</li>)}</ul></section> : null}
         {analysis && graph.nodes.find((node) => node.kind === "source") ? (() => {
           const firstSource = graph.nodes.find((node) => node.kind === "source")!;
           const event = events.find((item) => `source-${item.id}` === firstSource.id);
           const check = event ? validateLag(event, analysis.priceSeries) : null;
-          return check ? <p className="rounded-[12px] border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground"><span className="font-mono text-[10px] uppercase tracking-wider text-primary">Uji waktu · </span>{check.note} Puncak volume {check.spikeDate}.</p> : null;
+          return check ? <p className="rounded-lg border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground"><span className="text-xs text-muted-foreground font-medium">Uji waktu · </span>{check.note} Puncak volume {check.spikeDate}.</p> : null;
         })() : null}
         <CompetingHypotheses graph={graph} />
         <CausalChain graph={graph} />
 
-        {analysis ? <details className="group overflow-hidden rounded-[12px] border border-primary/35 bg-primary/7">
-          <summary data-tour-action={symbol === primarySymbol ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span className="grid size-8 place-items-center rounded-[6px] bg-brand text-white"><IconArrowRight aria-hidden="true" className="size-4" /></span><span>Lihat tindakan riset</span><span className="ml-auto font-mono text-[10px] text-primary">{dispositionLabel(analysis.researchDisposition.kind)}</span></summary>
-          <div className="grid gap-4 border-t border-primary/25 p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:p-5">
-            <div><p className="font-mono text-[10px] uppercase tracking-wider text-primary">Tindakan untuk {symbol}</p><h2 className="editorial mt-1 text-2xl">{dispositionLabel(analysis.researchDisposition.kind)}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{analysis.researchDisposition.reason}</p></div>
-            <dl className="grid gap-px overflow-hidden rounded-[8px] border border-border bg-border sm:grid-cols-2"><div className="bg-surface p-3"><dt className="text-xs font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.monitorObservable}</dd></div><div className="bg-surface p-3"><dt className="text-xs font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.reopenWhen}</dd></div></dl>
-            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-muted-foreground">Ini tindakan riset, bukan saran transaksi.</p><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-10 items-center gap-2 self-start rounded-[6px] border border-border px-3 text-sm font-medium text-primary hover:bg-muted">Catat hasil kasus<IconArrowRight aria-hidden="true" className="size-4" /></Link></div>
+        {analysis ? <details className="group overflow-hidden rounded-lg border border-border bg-background">
+          <summary data-tour-action={symbol === primarySymbol ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span>Lihat tindakan riset</span><span className="ml-auto text-sm font-medium text-muted-foreground">{dispositionLabel(analysis.researchDisposition.kind)}</span><IconArrowRight aria-hidden="true" className="size-4 text-subtle-foreground transition-transform group-open:rotate-90" /></summary>
+          <div className="grid gap-4 border-t border-border p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:p-5">
+            <div><p className="text-xs text-muted-foreground font-medium">Tindakan untuk {symbol}</p><h2 className="editorial mt-1 text-xl">{dispositionLabel(analysis.researchDisposition.kind)}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{analysis.researchDisposition.reason}</p></div>
+            <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2"><div className="bg-surface p-3"><dt className="text-xs font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.monitorObservable}</dd></div><div className="bg-surface p-3"><dt className="text-xs font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.reopenWhen}</dd></div></dl>
+            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-muted-foreground">Ini tindakan riset, bukan saran transaksi.</p><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-10 items-center gap-2 self-start rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-muted">Catat hasil kasus<IconArrowRight aria-hidden="true" className="size-4" /></Link></div>
           </div>
         </details> : null}
       </div>}
+      {analysis ? <NextStep title={`Kembali ke kasus ${symbol}`} description="Jalur sebab akibat sudah terbaca. Bawa temuannya ke langkah 3 Keputusan untuk menentukan tindakan riset." href={`/cases/${symbol}?tab=review`} action={`Buka Keputusan ${symbol}`} secondary={{ href: `/cases/${symbol}?tab=business`, label: "Langkah 2 Bisnis" }} /> : <NextStep title="Pilih kasus yang lengkap" description={`Rekaman ${symbol} belum cukup untuk membuka kasus. Kasus dengan bukti lengkap ada di Riset & Analisis.`} href="/cases" action="Buka Riset & Analisis" />}
     </div>
   );
 }
 
 export default function ImpactPage() {
-  return <Suspense fallback={<Panel className="mx-auto h-72 max-w-[1240px] animate-pulse bg-muted" aria-label="Memuat peta sebab akibat" />}><ImpactWorkspace /></Suspense>;
+  return <Suspense fallback={<Panel className="h-72 shimmer" aria-label="Memuat peta sebab akibat" />}><ImpactWorkspace /></Suspense>;
 }

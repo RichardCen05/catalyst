@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Newsreader } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "@xyflow/react/dist/style.css";
 import "blobatar/motion.css";
 import "blobatar/gaze.css";
@@ -9,7 +9,6 @@ import { AppShell } from "@/components/app-shell";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
-const editorial = Newsreader({ subsets: ["latin"], variable: "--font-editorial", weight: ["400", "500"], style: ["normal", "italic"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Catalyst", template: "%s | Catalyst" },
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body className={`${sans.variable} ${mono.variable} ${editorial.variable} font-[family-name:var(--font-sans)] antialiased`}>
+      <body className={`${sans.variable} ${mono.variable} font-[family-name:var(--font-sans)] antialiased`}>
         <Providers><AppShell>{children}</AppShell></Providers>
       </body>
     </html>

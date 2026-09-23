@@ -15,7 +15,7 @@ import { runPredictionBacktest } from "@/lib/agent/prediction-run";
 export default function AiLearningPage() {
   const run = runPredictionBacktest({ now: DATA_AS_OF });
   return (
-    <Suspense fallback={<Panel className="h-72 animate-pulse bg-muted" aria-label="Memuat AI Learning" />}>
+    <Suspense fallback={<Panel className="h-72 shimmer" aria-label="Memuat AI Learning" />}>
       <LearningContent
         predictionSlot={<PredictionPanel claims={run.claims} outcomes={run.outcomes} report={run.report} />}
       />

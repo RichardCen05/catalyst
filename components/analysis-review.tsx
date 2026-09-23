@@ -40,13 +40,13 @@ export function AnalysisReview({ symbol }: { symbol: SymbolCode }) {
 
       {symbolInsights.length ? (
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Riwayat" title={`${symbolInsights.length} ajaran pada ${symbol}`} />
+          <PanelHeader title={`${symbolInsights.length} ajaran pada ${symbol}`} />
           <div className="divide-y divide-border">
             {symbolInsights.slice(0, 3).map((insight) => (
               <article key={insight.id} className="p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded border border-attention/30 bg-attention/8 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-attention-foreground">{statusLabels[insight.status]}</span>
-                  <span className="text-[11px] text-muted-foreground">{insight.pillar ? pillarLabels[insight.pillar] : "Seluruh analisis"}</span>
+                  <span className="rounded-lg border border-attention/30 bg-attention/8 px-1.5 py-0.5 text-xs text-attention-foreground">{statusLabels[insight.status]}</span>
+                  <span className="text-xs text-muted-foreground">{insight.pillar ? pillarLabels[insight.pillar] : "Seluruh analisis"}</span>
                 </div>
                 <p className="mt-2 text-xs leading-5">{insight.note}</p>
               </article>

@@ -2,25 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { buildMarketGraph } from "@/lib/agent/market-graph";
-import { companies, DATA_AS_OF, events } from "@/lib/data/fixtures";
+import { companies, events } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { MarketCausalGraph, SymbolCode } from "@/lib/types";
-import { cn, formatAsOf } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { CitationDialog } from "@/components/citation-dialog";
 import { DashboardTimeline } from "@/components/dashboard-timeline";
 import { SymbolMultiselect } from "@/components/symbol-multiselect";
 import { MarketCausalMap } from "@/components/market-causal-map";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { Panel } from "@/components/ui/panel";
-import { IconArrowRight, IconBranch, IconChart, IconClock, IconGraph } from "@/components/ui/icons";
+import { IconArrowRight, IconBranch, IconChart, IconGraph } from "@/components/ui/icons";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import Link from "next/link";
 
 type DashboardView = "node" | "chart";
 
 const viewTabs: Array<{ value: DashboardView; label: string; Icon: typeof IconGraph }> = [
-  { value: "node", label: "Peta Sebab Akibat", Icon: IconGraph },
-  { value: "chart", label: "Grafik Indeks", Icon: IconChart },
+  { value: "node", label: "Peta sebab akibat", Icon: IconGraph },
+  { value: "chart", label: "Grafik indeks", Icon: IconChart },
 ];
 
 export default function DashboardPage() {
@@ -60,7 +61,6 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbolKey, profile, minRelevance, playbook, insights, caseResolutions]);
 
-  const [stalenessDays] = useState(() => Math.max(0, Math.round((Date.now() - new Date(DATA_AS_OF).getTime()) / 86_400_000)));
 
   const citations = useMemo(
     () => [
@@ -70,16 +70,8 @@ export default function DashboardPage() {
     [activeSymbols],
   );
 
-  const header = (
-    <PageHeader
-      eyebrow="Riset saham komoditas IDX"
-      title="Dashboard Pantauan"
-      description="Peta sebab akibat seluruh emiten, sumber berita, hipotesis mekanisme, hingga dampak bisnis."
-    />
-  );
-
   const modeSwitch = (
-    <div role="tablist" aria-label="Mode tampilan papan" className="mb-4 inline-flex gap-1 rounded-[8px] border border-border bg-surface p-1">
+    <div role="tablist" aria-label="Mode tampilan papan" className="inline-flex gap-0.5 rounded-lg bg-muted p-[3px]">
       {viewTabs.map((tab) => {
         const active = view === tab.value;
         return (
@@ -90,8 +82,8 @@ export default function DashboardPage() {
             aria-selected={active}
             onClick={() => setView(tab.value)}
             className={cn(
-              "inline-flex min-h-9 items-center gap-2 rounded-[6px] px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              "inline-flex min-h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "border-border bg-background text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <tab.Icon aria-hidden="true" className="size-4" />{tab.label}
@@ -99,6 +91,18 @@ export default function DashboardPage() {
         );
       })}
     </div>
+  );
+
+  const openCases = openSymbols.filter((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed));
+  const header = (
+    <>
+      <PageHeader
+        title="Dashboard"
+        description="Peta sebab akibat semua emiten pantauan: sumber, mekanisme, emiten, sampai dampak bisnis."
+        action={modeSwitch}
+      />
+      {openCases.length ? <NextStep className="mb-6 mt-0" title={`${openCases.length} kasus menunggu pemeriksaan`} description={`Peta ini menunjukkan apa yang terhubung. Untuk memeriksa satu perubahan sampai ke keputusan, buka kasusnya: ${openCases.join(", ")}.`} href="/cases" action="Buka Riset & Analisis" /> : null}
+    </>
   );
 
   const picker = openSymbols.length
@@ -109,8 +113,7 @@ export default function DashboardPage() {
     return (
       <div>
         {header}
-        {modeSwitch}
-        {picker}
+        <div className="mb-4">{picker}</div>
         <DashboardTimeline symbols={activeSymbols} />
       </div>
     );
@@ -120,9 +123,8 @@ export default function DashboardPage() {
     return (
       <div>
         {header}
-        {modeSwitch}
-        {picker}
-        <Panel className="h-[560px] animate-pulse bg-muted" aria-label="Memuat peta sebab akibat" />
+        <div className="mb-4">{picker}</div>
+        <div className="shimmer h-[560px] rounded-lg" role="status" aria-label="Memuat peta sebab akibat" />
       </div>
     );
   }
@@ -130,43 +132,36 @@ export default function DashboardPage() {
   return (
     <div>
       {header}
-      {modeSwitch}
-      {picker}
 
-      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-surface px-4 py-3 text-xs">
-        <span className="font-mono uppercase tracking-wider text-muted-foreground">Alur Analisis:</span>
-        <span className="text-muted-foreground">Sumber → Mekanisme → Emiten → Dampak Bisnis</span>
-        <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          <IconClock aria-hidden="true" className="size-3" />{formatAsOf(DATA_AS_OF)} WIB
-        </span>
-        <CitationDialog citations={citations} label="Sumber" />
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        {picker}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            Relevansi
+            <select
+              aria-label="Ambang relevansi peta"
+              value={minRelevance}
+              onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }}
+              className="h-9 rounded-lg border border-border-strong bg-background px-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-ring/25"
+            >
+              <option value={40}>≥ 40 · lebar</option>
+              <option value={60}>≥ 60 · standar</option>
+              <option value={75}>≥ 75 · kuat</option>
+              <option value={90}>≥ 90 · terkuat</option>
+            </select>
+          </label>
+          <CitationDialog citations={citations} label="Sumber" />
+        </div>
       </div>
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-          Relevansi:
-          <select
-            aria-label="Ambang relevansi peta"
-            value={minRelevance}
-            onChange={(event) => { setReloading(true); setMinRelevance(Number(event.target.value)); }}
-            className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25"
-          >
-            <option value={40}>≥ 40 · lebar</option>
-            <option value={60}>≥ 60 · standar</option>
-            <option value={75}>≥ 75 · kuat</option>
-            <option value={90}>≥ 90 · terkuat</option>
-          </select>
-        </label>
-        <span className="text-xs text-muted-foreground">(Klik kartu atau garis hubung untuk penjelasan lebih lanjut dan bukti)</span>
-      </div>
+      <p className="mb-4 text-xs text-subtle-foreground">Sumber → Mekanisme → Emiten → Dampak bisnis. Pilih kartu atau garis untuk melihat penjelasan dan buktinya.</p>
 
       {graph.symbols.length === 0 ? (
         <Panel className="p-8 text-center">
           <IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" />
           <h2 className="mt-3 font-semibold">Belum ada kasus terbuka</h2>
           <p className="mt-1 text-sm text-muted-foreground">Tambahkan emiten ke daftar pantauan, atau buka kembali kasus yang sudah ditutup.</p>
-          <Link href="/cases" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-[6px] border border-border px-3 text-sm font-medium text-primary hover:bg-muted">
-            Semua kasus<IconArrowRight aria-hidden="true" className="size-4" />
+          <Link href="/cases" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-border-strong px-3 text-sm font-medium hover:bg-muted">
+            Buka Riset &amp; Analisis<IconArrowRight aria-hidden="true" className="size-4" />
           </Link>
         </Panel>
       ) : (

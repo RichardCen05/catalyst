@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, type ReactNode } from "react";
-import { ArrowRight, BrainCircuit, Check, ChevronDown, ExternalLink, Lightbulb, Trash2, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ExternalLink, Info, Lightbulb, Trash2, X } from "lucide-react";
 import { LearningLayers } from "@/components/learning-layers";
 import { PageHeader } from "@/components/page-header";
+import { NextStep } from "@/components/next-step";
 import { TeachAgent } from "@/components/teach-agent";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
@@ -68,11 +69,11 @@ const kindLabels: Record<LearningItem["kind"], string> = {
   resolution: "Hasil kasus",
 };
 
-const memoryGroups: Array<{ key: MemoryGroup; eyebrow: string; title: string; empty: string }> = [
-  { key: "feedback", eyebrow: "Prioritas", title: "Feedback untuk prioritas", empty: "Belum ada feedback aktif dari kartu bukti." },
-  { key: "insight", eyebrow: "Hipotesis", title: "Hipotesis pengguna", empty: "Belum ada ajaran aktif yang perlu diperiksa." },
-  { key: "rule", eyebrow: "Aturan", title: "Aturan yang disetujui", empty: "Belum ada usulan aturan yang diterima." },
-  { key: "explicit", eyebrow: "Pilihan pengguna", title: "Memori eksplisit", empty: "Belum ada aturan eksplisit yang disimpan." },
+const memoryGroups: Array<{ key: MemoryGroup; title: string; empty: string }> = [
+  { key: "feedback", title: "Feedback untuk prioritas", empty: "Belum ada feedback aktif dari kartu bukti." },
+  { key: "insight", title: "Hipotesis pengguna", empty: "Belum ada ajaran aktif yang perlu diperiksa." },
+  { key: "rule", title: "Aturan yang disetujui", empty: "Belum ada usulan aturan yang diterima." },
+  { key: "explicit", title: "Memori eksplisit", empty: "Belum ada aturan eksplisit yang disimpan." },
 ];
 
 function statusClass(status: LearningStatus | "explicit"): string {
@@ -110,9 +111,9 @@ const MEMORY_ROWS_SHOWN = 6;
 function MemoryRow({ item, showStatus }: { item: MemoryItem; showStatus: boolean }) {
   return (
     <li>
-      <Link href={item.href} className="flex items-start gap-2 rounded text-xs leading-5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <Link href={item.href} className="flex items-start gap-2 rounded-lg text-xs leading-5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <span className="min-w-0 flex-1">{item.detail}</span>
-        {showStatus ? <span className={cn("mt-0.5 shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(item.status))}>{statusText(item.status)}</span> : null}
+        {showStatus ? <span className={cn("mt-0.5 shrink-0 rounded-lg border px-1.5 py-0.5 text-xs", statusClass(item.status))}>{statusText(item.status)}</span> : null}
       </Link>
     </li>
   );
@@ -120,7 +121,7 @@ function MemoryRow({ item, showStatus }: { item: MemoryItem; showStatus: boolean
 
 function chipClass(active: boolean): string {
   return cn(
-    "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
     active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground",
   );
 }
@@ -183,9 +184,8 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
   return (
     <div>
       <PageHeader
-        eyebrow="Memori personal"
         title="AI Learning"
-        description="Empat bagian: apa yang Anda ajarkan dan akibatnya, apa yang masih menunggu keputusan Anda, apa yang Catalyst pelajari sendiri dari pasar, dan apa yang sedang disimpan."
+        description="Apa yang Anda ajarkan, apa yang menunggu keputusan Anda, apa yang Catalyst pelajari dari pasar, dan apa yang disimpan."
       />
 
       {/* Same tab strip as the case hub: one section on screen at a time, the
@@ -194,19 +194,19 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           a reader is already using to move around the page — not floating in
           the header where it read as a stray chip. */}
       <div className="mb-4 flex flex-col-reverse gap-2 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <nav aria-label="Bagian AI Learning" className="flex min-w-0 overflow-x-auto">
+        <nav aria-label="Bagian AI Learning" className="flex min-w-0 gap-6 overflow-x-auto">
           {sections.map((item) => (
             <Link
               key={item.value}
               href={item.value === "ajaran" ? "/ai-learning" : `/ai-learning?section=${item.value}`}
               aria-current={section === item.value ? "page" : undefined}
               className={cn(
-                "relative flex min-h-11 shrink-0 items-center px-4 text-xs font-medium text-muted-foreground",
-                section === item.value && "text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-brand",
+                "relative -mb-px flex min-h-11 shrink-0 items-center border-b-2 border-transparent text-sm font-medium text-subtle-foreground transition-colors hover:text-foreground",
+                section === item.value && "border-foreground text-foreground",
               )}
             >
               {item.label}
-              {item.value === "tinjauan" && pendingCount ? <span className="ml-2 rounded border border-attention/30 px-1.5 py-0.5 font-mono text-[9px] text-attention-foreground">{pendingCount}</span> : null}
+              {item.value === "tinjauan" && pendingCount ? <span className="ml-2 rounded-lg border border-attention/30 px-1.5 py-0.5 font-mono text-xs text-attention-foreground">{pendingCount}</span> : null}
             </Link>
           ))}
         </nav>
@@ -215,17 +215,20 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         </div>
       </div>
 
-      <section className="mb-4 flex gap-3 rounded-[12px] border border-primary/25 bg-primary/8 p-4 text-sm leading-6" aria-label="Batas AI Learning">
-        <BrainCircuit aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-        <p>Catalyst tidak melatih ulang model dari data ini. Koreksi tetap hipotesis sampai diperiksa. Pertanyaan Copilot hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar kasus di layar Kasus; jawaban asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback.</p>
-      </section>
+      <details className="group mb-6 rounded-lg border border-border bg-surface" aria-label="Batas AI Learning">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 text-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          <Info aria-hidden="true" className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">Catalyst tidak melatih ulang model. Koreksi Anda tetap hipotesis sampai diperiksa.</span>
+          <span className="shrink-0 font-medium text-foreground underline underline-offset-2 group-open:hidden">Selengkapnya</span>
+        </summary>
+        <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback.</p>
+      </details>
 
       {section === "ajaran" ? <>
       <TeachAgent />
 
       <Panel className="mt-4 overflow-hidden">
         <PanelHeader
-          eyebrow="Riwayat lengkap"
           title="Yang sudah dipelajari"
           action={
             <p className="hidden shrink-0 self-center text-xs text-muted-foreground sm:block">
@@ -236,7 +239,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
 
         <div className="space-y-2 border-b border-border px-4 py-3">
           <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter jenis masukan">
-            <span aria-hidden="true" className="w-12 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Jenis</span>
+            <span aria-hidden="true" className="w-12 shrink-0 text-xs text-muted-foreground">Jenis</span>
             {LEARNING_FILTERS.map((value) => (
               <button key={value} type="button" aria-pressed={filter === value} onClick={() => setSearch({ filter: value, selected: null })} className={chipClass(filter === value)}>
                 {filterLabels[value]}
@@ -244,14 +247,14 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
             ))}
           </div>
           <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter saham">
-            <span aria-hidden="true" className="w-12 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Saham</span>
+            <span aria-hidden="true" className="w-12 shrink-0 text-xs text-muted-foreground">Saham</span>
             <button type="button" aria-pressed={!symbol} onClick={() => setSearch({ symbol: null, selected: null })} className={chipClass(!symbol)}>
               Semua saham
             </button>
             {facets.map((facet) => (
               <button key={facet.symbol} type="button" aria-pressed={symbol === facet.symbol} onClick={() => setSearch({ symbol: facet.symbol, selected: null })} className={cn(chipClass(symbol === facet.symbol), "font-mono")}>
                 {facet.symbol}
-                <span className="text-[10px] opacity-70">{facet.count}</span>
+                <span className="text-xs opacity-70">{facet.count}</span>
               </button>
             ))}
           </div>
@@ -260,7 +263,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
 
         {days.length ? (
           <>
-            <div className="hidden grid-cols-[132px_minmax(0,1.05fr)_minmax(0,1fr)_28px] gap-4 border-b border-border bg-muted/40 px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[132px_minmax(0,1.05fr)_minmax(0,1fr)_28px] gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:grid">
               <span>Kapan · saham</span>
               <span>Yang Anda ajarkan</span>
               <span>Yang berubah pada Catalyst</span>
@@ -269,7 +272,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
             <div>
               {days.map((day) => (
                 <section key={day.key} aria-label={`Garis waktu ${day.label}`}>
-                  <p className="border-b border-border bg-background px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-primary">
+                  <p className="border-b border-border bg-background px-4 py-2 text-xs text-muted-foreground font-medium">
                     {day.label}
                   </p>
                   <ol className="divide-y divide-border">
@@ -288,23 +291,23 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
                           >
                             <span className="flex items-center gap-2">
                               <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", dotClass(item.status))} />
-                              <span className="font-mono text-[11px] text-muted-foreground">{formatLearningClock(item.createdAt)}</span>
-                              {item.symbol ? <span className="font-mono text-[11px] font-semibold text-primary">{item.symbol}</span> : null}
+                              <span className="font-mono text-xs text-muted-foreground">{formatLearningClock(item.createdAt)}</span>
+                              {item.symbol ? <span className="font-mono text-xs font-semibold text-muted-foreground font-medium">{item.symbol}</span> : null}
                             </span>
                             <span className="min-w-0">
-                              <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{item.inputLabel}</span>
+                              <span className="block text-xs text-muted-foreground">{item.inputLabel}</span>
                               <span className="mt-1 line-clamp-2 block text-sm leading-6">{item.inputDetail}</span>
                             </span>
                             <span className="min-w-0">
                               <span className="line-clamp-2 block text-xs leading-5">{item.effectLabel}</span>
-                              <span className={cn("mt-1.5 inline-block rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(item.status))}>{item.statusLabel}</span>
+                              <span className={cn("mt-1.5 inline-block rounded-lg border px-1.5 py-0.5 text-xs", statusClass(item.status))}>{item.statusLabel}</span>
                             </span>
                             <ChevronDown aria-hidden="true" className={cn("mt-0.5 hidden size-4 shrink-0 text-primary transition-transform md:block", open && "rotate-180")} />
                           </button>
 
                           {open ? (
                             <article className="border-t border-border bg-background px-4 py-4 md:pl-[148px]" aria-label={`Detail ${item.inputLabel}`}>
-                              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{kindLabels[item.kind]} · {formatLearningTime(item.createdAt)}</p>
+                              <p className=" text-xs text-muted-foreground">{kindLabels[item.kind]} · {formatLearningTime(item.createdAt)}</p>
                               <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{item.inputDetail}</p>
                               {item.sourceUrl ? (
                                 <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-primary hover:underline">
@@ -313,20 +316,20 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
                               ) : null}
                               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                                 <div className="rounded-lg border border-primary/20 bg-primary/6 p-3">
-                                  <p className="font-mono text-[10px] uppercase tracking-wider text-primary">Yang dipelajari</p>
+                                  <p className="text-xs text-muted-foreground font-medium">Yang dipelajari</p>
                                   <p className="mt-1 text-sm font-medium">{item.learningLabel}</p>
                                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.learningDetail}</p>
                                 </div>
                                 <ol className="space-y-3">
                                   {item.steps.map((step, index) => (
                                     <li key={`${step.label}-${index}`} className="flex gap-3">
-                                      <span className={cn("grid size-6 shrink-0 place-items-center rounded-full border font-mono text-[10px]", step.state === "current" ? "border-primary bg-primary/10 text-primary" : step.state === "skipped" ? "border-border text-muted-foreground" : "border-positive/40 text-positive")}>
+                                      <span className={cn("grid size-6 shrink-0 place-items-center rounded-full border font-mono text-xs", step.state === "current" ? "border-primary bg-primary/10 text-primary" : step.state === "skipped" ? "border-border text-muted-foreground" : "border-positive/40 text-positive")}>
                                         {step.state === "complete" ? <Check aria-hidden="true" className="size-3.5" /> : index + 1}
                                       </span>
                                       <span>
                                         <span className="block text-xs font-medium">{step.label}</span>
                                         <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">{step.detail}</span>
-                                        {step.at ? <span className="mt-1 block font-mono text-[9px] text-muted-foreground">{formatLearningTime(step.at)}</span> : null}
+                                        {step.at ? <span className="mt-1 block font-mono text-xs text-muted-foreground">{formatLearningTime(step.at)}</span> : null}
                                       </span>
                                     </li>
                                   ))}
@@ -361,6 +364,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           </div>
         )}
       </Panel>
+      <NextStep title="Ajarkan sambil membaca bukti" description="Catatan paling berguna ditulis saat membaca kasus: buka Keputusan, lalu Koreksi analisis ini." href="/cases" action="Buka Riset & Analisis" secondary={{ href: "/ai-learning?section=tinjauan", label: "Tinjauan dan usulan" }} />
       </> : null}
 
       {section === "tinjauan" ? <>
@@ -371,15 +375,15 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           di sini. */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Antrean pemeriksaan" title="Koreksi yang perlu diperiksa" />
+          <PanelHeader title="Koreksi yang perlu diperiksa" />
           {insights.length ? (
             <div className="divide-y divide-border">
               {insights.map((insight) => (
                 <article key={insight.id} className="p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-primary">{insight.symbol}</span>
-                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{insight.pillar ? uiLabel(insight.pillar) : "Umum"}</span>
-                    <span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(insight.status === "pending" ? "pending" : insight.status === "incorporated" ? "reviewed" : "dismissed"))}>
+                    <span className="font-mono text-xs font-semibold text-muted-foreground font-medium">{insight.symbol}</span>
+                    <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">{insight.pillar ? uiLabel(insight.pillar) : "Umum"}</span>
+                    <span className={cn("rounded-lg border px-1.5 py-0.5 text-xs", statusClass(insight.status === "pending" ? "pending" : insight.status === "incorporated" ? "reviewed" : "dismissed"))}>
                       {insight.status === "pending" ? "menunggu" : insight.status === "incorporated" ? "diperiksa" : "diabaikan"}
                     </span>
                   </div>
@@ -413,16 +417,16 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         </Panel>
 
         <Panel className="overflow-hidden">
-          <PanelHeader eyebrow="Usulan dari asisten" title="Usulan aturan" />
+          <PanelHeader title="Usulan aturan" />
           <p className="border-b border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Hasil kasus tidak otomatis mengubah aturan riset. Anda harus menerima atau menolak usulan.</p>
           {ruleProposals.length ? (
             <div className="divide-y divide-border">
               {ruleProposals.map((proposal) => (
                 <article key={proposal.id} className="p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-primary">{proposal.symbol}</span>
-                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{proposal.kind === "materiality" ? "materialitas" : "kondisi pembatal"}</span>
-                    <span className={cn("rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider", statusClass(proposal.status === "accepted" ? "accepted" : proposal.status === "rejected" ? "rejected" : "pending"))}>
+                    <span className="font-mono text-xs font-semibold text-muted-foreground font-medium">{proposal.symbol}</span>
+                    <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">{proposal.kind === "materiality" ? "materialitas" : "kondisi pembatal"}</span>
+                    <span className={cn("rounded-lg border px-1.5 py-0.5 text-xs", statusClass(proposal.status === "accepted" ? "accepted" : proposal.status === "rejected" ? "rejected" : "pending"))}>
                       {statusText(proposal.status === "accepted" ? "accepted" : proposal.status === "rejected" ? "rejected" : "pending")}
                     </span>
                   </div>
@@ -443,18 +447,15 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         </Panel>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link href="/cases" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka kasus riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Buka aturan riset<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-      </div>
+      <NextStep title="Tutup kasus untuk memunculkan usulan" description="Usulan aturan muncul dari hasil kasus yang disimpan di langkah 3 Keputusan." href="/cases" action="Buka Riset & Analisis" />
       </> : null}
 
-      {section === "pasar" ? <div>{predictionSlot}</div> : null}
+      {section === "pasar" ? <div>{predictionSlot}<NextStep title="Lihat klaim di kasusnya" description="Klaim dinilai dari rekaman sesudah tanggal berita. Buka kasusnya untuk membaca bukti yang sedang diuji." href="/cases" action="Buka Riset & Analisis" /></div> : null}
 
       {section === "memori" ? <>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Link href="/ai-learning?section=tinjauan" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Kelola ajaran dan usulan<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
-        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Edit aturan eksplisit<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+        <Link href="/ai-learning?section=tinjauan" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Kelola ajaran dan usulan<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+        <Link href="/playbook" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-muted">Edit aturan eksplisit<ArrowRight aria-hidden="true" className="size-3.5" /></Link>
       </div>
 
       {/* Satu panel per jenis memori, bertumpuk selebar halaman.
@@ -478,7 +479,6 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
             <Panel key={group.key} aria-labelledby={`memory-${group.key}-title`} className="overflow-hidden">
               <PanelHeader
                 titleId={`memory-${group.key}-title`}
-                eyebrow={group.eyebrow}
                 title={group.title}
                 action={items.length ? <span className="shrink-0 self-center font-mono text-xs text-muted-foreground">{items.length} tersimpan</span> : undefined}
               />
@@ -488,7 +488,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
                     <div key={label} className="grid gap-x-4 gap-y-1 px-4 py-3 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
                       <p className="text-sm font-medium">
                         {label}
-                        {rows.length > 1 ? <span className="ml-2 font-mono text-[10px] text-muted-foreground">{rows.length}</span> : null}
+                        {rows.length > 1 ? <span className="ml-2 font-mono text-xs text-muted-foreground">{rows.length}</span> : null}
                       </p>
                       <div className="min-w-0">
                         <ul className="space-y-1">
@@ -515,7 +515,8 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         })}
       </div>
 
-      <p className="mt-4 rounded-[10px] border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
+      <p className="mt-4 rounded-lg border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
+      <NextStep title="Ubah aturan riset" description="Memori eksplisit di atas berasal dari aturan riset Anda. Ubah di sana bila cara Anda menguji tesis berubah." href="/playbook" action="Buka Aturan riset" />
       </> : null}
     </div>
   );

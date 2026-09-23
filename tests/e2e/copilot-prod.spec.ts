@@ -109,7 +109,7 @@ test.describe("Phase 0 — production health", () => {
     });
     const t0 = Date.now();
     await page.goto(`${PROD}/copilot`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Cari jawaban dari bukti" })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: "Asisten", exact: true })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByLabel("Tanya Catalyst")).toBeVisible({ timeout: 60_000 });
     const coldMs = Date.now() - t0;
     console.log(`[prod-cold-load] /copilot interactive in ${coldMs}ms`);

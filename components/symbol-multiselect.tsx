@@ -26,20 +26,21 @@ export function SymbolMultiselect({ options, selected, onChange, label }: {
     onChange(next.length === options.length ? [] : next);
   };
   const chip = (active: boolean) => cn(
-    "inline-flex min-h-9 items-center rounded-[6px] border px-3 font-mono text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-    active ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:bg-muted",
+    "inline-flex min-h-9 items-center rounded-lg border px-3 text-sm font-medium transition-[background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    active ? "border-foreground bg-foreground text-background" : "border-border-strong bg-background text-foreground hover:shadow-[0_0_0_3px_var(--muted)]",
   );
 
   return (
-    <div role="group" aria-label={label} className="mb-3 flex flex-wrap items-center gap-2">
-      <span aria-hidden="true" className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+    <div role="group" aria-label={label} className="flex flex-wrap items-center gap-2">
       <button type="button" aria-pressed={all} onClick={() => onChange([])} className={chip(all)}>
-        Semua<span className="ml-1.5 text-[10px] opacity-70">{options.length}</span>
+        Semua<span className="ml-1.5 font-mono text-xs opacity-70">{options.length}</span>
       </button>
       {options.map((symbol) => {
-        const active = all || selected.includes(symbol);
+        // Under "Semua" only that chip is filled: every chip lit at once read
+        // as six separate filters rather than no filter.
+        const active = selected.includes(symbol);
         return (
-          <button key={symbol} type="button" aria-pressed={selected.includes(symbol)} onClick={() => toggle(symbol)} className={chip(active)}>
+          <button key={symbol} type="button" aria-pressed={active} onClick={() => toggle(symbol)} className={chip(active)}>
             {symbol}
           </button>
         );

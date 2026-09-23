@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { WEB_WATCH_PATH_MIN_CHARS, WEB_WATCH_REASON_MIN_CHARS } from "@/lib/schemas";
+import { uiLabel } from "@/lib/ui-labels";
+import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -157,7 +159,7 @@ function CandidateCard({
       {candidate.body ? (
         <details className="mt-2 text-sm">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Lihat isi terekstrak</summary>
-          <p className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-[6px] bg-muted p-3 text-xs leading-5">{candidate.body.slice(0, 3000)}</p>
+          <p className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs leading-5">{candidate.body.slice(0, 3000)}</p>
         </details>
       ) : null}
 
@@ -177,7 +179,7 @@ function CandidateCard({
                 aria-label={`Emiten ${index + 1}`}
                 value={impact.symbol}
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, symbol: event.target.value } : row)))}
-                className="h-10 rounded-[6px] border border-border bg-surface px-2 font-mono text-sm outline-none focus:border-primary"
+                className="h-10 rounded-lg border border-border bg-surface px-2 font-mono text-sm outline-none focus:border-primary"
               >
                 {symbols.map((symbol) => (
                   <option key={symbol} value={symbol}>{symbol}</option>
@@ -187,7 +189,7 @@ function CandidateCard({
                 aria-label={`Arah ${index + 1}`}
                 value={impact.direction}
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, direction: event.target.value as ImpactDraft["direction"] } : row)))}
-                className="h-10 rounded-[6px] border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
+                className="h-10 rounded-lg border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
               >
                 {DIRECTIONS.map((direction) => (
                   <option key={direction} value={direction}>{directionLabel[direction]}</option>
@@ -197,7 +199,7 @@ function CandidateCard({
                 aria-label={`Band ${index + 1}`}
                 value={impact.band}
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, band: event.target.value as ImpactDraft["band"] } : row)))}
-                className="h-10 rounded-[6px] border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
+                className="h-10 rounded-lg border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
               >
                 <option value="high">Tinggi · 85</option>
                 <option value="medium">Sedang · 70</option>
@@ -209,7 +211,7 @@ function CandidateCard({
                 onChange={(event) => setImpacts(impacts.map((row, i) => (i === index ? { ...row, path: event.target.value } : row)))}
                 placeholder="Jalur eksposur, mis. ICP naik → lifting cost ADRO → margin"
                 aria-invalid={pathIsShort(impact.path)}
-                className={`h-10 rounded-[6px] border bg-surface px-3 text-sm outline-none focus:border-primary ${pathIsShort(impact.path) ? "border-red-500" : "border-border"}`}
+                className={`h-10 rounded-lg border bg-surface px-3 text-sm outline-none focus:border-primary ${pathIsShort(impact.path) ? "border-red-500" : "border-border"}`}
               />
               <Button
                 variant="ghost"
@@ -233,7 +235,7 @@ function CandidateCard({
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           placeholder="Catatan reviewer (opsional)"
-          className="mt-2 h-10 w-full rounded-[6px] border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
+          className="mt-2 h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
         />
         {unmappedRows > 0 ? (
           <p className="mt-2 text-xs text-muted-foreground">
@@ -264,7 +266,7 @@ function CandidateCard({
             onChange={(event) => setDismissReason(event.target.value)}
             placeholder="Alasan (wajib), mis. tidak material untuk watchlist"
             aria-invalid={dismissTooShort}
-            className={`h-10 min-w-52 flex-1 rounded-[6px] border bg-surface px-3 text-sm outline-none focus:border-primary ${dismissTooShort && dismissReason.length > 0 ? "border-red-500" : "border-border"}`}
+            className={`h-10 min-w-52 flex-1 rounded-lg border bg-surface px-3 text-sm outline-none focus:border-primary ${dismissTooShort && dismissReason.length > 0 ? "border-red-500" : "border-border"}`}
           />
           <Button
             variant="ghost"
@@ -333,31 +335,30 @@ export function WebWatchReview() {
   });
 
   return (
-    <div className="mx-auto max-w-[1240px]">
+    <div>
       <PageHeader
-        eyebrow="Pantauan sumber"
-        title="Perubahan sejak pemeriksaan terakhir"
-        description="Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB"
-        action={<Button onClick={load}>Muat ulang</Button>}
+        title="Pantau"
+        description="Perubahan sejak pemeriksaan terakhir. Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB."
+        action={<Button variant="secondary" onClick={load}>Muat ulang</Button>}
       />
       {error ? (
         <Panel className="p-8 text-center"><p className="text-sm text-muted-foreground">{error}</p></Panel>
       ) : !data ? (
-        <Panel className="h-72 animate-pulse bg-muted" aria-label="Memuat antrean pantauan" />
+        <Panel className="h-72 shimmer" aria-label="Memuat antrean pantauan" />
       ) : (
         <div className="space-y-8">
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="mr-auto text-lg font-semibold">Antrean ({visiblePending.length})</h2>
-              <select aria-label="Saring emiten" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="h-9 rounded-[6px] border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary">
+              <h2 className="editorial mr-auto text-xl">Antrean ({visiblePending.length})</h2>
+              <select aria-label="Saring emiten" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary">
                 <option value="semua">Semua emiten</option>
                 {data.symbols.map((code) => (
                   <option key={code} value={code}>{code}</option>
                 ))}
               </select>
-              <select aria-label="Saring kategori" value={category} onChange={(event) => setCategory(event.target.value)} className="h-9 rounded-[6px] border border-border bg-surface px-2 text-xs outline-none focus:border-primary">
+              <select aria-label="Saring kategori" value={category} onChange={(event) => setCategory(event.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 text-xs outline-none focus:border-primary">
                 {categories.map((c) => (
-                  <option key={c} value={c}>{c === "semua" ? "Semua kategori" : c}</option>
+                  <option key={c} value={c}>{c === "semua" ? "Semua kategori" : uiLabel(c)}</option>
                 ))}
               </select>
               <input
@@ -365,7 +366,7 @@ export function WebWatchReview() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Cari judul…"
-                className="h-9 w-44 rounded-[6px] border border-border bg-surface px-3 text-xs outline-none focus:border-primary"
+                className="h-9 w-44 rounded-lg border border-border bg-surface px-3 text-xs outline-none focus:border-primary"
               />
             </div>
             {visiblePending.length ? (
@@ -375,12 +376,12 @@ export function WebWatchReview() {
                 ))}
               </div>
             ) : (
-              <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong — tidak ada perubahan baru yang menunggu review."}</Panel>
+              <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong. Tidak ada perubahan baru yang menunggu tinjauan."}</Panel>
             )}
           </section>
 
           <section aria-label="Diterima engine">
-            <h2 className="mb-3 text-lg font-semibold">Diterima ({data.accepted.length})</h2>
+            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
             {data.accepted.length ? (
               <div className="space-y-3">
                 {data.accepted.map((event) => (
@@ -406,20 +407,20 @@ export function WebWatchReview() {
               because a reviewer opens this page to judge candidates, and the
               poll bookkeeping above them was answering a question nobody on
               this page had asked. */}
-          <details aria-label="Kesehatan sumber" className="rounded-[12px] border border-border bg-surface">
-            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          <details aria-label="Kesehatan sumber" className="rounded-lg border border-border bg-surface">
+            <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
               Sumber yang dipantau ({data.sources.length})
             </summary>
             <div className="grid gap-3 border-t border-border p-4 md:grid-cols-2">
               {data.sources.map((source) => (
                 <Panel key={source.id} className="p-4">
                   <h3 className="text-sm font-semibold leading-snug">{source.label}</h3>
-                  <p className="mt-1 font-mono text-[11px] text-muted-foreground">{source.kind}</p>
+                  <p className="mt-1 font-mono text-xs text-muted-foreground">{source.kind}</p>
                   {source.lastError ? (
-                    <p className="mt-2 rounded-[6px] bg-muted p-2 text-xs leading-5 text-foreground">Gagal: {source.lastError}</p>
+                    <p className="mt-2 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">Gagal: {source.lastError}</p>
                   ) : null}
                   {source.lastCheckedAt ? (
-                    <p className="mt-1 text-[11px] text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
                   ) : null}
                 </Panel>
               ))}
@@ -428,6 +429,7 @@ export function WebWatchReview() {
               ) : null}
             </div>
           </details>
+          {data.pending.length ? <NextStep title={`Tinjau ${data.pending.length} temuan di antrean`} description="Terima temuan yang relevan agar masuk analisis, tolak yang tidak. Setelah itu buka kasusnya untuk melihat dampaknya." href="/cases" action="Buka Riset & Analisis" /> : <NextStep title="Tidak ada yang perlu ditinjau" description="Antrean kosong. Lanjutkan pemeriksaan kasus yang sudah terbuka." href="/cases" action="Buka Riset & Analisis" />}
         </div>
       )}
     </div>

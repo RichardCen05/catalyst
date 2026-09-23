@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
  */
 export function CatalystLogo({ className }: { className?: string }) {
   return (
-    <span className={cn("relative block size-8 shrink-0 overflow-hidden rounded-[7px] bg-black", className)} aria-hidden="true">
-      <Image src="/catalyst-mark.png" alt="" fill sizes="32px" className="scale-[1.18] object-contain" priority />
+    <span className={cn("relative block size-8 shrink-0 overflow-hidden rounded-lg bg-black", className)} aria-hidden="true">
+      <Image src="/catalyst-mark.png" alt="" fill sizes="32px" className="scale-[1.18] object-contain grayscale contrast-125" priority />
     </span>
   );
 }

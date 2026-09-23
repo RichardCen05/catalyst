@@ -37,7 +37,7 @@ export function SourceText({ body, span }: { body: string | null; span?: SourceS
         <p className="whitespace-pre-wrap text-xs leading-6 text-foreground">
           {pieces.map((piece, index) =>
             piece.cited ? (
-              <mark key={index} className="rounded bg-primary/20 px-0.5 text-foreground">
+              <mark key={index} className="rounded-lg bg-primary/20 px-0.5 text-foreground">
                 {piece.text}
               </mark>
             ) : (

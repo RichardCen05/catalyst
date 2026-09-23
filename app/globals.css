@@ -3,50 +3,76 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------
-   Catalyst — warm monochrome, ink on bone.
-   Colour is spent only where it carries meaning: evidence state,
-   conflict, and the four semantic washes. Everything else is paper.
+   Catalyst — greyscale.
+   Black, white and grey carry the whole interface. The only hue is the
+   direction of a price: --up and --down, always paired with a sign. Every
+   other token that used to carry a hue (positive, danger, attention,
+   primary) now resolves to a grey, so evidence strength is told by shape
+   and weight, never by colour. Dark mode uses warm greys, not black.
    --------------------------------------------------------------- */
 
 :root {
-  --background: #e1f3ff;
-  --surface: #f5faff;
-  --surface-raised: #e1fdff;
-  --foreground: #012a3a;
-  --muted: #d8f6fa;
-  --muted-foreground: #3a6475;
-  --border: #91e0ef;
-  --primary: #02198a;
+  --background: #ffffff;
+  --surface: #fafafa;
+  --surface-raised: #f4f4f5;
+  --foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --subtle-foreground: #71717a;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --hairline: #e4e4e7;
+  --primary: #0a0a0a;
   --primary-foreground: #ffffff;
-  --brand: #023e8a;
+  --brand: #0a0a0a;
   --brand-foreground: #ffffff;
-  --attention: #a86100;
-  --attention-foreground: #7d4900;
-  --positive: #08683b;
-  --danger: #b42334;
-  --ring: #023e8a;
-  --chart-grid: #91e0ef;
+  --accent: #0a0a0a;
+  --accent-soft: #f4f4f5;
+  --attention: #52525b;
+  --attention-foreground: #3f3f46;
+  --attention-soft: #f4f4f5;
+  --positive: #0a0a0a;
+  --positive-soft: #f4f4f5;
+  --danger: #0a0a0a;
+  --danger-soft: #f4f4f5;
+  --up: #1e7a4c;
+  --down: #b42318;
+  --ring: #0a0a0a;
+  --chart-grid: #e4e4e7;
+  --scrim: rgb(10 10 10 / 0.32);
+  --radius-control: 8px;
   color-scheme: light;
 }
 
 .dark {
-  --background: #031020;
-  --surface: #00112a;
-  --surface-raised: #15171c;
-  --foreground: #ffffff;
-  --muted: #0b1564;
-  --muted-foreground: #bfc6ff;
-  --border: #345b7b;
-  --primary: #00c3ff;
-  --primary-foreground: #1326bc;
-  --brand: #00c3ff;
-  --brand-foreground: #ffffff;
-  --attention: #e4b65a;
-  --attention-foreground: #e4b65a;
-  --positive: #58c99a;
-  --danger: #ff7a85;
-  --ring: #f08bb3;
-  --chart-grid: #00696d;
+  --background: #262624;
+  --surface: #1f1e1d;
+  --surface-raised: #30302e;
+  --foreground: #faf9f5;
+  --muted: #30302e;
+  --muted-foreground: #c2c0b6;
+  --subtle-foreground: #9c9a92;
+  --border: #3d3d3a;
+  --border-strong: #52514d;
+  --hairline: #3d3d3a;
+  --primary: #faf9f5;
+  --primary-foreground: #1f1e1d;
+  --brand: #faf9f5;
+  --brand-foreground: #1f1e1d;
+  --accent: #faf9f5;
+  --accent-soft: #30302e;
+  --attention: #c2c0b6;
+  --attention-foreground: #c2c0b6;
+  --attention-soft: #30302e;
+  --positive: #faf9f5;
+  --positive-soft: #30302e;
+  --danger: #faf9f5;
+  --danger-soft: #30302e;
+  --up: #6cc08f;
+  --down: #f08a7e;
+  --ring: #faf9f5;
+  --chart-grid: #3d3d3a;
+  --scrim: rgb(20 20 19 / 0.6);
   color-scheme: dark;
 }
 
@@ -57,6 +83,12 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border-strong: var(--border-strong);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
   --color-hairline: var(--hairline);
 
@@ -72,7 +104,6 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-ring: var(--ring);
-  --font-serif: var(--font-editorial);
   --shadow-panel: 0 0 0 0 rgb(0 0 0 / 0);
 }
 
@@ -81,21 +112,23 @@ html { background: var(--background); scroll-padding-top: 96px; }
 body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--background); color: var(--foreground); font-size: 14px; line-height: 1.6; }
 button, input, select, textarea { font: inherit; }
 a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-::selection { background: color-mix(in srgb, var(--brand) 35%, transparent); }
+::selection { background: color-mix(in srgb, var(--foreground) 18%, transparent); }
 
+/* Headings. One family, set tight; the size comes from the call site's
+   type-scale class (text-[28px], text-xl, text-base). */
 .editorial {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.025em;
-  line-height: 1.08;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
 }
 
+/* Small labels: 12px sans, sentence case. Nothing in the interface is set
+   below 12px or in capitals. */
 .meta {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 10px;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
 }
 
 .font-mono, code, pre, kbd, .tabular { font-variant-numeric: tabular-nums; }
@@ -153,6 +186,44 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
    keeps its own marker pseudo-element. Both have to go or the summary carries
    a stray triangle on Safari alone. */
 summary.list-none::-webkit-details-marker { display: none; }
+
+/* Motion. Short and calm: 150-500ms on one curve. A page's sections rise
+   into place in order; causal lines draw from source to impact; bars grow
+   from zero; a slot waiting on the model shimmers. The reduced-motion block
+   below cuts all of it. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.rise-in > * { animation: rise 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.rise-in > :nth-child(2) { animation-delay: 60ms; }
+.rise-in > :nth-child(3) { animation-delay: 120ms; }
+.rise-in > :nth-child(4) { animation-delay: 180ms; }
+.rise-in > :nth-child(5) { animation-delay: 240ms; }
+.rise-in > :nth-child(n + 6) { animation-delay: 300ms; }
+.grow-in { transform-origin: left center; animation: grow 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.shimmer {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+.fade-in { animation: fade-in 200ms ease-out both; }
+.slide-in { animation: slide-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.pop-in { animation: pop-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* Causal maps: cards fade in, then the edges behind them. Opacity only:
+   React Flow places every node with a transform, so an animated transform
+   would pull the cards out of position. An edge cannot draw with a dash
+   offset either, because dashed edges already carry their own pattern. */
+.map-in .react-flow__node { animation: fade-in 450ms ease-out both; }
+.map-in .react-flow__edge { animation: fade-in 700ms ease-out 250ms both; }
 
 @media (prefers-reduced-transparency: reduce) {
   .panel-chrome { background: var(--surface) !important; backdrop-filter: none !important; }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BookOpenCheck, BrainCircuit, BriefcaseBusiness, ClipboardCheck, Compass, FlaskConical, Moon, RefreshCw, Settings2, Sun, X } from "lucide-react";
+import { BookOpenCheck, ChevronDown, ChevronRight, Compass, FlaskConical, Moon, RefreshCw, Settings2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
@@ -11,10 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const utilityLinks = [
-  { href: "/ai-learning", label: "AI Learning", description: "Masukan, proses pembelajaran, dan memori personal yang sedang dipakai.", icon: BrainCircuit },
   { href: "/playbook", label: "Aturan riset investor", description: "Pembanding, eksposur, aturan, sumber, kondisi pembatal, dan ambang penilaian.", icon: BookOpenCheck },
-  { href: "/cases?view=picker", label: "Perbandingan emiten", description: "Buka kasus atau bandingkan bukti dua emiten.", icon: BriefcaseBusiness },
-  { href: "/ai-learning?section=tinjauan", label: "Tinjauan dan usulan", description: "Koreksi pengguna yang menunggu diperiksa dan usulan aturan yang menunggu keputusan.", icon: ClipboardCheck },
   { href: "/method", label: "Metode dan batas", description: "Rumus, batas data, pemeriksaan sumber, dan penafian.", icon: FlaskConical },
 ] as const;
 
@@ -51,7 +48,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
         unavailable?: boolean;
       };
       if (body.unavailable || typeof body.enabled !== "boolean") {
-        setRefreshNote("Status refresh tak tersedia (penyimpanan tak terjangkau).");
+        setRefreshNote("Status pembaruan tidak tersedia saat ini.");
         return;
       }
       setRefresh({
@@ -62,7 +59,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
         budget: body.budget ?? 0,
       });
     } catch {
-      setRefreshNote("Status refresh tak tersedia (jaringan).");
+      setRefreshNote("Status pembaruan tidak tersedia (jaringan).");
     }
   };
 
@@ -82,7 +79,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
         return;
       }
       setRefresh({ ...refresh, enabled: body.enabled });
-      setRefreshNote(body.enabled ? "Refresh Sectors aktif — tombol Jalankan di bawah boleh dipakai." : "Refresh Sectors mati — aplikasi kembali memakai rekaman bawaan.");
+      setRefreshNote(body.enabled ? "Pembaruan aktif. Tombol Jalankan sekarang dapat dipakai." : "Pembaruan mati. Aplikasi memakai rekaman bawaan.");
     } catch {
       setRefreshNote("Gagal mengubah sakelar refresh (jaringan).");
     } finally {
@@ -116,7 +113,7 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
       if (body.dryRun) {
         setRefreshNote(`Pratinjau: ${body.plans?.length ?? 0} emiten, estimasi ${body.estimatedCost ?? 0} kredit (belanja 0).`);
       } else {
-        setRefreshNote(`Selesai: ${body.results?.length ?? 0} emiten tersimpan ke GCS untuk telaah. Bundle bawaan tidak berubah.`);
+        setRefreshNote(`Selesai: ${body.results?.length ?? 0} emiten tersimpan untuk ditelaah. Data yang tampil tidak berubah.`);
       }
     } catch {
       setRefreshNote("Refresh gagal (jaringan).");
@@ -125,45 +122,66 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
     }
   };
 
+  const dark = resolvedTheme === "dark";
+
   return (
     <Dialog.Root onOpenChange={(open) => { if (open) void loadRefresh(); }}>
       <Dialog.Trigger asChild>
         <Button variant="ghost" size={compact ? "icon" : "default"} className={compact ? undefined : "w-full justify-start"} aria-label="Buka pengaturan"><Settings2 aria-hidden="true" className="size-4" />{compact ? null : <span>Pengaturan</span>}</Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-100 bg-background/80 backdrop-blur-sm" />
-        <Dialog.Content aria-describedby="settings-description" className="fixed inset-y-0 right-0 z-100 w-[min(92vw,420px)] overflow-y-auto border-l border-border bg-surface p-4 shadow-2xl focus:outline-none sm:p-5">
-          <div className="flex items-start gap-3"><div className="min-w-0 flex-1"><Dialog.Title className="text-lg font-semibold">Pengaturan</Dialog.Title><Dialog.Description id="settings-description" className="mt-1 text-sm leading-6 text-muted-foreground">Fitur pendukung disimpan di sini agar alur utama tetap fokus.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup pengaturan"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close></div>
-          <nav aria-label="Fitur pendukung" className="mt-5 space-y-2">
-            {utilityLinks.map((item) => <Dialog.Close key={item.href} asChild><Link href={item.href} className="flex min-h-20 items-start gap-3 rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/45 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><item.icon aria-hidden="true" className="size-4" /></span><span><strong className="block text-sm">{item.label}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{item.description}</span></span></Link></Dialog.Close>)}
+        <Dialog.Overlay className="fade-in fixed inset-0 z-100 bg-[var(--scrim)]" />
+        <Dialog.Content aria-describedby="settings-description" className="slide-in fixed inset-y-0 right-0 z-100 flex w-[min(92vw,420px)] flex-col gap-2 overflow-y-auto border-l border-border bg-background p-5 shadow-2xl focus:outline-none">
+          <div className="mb-2 flex items-start gap-3"><div className="min-w-0 flex-1"><Dialog.Title className="editorial text-xl">Pengaturan</Dialog.Title><Dialog.Description id="settings-description" className="mt-1 text-sm text-muted-foreground">Tampilan, tur, dan halaman pendukung.</Dialog.Description></div><Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Tutup pengaturan"><X aria-hidden="true" className="size-4" /></Button></Dialog.Close></div>
+
+          <div className="flex min-h-12 items-center gap-3 px-1">
+            <Moon aria-hidden="true" className="size-4 text-muted-foreground" />
+            <span className="flex-1 text-sm font-medium">Tema</span>
+            <div role="group" aria-label="Tema" className="inline-flex gap-0.5 rounded-lg bg-muted p-[3px]">
+              {[{ value: "light", label: "Terang" }, { value: "dark", label: "Gelap" }].map((option) => { const on = (option.value === "dark") === dark; return <button key={option.value} type="button" aria-pressed={on} onClick={() => setTheme(option.value)} className={cn("h-8 rounded-md border px-3 text-sm font-medium transition-colors", on ? "border-border bg-background text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>{option.label}</button>; })}
+            </div>
+          </div>
+          <div className="flex min-h-12 items-center gap-3 px-1">
+            <Compass aria-hidden="true" className="size-4 text-muted-foreground" />
+            <span className="flex-1 text-sm font-medium">Tur inti</span>
+            <Dialog.Close asChild><Button variant="secondary" size="sm" onClick={restartTour}>Ulangi tur</Button></Dialog.Close>
+          </div>
+
+          <div className="my-2 h-px bg-border" />
+          <p className="px-1 text-xs font-medium text-subtle-foreground">Halaman pendukung</p>
+          <nav aria-label="Fitur pendukung" className="space-y-1">
+            {utilityLinks.map((item) => <Dialog.Close key={item.href} asChild><Link href={item.href} className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground"><item.icon aria-hidden="true" className="size-4" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{item.label}</span><span className="mt-0.5 block text-xs text-subtle-foreground">{item.description}</span></span><ChevronRight aria-hidden="true" className="size-4 shrink-0 text-subtle-foreground" /></Link></Dialog.Close>)}
           </nav>
-          <div className="mt-5 grid gap-2 border-t border-border pt-4">
-            <div className="rounded-xl border border-border bg-background p-3">
+
+          <div className="my-2 h-px bg-border" />
+          <details className="group">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center px-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Lanjutan<ChevronDown aria-hidden="true" className="ml-auto size-4 transition-transform group-open:rotate-180" /></summary>
+            <div className="mt-2 rounded-lg border border-border p-3">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   role="switch"
                   aria-checked={refresh?.enabled ?? false}
-                  aria-label="Refresh data Sectors"
+                  aria-label="Perbarui data Sectors"
                   disabled={!refresh || refreshBusy !== "idle"}
                   onClick={() => void flipRefresh()}
-                  className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", refresh?.enabled ? "bg-primary" : "bg-muted")}
+                  className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", refresh?.enabled ? "bg-foreground" : "bg-border-strong")}
                 >
-                  <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", refresh?.enabled ? "left-[22px]" : "left-0.5")} />
+                  <span className={cn("absolute top-0.5 size-5 rounded-full bg-background shadow transition-all", refresh?.enabled ? "left-[22px]" : "left-0.5")} />
                 </button>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">Refresh data Sectors</p>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="text-sm font-semibold">Perbarui data sekarang</p>
+                  <p className="truncate text-xs text-subtle-foreground">
                     {refresh
-                      ? `${refresh.enabled ? "Aktif" : "Mati"} · via ${refresh.source === "env" ? "operator" : "sakelar ini"} · pagu ${refresh.budget} kredit/hari`
+                      ? `${refresh.enabled ? "Aktif" : "Mati"} · ${refresh.source === "env" ? "diatur operator" : "diatur di sini"} · kuota ${refresh.budget} kredit per hari`
                       : "Memuat status…"}
                   </p>
                 </div>
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                {`Mengambil ulang broker-summary + foreign-flow (estimasi ${refresh?.estimatedCost ?? "…"} kredit) ke GCS untuk telaah. Bundle bawaan tidak berubah.`}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {`Mengambil ulang ringkasan broker dan arus asing dari Sectors (perkiraan ${refresh?.estimatedCost ?? "…"} kredit) untuk ditelaah. Data yang tampil tidak berubah sampai pembaruan disetujui.`}
               </p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-3 flex gap-2">
                 <Button variant="secondary" size="sm" disabled={!refresh?.enabled || refreshBusy !== "idle"} onClick={() => void runRefresh(true)}>
                   <RefreshCw aria-hidden="true" className="size-3.5" />Pratinjau
                 </Button>
@@ -171,12 +189,10 @@ export function SettingsDrawer({ compact = false }: { compact?: boolean }) {
                   {refreshBusy === "run" ? "Berjalan…" : "Jalankan"}
                 </Button>
               </div>
-              {refresh?.pinnedByEnv ? <p className="mt-2 text-xs text-muted-foreground">Gate dikunci operator via env — sakelar ini tidak berlaku.</p> : null}
-              {refreshNote ? <p className="mt-2 text-xs leading-5 text-muted-foreground" role="status">{refreshNote}</p> : null}
+              {refresh?.pinnedByEnv ? <p className="mt-2 text-xs text-muted-foreground">Dikunci operator; sakelar ini tidak berlaku.</p> : null}
+              {refreshNote ? <p className="mt-2 text-xs text-muted-foreground" role="status">{refreshNote}</p> : null}
             </div>
-            <Dialog.Close asChild><Button variant="secondary" className="justify-start" onClick={restartTour}><Compass aria-hidden="true" className="size-4" />Ulangi tur inti</Button></Dialog.Close>
-            <Button variant="secondary" className="justify-start" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}><Sun aria-hidden="true" className="size-4 dark:hidden" /><Moon aria-hidden="true" className="hidden size-4 dark:block" />Ganti tema</Button>
-          </div>
+          </details>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

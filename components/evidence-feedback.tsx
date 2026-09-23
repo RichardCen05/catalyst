@@ -17,13 +17,13 @@ export function EvidenceFeedback({ symbol, pillar, label }: { symbol: SymbolCode
   };
 
   return (
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label={`Feedback bukti ${targetLabel}`}>
-      <span className="text-[11px] text-muted-foreground">Bukti ini</span>
+    <div role="group" className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label={`Feedback bukti ${targetLabel}`}>
+      <span className="text-xs text-muted-foreground">Bukti ini</span>
       <button
         type="button"
         aria-pressed={current?.action === "useful"}
         onClick={() => record("useful")}
-        className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", current?.action === "useful" ? "border-positive/40 bg-positive/10 text-positive" : "border-border text-muted-foreground hover:border-positive/40 hover:text-foreground")}
+        className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", current?.action === "useful" ? "border-positive/40 bg-positive/10 text-positive" : "border-border text-muted-foreground hover:border-positive/40 hover:text-foreground")}
       >
         <ThumbsUp aria-hidden="true" className="size-3.5" />Berguna
       </button>
@@ -31,11 +31,11 @@ export function EvidenceFeedback({ symbol, pillar, label }: { symbol: SymbolCode
         type="button"
         aria-pressed={current?.action === "not-useful"}
         onClick={() => record("not-useful")}
-        className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", current?.action === "not-useful" ? "border-danger/40 bg-danger/10 text-danger" : "border-border text-muted-foreground hover:border-danger/40 hover:text-foreground")}
+        className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", current?.action === "not-useful" ? "border-danger/40 bg-danger/10 text-danger" : "border-border text-muted-foreground hover:border-danger/40 hover:text-foreground")}
       >
         <ThumbsDown aria-hidden="true" className="size-3.5" />Kurang relevan
       </button>
-      <span className="basis-full text-[10px] leading-4 text-muted-foreground sm:basis-auto">Mempengaruhi urutan pemeriksaan serupa di tab Kasus.</span>
+      <span className="basis-full text-xs leading-4 text-muted-foreground sm:basis-auto">Memengaruhi urutan pemeriksaan serupa di Riset & Analisis.</span>
     </div>
   );
 }
