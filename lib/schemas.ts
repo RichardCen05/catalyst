@@ -1,9 +1,24 @@
 import { z } from "zod";
 import { VIEW_IDS } from "@/lib/agent/retrieval/types";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
+import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import type { InvestorResearchPlaybook } from "@/lib/types";
 
-const symbolSchema = z.string().trim().min(4).max(5).transform((value) => value.toUpperCase());
+/**
+ * A ticker exists because a recording exists for it.
+ *
+ * Length alone accepted `XXXX`, and every layer downstream trusted the parse:
+ * the entry id `case:XXXX` was built from it, the bundle came back empty, and
+ * the answer was written about whichever case ranked next — so a request
+ * naming an issuer that was never recorded returned 200 with a fabricated id
+ * and a sentence about a different emiten. Membership is checked here, at the
+ * edge, against the generated universe rather than a list typed again.
+ */
+const symbolSchema = z.string().trim().min(4).max(5)
+  .transform((value) => value.toUpperCase())
+  .refine((value): value is (typeof SYMBOL_CODES)[number] => (SYMBOL_CODES as readonly string[]).includes(value), {
+    message: "Kode emiten tidak ada pada rekaman",
+  });
 const pillarSchema = z.enum(["concentration", "volume", "momentum", "catalyst"]);
 
 export const profileSchema = z.object({
@@ -193,11 +208,20 @@ export const causalGraphRequestSchema = z.object({
 });
 export const impactRequestSchema = z.object({ eventId: z.string().min(1), profile: profileSchema, scope: z.enum(["watchlist", "market"]) });
 
+/**
+ * The two free-text minimums a reviewer has to clear. They are exported
+ * because the Pantau form gates its buttons on them: a bound typed once here
+ * and again in the component drifts apart silently, and the reader only
+ * learns of the mismatch as an HTTP 400 with no field named.
+ */
+export const WEB_WATCH_PATH_MIN_CHARS = 10;
+export const WEB_WATCH_REASON_MIN_CHARS = 3;
+
 export const webWatchImpactSchema = z.object({
   symbol: symbolSchema,
   direction: z.enum(["Supported", "Adverse", "Mixed", "Unrelated", "Unverified"]),
   band: z.enum(["high", "medium", "low"]),
-  path: z.string().trim().min(10).max(300),
+  path: z.string().trim().min(WEB_WATCH_PATH_MIN_CHARS).max(300),
 });
 
 export const webWatchReviewSchema = z.discriminatedUnion("action", [
@@ -210,7 +234,7 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("dismiss"),
     candidateId: z.string().min(1).max(120),
-    reason: z.string().trim().min(3).max(500),
+    reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
   }),
 ]);
 export const refreshToggleSchema = z.object({

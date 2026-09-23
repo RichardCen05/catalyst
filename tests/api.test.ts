@@ -19,9 +19,12 @@ describe("public route handlers", () => {
     expect(body.analysis.sources.length).toBeGreaterThan(0);
   });
 
-  it("returns 404 instead of inventing an unknown analysis", async () => {
+  it("rejects an unrecorded ticker at the boundary instead of inventing an analysis", async () => {
+    // 400, not 404: the ticker is not a missing page, it is an invalid field.
+    // `symbolSchema` checks membership in the generated registry, so nothing
+    // downstream ever builds `case:XXXX` and answers about another issuer.
     const response = await analyze(request("/api/analyze", { symbol: "XXXX", profile: demoProfiles[0] }));
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
   });
 
   it("filters impact links at the API boundary", async () => {

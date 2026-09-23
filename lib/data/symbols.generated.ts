@@ -21,3 +21,27 @@ export type SymbolCode =
   | "PTBA"
   | "TINS"
   | "TLKM";
+
+/** The same universe at runtime. A schema cannot check a union, and a
+ *  request naming a ticker that was never recorded must be rejected at the
+ *  edge rather than answered about. */
+export const SYMBOL_CODES: readonly SymbolCode[] = [
+  "ADRO",
+  "AMRT",
+  "ANTM",
+  "BBCA",
+  "BBRI",
+  "BMRI",
+  "BUKA",
+  "EMTK",
+  "EXCL",
+  "GOTO",
+  "ICBP",
+  "INCO",
+  "JSMR",
+  "MYOR",
+  "PGAS",
+  "PTBA",
+  "TINS",
+  "TLKM",
+];

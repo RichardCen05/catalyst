@@ -906,7 +906,13 @@ SYMBOLS_OUT.write_text(
     "// GENERATED FILE \u2014 do not edit by hand.\n"
     "// Written by scripts/build_market_data.py from the company-report recordings\n"
     "// in data/sectors/. A symbol exists here because a recording exists for it.\n\n"
-    "export type SymbolCode =\n" + symbol_union + ";\n",
+    "export type SymbolCode =\n" + symbol_union + ";\n\n"
+    "/** The same universe at runtime. A schema cannot check a union, and a\n"
+    " *  request naming a ticker that was never recorded must be rejected at the\n"
+    " *  edge rather than answered about. */\n"
+    "export const SYMBOL_CODES: readonly SymbolCode[] = [\n"
+    + "".join(f"  {fmt(s)},\n" for s in SYMBOLS)
+    + "];\n",
     encoding="utf-8",
 )
 
