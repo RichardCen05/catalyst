@@ -16,7 +16,7 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00064-8v8`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built from `d0cbd51` on `feat/alief/wire-ui`: the accuracy pass (unrecorded tickers rejected at the schema, forecast and intraday requests screened, the page a question names outranking the page the reader is on) on top of the `satria-ui` UI merge. Running the Gemini variant (§6b) with `LLM_RATE_LIMIT_STRIKES=3`. Verified live on this revision: `/api/health` ok, `/` 200, `/api/internal/check-sources` 401, 20 chat probes answered with no `llmFallbackNote`, and `contextSymbol: "XXXX"` answers 400 instead of inventing `case:XXXX` | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
+| Serving revision | `catalyst-web-00068-pnk`, deployed 2026-09-24, 100% of traffic. Source commit untracked (source deploys carry none) — built from `fb28803` on `feat/alief/wire-ui`: web-watch triage (deterministic archive rules, verified model proposals, Pantau review of both; `docs/PLAN-WEB-WATCH-TRIAGE.md`), the `/cases` coverage view, and the settings-drawer cleanup, on top of `2527134`. Running the Gemini variant (§6b) with `LLM_RATE_LIMIT_STRIKES=3`. Verified live on this revision: `/api/health` ok, `/` and `/pantau` 200, `/api/internal/check-sources` and `/api/internal/web-watch-triage` 401 without the bearer, `/api/web-watch` reads the pre-triage `queue.json` unchanged (156 pending, empty `archived`/`proposals`), a chat probe answered with no `llmFallbackNote`, and `contextSymbol: "XXXX"` answers 400. The triage backfill has **not** been applied to the production queue; see §8 | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
 | Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:dc8ae834dd227…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
@@ -294,7 +294,21 @@ gcloud storage ls gs://katalis-recorded/catalyst/
 ```
 
 `catalyst/memory/{uid}.json` is per-user memory, `catalyst/llm/` is the LLM response cache,
-`catalyst/web-watch/` is the web-watch registry, `catalyst/config/` is stored settings.
+`catalyst/web-watch/` is the web-watch registry and review queue, `catalyst/config/` is stored settings.
+
+The review queue (`catalyst/web-watch/queue.json`) is triaged on the way in by every sweep. The
+items that were pending before triage shipped are triaged only by the backfill route, which is a
+dry-run unless told otherwise:
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $INTERNAL_CRON_SECRET" -H 'content-type: application/json' \
+  -d '{}' https://catalyst-web-ibyebnreqa-uc.a.run.app/api/internal/web-watch-triage
+# dry-run: counts per rule with sampled titles and reasons, writes nothing
+
+curl -s -X POST -H "Authorization: Bearer $INTERNAL_CRON_SECRET" -H 'content-type: application/json' \
+  -d '{"apply":true}' https://catalyst-web-ibyebnreqa-uc.a.run.app/api/internal/web-watch-triage
+# writes: archived items keep their rule and reason and can be restored from Pantau
+```
 
 Scheduled work: one Cloud Scheduler job, `catalyst-web-watch` in `us-central1`, `30 17 * * 1-5`
 Asia/Jakarta, enabled, which POSTs to
