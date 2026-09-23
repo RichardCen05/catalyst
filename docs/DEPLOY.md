@@ -16,8 +16,8 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00063-2pg`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built from `94eaa83` on `feat/alief/wire-ui`, the accuracy pass: unrecorded tickers rejected at the schema, forecast/intraday requests screened, the page a question names outranking the page the reader is on. Running the Gemini variant (§6b) with `LLM_RATE_LIMIT_STRIKES=3`. Verified live: `/api/chat` answers 200 with no `llmFallbackNote`, and `contextSymbol: "XXXX"` now answers 400 | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
-| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:a38e2a03dfa86…` | `gcloud run revisions describe` |
+| Serving revision | `catalyst-web-00064-8v8`, deployed 2026-09-23, 100% of traffic. Source commit untracked (source deploys carry none) — built from `d0cbd51` on `feat/alief/wire-ui`: the accuracy pass (unrecorded tickers rejected at the schema, forecast and intraday requests screened, the page a question names outranking the page the reader is on) on top of the `satria-ui` UI merge. Running the Gemini variant (§6b) with `LLM_RATE_LIMIT_STRIKES=3`. Verified live on this revision: `/api/health` ok, `/` 200, `/api/internal/check-sources` 401, 20 chat probes answered with no `llmFallbackNote`, and `contextSymbol: "XXXX"` answers 400 instead of inventing `case:XXXX` | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
+| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:dc8ae834dd227…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
@@ -253,6 +253,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://catalyst-web-ibyebnreqa-uc.a.ru
 curl -s -o /dev/null -w '%{http_code}\n' -X POST \
   https://catalyst-web-ibyebnreqa-uc.a.run.app/api/internal/check-sources
 # expect: 401 — proves INTERNAL_CRON_SECRET is mounted
+
+curl -s -o /dev/null -w '%{http_code}\n' -X POST \
+  -H 'content-type: application/json' \
+  -d '{"question":"apa isi kasus ini","contextSymbol":"XXXX","profile":{…}}' \
+  https://catalyst-web-ibyebnreqa-uc.a.run.app/api/chat
+# expect: 400 — proves the image rejects a ticker no recording covers. Before
+# `b9b2ff8` this answered 200 with an entry id of `case:XXXX` and a sentence
+# about a different issuer, so a 200 here means the revision predates the fix.
 ```
 
 All three were run on 18 September 2026 and returned exactly that.
