@@ -19,7 +19,33 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "sectors"
 OUT = ROOT / "lib" / "data" / "market.generated.ts"
 
-WINDOW = "__end-2026-09-11_start-2026-08-01"
+_WINDOW_RE = re.compile(r"__end-\d{4}-\d{2}-\d{2}_start-\d{4}-\d{2}-\d{2}")
+
+
+def _recorded_window():
+    """The window the recordings pin, read off their names rather than typed.
+
+    Every windowed feed in data/sectors/ carries the window in its filename and
+    scripts/plan_sectors_refresh.py moves them all together, so the set below
+    has exactly one member. Typing the window here instead meant a refresh left
+    the script loading the previous window's names and dying on files that were
+    no longer there — a constant that had to be edited by hand every time the
+    data it described moved.
+    """
+    windows = set()
+    for recording in RAW.glob("v2_*.json"):
+        found = _WINDOW_RE.search(recording.name)
+        if found:
+            windows.add(found.group(0))
+    if len(windows) != 1:
+        raise SystemExit(
+            f"expected exactly one recorded window in {RAW}, found {sorted(windows)}. "
+            "Run scripts/sync_sectors_recordings.py so every windowed feed moves together."
+        )
+    return windows.pop()
+
+
+WINDOW = _recorded_window()
 # Universe derived from the company-report recordings on disk — never a typed
 # ticker list. Drop a new v2_company_report_<SYM>__sections-overview.json in
 # data/sectors/ + re-run to extend coverage; no code change needed.
@@ -30,7 +56,7 @@ SYMBOLS = sorted(
 # Full-case coverage is derived from recording availability: a symbol qualifies
 # when its broker-summary recording exists. Never hand-extend this list without
 # the recording — that would be dummy data.
-CASES = [s for s in SYMBOLS if (RAW / f"v2_broker-summary_{s}_top.json").exists()]
+CASES = [s for s in SYMBOLS if (RAW / f"v2_broker-summary_{s}_top{WINDOW}.json").exists()]
 
 SECTOR_MAP = {
     "Basic Materials": "Basic Materials",
@@ -526,9 +552,13 @@ COMMODITY_EXPOSURE = build_commodity_exposure()
 
 
 def add_commodity_event(name):
-    recording = RAW / f"v2_mining_commodities_{name}_price__end_year-2025_start_year-2023.json"
-    if not recording.exists():
+    # The year range is whatever was recorded, not a pair of typed years: the
+    # commodity recordings are refreshed on their own cadence and a hard-coded
+    # range silently dropped the leg the day one was re-pulled.
+    recordings = sorted(RAW.glob(f"v2_mining_commodities_{name}_price__*.json"))
+    if not recordings:
         return
+    recording = recordings[-1]
     points = sorted((r for r in json.loads(recording.read_text())),
                      key=lambda r: r["date"])
     if len(points) < 2:
@@ -619,7 +649,7 @@ for symbol in SYMBOLS:
 def add_flows_events(symbol):
     if symbol not in CASES:
         return
-    filename = f"v2_foreign-flow_{symbol}.json"
+    filename = f"v2_foreign-flow_{symbol}{WINDOW}.json"
     if not (RAW / filename).exists():
         return
     flow = rows(load(filename), "data", "results")
@@ -709,8 +739,8 @@ events_by_symbol = {s: [e["id"] for e in event_list if any(l["symbol"] == s for 
 # --------------------------------------------------------------------------- broker
 broker_evidence = {}
 for symbol in CASES:
-    top = load(f"v2_broker-summary_{symbol}_top.json")
-    flow = rows(load(f"v2_foreign-flow_{symbol}.json"), "data", "results")
+    top = load(f"v2_broker-summary_{symbol}_top{WINDOW}.json")
+    flow = rows(load(f"v2_foreign-flow_{symbol}{WINDOW}.json"), "data", "results")
     window_flow = [r for r in flow if DATES[0] <= r["date"] <= DATES[-1]]
     reference = series[symbol][-1]["close"]
     shares_outstanding = market_cap_of[symbol] / reference

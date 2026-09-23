@@ -150,13 +150,31 @@ describe("engine menjawab kegagalan dengan jujur", () => {
   });
 
   it("event di luar watchlist berkata terus terang, bukan mengarang dampak", async () => {
-    const answer = await agentEngine.answerFollowUp({
-      question: "Ceritakan perpetual bond Mandiri untuk pantauan saya",
-      profile, // watchlist tanpa BMRI
-    });
-    expect(answer.intent).toBe("event-impact");
-    expect(answer.text).toContain("tidak memiliki jalur dampak");
-    expect(answer.relatedSymbols).toEqual([]);
+    // The subject is found, not named. This used to ask about a Mandiri
+    // perpetual bond, which the news feed carried in September 2026 and has
+    // since aged out — so the test failed on a data refresh while the guard
+    // it protects was still intact. What matters is the answer given for an
+    // event with no path into this reader's watchlist, whichever event the
+    // current window happens to hold.
+    const watched = new Set<string>(profile.watchlist);
+    const outside = events.filter((event) => !event.impactLinks.some((link) => watched.has(link.symbol)));
+
+    const answers = [];
+    for (const event of outside.slice(0, 12)) {
+      const answer = await agentEngine.answerFollowUp({
+        question: `Ceritakan ${event.title} untuk pantauan saya`,
+        profile,
+      });
+      // Headlines worded as a tip or a meeting notice route elsewhere; the
+      // impact path is the one under test.
+      if (answer.intent === "event-impact") answers.push(answer);
+    }
+
+    expect(answers.length).toBeGreaterThan(0);
+    for (const answer of answers) {
+      expect(answer.text).toContain("tidak memiliki jalur dampak");
+      expect(answer.relatedSymbols).toEqual([]);
+    }
   });
 
   it("simbol tak dikenal mengembalikan null (jalur 404 API)", async () => {

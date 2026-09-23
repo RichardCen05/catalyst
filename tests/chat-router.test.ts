@@ -61,7 +61,15 @@ describe("jawaban menjelaskan angkanya, bukan endpoint-nya", () => {
   });
 
   it("tetap membawa endpoint sebagai rincian teknis", async () => {
-    const answer = await ask("dari mana 27,5%", "ANTM");
+    // Ask with the figure the pillar actually prints. A typed one is a
+    // recorded share that moves with the broker window, and once it no longer
+    // matches anything on the page the router correctly answers "which number
+    // do you mean?" — so the test stopped exercising the endpoint line at all.
+    const share = (await antm()).pillars
+      .flatMap((pillar) => pillar.metrics ?? [])
+      .find((metric) => metric.label === "Porsi peserta teratas");
+    if (!share) throw new Error("ANTM case is recorded with a top-participant share");
+    const answer = await ask(`dari mana ${share.value}`, "ANTM");
     expect(answer.text).toContain("Rincian teknis untuk diperiksa: /v2/broker-summary/ANTM/top/");
   });
 
@@ -105,9 +113,15 @@ describe("pencocokan angka memaafkan cara pembaca menyebutnya", () => {
   });
 
   it("nama metrik sendirian sudah cukup untuk dijelaskan", async () => {
+    // Read the value off the pillar rather than typing it: HHI is a ratio of
+    // recorded broker buy values and moves whenever the broker window does.
+    const hhi = (await antm()).pillars
+      .flatMap((pillar) => pillar.metrics ?? [])
+      .find((metric) => metric.label === "HHI");
+    if (!hhi) throw new Error("ANTM case is recorded with an HHI metric");
     const answer = await ask("hhi", "ANTM");
     expect(answer.intent).toBe("explain");
-    expect(answer.text).toContain("HHI: 0.179");
+    expect(answer.text).toContain(`HHI: ${hhi.value}`);
   });
 });
 

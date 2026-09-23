@@ -53,11 +53,17 @@ describe("kalimat tafsir bacaan", () => {
   });
 
   it("menerima kalimat yang hanya memakai angka dari bahan", async () => {
+    // The figure comes from the digest, not from a literal: it is a ratio of
+    // two recorded sums, so it moves on every data refresh. Typing it here
+    // meant this test failed the day the window advanced — reporting a stale
+    // test as a broken guard.
+    const perHundred = digest.context.find((item) => item.label === "Porsi yang sama dalam rupiah")?.value;
+    if (!perHundred) throw new Error("digest is missing the per-hundred reading this test is about");
     const drafted = await explainReadingWithLlm(
       input,
-      stub("  Sekitar Rp 3,09 dari tiap Rp 100 yang berpindah tangan adalah pembelian asing yang tidak diimbangi penjualan; rekaman ini tidak menyebut siapa pembelinya.  ", GOOD_WHY) as never,
+      stub(`  Sekitar ${perHundred} yang berpindah tangan adalah pembelian asing yang tidak diimbangi penjualan; rekaman ini tidak menyebut siapa pembelinya.  `, GOOD_WHY) as never,
     );
-    expect(drafted.takeaway.startsWith("Sekitar Rp 3,09")).toBe(true);
+    expect(drafted.takeaway.startsWith(`Sekitar ${perHundred}`)).toBe(true);
     expect(drafted.why).toBe(GOOD_WHY);
   });
 });

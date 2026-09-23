@@ -83,16 +83,32 @@ describe("buildMarketGraph", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("keeps a shared recording ahead of the per-chain source bound", async () => {
-    // ADRO carries seven linked recordings and the shared coal print ranks
-    // last by relevance, so the single-issuer chain's bound of six drops it —
-    // and with it the only recording linking two chains. Guard the ordering,
-    // not just the outcome.
-    const chain = await agentEngine.buildCausalGraph("ADRO", profile, { scope: "market", minRelevance: 60 });
-    expect(chain!.nodes.some((node) => node.id === `source-${SHARED_EVENT_ID}`)).toBe(false);
-
+  it("keeps a recording the per-chain source bound drops", async () => {
+    // A single-issuer chain is bounded tighter than the board, so an issuer
+    // with enough recordings loses its lowest-ranked one — and if the board
+    // inherited that bound it could lose the recording that links two chains
+    // with it. Which recording falls out depends on how the day's relevances
+    // land, so this finds it rather than naming it: naming one meant the test
+    // failed the moment a refresh brought in a lower-ranked headline, which
+    // says nothing about whether the bound still behaves.
     const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
-    expect(graph.nodes.some((node) => node.id === `source-${SHARED_EVENT_ID}`)).toBe(true);
+    const onBoard = new Set(graph.nodes.filter((node) => node.kind === "source").map((node) => node.id));
+
+    const dropped: string[] = [];
+    for (const symbol of watchlist) {
+      const chain = await agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance: 60 });
+      const carried = new Set(
+        (chain?.nodes ?? []).filter((node) => node.kind === "source").map((node) => node.id),
+      );
+      const linked = events
+        .filter((event) => event.impactLinks.some((link) => link.symbol === symbol && link.relevance >= 60))
+        .map((event) => `source-${event.id}`);
+      dropped.push(...linked.filter((id) => !carried.has(id)));
+    }
+
+    // The bound is only observable while some issuer actually exceeds it.
+    expect(dropped.length).toBeGreaterThan(0);
+    for (const id of dropped) expect(onBoard.has(id)).toBe(true);
   });
 
   it("leaves co-movement to the single-issuer chain", async () => {

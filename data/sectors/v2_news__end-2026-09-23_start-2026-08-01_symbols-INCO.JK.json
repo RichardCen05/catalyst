@@ -1,0 +1,786 @@
+{
+ "results": [
+  {
+   "title": "Analyst highlights nickel stock recommendations and sector outlook amid RKAB and HPM regulatory pressure",
+   "body": "David Kurniawan of PT Indo Premier Sekuritas says nickel issuers remain under pressure in 2026 because of global oversupply, uncertainty over RKAB approval and new HPM regulations. Year‑to‑date, PT Vale Indonesia Tbk (INCO) fell 9.57%, PT Trimegah Bangun Persada Tbk (NCKL) dropped 18.67%, PT Merdeka Battery Materials Tbk (MBMA) slid 11.3%, PT Central Omega Resources Tbk (DKFT) declined 8.97%, PT PAM Mineral Tbk (NICL) plunged 64.61%, while PT Aneka Tambang Tbk (ANTM) posted a modest 0.63% gain. The analyst notes that integrated issuers such as ANTM and INCO have stronger resilience due to diversified portfolios and healthy capital structures. He expects the sector’s outlook to improve gradually in 2027 if RKAB approvals proceed smoothly and cost‑efficiency measures take effect.",
+   "source": "https://investasi.kontan.co.id/news/cermati-rekomendasi-saham-dan-prospek-emiten-nikel-yang-tertekan-rkab-dan-hpm",
+   "thumbnail": "https://foto.kontan.co.id/nIDdyTuicXQhiN03d2cjRVKUcwg=/smart/2026/09/02/8934327t.jpg",
+   "timestamp": "2026-09-23T06:14:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Government Policy",
+    "Commodities",
+    "Bearish"
+   ],
+   "symbols": [
+    "INCO.JK",
+    "NCKL.JK",
+    "MBMA.JK",
+    "DKFT.JK",
+    "NICL.JK",
+    "ANTM.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Nickel stocks pressured by RKAB approval uncertainty and HPM regulation, PT PAM Mineral Tbk (NICL) leads declines.",
+   "body": "The article reports that nickel stocks are under pressure due to uncertainty over RKAB approval and changes to the Harga Patokan Mineral (HPM) regulation, compounded by oversupply and stagnant global nickel prices. Year‑to‑date performance shows PT Vale Indonesia Tbk (INCO) down 11.70%, PT Trimegah Bangun Persada Tbk (NCKL) down 21.46%, PT Merdeka Battery Materials Tbk (MBMA) down 18.55%, PT Central Omega Resources Tbk (DKFT) down 14.84%, PT PAM Mineral Tbk (NICL) down 64.61%, and PT Aneka Tambang Tbk (ANTM) down 1.25%. The analyst notes that integrated issuers such as PT Aneka Tambang Tbk (ANTM) and PT Vale Indonesia Tbk (INCO) have relatively stronger resilience because of diversified portfolios and healthy capital structures. Outlook for 2027 is cautiously optimistic, contingent on smoother RKAB licensing, cost‑efficiency gains, and potential demand recovery from electric‑vehicle batteries and stainless‑steel markets.",
+   "source": "https://investasi.kontan.co.id/news/saham-nikel-tertekan-rkab-dan-harga-patokan-mineral-simak-prospeknya-berikut-ini",
+   "thumbnail": "https://foto.kontan.co.id/1ZGX7nS5zFfI_oGGTWgZn4D_BdE=/smart/2025/08/07/737618233t.jpg",
+   "timestamp": "2026-09-22T16:36:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Commodities",
+    "Government Policy",
+    "Capital & Funding",
+    "Global Economy",
+    "Analyst Ratings",
+    "Bearish"
+   ],
+   "symbols": [
+    "INCO.JK",
+    "NCKL.JK",
+    "MBMA.JK",
+    "DKFT.JK",
+    "NICL.JK",
+    "ANTM.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG Opens Weaker at Start of Week, Pressured by Global Sentiment",
+   "body": "The IHSG opened 1.36% lower at 6,452 on Monday as rising oil prices above $100 per barrel and an 85% probability of a 25-basis-point Federal Reserve rate hike at the September 15-16 FOMC meeting pressured sentiment. Foreign investors sold a net Rp2.31 trillion in the regular market, while trading volume reached 6.53 billion shares worth Rp3.06 trillion. Technical indicators show a hammer pattern at the 6,475-6,375 support zone with the index holding above its 20-day moving average at 6,533, suggesting a potential rebound. Brokerages offered divergent outlooks: BRI Danareksa sees a constructive bias targeting resistance at 6,600-6,700 and favors UNTR, IMPC, and TINS; Phintraco expects sideways movement between 6,450-6,700 and picks ANTM, ASII, EMAS, MDKA, and ISAT; CGS International forecasts varied gains with support at 6,465-6,390 and resistance at 6,620-6,695, recommending TAPG, AALI, ISAT, TINS, AMMN, and EMAS; Panin Sekuritas anticipates further weakness due to geopolitical tensions and foreign outflows, selecting INET, BRMS, and INCO.",
+   "source": "https://www.bloombergtechnoz.com/detail-news/121427/ihsg-dibuka-melemah-di-awal-pekan-tertekan-sentimen-global",
+   "thumbnail": "https://images.bloombergtechnoz.com/data/2026/07/image-20260727155159.jpeg",
+   "timestamp": "2026-09-14T09:33:00",
+   "sector": "industrials",
+   "sub_sector": [
+    "industrial-goods",
+    "basic-materials",
+    "multi-sector-holdings",
+    "telecommunication",
+    "oil-gas-coal",
+    "food-beverage",
+    "investment-service"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Commodities",
+    "Interest Rate",
+    "Foreign Investment",
+    "Bearish"
+   ],
+   "symbols": [
+    "UNTR.JK",
+    "IMPC.JK",
+    "TINS.JK",
+    "ANTM.JK",
+    "ASII.JK",
+    "EMAS.JK",
+    "MDKA.JK",
+    "ISAT.JK",
+    "GTSI.JK",
+    "TAPG.JK",
+    "AALI.JK",
+    "AMMN.JK",
+    "PANS.JK",
+    "INET.JK",
+    "BRMS.JK",
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 2,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Analysts Project Continued Strength for Metal Miners ANTM, INCO, and TINS Through Late 2026",
+   "body": "KB Valbury Sekuritas and Phintraco Sekuritas maintain a positive outlook for PT Aneka Tambang Tbk, PT Vale Indonesia Tbk, and PT Timah Tbk for the remainder of 2026, citing solid first-half performance and supportive commodity prices. ANTM posted revenue of Rp62.7 trillion in the first half of 2026, up 6.3% year-on-year, with KB Valbury setting a target price of Rp4,000 per share on the back of a gold price rebound. INCO recorded revenue of US$543 million, a 27.3% increase, and KB Valbury assigns a Rp5,600 target price driven by rising global nickel prices and the completion of its Electric Furnace 3 rebuild in June 2026. TINS achieved 41% of its annual tin ore production target in the first half, and Phintraco highlights a global tin supply deficit of around 3% and strong demand from electronics and AI sectors as key catalysts for the second half.",
+   "source": "https://market.bisnis.com/read/20260910/189/2003142/intip-prospek-emiten-logam-antm-inco-hingga-tins-di-sisa-2026",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/10/2003142/2872023-bi-ptb-01-produksi_nikel-5_1693558431.jpg?w=368&h=208",
+   "timestamp": "2026-09-10T17:34:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Commodities",
+    "Financial Metrics",
+    "Production & Operations",
+    "Bullish"
+   ],
+   "symbols": [
+    "ANTM.JK",
+    "INCO.JK",
+    "TINS.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "PT Vale Indonesia Tbk announces near‑term start of operations for its three mining projects, with Morowali ahead of schedule",
+   "body": "PT Vale Indonesia Tbk is preparing to bring three mining projects in Morowali, Pomalaa and Sorowako into operation, with Morowali leading the timeline. Morowali’s Phase 1 has been running since 2025 and Phase 2 construction is on track for mechanical completion by the end of 2026 and ramp‑up in early 2027, targeting 60‑66 k tons of Mixed Hydroxide Precipitate (MHP). The Pomalaa project is in commissioning and ready to feed ore for an initial 120 k‑ton MHP capacity, while Sorowako’s mining is progressing with stockpiled limonite and early‑stage HPAL works, including a 60‑km slurry pipeline and jetty construction. An HPAL autoclave is expected to arrive by the end of September or early October, supporting the upcoming production ramp‑up.",
+   "source": "https://emitennews.com/news/inco-kejar-proyek-3-tambang-segera-beroperasi-morowali-lebih-dulu",
+   "thumbnail": "https://ap-south-1.linodeobjects.com/emitennews-02/uploads/news/thumb_1789034780.jpeg?25119ab",
+   "timestamp": "2026-09-10T17:16:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Production & Operations",
+    "Business Expansion",
+    "Commodities",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
+   "body": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed hydroxide precipitate (MHP), which contains about 15,000 tons of cobalt, and mechanical completion is now expected by September-October 2026. Mining operations are already 83% complete and HPAL construction 86% complete, with the first ore sale recorded on 28 February 2026. Vale also targets 67,645 tons of nickel matte production for 2026 and a limonite output of 300,000 tons per month (about 9,677 tons per day) as part of the broader output plan. The project is being developed in partnership with Zhejiang Huayou Cobalt Co., Ltd and Ford Motor Co, which support the downstream battery and automotive supply chain.",
+   "source": "https://market.bisnis.com/read/20260910/192/2003124/vale-inco-kejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/10/2003124/vale_-_bod_1773713525.jpg?w=368&h=208",
+   "timestamp": "2026-09-10T17:10:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Business Expansion",
+    "Production & Operations",
+    "Commodities",
+    "Partnerships & Agreements",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "PT Vale Indonesia Tbk does not promise dividend amid 2026‑27 expansion plans",
+   "body": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026 and full‑scale production of 120,000 tonnes of mixed hydroxide precipitate (MHP) in 2027, while also advancing the Bahodopi HPAL project and other growth initiatives. Management reiterated a cash‑cost goal of below US$10,000 per tonne and intends to keep new loan drawdowns low to preserve liquidity, noting that any dividend would only be considered if sufficient space remains after funding the capex. The dividend outlook therefore remains an aspiration, pending evaluation of nickel prices, financing efficiency and capital‑expenditure needs.",
+   "source": "https://www.bloombergtechnoz.com/detail-news/121175/inco-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
+   "thumbnail": "https://images.bloombergtechnoz.com/data/2025/05/image-20250516115706.jpg",
+   "timestamp": "2026-09-10T16:50:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Dividend Announcement",
+    "Business Expansion",
+    "Capital & Funding",
+    "Production & Operations",
+    "Financial Metrics",
+    "Bearish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Vale Indonesia Projects Capital Expenditure to Reach US$1.1 Billion in 2027 for Indonesia Growth Project",
+   "body": "PT Vale Indonesia Tbk projects capital expenditure will peak at US$1.1 billion in 2027 as part of its Indonesia Growth Project spanning three operational areas in Sulawesi: IGP Pomala, IGP Morowali, and Blok Sorowako. The company expects capex of US$700 million by end of 2026 covering mine growth, HPAL, and sustainability investments, followed by US$800 million in 2028 for additional HPAL construction. Vale Indonesia has secured a US$750 million sustainability linked loan syndicated by 14 international banks to fund the expansion. In the first half of 2026, the company produced 29,773 tons of nickel matte, with second quarter output rising 19 percent to 16,153 tons after the Electric Furnace 3 Rebuild completion in June 2026.",
+   "source": "https://market.bisnis.com/read/20260910/192/2003074/vale-indonesia-inco-proyeksikan-capex-tembus-us11-miliar-pada-2027",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/10/2003074/vale_-_bod_1773713525.jpg?w=368&h=208",
+   "timestamp": "2026-09-10T14:47:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Capital & Funding",
+    "Business Expansion",
+    "Debt Issuance",
+    "ESG",
+    "Commodities",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 2
+   }
+  },
+  {
+   "title": "Foreign investors show early signs of tactical re-entry into Indonesian equities, with analysts highlighting big banks and select sectors.",
+   "body": "Foreign investors are showing early signs of tactical re-entry into Indonesian stocks, with net buying concentrated in large-cap banks during the week of August 31 to September 4, 2026. In that period, foreign net purchases reached Rp1.85–2.3 trillion, led by PT Bank Rakyat Indonesia Tbk, PT Bank Central Asia Tbk, PT Bank Mandiri Tbk, and PT Bank Negara Indonesia Tbk, which together recorded over Rp3.19 trillion of net foreign buying in the regular market. LQ45 outflows have declined sharply from over Rp15 trillion in June to under Rp2 trillion in August, and the number of LQ45 stocks with outflows fell to 27 from 36 in June. Analysts caution this is not yet a structural trend reversal, as year-to-date foreign outflows remain around US$3.94 billion, and sustainability depends on Federal Reserve policy, rupiah stability, and earnings growth. Potential rotation targets include commodity stocks ANTM, AMMN, and INCO, as well as consumer and industrial names TLKM, ASII, INDF, and UNTR, with advisors recommending accumulation on weakness.",
+   "source": "https://investasi.kontan.co.id/news/asing-mulai-re-entry-ke-pasar-saham-intip-rekomendasi-saham-yang-menarik-dicermati",
+   "thumbnail": "https://foto.kontan.co.id/TehvkqW2NE4KQ4-pKX41ivzgF_w=/smart/2026/08/14/309936276t.jpg",
+   "timestamp": "2026-09-07T15:43:00",
+   "sector": "financials",
+   "sub_sector": [
+    "banks",
+    "basic-materials",
+    "telecommunication",
+    "multi-sector-holdings",
+    "food-beverage",
+    "industrial-goods"
+   ],
+   "tags": [
+    "Foreign Investment",
+    "Analyst Ratings",
+    "Market Sentiment",
+    "Currency & FX",
+    "Bullish"
+   ],
+   "symbols": [
+    "BBRI.JK",
+    "BBCA.JK",
+    "BMRI.JK",
+    "BBNI.JK",
+    "ANTM.JK",
+    "AMMN.JK",
+    "INCO.JK",
+    "TLKM.JK",
+    "ASII.JK",
+    "INDF.JK",
+    "UNTR.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "First-Half 2026 Net Profit Rises Sharply for Indonesian BUMNs, Analysts Cite Danantara's Restructuring and Issue Stock Recommendations",
+   "body": "First-half 2026 net profit surged across major Indonesian state-owned enterprises, with PT Semen Indonesia Tbk posting Rp 228.25 billion (up 408.9% YoY), PT Aneka Tambang Tbk earning Rp 6.91 trillion (up 34% YoY), PT Timah Tbk - whose profit is attributed to the parent entity's owners - reporting Rp 2.71 trillion, 169% of its Rp 1.61 trillion target, and PT Bank Tabungan Tbk achieving Rp 2.40 trillion (up 40.8% YoY), while PT Bank Rakyat Indonesia Tbk, PT Telkom Indonesia Tbk, PT PP Tbk and PT Adhi Karya Tbk also posted double-digit profit growth. Analysts recommend buying BMRI on weakness with a target of Rp 5,800, accumulating PT Timah Tbk at Rp 5,500, accumulating INCO at Rp 5,000-6,000, targeting PT Bank Rakyat Indonesia Tbk at Rp 4,500, and taking short-term trading positions in PT Timah Tbk between Rp 4,600-4,720. They attribute much of the earnings boost to sector-specific factors such as commodity price recoveries and demand rebounds, while noting Danantara's capital injections into PT Garuda Indonesia Tbk and PT Krakatau Steel Tbk as broader restructuring catalysts. Risks remain from rupiah exchange-rate movements, global market conditions, commodity volatility, and the execution of Danantara's restructuring of BUMN Karya.",
+   "source": "https://investasi.kontan.co.id/news/laba-emiten-bumn-di-bawah-danantara-membaik-simak-prospek-dan-rekomendasi-sahamnya",
+   "thumbnail": "https://foto.kontan.co.id/ed3gViUZoGEWsch2nD_5bKPcueU=/smart/2026/07/16/1914883473t.jpg",
+   "timestamp": "2026-09-03T18:47:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "banks",
+    "telecommunication",
+    "heavy-constructions-civil-engineering"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Capital & Funding",
+    "Commodities",
+    "Currency & FX",
+    "Bullish"
+   ],
+   "symbols": [
+    "SMGR.JK",
+    "ANTM.JK",
+    "TINS.JK",
+    "BBTN.JK",
+    "BBRI.JK",
+    "TLKM.JK",
+    "ADHI.JK",
+    "BMRI.JK",
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 0,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 1,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Mandiri Sekuritas projects Indonesia's IHSG could reach 7,470 by end‑2026, citing four catalysts",
+   "body": "Mandiri Sekuritas released a broker report on 3 September 2026 projecting the Indonesian composite index (IHSG) to finish 2026 between 5,920 and 7,470, with the index at 6,667 on the day, up 1.09% (72.11 points). Under a base‑case scenario the IHSG is expected at 6,810 with earnings‑per‑share growth of 46%, while a bearish case sees 5,920 and EPS growth of 39%. The report also forecasts the IDX80 to move to 107.2 in the base case, 122.1 in a bullish case and 87.9 in a bearish case, and attributes the outlook to four catalysts: structural gains in precious‑metal, mineral‑downstream and energy sectors; a pro‑people fiscal policy supporting earnings; higher cost of capital prompting more selective investment; and government‑driven industry restructuring encouraging sector rotation. Its top‑10 stock picks are AMMN, ANTM, ARCI, INCO, MEDC, GGRM, AMRT, MIKA, ISAT and BBCA, reflecting expectations that gold, copper, nickel, oil & gas, healthcare, tobacco, telecom and financials will benefit.",
+   "source": "https://market.bisnis.com/read/20260903/7/2001179/mandiri-sekuritas-buka-peluang-ihsg-tembus-7470-akhir-2026-ini-katalisnya",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/03/2001179/12072026-BI-HIL-21-IHSG-32_1783865467.jpg?w=368&h=208",
+   "timestamp": "2026-09-03T18:40:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "oil-gas-coal",
+    "tobacco",
+    "food-staples-retailing",
+    "healthcare-equipment-providers",
+    "telecommunication",
+    "banks"
+   ],
+   "tags": [
+    "Government Policy",
+    "Capital & Funding",
+    "Commodities",
+    "Bullish"
+   ],
+   "symbols": [
+    "AMMN.JK",
+    "ANTM.JK",
+    "ARCI.JK",
+    "INCO.JK",
+    "MEDC.JK",
+    "GGRM.JK",
+    "AMRT.JK",
+    "MIKA.JK",
+    "ISAT.JK",
+    "BBCA.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "PT Timah Tbk records the most aggressive growth among Indonesian miners in H1 2026, surpassing PT Antam Tbk, PT Bukit Asam Tbk and PT Vale Indonesia Tbk",
+   "body": "PT Timah Tbk posted the strongest performance among Indonesian mining issuers in the MIND ID ecosystem during the first half of 2026, with revenue rising 146.9% to Rp 10.4 trillion and net profit surging 804.6% to Rp 2.7 trillion. In comparison, PT Antam Tbk generated Rp 62.7 trillion of revenue (+6.3%) and Rp 6.39 trillion of net profit (+36.0%); PT Bukit Asam Tbk reported Rp 22.03 trillion of revenue (+7.7%) and Rp 2.65 trillion of net profit (+218%); PT Vale Indonesia Tbk recorded Rp 9.6 trillion of revenue (+27.4%) and Rp 1.85 trillion of net profit (+313.6%). The analyst attributes PT Timah’s outperformance to higher tin prices, increased sales volume, and a low prior profit base, while noting heightened volatility risk. Sustained tin prices and production in the second half of 2026 will be critical for maintaining the momentum.",
+   "source": "https://investor.id/market/452579/tins-paling-agresif-ini-prospek-sahamnya-vs-antm-ptba-inco",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/09/1788331243-996x625.webp",
+   "timestamp": "2026-09-02T15:03:35",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "oil-gas-coal"
+   ],
+   "tags": [
+    "Business Expansion",
+    "Financial Metrics",
+    "Commodities",
+    "Risk & Compliance",
+    "Bullish"
+   ],
+   "symbols": [
+    "TINS.JK",
+    "PTBA.JK",
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 2,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Kiwoom Sekuritas Indonesia forecasts IHSG 6,300-6,650 in September, recommends nine stocks with up to 76% upside",
+   "body": "Kiwoom Sekuritas Indonesia projects the Indonesia Composite Index (IHSG) to trade between 6,300 and 6,650 in September 2026, with a 40-45% chance of closing in the green zone after the index closed at 6,599.94 on 1 September, up 1.14%. The broker recommends nine Indonesian stocks, citing target prices and upside potentials: PT Aneka Tambang Tbk (target Rp4,800, upside 76%), PT Vale Indonesia Tbk (target Rp6,300, upside 43%), PT Pantai Indah Kapuk Dua Tbk (target Rp9,925, upside 65%), PT Bank Rakyat Indonesia Tbk (target Rp3,600, upside 29%), PT Dayamitra Telekomunikasi Tbk (target Rp705, upside 44%), PT Jasa Marga Tbk (target Rp3,850, upside 41%), PT Japfa Comfeed Indonesia Tbk (target Rp3,140, upside 60%), PT Kalbe Farma Tbk (target Rp970, upside 24%), and PT Bank Negara Indonesia Tbk (target Rp4,100, upside 26%). Kiwoom notes that the recommendations reflect strong commodity fundamentals, corporate buybacks, infrastructure projects and merger synergies supporting earnings growth. The report also highlights upcoming market changes, including a minimum stock price of Rp1, revised auto‑rejection thresholds (ARA/ARB), and the FTSE Russell rebalancing on 21 September, which could affect trading dynamics.",
+   "source": "https://market.bisnis.com/read/20260901/189/2000529/peluang-ihsg-ke-6650-kiwoom-jagokan-9-saham-pilihan",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/01/2000529/07072026-BI-HIL-21-IHSG-40_1783426937.jpg?w=368&h=208",
+   "timestamp": "2026-09-01T18:40:00",
+   "sector": "financials",
+   "sub_sector": [
+    "investment-service",
+    "basic-materials",
+    "properties-real-estate",
+    "banks",
+    "telecommunication",
+    "transportation-infrastructure",
+    "food-beverage",
+    "pharmaceuticals-health-care-research"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Stock Buyback",
+    "Commodities",
+    "Bullish"
+   ],
+   "symbols": [
+    "YULE.JK",
+    "ANTM.JK",
+    "INCO.JK",
+    "PANI.JK",
+    "BBRI.JK",
+    "MTEL.JK",
+    "JSMR.JK",
+    "JPFA.JK",
+    "KLBF.JK",
+    "BBNI.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 2,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG September 2026 Outlook Highlights Potential Volatility Amid Global Risks",
+   "body": "The article discusses the September 2026 outlook for Indonesia’s composite index (IHSG), warning that global monetary‑policy events could increase volatility. Kiwoom Sekuritas notes the index rose 5.06% in August but historically posts a –0.94% average return in September, projecting a trading range of 6,400‑6,705 and a 40‑45% chance of a positive close versus a 33% historical probability. Analysts also cite a 34% FedWatch probability of a rate hike, US Treasury yields around 4.6‑4.7% (10‑year) and 4.2‑4.3% (2‑year), and suggest that commodity price strength may support commodity‑linked emitters such as INCO, ANTM and JSMR. The report lists several stocks that could benefit or be pressured, including BBCA, BBNI, BBRI, BMRI, BBTN, CPIN, CTRA, INDF, ITMG, JSMR, TPIA, EXCL, INCO, ANTM, PANI, MTEL, JPFA and KLBF with specific target prices.",
+   "source": "https://investasi.kontan.co.id/news/ihsg-september-2026-berpotensi-volatil-investor-perlu-cermati-risiko-global",
+   "thumbnail": "https://foto.kontan.co.id/TrGyGXhvLScEIn5MFRnVkcFbVuk=/smart/2025/02/10/312901863t.jpg",
+   "timestamp": "2026-08-31T09:54:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "transportation-infrastructure",
+    "banks",
+    "food-beverage",
+    "properties-real-estate",
+    "oil-gas-coal",
+    "telecommunication",
+    "pharmaceuticals-health-care-research"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Global Economy",
+    "Commodities",
+    "Neutral"
+   ],
+   "symbols": [
+    "INCO.JK",
+    "ANTM.JK",
+    "JSMR.JK",
+    "BBCA.JK",
+    "BBNI.JK",
+    "BBRI.JK",
+    "BMRI.JK",
+    "BBTN.JK",
+    "CPIN.JK",
+    "CTRA.JK",
+    "INDF.JK",
+    "ITMG.JK",
+    "TPIA.JK",
+    "EXCL.JK",
+    "PANI.JK",
+    "MTEL.JK",
+    "JPFA.JK",
+    "KLBF.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG September 2026 Outlook Highlights Potential Weakness and Lists Recommended Stocks",
+   "body": "The article forecasts that Indonesia’s Composite Index (IHSG) may face limited upside and heightened volatility in September 2026, with Kiwoom Sekuritas estimating a 40‑45% chance of a positive close within a 6,400‑6,705 range. Historical data shows the average September return over the past ten years weakened by 0.94%, and Kiwoom projects a 43% probability of the index testing 6,750 and an exit level near 6,230. Technical analysis from Mirae Asset Sekuritas Indonesia suggests the uptrend remains intact, citing positive MA20/60 crossovers, Stochastics K/D signals and a potential RSI golden cross, while also recommending a list of stocks including BBCA, BBNI, BBRI, BMRI, BBTN, CPIN, CTRA, INDF, ITMG, JSMR, TPIA, EXCL. Kiwoom Sekuritas adds target prices for INCO (6,300), ANTM (4,800), PANi (9,925), BBRI (3,600), MTEL (705), JSMR (3,850), JPFA (3,140), KLBF (970) and BBNI (4,100). The outlook notes global risks such as ECB and Fed policy decisions, US Treasury yields around 4.6‑4.7% for ten‑year bonds, and a 34% FedWatch probability of a September rate hike, which could pressure growth‑oriented and technology stocks.",
+   "source": "https://investasi.kontan.co.id/news/pergerakan-ihsg-di-september-2026-berpotensi-loyo-cek-rekomendasi-saham-pilihannya",
+   "thumbnail": "https://foto.kontan.co.id/SUjbYVnfpPa7vP7sb0KDAkkAdZ4=/smart/2026/04/28/263184057t.jpg",
+   "timestamp": "2026-08-30T14:53:00",
+   "sector": "financials",
+   "sub_sector": [
+    "investment-service",
+    "banks",
+    "food-beverage",
+    "properties-real-estate",
+    "oil-gas-coal",
+    "transportation-infrastructure",
+    "basic-materials",
+    "telecommunication",
+    "pharmaceuticals-health-care-research"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Global Economy",
+    "Analyst Ratings",
+    "Interest Rate"
+   ],
+   "symbols": [
+    "YULE.JK",
+    "BBCA.JK",
+    "BBNI.JK",
+    "BBRI.JK",
+    "BMRI.JK",
+    "BBTN.JK",
+    "CPIN.JK",
+    "CTRA.JK",
+    "INDF.JK",
+    "ITMG.JK",
+    "JSMR.JK",
+    "TPIA.JK",
+    "EXCL.JK",
+    "INCO.JK",
+    "ANTM.JK",
+    "MTEL.JK",
+    "JPFA.JK",
+    "KLBF.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Edwin Sebayang highlights PT Vale Indonesia Tbk, PT Timah Tbk, Antam, and PT Bukit Asam Tbk as dividend‑attractive mining stocks",
+   "body": "The article features market analyst Edwin Sebayang discussing the investment appeal of four Indonesian mining companies—PT Vale Indonesia Tbk, PT Timah Tbk, Antam, and PT Bukit Asam Tbk—with particular emphasis on dividend prospects. He notes that INCO reported a period profit of US$25.24 million and TINS posted a net profit of Rp 2.71 trillion for the first half of 2026, underscoring solid earnings under the MIND ID Group umbrella. Sebayang points to Antam’s long‑term catalyst through a battery‑cell ecosystem being built with PT Industri Baterai Indonesia and HYD Investment Limited, slated for commercial operation in 2026, while PT Bukit Asam Tbk is praised for consistent cash‑flow generation and dividend payouts. The analyst concludes that investors in the second half of 2026 will likely shift focus from high profit growth to quality earnings, cash‑flow sustainability, disciplined capex, and long‑term value creation for shareholders.",
+   "source": "https://investor.id/market/451667/inco-tins-antm-ptba-disorot-diungkit-soal-dividen",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/05/1747730479-637x415.webp",
+   "timestamp": "2026-08-26T13:19:49",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "oil-gas-coal"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Financial Metrics",
+    "Partnerships & Agreements",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK",
+    "TINS.JK",
+    "PTBA.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 1,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Luke Thomas Mahony Appointed President Director of PT Danantara Sumberdaya Indonesia",
+   "body": "Danantara Indonesia announced that Luke Thomas Mahony has been appointed President Director of PT Danantara Sumberdaya Indonesia (DSI). Thomas, an Australian mining executive, previously held senior technical and strategy roles at Vale Indonesia, Vale Group, and BHP Billiton before joining Danantara Indonesia in September 2025. DSI will initially focus on exporting coal, crude palm oil (CPO) and ferroalloy, with a projected total export transaction value of about US$70 billion (approximately Rp1,2417 trillion) – roughly US$30.35 billion from coal, US$22.87 billion from CPO and US$16.43 billion from ferroalloy. Thomas said existing export contracts will remain unchanged and the company will oversee export governance through the end of the year.",
+   "source": "https://market.bisnis.com/read/20260825/192/1998717/resmi-diperkenalkan-ini-profil-luke-thomas-dirut-danantara-sumberdaya",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/08/25/1998717/luke_thomas_mahony_ditunjuk_untuk_memimpin_bumn_ekspor_pt_danantara_sumberdaya_indonesia_1787639060.jpg?w=368&h=208",
+   "timestamp": "2026-08-25T13:24:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Executive Changes",
+    "Export",
+    "Commodities",
+    "Business Expansion",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 2,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "MNC Sekuritas projects PT Vale Indonesia Tbk's 2026 net profit to jump 201% to US$229.1 million on higher nickel matte production and ore sales",
+   "body": "MNC Sekuritas forecasts a substantial increase in PT Vale Indonesia Tbk's 2026 net profit, estimating US$229.1 million, a 201% year‑over‑year rise. The projection is driven by a recovery in nickel matte output to 16.1 k tons in Q2 2026 after the Furnace 3 rebuild, and a surge in ore sales from the Pomalaa and Bahodopi blocks to 2.33 million tons in the same quarter, up 139.3% quarter‑over‑quarter. Total nickel matte sales are expected to reach 64.8 k tons for the full year, supporting the profit outlook. These operational improvements underpin the bullish outlook for the company's shares.",
+   "source": "https://investor.id/market/451457/lompatan-raksasa-nikel-saham-bersiap-kasih-cuan-gede",
+   "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/05/1778498413-881x530.webp",
+   "timestamp": "2026-08-24T17:26:41",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials"
+   ],
+   "tags": [
+    "Financial Metrics",
+    "Commodities",
+    "Production & Operations",
+    "Business Expansion",
+    "Bullish"
+   ],
+   "symbols": [
+    "INCO.JK"
+   ],
+   "dimension": {
+    "future": 2,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "Stock Recommendations and IHSG Movement for 24 August 2026",
+   "body": "The piece outlines the Indonesian Composite Index (IHSG) performance on 24 August 2026 and issues buy‑on‑weakness recommendations for selected stocks. BEI data show the IHSG closed at 6,525,690, a 1.93 % rise from the prior week, with average daily volume rising 47.90 % to 50.30 billion shares and market capitalisation reaching Rp11,449 trillion. MNC Sekuritas notes short‑term correction levels between 6,429‑6,475 and projects the next target range at 6,628‑6,666, while foreign investors recorded a net purchase of Rp974.58 billion on 21 August. The firm recommends buying PT Vale Indonesia Tbk and PT Merdeka Battery Materials Tbk on weakness and taking a trading‑buy position in PT Fore Kopi Indonesia Tbk and PT Telkom Indonesia Tbk.",
+   "source": "https://market.bisnis.com/read/20260824/7/1998429/rekomendasi-saham-dan-pergerakan-ihsg-hari-ini-24-agustus-2026",
+   "thumbnail": "https://images.bisnis.com/thumb/posts/2026/08/24/1998429/12072026-BI-HIL-21-IHSG-32_1783865467.jpg?w=368&h=208",
+   "timestamp": "2026-08-24T08:14:00",
+   "sector": "basic-materials",
+   "sub_sector": [
+    "basic-materials",
+    "food-beverage",
+    "telecommunication"
+   ],
+   "tags": [
+    "Analyst Ratings",
+    "Foreign Investment"
+   ],
+   "symbols": [
+    "INCO.JK",
+    "MBMA.JK",
+    "FORE.JK",
+    "TLKM.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 0,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  },
+  {
+   "title": "IHSG projected to strengthen at the start of the week",
+   "body": "The article forecasts that Indonesia’s composite index (IHSG) will likely rise in early‑week trading. MNC Sekuritas analyst Herditya Wicaksana expects the index to move toward the 6,628‑6,666 range, testing the gap area while watching short‑term correction near 6,429‑6,475, and he recommends the stocks FORE, INCO, MBMA and TLKM. Binaartha Sekuritas analyst Ivan Rosanova sees a possible correction after the index failed to hold above the 6,545 resistance, targeting support around 6,441 and recommending JPFA, MDKA, PGAS and UNVR. The IHSG closed at 6,525 on Friday, up 24.10 points (0.37%) after a 1.93% weekly gain and trading volume of Rp17.42 trillion across 58.08 billion shares.",
+   "source": "https://www.cnnindonesia.com/ekonomi/20260824062110-92-1395649/ihsg-diproyeksi-bertenaga-di-awal-pekan",
+   "thumbnail": "https://akcdn.detik.net.id/visual/2020/05/11/132ca13c-ddd3-46ee-8bdd-0853886d9e66_169.jpeg?w=280&q=90",
+   "timestamp": "2026-08-24T07:05:09",
+   "sector": "consumer-non-cyclicals",
+   "sub_sector": [
+    "food-beverage",
+    "basic-materials",
+    "telecommunication",
+    "oil-gas-coal",
+    "nondurable-household-products"
+   ],
+   "tags": [
+    "Market Sentiment",
+    "Bullish"
+   ],
+   "symbols": [
+    "FORE.JK",
+    "INCO.JK",
+    "MBMA.JK",
+    "TLKM.JK",
+    "JPFA.JK",
+    "MDKA.JK",
+    "PGAS.JK",
+    "UNVR.JK"
+   ],
+   "dimension": {
+    "future": 1,
+    "dividend": 0,
+    "ownership": 0,
+    "technical": 1,
+    "valuation": 0,
+    "financials": 0,
+    "management": 0,
+    "sustainability": 0
+   }
+  }
+ ],
+ "pagination": {
+  "total_count": 53,
+  "showing": 20,
+  "limit": 20,
+  "offset": 0,
+  "has_next": true,
+  "has_previous": false,
+  "next_offset": 20,
+  "previous_offset": null
+ }
+}
