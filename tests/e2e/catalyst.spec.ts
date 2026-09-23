@@ -193,7 +193,9 @@ test("legacy research utilities converge into the Research Case hub", async ({ p
   const settings = page.getByRole("dialog", { name: "Pengaturan" });
   await expect(settings.getByRole("link", { name: "Company universe" })).toHaveCount(0);
   await expect(settings.getByRole("link", { name: "Correction queue" })).toHaveCount(0);
-  await expect(settings.getByRole("link", { name: /Tinjauan dan usulan/ })).toBeVisible();
+  await expect(settings.getByRole("link", { name: /Tinjauan dan usulan/ })).toHaveCount(0);
+  await expect(settings.getByRole("link", { name: "AI Learning" })).toHaveCount(0);
+  await expect(settings.getByRole("link", { name: "Perbandingan emiten" })).toHaveCount(0);
 
   await page.goto("/companies");
   await expect(page).toHaveURL(/\/cases\?view=picker$/);

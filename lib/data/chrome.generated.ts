@@ -843,12 +843,11 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
 /** How the menu names each page, which is how a reader names it too. */
 export const CHROME_NAV: Array<{ href: string; label: string; source: "nav" | "command"; view?: ViewId }> = [
   { href: "/ai-learning?section=tinjauan", label: "Tinjauan dan usulan", source: "command", view: "ai-learning", },
-  { href: "/ai-learning", label: "AI Learning", source: "command", view: "ai-learning", },
+  { href: "/ai-learning", label: "AI Learning", source: "nav", view: "ai-learning", },
   { href: "/ai-learning", label: "Buka AI Learning", source: "command", view: "ai-learning", },
   { href: "/", label: "Buka Dashboard", source: "command", view: "dashboard", },
   { href: "/cases?view=picker", label: "Bandingkan emiten", source: "command", view: "cases", },
   { href: "/cases?view=picker", label: "Buka perbandingan emiten", source: "command", view: "cases", },
-  { href: "/cases?view=picker", label: "Perbandingan emiten", source: "command", view: "cases", },
   { href: "/cases", label: "Buka Riset & Analisis", source: "command", view: "cases", },
   { href: "/cases", label: "Kembali ke Analisis aktif", source: "command", view: "cases", },
   { href: "/cases", label: "Riset & Analisis", source: "nav", view: "cases", },
