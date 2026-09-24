@@ -19,33 +19,29 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "sectors"
 OUT = ROOT / "lib" / "data" / "market.generated.ts"
 
-_WINDOW_RE = re.compile(r"__end-\d{4}-\d{2}-\d{2}_start-\d{4}-\d{2}-\d{2}")
+_WINDOW_GLOB = "__end-????-??-??_start-????-??-??"
+_WINDOW_RE = re.compile(r"__end-(\d{4}-\d{2}-\d{2})_start-\d{4}-\d{2}-\d{2}")
 
 
-def _recorded_window():
-    """The window the recordings pin, read off their names rather than typed.
+def windowed(prefix, suffix=""):
+    """The one recording of a windowed feed, whatever window it was asked at.
 
-    Every windowed feed in data/sectors/ carries the window in its filename and
-    scripts/plan_sectors_refresh.py moves them all together, so the set below
-    has exactly one member. Typing the window here instead meant a refresh left
-    the script loading the previous window's names and dying on files that were
-    no longer there — a constant that had to be edited by hand every time the
-    data it described moved.
+    Feeds move on different cadences — prices and foreign flow every session,
+    news, filings and broker summaries a few times a week (see
+    scripts/refresh_sectors.py) — so each feed is found by its own name rather
+    than by one window typed or shared across all of them. Two windows for the
+    same feed means a refresh left a superseded file behind; that is refused
+    rather than guessed between. Returns None when the feed was never recorded.
     """
-    windows = set()
-    for recording in RAW.glob("v2_*.json"):
-        found = _WINDOW_RE.search(recording.name)
-        if found:
-            windows.add(found.group(0))
-    if len(windows) != 1:
-        raise SystemExit(
-            f"expected exactly one recorded window in {RAW}, found {sorted(windows)}. "
-            "Run scripts/sync_sectors_recordings.py so every windowed feed moves together."
-        )
-    return windows.pop()
+    found = sorted(RAW.glob(f"{prefix}{_WINDOW_GLOB}{suffix}.json"))
+    if len(found) > 1:
+        raise SystemExit(f"{prefix}*{suffix}: {len(found)} recorded windows {[f.name for f in found]} — expected one")
+    return found[0].name if found else None
 
 
-WINDOW = _recorded_window()
+def window_end(name):
+    """The last day a windowed recording was asked to cover."""
+    return _WINDOW_RE.search(name).group(1)
 # Universe derived from the company-report recordings on disk — never a typed
 # ticker list. Drop a new v2_company_report_<SYM>__sections-overview.json in
 # data/sectors/ + re-run to extend coverage; no code change needed.
@@ -56,7 +52,7 @@ SYMBOLS = sorted(
 # Full-case coverage is derived from recording availability: a symbol qualifies
 # when its broker-summary recording exists. Never hand-extend this list without
 # the recording — that would be dummy data.
-CASES = [s for s in SYMBOLS if (RAW / f"v2_broker-summary_{s}_top{WINDOW}.json").exists()]
+CASES = [s for s in SYMBOLS if windowed(f"v2_broker-summary_{s}_top")]
 
 SECTOR_MAP = {
     "Basic Materials": "Basic Materials",
@@ -129,8 +125,8 @@ def pct(value, digits=1):
 
 
 # --------------------------------------------------------------------------- price
-ihsg = {row["date"]: round(row["price"]) for row in rows(load(f"v2_index-daily_ihsg{WINDOW}.json"), "data", "results")}
-daily = {s: rows(load(f"v2_daily_{s}{WINDOW}.json"), "data", "results") for s in SYMBOLS}
+ihsg = {row["date"]: round(row["price"]) for row in rows(load(windowed("v2_index-daily_ihsg")), "data", "results")}
+daily = {s: rows(load(windowed(f"v2_daily_{s}")), "data", "results") for s in SYMBOLS}
 overview = {s: load(f"v2_company_report_{s}__sections-overview.json") for s in SYMBOLS}
 free_float = {r["symbol"].split(".")[0]: r["free_float"] for r in rows(load("v2_free-float.json"), "results", "data")}
 brokers = {r["code"]: r for r in rows(load("v2_brokers.json"), "results", "data")}
@@ -345,7 +341,7 @@ def sector_from_subsector(sub):
 institutional_flows: dict[str, list] = {s: [] for s in SYMBOLS}
 
 for symbol in SYMBOLS:
-    news = rows(load(f"v2_news{WINDOW}_symbols-{symbol}.JK.json"), "results", "data")
+    news = rows(load(windowed("v2_news", f"_symbols-{symbol}.JK")), "results", "data")
     scored = []
     for item in news:
         universe = {x.split(".")[0] for x in (item.get("symbols") or [])} & set(SYMBOLS)
@@ -358,7 +354,7 @@ for symbol in SYMBOLS:
     for _, _, item, universe in scored[:3]:
         add_event("news-" + re.sub(r"[^a-z0-9]+", "-", item["source"].lower())[-48:].strip("-"),
                   item, universe, "news")
-    filings = rows(load(f"v2_filings{WINDOW}_symbol-{symbol}.JK.json"), "results", "data")
+    filings = rows(load(windowed("v2_filings", f"_symbol-{symbol}.JK")), "results", "data")
     for item in filings[:2]:
         universe = {(item.get("symbol") or "").split(".")[0]} & set(SYMBOLS)
         if not universe:
@@ -649,13 +645,17 @@ for symbol in SYMBOLS:
 def add_flows_events(symbol):
     if symbol not in CASES:
         return
-    filename = f"v2_foreign-flow_{symbol}{WINDOW}.json"
-    if not (RAW / filename).exists():
+    filename = windowed(f"v2_foreign-flow_{symbol}")
+    if not filename:
         return
     flow = rows(load(filename), "data", "results")
     window_flow = [r for r in flow if DATES[0] <= r["date"] <= DATES[-1]]
     if not window_flow:
         return
+    # Dated by the flow rows, not by the price timeline: the two feeds are
+    # recorded separately, and a title naming a day the flow does not cover
+    # would be a claim no recording backs.
+    flow_end = max(r["date"] for r in window_flow)
     net_foreign = sum(r["net_foreign_inflow"] for r in window_flow)
     total_value = sum(p["close"] * p["volume"] for p in series[symbol])
     if not total_value:
@@ -664,21 +664,21 @@ def add_flows_events(symbol):
     if share < 0.02:
         return
     direction = "Supported" if net_foreign > 0 else "Adverse"
-    event_id = f"flows-foreign-net-{symbol.lower()}-{DATES[-1]}"
+    event_id = f"flows-foreign-net-{symbol.lower()}-{flow_end}"
     events[event_id] = {
         "id": event_id,
-        "title": f"Arus asing neto {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{DATES[-1]}",
+        "title": f"Arus asing neto {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{flow_end}",
         "summary": (f"Neto asing {idr(net_foreign)} ≈ {share * 100:.1f}% dari nilai transaksi {idr(total_value)} "
                     "pada jendela aplikasi. Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya.".replace(".", ",")),
         "body": None,
         "category": "flows",
         "sourceType": "sectors",
-        "publishedAt": jakarta(DATES[-1] + "T16:15:00"),
+        "publishedAt": jakarta(flow_end + "T16:15:00"),
         "sector": sector_of[symbol],
         "impactLinks": [{
             "symbol": symbol, "direction": direction, "relevance": 80,
             "path": CATEGORY_PATH["flows"],
-            "rationale": (f"Sectors foreign-flow API mencatat neto asing {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{DATES[-1]}. "
+            "rationale": (f"Sectors foreign-flow API mencatat neto asing {symbol} {idr(net_foreign)} pada jendela {DATES[0]}–{flow_end}. "
                           "Fakta arus; bukan atribusi niat pembeli/penjual."),
         }],
         "source": None,
@@ -696,9 +696,13 @@ for symbol in SYMBOLS:
 # always renders it Low confidence, and the rationale carries the falsifier
 # (no operational change → dismiss). No scraping, no new source risk.
 def add_attention_velocity_events(symbol, asof):
-    filename = f"v2_news{WINDOW}_symbols-{symbol}.JK.json"
-    if not (RAW / filename).exists():
+    filename = windowed("v2_news", f"_symbols-{symbol}.JK")
+    if not filename:
         return
+    # News is recorded less often than prices. Counting "the last 7 days" up to
+    # a price date the news recording never reached would read the unrecorded
+    # days as silence and report a drop in coverage that did not happen.
+    asof = min(asof, window_end(filename))
     items = rows(load(filename), "results", "data")
     stamps = sorted(item["timestamp"][:10] for item in items if item.get("timestamp"))
     cutoff = (date.fromisoformat(asof) - timedelta(days=6)).isoformat()
@@ -739,8 +743,8 @@ events_by_symbol = {s: [e["id"] for e in event_list if any(l["symbol"] == s for 
 # --------------------------------------------------------------------------- broker
 broker_evidence = {}
 for symbol in CASES:
-    top = load(f"v2_broker-summary_{symbol}_top{WINDOW}.json")
-    flow = rows(load(f"v2_foreign-flow_{symbol}{WINDOW}.json"), "data", "results")
+    top = load(windowed(f"v2_broker-summary_{symbol}_top"))
+    flow = rows(load(windowed(f"v2_foreign-flow_{symbol}")), "data", "results")
     window_flow = [r for r in flow if DATES[0] <= r["date"] <= DATES[-1]]
     reference = series[symbol][-1]["close"]
     shares_outstanding = market_cap_of[symbol] / reference

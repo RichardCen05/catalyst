@@ -8,16 +8,21 @@ repository alone — the scheduled refresh executes in a container that has the
 repo and nothing else, so the request for each recording is read from
 `data/sectors/_requests.json` rather than from a sibling research checkout.
 
-Which recordings move, and why all of them move together:
+Which recordings move, and when:
 
-  `build_market_data.py` loads daily, news, filings and foreign-flow for every
-  symbol at one shared window, and derives the timeline from the intersection of
-  the IHSG dates with every symbol's daily dates. Refreshing a subset would not
-  advance that intersection — the unrefreshed symbols hold it back — and the
-  build would fail on the filenames that no longer exist. So every windowed
-  recording is re-asked, or none is. Recordings with no window (company report,
-  segments, shareholders, financials, free-float, taxonomy, mining) move far too
-  slowly to be worth a credit a day and are left alone.
+  Every session: daily prices for every symbol, the IHSG index and foreign
+  flow. `build_market_data.py` derives the timeline from the intersection of
+  the IHSG dates with every symbol's daily dates, so refreshing a subset of
+  symbols would not advance it — all of a feed's symbols move together.
+
+  Every --slow-every days (default 3, so about twice a week): news, filings and
+  broker summaries. They are 48 of the 85 credits a full run costs, and the
+  build dates what it derives from them by their own window, not by the price
+  timeline, so a lag never reads as a claim about days they do not cover.
+
+  Recordings with no window (company report, segments, shareholders,
+  financials, free-float, taxonomy, mining) move far too slowly to be worth a
+  credit a day and are left alone.
 
 Extending beats shifting: a window call costs the same credit whether it spans
 twelve days or fifty, so asking for a later `end` with the same `start` acquires
@@ -80,6 +85,8 @@ DATE_KEYS = ("start", "end")
 PRICE_PATHS = ("/v2/daily/", "/v2/index-daily/")
 # The cheapest windowed feed, and the one every session appears in first.
 PROBE_PATH = "/v2/index-daily/"
+# Re-asked every session. Everything else windowed waits for --slow-every.
+SESSION_PATHS = PRICE_PATHS + ("/v2/foreign-flow/",)
 EXCHANGE_TZ = ZoneInfo("Asia/Jakarta")
 
 
@@ -234,6 +241,10 @@ def fetch(path: str, params: dict, api_key: str) -> bytes:
         # an opaque failure is a blind retry, which is what this guards against.
         detail = error.read().decode("utf-8", "replace")[:300]
         raise RuntimeError(f"HTTP {error.code} on {path}: {detail}") from None
+    except (urllib.error.URLError, TimeoutError) as error:
+        # A dropped connection counts toward the three-failure abort like any
+        # other failed call, instead of killing the run between recordings.
+        raise RuntimeError(f"network error on {path}: {error}") from None
 
 
 def spent_so_far() -> int:
@@ -259,6 +270,9 @@ def main() -> int:
     parser.add_argument("--probe", action="store_true", help="spend the rest only if the IHSG window holds a new session")
     parser.add_argument("--status-file", help='write "deploy" or "skip" here for the steps after this one')
     parser.add_argument("--live-url", help="health endpoint of the serving revision; its dataAsOf decides the status")
+    parser.add_argument("--slow-every", type=int, default=3,
+                        help="re-ask news, filings and broker summaries once their window is this many days old")
+    parser.add_argument("--all", action="store_true", help="re-ask every windowed feed now, whatever its age")
     args = parser.parse_args()
 
     new_end = date.fromisoformat(args.end)
@@ -278,7 +292,12 @@ def main() -> int:
         params = dict(entry.get("params") or {})
         if not is_windowed(entry):
             continue
-        if date.fromisoformat(str(params["end"])) >= new_end and not behind:
+        asked_to = date.fromisoformat(str(params["end"]))
+        if entry["path"].startswith(SESSION_PATHS):
+            due = asked_to < new_end or behind
+        else:
+            due = args.all or (new_end - asked_to).days >= args.slow_every
+        if not due:
             continue
         params["end"] = new_end.isoformat()
         plan.append({

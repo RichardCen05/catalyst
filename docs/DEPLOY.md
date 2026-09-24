@@ -361,14 +361,16 @@ red gate aborts the build and leaves the serving revision untouched.
 | Build identity | `1019003607640-compute@developer.gserviceaccount.com` |
 | Source | `gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz` |
 | State between runs | `gs://ada-sectors-508410_cloudbuild/catalyst/recordings` — the recordings last deployed, and `_ledger.jsonl` |
-| Cost per try | 85 credits when it lands a new session; 1 when Sectors has not published one yet; 0 once it has landed |
+| Cost per try | 37 credits when it lands a new session (prices, IHSG, foreign flow); 85 when news, filings and broker summaries are 3+ days old and come along; 1 when Sectors has not published yet; 0 once landed |
 
 Each try:
 
 1. **restore** — pulls the published recordings and the ledger.
-2. **refresh** — `refresh_sectors.py --adopt --probe`: takes the published recordings when they
-   reach a later session than the snapshot, asks the one-credit IHSG window first, and fetches
-   the other 78 windows only if IHSG holds a session the recordings lack. Then compares the last
+2. **refresh** — `refresh_sectors.py --adopt --probe --slow-every 3`: takes the published
+   recordings when they reach a later session than the snapshot, asks the one-credit IHSG window
+   first, and only if IHSG holds a session the recordings lack fetches daily prices and foreign
+   flow (36 more), plus news, filings and broker summaries once their window is three days old
+   (48 more — about twice a week). Then compares the last
    session on disk with `dataAsOf` from `/api/health` and writes `deploy` or `skip`.
 3. **save-ledger** — always, so probe credits are counted too.
 4. **install → gate → deploy → publish-recordings** — only on `deploy`.
@@ -399,18 +401,19 @@ gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
 
 This is the one thing that ships without a human. Pushing a branch still deploys nothing.
 
-### Why the whole window moves at once
+### Which feeds move when
 
-`scripts/build_market_data.py` loads daily, news, filings and foreign-flow for all eighteen
-symbols at one shared window, and derives the timeline from the intersection of the IHSG dates
-with every symbol's daily dates. Refreshing a subset cannot advance that intersection — the
-unrefreshed symbols hold it back — and the build fails on filenames that no longer exist. The way
-to stretch a non-renewable grant is therefore a longer cadence, not a narrower scope:
+`scripts/build_market_data.py` derives the timeline from the intersection of the IHSG dates with
+every symbol's daily dates, so a feed's eighteen symbols always move together — refreshing a
+subset cannot advance the intersection. Feeds do not have to move together: each recording is
+found by its own window, and what the build derives from news and foreign flow is dated by that
+feed's own coverage, never by the price date (a lagging news window must not read as a drop in
+coverage). To stretch the grant, raise `_SLOW_EVERY` or thin the cadence, not the symbol list:
 
 ```bash
 gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
   --schedule="30 17,19,21 * * 1,4"  # twice a week instead of five times
-gcloud scheduler jobs pause http catalyst-data-refresh --location=us-central1
+gcloud scheduler jobs pause catalyst-data-refresh --location=us-central1
 ```
 
 ### The source snapshot
@@ -437,7 +440,7 @@ already paid for.
 
 ```bash
 python3 scripts/refresh_sectors.py                 # plan and cost, spends nothing
-python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY
+python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY; add --all for every feed
 python3 scripts/build_market_data.py
 ```
 

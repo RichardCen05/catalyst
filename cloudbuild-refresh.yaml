@@ -11,8 +11,8 @@
 # is published, and a run that fetches before it is holds yesterday's close for
 # today's credit. So each try starts from the recordings the last successful run
 # published (restore), asks the one-credit IHSG window first (--probe), and
-# spends the other 84 only when that window holds a session the recordings do
-# not. A try after the session has landed spends nothing. The steps after the
+# spends the rest only when that window holds a session the recordings do not.
+# A try after the session has landed spends nothing. The steps after the
 # refresh run only when the rows on disk reach a later session than the serving
 # revision reports — which also repairs a manual deploy that shipped the
 # repository's older recordings.
@@ -37,8 +37,9 @@
 # the next try, which sees live serving an older session and redeploys.
 #
 # Credit: the grant is 1,000, non-renewable, and expires at the end of the event.
-# A try that lands a new session is 85 credits; a try before Sectors publishes is
-# 1 (the probe); a try after the session has landed is 0. _MAX_CREDITS is the
+# A try that lands a new session is 37 credits (prices, IHSG, foreign flow), or
+# 85 when news, filings and broker summaries are _SLOW_EVERY days old and come
+# along; a try before Sectors publishes is 1 (the probe); after it has landed, 0. _MAX_CREDITS is the
 # per-run ceiling, not a budget. The spend adds up in ${_RECORDINGS}/_ledger.jsonl
 # (it starts at the first scheduled run, not at the grant) — watch the balance in
 # the Sectors portal, and change the cadence (not the scope) to stretch it: scope
@@ -50,6 +51,7 @@ substitutions:
   _SERVICE: catalyst-web
   _SERVICE_ACCOUNT: catalyst-run@ada-sectors-508410.iam.gserviceaccount.com
   _MAX_CREDITS: "120"
+  _SLOW_EVERY: "3"
   _RECORDINGS: gs://ada-sectors-508410_cloudbuild/catalyst/recordings
   _LIVE_HEALTH: https://catalyst-web-ibyebnreqa-uc.a.run.app/api/health
 
@@ -81,7 +83,7 @@ steps:
       - |
         set -euo pipefail
         python3 scripts/refresh_sectors.py --execute --max-credits "${_MAX_CREDITS}" \
-          --adopt /workspace/published --probe \
+          --adopt /workspace/published --probe --slow-every "${_SLOW_EVERY}" \
           --status-file /workspace/refresh-status --live-url "${_LIVE_HEALTH}"
         if [ "$$(cat /workspace/refresh-status)" = deploy ]; then
           python3 scripts/build_market_data.py
