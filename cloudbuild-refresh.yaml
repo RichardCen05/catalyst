@@ -1,44 +1,76 @@
 # Scheduled data refresh for catalyst-web.
 #
-# Cloud Scheduler triggers this on trading days. It re-records the Sectors feeds,
-# rebuilds lib/data/market.generated.ts from them, runs the same gate a human runs
-# before deploying, and only then deploys. A red gate aborts the build and leaves
-# the serving revision exactly where it was — a stale revision is a smaller
-# failure than a revision serving figures no test agreed to.
+# Cloud Scheduler triggers this three times each trading evening. It re-records
+# the Sectors feeds, rebuilds lib/data/market.generated.ts from them, runs the
+# same gate a human runs before deploying, and only then deploys. A red gate
+# aborts the build and leaves the serving revision exactly where it was — a
+# stale revision is a smaller failure than a revision serving figures no test
+# agreed to.
+#
+# Why three tries, and why they are cheap. Sectors does not say when a session
+# is published, and a run that fetches before it is holds yesterday's close for
+# today's credit. So each try starts from the recordings the last successful run
+# published (restore), asks the one-credit IHSG window first (--probe), and
+# spends the other 84 only when that window holds a session the recordings do
+# not. A try after the session has landed spends nothing. The steps after the
+# refresh run only when the rows on disk reach a later session than the serving
+# revision reports — which also repairs a manual deploy that shipped the
+# repository's older recordings.
 #
 # The bundle is compiled into the image (seven static importers, no dynamic
 # import), so a deploy is the only way refreshed data reaches a reader. That is
 # why this pipeline ends in `gcloud run deploy` rather than writing to a bucket.
 #
 # This does not commit the refreshed recordings back to the repository. Each run
-# starts from the committed window and extends it to today in a single call per
-# feed, which costs the same credit whether the span is one day or fifty — so
+# starts from the published window (or the snapshot's, if that is later) and
+# extends it to today in a single call per feed, which costs the same credit
+# whether the span is one day or fifty — so
 # skipping the commit costs nothing and keeps an unattended job from pushing to
 # a branch. The repository's own recordings move when a human runs
 # `scripts/refresh_sectors.py --execute` and commits the result.
 #
+# What it does leave behind is a copy of the recordings it deployed, in
+# _RECORDINGS. A human deploy builds from the repository, whose recordings lag
+# the scheduled run's; without that copy every manual deploy put the board back
+# on the committed window until the next try. docs/DEPLOY.md §6 pulls it before
+# deploying, which costs no credit; a deploy that skips the pull is undone by
+# the next try, which sees live serving an older session and redeploys.
+#
 # Credit: the grant is 1,000, non-renewable, and expires at the end of the event.
-# A full run is 85 credits. _MAX_CREDITS is the per-run ceiling, not a budget —
-# watch the balance in the Sectors portal, and change the cadence (not the scope)
-# to stretch it: scope cannot shrink because build_market_data.py derives the
-# timeline from the intersection of every symbol's daily dates.
+# A try that lands a new session is 85 credits; a try before Sectors publishes is
+# 1 (the probe); a try after the session has landed is 0. _MAX_CREDITS is the
+# per-run ceiling, not a budget. The spend adds up in ${_RECORDINGS}/_ledger.jsonl
+# (it starts at the first scheduled run, not at the grant) — watch the balance in
+# the Sectors portal, and change the cadence (not the scope) to stretch it: scope
+# cannot shrink because build_market_data.py derives the timeline from the
+# intersection of every symbol's daily dates.
 
 substitutions:
   _REGION: us-central1
   _SERVICE: catalyst-web
   _SERVICE_ACCOUNT: catalyst-run@ada-sectors-508410.iam.gserviceaccount.com
   _MAX_CREDITS: "120"
+  _RECORDINGS: gs://ada-sectors-508410_cloudbuild/catalyst/recordings
+  _LIVE_HEALTH: https://catalyst-web-ibyebnreqa-uc.a.run.app/api/health
 
 steps:
-  - id: install
-    name: node:22
+  - id: restore
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     entrypoint: bash
     args:
       - -c
       - |
         set -euo pipefail
-        corepack enable
-        pnpm install --frozen-lockfile
+        mkdir -p /workspace/published
+        if gcloud storage ls "${_RECORDINGS}/_requests.json" > /dev/null 2>&1; then
+          gcloud storage rsync "${_RECORDINGS}" /workspace/published --recursive
+          # The ledger lives only in the bucket, so the spend adds up across runs.
+          if [ -f /workspace/published/_ledger.jsonl ]; then
+            cp /workspace/published/_ledger.jsonl data/sectors/_ledger.jsonl
+          fi
+        else
+          echo "nothing published yet — starting from the snapshot"
+        fi
 
   - id: refresh
     name: python:3.12
@@ -48,8 +80,34 @@ steps:
       - -c
       - |
         set -euo pipefail
-        python3 scripts/refresh_sectors.py --execute --max-credits "${_MAX_CREDITS}"
-        python3 scripts/build_market_data.py
+        python3 scripts/refresh_sectors.py --execute --max-credits "${_MAX_CREDITS}" \
+          --adopt /workspace/published --probe \
+          --status-file /workspace/refresh-status --live-url "${_LIVE_HEALTH}"
+        if [ "$$(cat /workspace/refresh-status)" = deploy ]; then
+          python3 scripts/build_market_data.py
+        fi
+
+  - id: save-ledger
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        if [ -f data/sectors/_ledger.jsonl ]; then
+          gcloud storage cp data/sectors/_ledger.jsonl "${_RECORDINGS}/_ledger.jsonl"
+        fi
+
+  - id: install
+    name: node:22
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: live is current"; exit 0; }
+        corepack enable
+        pnpm install --frozen-lockfile
 
   # The gate a human runs before deploying, in the same order, so an unattended
   # deploy is held to the standard an attended one is.
@@ -60,6 +118,7 @@ steps:
       - -c
       - |
         set -euo pipefail
+        [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: live is current"; exit 0; }
         corepack enable
         pnpm lint
         pnpm typecheck
@@ -72,6 +131,7 @@ steps:
       - -c
       - |
         set -euo pipefail
+        [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: live is current"; exit 0; }
         gcloud run deploy "${_SERVICE}" \
           --source . \
           --project="$PROJECT_ID" \
@@ -81,6 +141,18 @@ steps:
           --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
           --set-env-vars=AGENT_MODE=llm,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite,LLM_RATE_LIMIT_STRIKES=3,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
           --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
+
+  # Only after the deploy lands, so the copy is always what readers are served,
+  # and the next try starts from it.
+  - id: publish-recordings
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: nothing new to publish"; exit 0; }
+        gcloud storage rsync data/sectors "${_RECORDINGS}" --recursive --delete-unmatched-destination-objects
 
 availableSecrets:
   secretManager:

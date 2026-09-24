@@ -194,6 +194,19 @@ both build the image from current source (required: the provider switch only exi
 containing `fc5a247`). `--set-env-vars` and `--set-secrets` replace the whole set each time,
 so each command below is complete on its own: never mix half of one with half of the other.
 
+Pull the recordings the scheduled refresh last deployed before you build. The repository's
+recordings trail them — the scheduled job does not commit — so deploying without this step puts
+the board back on the committed window until the next evening's run. It costs no credit:
+
+```bash
+gcloud storage rsync gs://ada-sectors-508410_cloudbuild/catalyst/recordings data/sectors \
+  --recursive --delete-unmatched-destination-objects
+python3 scripts/build_market_data.py      # the bundle's asOf should now match the live board
+```
+
+Commit the refreshed `data/sectors/` and `lib/data/market.generated.ts` if you want the repository
+to catch up; the deploy does not need it.
+
 ### 6a. With OpenRouter (current recommendation)
 
 ```bash
@@ -343,11 +356,46 @@ red gate aborts the build and leaves the serving revision untouched.
 
 | What | Value |
 |---|---|
-| Scheduler job | `catalyst-data-refresh`, `30 17 * * 1-5` Asia/Jakarta, region `us-central1` |
+| Scheduler job | `catalyst-data-refresh`, `30 17,19,21 * * 1-5` Asia/Jakarta, region `us-central1` |
 | Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
 | Build identity | `1019003607640-compute@developer.gserviceaccount.com` |
 | Source | `gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz` |
-| Cost | 85 Sectors credits per run that advances the window; 0 when it is already current |
+| State between runs | `gs://ada-sectors-508410_cloudbuild/catalyst/recordings` — the recordings last deployed, and `_ledger.jsonl` |
+| Cost per try | 85 credits when it lands a new session; 1 when Sectors has not published one yet; 0 once it has landed |
+
+Each try:
+
+1. **restore** — pulls the published recordings and the ledger.
+2. **refresh** — `refresh_sectors.py --adopt --probe`: takes the published recordings when they
+   reach a later session than the snapshot, asks the one-credit IHSG window first, and fetches
+   the other 78 windows only if IHSG holds a session the recordings lack. Then compares the last
+   session on disk with `dataAsOf` from `/api/health` and writes `deploy` or `skip`.
+3. **save-ledger** — always, so probe credits are counted too.
+4. **install → gate → deploy → publish-recordings** — only on `deploy`.
+
+Three tries an evening because Sectors does not say when a session is published. "Already
+current" is judged by the rows, not the filename: on 23 Sep 2026 a hand refresh at 13:05 WIB
+asked for `end-2026-09-23` while the market was open and got only the 22 Sep close; the 17:30 run
+read the filename, spent nothing, and left the board on 22 Sep. Comparing with `/api/health` also
+means a manual deploy that shipped older recordings is undone by the next try.
+
+Check what happened on a given evening:
+
+```bash
+gcloud builds list --region=us-central1 --limit=5
+gcloud builds log <BUILD_ID> --region=us-central1 | grep -E 'probe|adopt|status|wrote'
+gcloud storage cat gs://ada-sectors-508410_cloudbuild/catalyst/recordings/_ledger.jsonl | wc -l
+curl -s https://catalyst-web-ibyebnreqa-uc.a.run.app/api/health
+```
+
+The scheduler POSTs an inline copy of the build, not `cloudbuild-refresh.yaml`. A change to the
+steps reaches the scheduled run only after the job body is replaced as well as the snapshot:
+
+```bash
+python3 scripts/refresh_job_body.py > /tmp/refresh-body.json
+gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
+  --message-body-from-file=/tmp/refresh-body.json
+```
 
 This is the one thing that ships without a human. Pushing a branch still deploys nothing.
 
@@ -361,7 +409,7 @@ to stretch a non-renewable grant is therefore a longer cadence, not a narrower s
 
 ```bash
 gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
-  --schedule="30 17 * * 1,4"        # twice a week instead of five times
+  --schedule="30 17,19,21 * * 1,4"  # twice a week instead of five times
 gcloud scheduler jobs pause http catalyst-data-refresh --location=us-central1
 ```
 
@@ -369,19 +417,23 @@ gcloud scheduler jobs pause http catalyst-data-refresh --location=us-central1
 
 The scheduled build runs from a tarball in GCS, not from git, because no Cloud Build trigger is
 connected to the GitHub repository. Code changes do not reach the scheduled run until the snapshot
-is replaced:
+is replaced. Upload it without running the pipeline (a `gcloud builds submit` would spend credit
+and deploy):
 
 ```bash
-gcloud builds submit --config=cloudbuild-refresh.yaml --region=us-central1   # also validates it
-gcloud storage cp "gs://ada-sectors-508410_cloudbuild/source/<the tarball just uploaded>.tgz" \
-  gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
+git archive --format=tar.gz -o /tmp/refresh-source.tgz HEAD
+gcloud storage cp gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz \
+  gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.prev-$(date +%F).tgz
+gcloud storage cp /tmp/refresh-source.tgz gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
 ```
 
-Data is not affected by a stale snapshot: `scripts/refresh_sectors.py` extends from whatever
-window the snapshot carries to today in one call per feed, and a window call costs the same credit
-whether it spans a day or a month.
+Data is not affected by a stale snapshot: each try adopts the published recordings when they are
+later, and a window call costs the same credit whether it spans a day or a month.
 
 ### Refreshing by hand
+
+Pull the published recordings first (§6) — otherwise the plan re-asks days the scheduled run has
+already paid for.
 
 ```bash
 python3 scripts/refresh_sectors.py                 # plan and cost, spends nothing
