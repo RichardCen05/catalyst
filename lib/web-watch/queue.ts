@@ -433,25 +433,44 @@ export function acceptProposals(queue: ReviewQueue, candidateIds: string[], nowI
   }, queue);
 }
 
-/** Evidence strong enough to accept without a person: the candidate's own
- *  text names the emiten, by ticker or by registry name. A match that only
- *  comes from the sector, the region or what the source declares is not. */
-const DIRECT_EVIDENCE: ReadonlySet<MatchEvidence["by"]> = new Set(["symbol", "name"]);
+/** Evidence that the candidate's own text names the emiten, by ticker or by
+ *  registry name. */
+const NAMED_EVIDENCE: ReadonlySet<MatchEvidence["by"]> = new Set(["symbol", "name"]);
+
+/** Evidence that the source itself declares the emiten (`WatchedSource.symbols`),
+ *  e.g. a central-bank release declared for the banks. */
+const SOURCE_EVIDENCE: ReadonlySet<MatchEvidence["by"]> = new Set(["source"]);
+
+/** Bands the sweep may accept alone, per kind of evidence. A named emiten
+ *  may go in at high or medium; one only its source declares needs high,
+ *  because nothing in the text ties it to that company. */
+const AUTO_BANDS_NAMED: ReadonlySet<RelevanceBand> = new Set(["high", "medium"]);
+const AUTO_BANDS_SOURCE: ReadonlySet<RelevanceBand> = new Set(["high"]);
 
 /** Directions the sweep may accept alone. `Mixed` says the model saw both
  *  ways, which is a judgement a person should make. */
 const AUTO_DIRECTIONS: ReadonlySet<ImpactDirection> = new Set(["Supported", "Adverse"]);
 
 /**
- * Whether the sweep may accept this proposal alone: it is batch-acceptable
- * (every impact high band, verified), every impact has a clear direction,
- * the text names every emiten it maps, and no reviewer undid an earlier
- * auto-accept of it.
+ * Whether the sweep may accept this verified proposal alone. Every impact
+ * must have a clear direction and be either
+ *   - named in the text, at high or medium band, or
+ *   - declared by the source, at high band.
+ * A match by sector, subsector, region or weather alone never qualifies, and
+ * nothing a reviewer already un-accepted is taken again.
  */
 export function isAutoAcceptable(proposal: TriageProposal | undefined, match: TriageMatch | undefined): boolean {
-  if (!isBatchAcceptable(proposal) || !match || match.noAuto) return false;
-  const named = new Set(match.matchedBy.filter((e) => DIRECT_EVIDENCE.has(e.by)).map((e) => e.symbol as string));
-  return proposal.impacts.every((impact) => AUTO_DIRECTIONS.has(impact.direction) && named.has(impact.symbol));
+  if (!proposal?.impacts.length || !match || match.noAuto) return false;
+  const by = (kinds: ReadonlySet<MatchEvidence["by"]>) =>
+    new Set(match.matchedBy.filter((e) => kinds.has(e.by)).map((e) => e.symbol as string));
+  const named = by(NAMED_EVIDENCE);
+  const declared = by(SOURCE_EVIDENCE);
+  return proposal.impacts.every(
+    (impact) =>
+      AUTO_DIRECTIONS.has(impact.direction) &&
+      ((named.has(impact.symbol) && AUTO_BANDS_NAMED.has(impact.band)) ||
+        (declared.has(impact.symbol) && AUTO_BANDS_SOURCE.has(impact.band))),
+  );
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -462,7 +481,7 @@ export function autoAcceptedSince(queue: ReviewQueue, nowIso: string): number {
   return Object.values(queue.decided).filter((d) => d.auto && Date.parse(d.decidedAt) > since).length;
 }
 
-export const AUTO_ACCEPT_REASON = "otomatis: usulan band tinggi terverifikasi, emiten disebut langsung di teks.";
+export const AUTO_ACCEPT_REASON = "otomatis: usulan terverifikasi, emiten disebut di teks (band tinggi/sedang) atau dideklarasikan sumber (band tinggi).";
 
 /**
  * Accept every auto-acceptable proposal, newest first, up to what the daily

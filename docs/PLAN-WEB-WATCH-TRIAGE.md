@@ -199,9 +199,11 @@ Built 2026-09-24 on `feat/web-watch-auto-accept` at the user's request. Not depl
   off; a missing flag or file means accepting. `WEB_WATCH_AUTO_ACCEPT=false` is an optional operator
   kill-switch, and `=true` forces it on. Neither needs to be set.
 - The sweep (`watchAll` and the single-source path) calls `autoAcceptPending` after drafting.
-  It takes a proposal only when every impact is high band, verified, `Supported` or `Adverse`, and
-  the candidate's own text names the emiten by ticker or registry name. A match by sector,
-  region or source alone does not qualify.
+  It takes a verified proposal only when every impact is `Supported` or `Adverse` and either the
+  candidate's own text names the emiten (ticker or registry name) at high or medium band, or the
+  source declares the emiten (`WatchedSource.symbols`) at high band. A match by sector, subsector,
+  region or weather alone never qualifies. Widened from "named and high only" on 2026-09-24,
+  after the first live sweep auto-accepted nothing.
 - At most `webWatchAutoAcceptDailyMax` auto-accepts in any 24 hours (`thresholds.ts`).
 - Each decision carries `auto: { event, match, proposal }`. "Batalkan" (`revert-auto`) puts the
   item back in review exactly as it was, marked `noAuto`, so the sweep never auto-accepts it again.

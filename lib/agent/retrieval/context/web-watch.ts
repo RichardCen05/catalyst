@@ -42,7 +42,7 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
     }.`,
     `Calon yang lolos triase bisa membawa usulan pemetaan dari model (arah, band relevansi, jalur eksposur). Usulan hanya disimpan bila lolos pemeriksaan: emiten ada di registri dan cocok dengan triase, setiap angka ada di teks calon, dan tanpa bahasa saran transaksi. Calon dengan usulan saat ini: ${stats.proposals}.`,
     auto.enabled
-      ? `Sakelar terima otomatis menyala: setelah sapuan, usulan diterima tanpa reviewer hanya bila setiap emitennya band tinggi, arahnya menguatkan atau menekan, dan emiten itu disebut langsung di teks calon, paling banyak ${resolveThresholds().webWatchAutoAcceptDailyMax} dalam 24 jam. Selebihnya menunggu reviewer. Setiap penerimaan otomatis bisa dibatalkan di Pantau dan calon itu kembali ke antrean. Diterima otomatis sejauh ini: ${stats.autoAccepted}.`
+      ? `Sakelar terima otomatis menyala: setelah sapuan, usulan diterima tanpa reviewer hanya bila setiap emitennya punya arah menguatkan atau menekan dan disebut di teks calon dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi, paling banyak ${resolveThresholds().webWatchAutoAcceptDailyMax} dalam 24 jam. Selebihnya menunggu reviewer. Setiap penerimaan otomatis bisa dibatalkan di Pantau dan calon itu kembali ke antrean. Diterima otomatis sejauh ini: ${stats.autoAccepted}.`
       : `Sakelar terima otomatis mati: usulan tidak diterapkan sendiri; reviewer yang menerima.`,
     `Peristiwa hasil review yang sudah diterima dan dipakai engine: ${accepted.length}.`,
     auto.enabled

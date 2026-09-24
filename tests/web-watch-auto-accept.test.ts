@@ -65,24 +65,34 @@ function queueWith(items: Array<{ event: MarketEvent; match?: TriageMatch; propo
 }
 
 describe("isAutoAcceptable", () => {
-  it("takes a high-band verified proposal whose emiten the text names", () => {
+  it("takes a named emiten at high or medium band", () => {
     expect(isAutoAcceptable(proposal(A), match(A, "symbol"))).toBe(true);
     expect(isAutoAcceptable(proposal(A), match(A, "name"))).toBe(true);
+    expect(isAutoAcceptable(proposal(A, { band: "medium" }), match(A, "name"))).toBe(true);
   });
 
-  it("refuses an emiten matched only by sector, region or source", () => {
-    for (const by of ["sector", "subsector", "region", "source", "weather"] as const) {
+  it("takes a source-declared emiten only at high band", () => {
+    expect(isAutoAcceptable(proposal(A), match(A, "source"))).toBe(true);
+    expect(isAutoAcceptable(proposal(A, { band: "medium" }), match(A, "source"))).toBe(false);
+  });
+
+  it("never takes low band, whatever the evidence", () => {
+    expect(isAutoAcceptable(proposal(A, { band: "low" }), match(A, "symbol"))).toBe(false);
+    expect(isAutoAcceptable(proposal(A, { band: "low" }), match(A, "source"))).toBe(false);
+  });
+
+  it("refuses an emiten matched only by sector, subsector, region or weather", () => {
+    for (const by of ["sector", "subsector", "region", "weather"] as const) {
       expect(isAutoAcceptable(proposal(A), match(A, by))).toBe(false);
     }
   });
 
-  it("refuses medium or low band, and Mixed or Unrelated direction", () => {
-    expect(isAutoAcceptable(proposal(A, { band: "medium" }), match(A))).toBe(false);
+  it("refuses Mixed or Unrelated direction", () => {
     expect(isAutoAcceptable(proposal(A, { direction: "Mixed" }), match(A))).toBe(false);
     expect(isAutoAcceptable(proposal(A, { direction: "Unrelated" }), match(A))).toBe(false);
   });
 
-  it("refuses when any impact maps an emiten the text does not name", () => {
+  it("refuses when any impact maps an emiten with no qualifying evidence", () => {
     const two: TriageProposal = { ...proposal(A), impacts: [...proposal(A).impacts, ...proposal(B).impacts] };
     expect(isAutoAcceptable(two, match(A))).toBe(false);
   });
@@ -100,7 +110,7 @@ describe("autoAccept", () => {
     const bare = event();
     const queue = queueWith([
       { event: good, match: match(A), proposal: proposal(A) },
-      { event: weak, match: match(A, "sector"), proposal: proposal(A) },
+      { event: weak, match: match(A, "source"), proposal: proposal(A, { band: "medium" }) },
       { event: bare, match: match(A) },
     ]);
     const { next, accepted } = autoAccept(queue, NOW, 5);

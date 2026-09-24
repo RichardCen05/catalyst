@@ -656,7 +656,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:terima-otomatis",
     heading: "Terima otomatis",
     view: "pantau",
-    labels: ["Terima otomatis","dalam 24 jam terakhir","Setelah sapuan, usulan model diterima tanpa menunggu Anda bila setiap emitennya band tinggi, arahnya jelas (menguatkan atau menekan), lolos pemeriksaan, dan disebut langsung di teks. Selebihnya tetap menunggu di antrean. Setiap penerimaan otomatis bisa dibatalkan."],
+    labels: ["Terima otomatis","dalam 24 jam terakhir","Setelah sapuan, usulan model yang lolos pemeriksaan diterima tanpa menunggu Anda bila setiap emitennya punya arah jelas (menguatkan atau menekan) dan disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya tetap menunggu di antrean. Setiap penerimaan otomatis bisa dibatalkan."],
     file: "components/web-watch-review.tsx",
   },
   {
