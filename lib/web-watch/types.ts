@@ -116,6 +116,9 @@ export interface WatchAllResult {
   summary: WatchSummary;
   results: CheckResult[];
   checkedAt: string;
+  /** How many proposals the sweep accepted by itself. Absent when the
+   *  auto-accept switch is off. */
+  autoAccepted?: number;
   /** What the drafting pass did after the sweep (`lib/web-watch/proposals.ts`). */
   drafts?: {
     attempted: number;

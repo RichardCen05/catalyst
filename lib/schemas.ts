@@ -243,6 +243,14 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     candidateId: z.string().min(1).max(120),
   }),
   z.object({
+    action: z.literal("revert-auto"),
+    candidateId: z.string().min(1).max(120),
+  }),
+  z.object({
+    action: z.literal("set-auto-accept"),
+    enabled: z.boolean(),
+  }),
+  z.object({
     action: z.literal("dismiss"),
     candidateId: z.string().min(1).max(120),
     reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),

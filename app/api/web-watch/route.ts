@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { webWatchReviewSchema } from "@/lib/schemas";
+import { isAutoAcceptEnabled, isAutoAcceptPinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
 import { listSources, gcsRegistryStore } from "@/lib/web-watch/registry";
 import {
   acceptProposals,
+  autoAcceptedSince,
   decide,
   ensureOverlay,
   gcsQueueStore,
@@ -11,6 +13,7 @@ import {
   listKnownSymbols,
   overlayCounts,
   restore,
+  revertAutoAccept,
   ReviewError,
   saveQueue,
   setOverlayForTests,
@@ -25,15 +28,29 @@ export const dynamic = "force-dynamic";
 /**
  * GET — everything the Pantau page needs: source health, the pending queue
  * with triage matches and verified proposals, what triage archived, accepted
- * events, and the symbol universe for mapping.
+ * events, what the sweep accepted by itself, the auto-accept switch, and the
+ * symbol universe for mapping.
  */
 export async function GET() {
   try {
     await ensureOverlay().catch(() => []);
-    const [sources, queue] = await Promise.all([
+    const [sources, queue, auto] = await Promise.all([
       listSources(gcsRegistryStore).catch(() => []),
       gcsQueueStore.load().then((r) => r?.data ?? null).catch(() => null),
+      isAutoAcceptEnabled(),
     ]);
+    const nowIso = new Date().toISOString();
+    const autoAccepted = Object.values(queue?.decided ?? {})
+      .filter((decision) => decision.auto)
+      .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
+      .map((decision) => ({
+        id: decision.candidateId,
+        title: decision.auto?.event.title ?? "",
+        url: decision.auto?.event.citations[0]?.url ?? null,
+        provider: decision.auto?.event.citations[0]?.provider ?? null,
+        decidedAt: decision.decidedAt,
+        impacts: (decision.auto?.proposal.impacts ?? []).map(({ symbol, direction, band, path, rationale }) => ({ symbol, direction, band, path, rationale })),
+      }));
     const health = new Map((queue ? sourceHealth(queue, sources) : []).map((h) => [h.sourceId, h]));
     const archived = Object.entries(queue?.archived ?? {})
       .sort(([, a], [, b]) => b.at.localeCompare(a.at))
@@ -68,6 +85,14 @@ export async function GET() {
       restored: queue?.restored ?? {},
       healthWindow: resolveThresholds().webWatchSourceHealthWindow,
       accepted: queue?.accepted ?? [],
+      autoAccepted,
+      autoAccept: {
+        enabled: auto.enabled,
+        source: auto.source,
+        pinnedByEnv: isAutoAcceptPinnedByEnv(),
+        dailyMax: resolveThresholds().webWatchAutoAcceptDailyMax,
+        usedToday: queue ? autoAcceptedSince(queue, nowIso) : 0,
+      },
       decidedCount: queue ? Object.keys(queue.decided).length : 0,
       symbols: listKnownSymbols(),
       bands: RELEVANCE_BAND_SCORE,
@@ -83,8 +108,9 @@ export async function GET() {
 /**
  * POST — accept (with reviewer-mapped impacts, or a verified proposal the
  * reviewer took as-is), accept several high-band proposals at once, dismiss a
- * candidate, or restore one triage archived. Every one of these is a person
- * pressing a button; nothing here decides on its own.
+ * candidate, restore one triage archived, undo an auto-accept, or flip the
+ * auto-accept switch. Every one of these is a person pressing a button;
+ * the sweep's own accepts happen in `autoAcceptPending`, not here.
  * Accepted events join the queue's `accepted` list and the engine overlay;
  * the engine itself is untouched.
  *
@@ -107,17 +133,37 @@ export async function POST(request: Request) {
   }
   const nowIso = new Date().toISOString();
   const input = parsed.data;
+  if (input.action === "set-auto-accept") {
+    if (isAutoAcceptPinnedByEnv()) {
+      const gate = await isAutoAcceptEnabled();
+      return NextResponse.json(
+        { error: "Terima otomatis dikunci operator lewat WEB_WATCH_AUTO_ACCEPT; sakelar ini tidak berlaku.", enabled: gate.enabled },
+        { status: 409 },
+      );
+    }
+    try {
+      const saved = await saveRuntimeSettings({ webWatchAutoAccept: input.enabled });
+      return NextResponse.json({ ok: true, enabled: saved.webWatchAutoAccept });
+    } catch {
+      return NextResponse.json({ error: "Gagal menyimpan sakelar terima otomatis" }, { status: 500 });
+    }
+  }
   try {
     const next = await saveQueue(gcsQueueStore, (queue): ReviewQueue => {
       if (input.action === "restore") return restore(queue, input.candidateId, nowIso);
       if (input.action === "accept-proposals") return acceptProposals(queue, input.candidateIds, nowIso);
+      if (input.action === "revert-auto") return revertAutoAccept(queue, input.candidateId);
       return decide(queue, input.candidateId, input, nowIso);
     });
     // Push freshly accepted events straight into this instance's overlay so
     // the next analysis on the same instance sees them before the TTL lapses.
     setOverlayForTests(next.accepted, overlayCounts(next));
     const status =
-      input.action === "restore" ? "restored" : input.action === "accept-proposals" ? "accepted" : next.decided[input.candidateId].status;
+      input.action === "restore" || input.action === "revert-auto"
+        ? "restored"
+        : input.action === "accept-proposals"
+          ? "accepted"
+          : next.decided[input.candidateId].status;
     return NextResponse.json({
       ok: true,
       status,

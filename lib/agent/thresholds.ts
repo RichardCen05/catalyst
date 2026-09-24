@@ -191,6 +191,10 @@ export const DEFAULT_THRESHOLDS = {
    *  "Pertimbangkan menonaktifkan sumber ini". Hanya saran; tidak ada yang
    *  dinonaktifkan otomatis. */
   webWatchSourceNoiseShare: 0.9,
+  /** Usulan yang boleh diterima otomatis dalam 24 jam terakhir, bila sakelar
+   *  "Terima otomatis" menyala. Sisanya menunggu reviewer seperti biasa, jadi
+   *  satu sapuan yang salah paling banyak memasukkan sejumlah ini ke engine. */
+  webWatchAutoAcceptDailyMax: 5,
 } as const;
 
 /**
@@ -287,6 +291,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchDraftContextChars: "convention",
   webWatchSourceHealthWindow: "convention",
   webWatchSourceNoiseShare: "guess",
+  webWatchAutoAcceptDailyMax: "guess",
 };
 
 /**
@@ -419,6 +424,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchDraftContextChars: DEFAULT_THRESHOLDS.webWatchDraftContextChars,
     webWatchSourceHealthWindow: DEFAULT_THRESHOLDS.webWatchSourceHealthWindow,
     webWatchSourceNoiseShare: DEFAULT_THRESHOLDS.webWatchSourceNoiseShare,
+    webWatchAutoAcceptDailyMax: DEFAULT_THRESHOLDS.webWatchAutoAcceptDailyMax,
   };
 }
 

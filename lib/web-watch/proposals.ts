@@ -91,11 +91,14 @@ export function verifyExposureDraft(
 /**
  * Past reviewer decisions as prompt examples. Titles come from the accepted
  * list; a dismissal stores only its reason, so that is what it contributes.
- * A reason too short to say anything ("jelek") is left out.
+ * A reason too short to say anything ("jelek") is left out, and so is an
+ * auto-accept: it is the model's own draft, and feeding it back as a
+ * reviewer example would teach the model to agree with itself.
  */
 export function fewShotExamples(queue: ReviewQueue, max: number, minWords = resolveThresholds().webWatchFewShotReasonMinWords): string[] {
   const titleOf = new Map(queue.accepted.map((event) => [event.id, event.title]));
   return Object.values(queue.decided)
+    .filter((decision) => !decision.auto)
     .filter((decision) => decision.impacts?.length || decision.reason.trim().split(/\s+/).length >= minWords)
     .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
     .slice(0, max)

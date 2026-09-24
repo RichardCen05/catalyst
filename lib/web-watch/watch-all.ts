@@ -17,7 +17,8 @@
 
 import { checkSource, type CheckDeps } from "@/lib/web-watch/check";
 import { applyDrafts, draftProposals, type DraftOptions } from "@/lib/web-watch/proposals";
-import { enqueue, normalizeQueue, saveQueue, type QueueStore } from "@/lib/web-watch/queue";
+import { autoAccept, enqueue, normalizeQueue, saveQueue, type QueueStore } from "@/lib/web-watch/queue";
+import { isAutoAcceptEnabled } from "@/lib/settings";
 import { listSources } from "@/lib/web-watch/registry";
 import type { ReviewStore } from "@/lib/web-watch/review";
 import { isDue, type CheckResult, type WatchAllResult, type WatchSummary } from "@/lib/web-watch/types";
@@ -27,6 +28,35 @@ export interface WatchAllDeps extends CheckDeps {
   queue: QueueStore;
   /** Model seam and clock for the drafting pass; tests stub the call. */
   draft?: DraftOptions;
+  /** Whether the auto-accept switch is on; tests pass it instead of reading
+   *  the stored setting. */
+  autoAcceptEnabled?: () => Promise<boolean>;
+}
+
+/**
+ * Accept the verified proposals the rules allow, when the switch is on.
+ * Runs after drafting so this sweep's own proposals are eligible.
+ * Best-effort: a failure leaves everything in review and never fails the
+ * sweep. Returns how many were accepted, or null when the switch is off.
+ */
+export async function autoAcceptPending(
+  queue: QueueStore,
+  nowIso: string,
+  enabled: () => Promise<boolean> = async () => (await isAutoAcceptEnabled()).enabled,
+): Promise<{ accepted: number } | null> {
+  try {
+    if (!(await enabled())) return null;
+    let accepted: string[] = [];
+    await saveQueue(queue, (current) => {
+      const result = autoAccept(current, nowIso);
+      accepted = result.accepted;
+      return result.next;
+    });
+    return { accepted: accepted.length };
+  } catch (error) {
+    console.warn(`[web-watch] auto-accept: ${(error instanceof Error ? error.message : String(error)).slice(0, 300)}`);
+    return null;
+  }
 }
 
 /**
@@ -108,5 +138,6 @@ export async function watchAll(deps: WatchAllDeps, force = false): Promise<Watch
   // Drafting also picks up earlier candidates a closed budget left untried,
   // so it runs whether or not this sweep found anything new.
   const drafts = await draftPending(deps.queue, { nowIso, ...deps.draft });
-  return drafts ? { ...output, drafts } : output;
+  const auto = await autoAcceptPending(deps.queue, nowIso, deps.autoAcceptEnabled);
+  return { ...output, ...(drafts ? { drafts } : {}), ...(auto ? { autoAccepted: auto.accepted } : {}) };
 }

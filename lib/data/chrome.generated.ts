@@ -625,6 +625,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/web-watch-review.tsx",
   },
   {
+    id: "chrome:pantau:diterima-otomatis",
+    heading: "Diterima otomatis",
+    view: "pantau",
+    labels: ["Diterima otomatis (","Diterima oleh sapuan, bukan oleh reviewer. Batalkan untuk mengeluarkannya dari engine dan mengembalikannya ke antrean; item itu tidak akan diterima otomatis lagi."],
+    file: "components/web-watch-review.tsx",
+  },
+  {
     id: "chrome:pantau:kesehatan-sumber",
     heading: "Kesehatan sumber",
     view: "pantau",
@@ -643,6 +650,13 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     heading: "Saring emiten",
     view: "pantau",
     labels: ["Semua emiten"],
+    file: "components/web-watch-review.tsx",
+  },
+  {
+    id: "chrome:pantau:terima-otomatis",
+    heading: "Terima otomatis",
+    view: "pantau",
+    labels: ["Terima otomatis","dalam 24 jam terakhir","Setelah sapuan, usulan model diterima tanpa menunggu Anda bila setiap emitennya band tinggi, arahnya jelas (menguatkan atau menekan), lolos pemeriksaan, dan disebut langsung di teks. Selebihnya tetap menunggu di antrean. Setiap penerimaan otomatis bisa dibatalkan."],
     file: "components/web-watch-review.tsx",
   },
   {

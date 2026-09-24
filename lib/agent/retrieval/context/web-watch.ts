@@ -2,6 +2,8 @@ import { SEED_SOURCES } from "@/lib/web-watch/seeds";
 import { getOverlayEvents, getOverlayStats } from "@/lib/web-watch/queue";
 import { TRIAGE_RULE_LABEL, TRIAGE_RULES } from "@/lib/web-watch/triage";
 import { extractNumerals } from "@/lib/agent/llm/verify";
+import { resolveThresholds } from "@/lib/agent/thresholds";
+import { isAutoAcceptEnabled } from "@/lib/settings";
 import type { ContextBundle } from "@/lib/agent/retrieval/types";
 
 /**
@@ -24,6 +26,7 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
   // safe with no queue loaded: it answers empty rather than throwing.
   const accepted = getOverlayEvents();
   const stats = getOverlayStats();
+  const auto = await isAutoAcceptEnabled().catch(() => ({ enabled: false }));
 
   const body = [
     `Halaman Pantau menampilkan sumber web yang diawasi, antrean review, dan peristiwa yang sudah diterima engine.`,
@@ -37,9 +40,14 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
         ? ` (${TRIAGE_RULES.filter((rule) => stats.archivedByRule[rule]).map((rule) => `${TRIAGE_RULE_LABEL[rule]} ${stats.archivedByRule[rule]}`).join(", ")})`
         : ""
     }.`,
-    `Calon yang lolos triase bisa membawa usulan pemetaan dari model (arah, band relevansi, jalur eksposur). Usulan hanya disimpan bila lolos pemeriksaan: emiten ada di registri dan cocok dengan triase, setiap angka ada di teks calon, dan tanpa bahasa saran transaksi. Usulan tidak pernah diterapkan sendiri; reviewer yang menerima. Calon dengan usulan saat ini: ${stats.proposals}.`,
+    `Calon yang lolos triase bisa membawa usulan pemetaan dari model (arah, band relevansi, jalur eksposur). Usulan hanya disimpan bila lolos pemeriksaan: emiten ada di registri dan cocok dengan triase, setiap angka ada di teks calon, dan tanpa bahasa saran transaksi. Calon dengan usulan saat ini: ${stats.proposals}.`,
+    auto.enabled
+      ? `Sakelar terima otomatis menyala: setelah sapuan, usulan diterima tanpa reviewer hanya bila setiap emitennya band tinggi, arahnya menguatkan atau menekan, dan emiten itu disebut langsung di teks calon, paling banyak ${resolveThresholds().webWatchAutoAcceptDailyMax} dalam 24 jam. Selebihnya menunggu reviewer. Setiap penerimaan otomatis bisa dibatalkan di Pantau dan calon itu kembali ke antrean. Diterima otomatis sejauh ini: ${stats.autoAccepted}.`
+      : `Sakelar terima otomatis mati: usulan tidak diterapkan sendiri; reviewer yang menerima.`,
     `Peristiwa hasil review yang sudah diterima dan dipakai engine: ${accepted.length}.`,
-    `Perubahan pada sumber tidak langsung jadi peristiwa: setiap calon harus lewat review manusia dulu.`,
+    auto.enabled
+      ? `Perubahan pada sumber tidak langsung jadi peristiwa: setiap calon lewat triase dan pemeriksaan usulan dulu, dan hanya sebagian kecil yang boleh diterima tanpa reviewer.`
+      : `Perubahan pada sumber tidak langsung jadi peristiwa: setiap calon harus lewat review manusia dulu.`,
     ...enabled.slice(0, 12).map((source) => `- ${source.label} (${source.kind}, kategori ${source.category}, dicek tiap ${source.checkIntervalHours} jam)`),
   ].join("\n");
 

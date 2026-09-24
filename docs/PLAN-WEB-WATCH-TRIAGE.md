@@ -191,6 +191,21 @@ A setting "Terima otomatis bila band tinggi dan lolos verifikasi", stored where 
 lives (`app/api/settings/refresh` pattern). It is off by default. Every auto-accept is recorded in
 `decided` with `reason: "otomatis: …"` and can be reverted from Pantau.
 
+Built 2026-09-24 on `feat/web-watch-auto-accept` at the user's request. Not deployed.
+
+- The switch is on the Pantau page. It is stored as `webWatchAutoAccept` in
+  `catalyst/config/settings.json`, next to the refresh flag. `WEB_WATCH_AUTO_ACCEPT=false` is an
+  operator kill-switch, and `=true` forces it on.
+- The sweep (`watchAll` and the single-source path) calls `autoAcceptPending` after drafting.
+  It takes a proposal only when every impact is high band, verified, `Supported` or `Adverse`, and
+  the candidate's own text names the emiten by ticker or registry name. A match by sector,
+  region or source alone does not qualify.
+- At most `webWatchAutoAcceptDailyMax` auto-accepts in any 24 hours (`thresholds.ts`).
+- Each decision carries `auto: { event, match, proposal }`. "Batalkan" (`revert-auto`) puts the
+  item back in review exactly as it was, marked `noAuto`, so the sweep never auto-accepts it again.
+- Auto-accepts are kept out of the few-shot examples, so the model never learns from its own
+  drafts.
+
 ## Gates for every phase
 
 ```bash

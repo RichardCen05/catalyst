@@ -13,12 +13,15 @@
  *
  * The last four were added with triage (`lib/web-watch/triage.ts`). A file
  * written before them loads with each defaulted to empty (`normalizeQueue`),
- * and nothing in the first three changed shape.
+ * and nothing in the first three changed shape. Auto-accept added only
+ * optional fields (`ReviewDecision.auto`, `TriageMatch.noAuto`).
  *
  * Candidates enter via `enqueue` (called by the sweep), which triages every
  * one of them: an item that repeats one already held, carries no prose,
  * reports ordinary weather, or touches no watched emiten is archived with the
- * rule and a reason, never deleted and never accepted. A reviewer maps each
+ * rule and a reason, never deleted and never accepted. When the auto-accept
+ * switch is on, the sweep accepts a narrow slice of verified proposals by
+ * itself (`autoAccept`), capped per day and undoable. A reviewer maps each
  * one to symbols with a direction, a relevance *band*, and a written exposure
  * path — the band is chosen by a human in the open, never computed by the
  * fetcher. Dismissed candidates stay in `decided` so a re-run of the same
@@ -58,6 +61,16 @@ export interface ReviewDecision {
   /** The reviewer accepted the model's verified proposal (possibly in a
    *  batch) rather than mapping by hand. Still a human decision. */
   viaProposal?: boolean;
+  /** Accepted by the sweep with no person involved, because the auto-accept
+   *  switch was on. Holds what the item looked like while pending, so a
+   *  reviewer can put it back exactly (`revertAutoAccept`). */
+  auto?: AutoAcceptRecord;
+}
+
+export interface AutoAcceptRecord {
+  event: MarketEvent;
+  match: TriageMatch;
+  proposal: TriageProposal;
 }
 
 export interface ArchivedCandidate {
@@ -76,6 +89,9 @@ export interface TriageMatch {
    *  not yet tried; a budget that closed mid-sweep leaves it absent so the
    *  next sweep tries again. */
   drafted?: { at: string; outcome: "proposed" | "rejected" | "failed" };
+  /** A reviewer undid an auto-accept of this item. The sweep never
+   *  auto-accepts it again; only a person can. */
+  noAuto?: boolean;
 }
 
 /** One verified model-drafted impact. Same fields a reviewer fills in, plus
@@ -417,6 +433,88 @@ export function acceptProposals(queue: ReviewQueue, candidateIds: string[], nowI
   }, queue);
 }
 
+/** Evidence strong enough to accept without a person: the candidate's own
+ *  text names the emiten, by ticker or by registry name. A match that only
+ *  comes from the sector, the region or what the source declares is not. */
+const DIRECT_EVIDENCE: ReadonlySet<MatchEvidence["by"]> = new Set(["symbol", "name"]);
+
+/** Directions the sweep may accept alone. `Mixed` says the model saw both
+ *  ways, which is a judgement a person should make. */
+const AUTO_DIRECTIONS: ReadonlySet<ImpactDirection> = new Set(["Supported", "Adverse"]);
+
+/**
+ * Whether the sweep may accept this proposal alone: it is batch-acceptable
+ * (every impact high band, verified), every impact has a clear direction,
+ * the text names every emiten it maps, and no reviewer undid an earlier
+ * auto-accept of it.
+ */
+export function isAutoAcceptable(proposal: TriageProposal | undefined, match: TriageMatch | undefined): boolean {
+  if (!isBatchAcceptable(proposal) || !match || match.noAuto) return false;
+  const named = new Set(match.matchedBy.filter((e) => DIRECT_EVIDENCE.has(e.by)).map((e) => e.symbol as string));
+  return proposal.impacts.every((impact) => AUTO_DIRECTIONS.has(impact.direction) && named.has(impact.symbol));
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Auto-accepts recorded in the 24 hours before `nowIso`. */
+export function autoAcceptedSince(queue: ReviewQueue, nowIso: string): number {
+  const since = Date.parse(nowIso) - DAY_MS;
+  return Object.values(queue.decided).filter((d) => d.auto && Date.parse(d.decidedAt) > since).length;
+}
+
+export const AUTO_ACCEPT_REASON = "otomatis: usulan band tinggi terverifikasi, emiten disebut langsung di teks.";
+
+/**
+ * Accept every auto-acceptable proposal, newest first, up to what the daily
+ * cap leaves. Each gets its own decision record marked `auto`, holding the
+ * pending state it came from. Pure; the caller persists.
+ */
+export function autoAccept(
+  queue: ReviewQueue,
+  nowIso: string,
+  dailyMax: number = resolveThresholds().webWatchAutoAcceptDailyMax,
+): { next: ReviewQueue; accepted: string[] } {
+  const room = Math.max(0, dailyMax - autoAcceptedSince(queue, nowIso));
+  const ids = queue.pending
+    .filter((event) => isAutoAcceptable(queue.proposals[event.id], queue.matches[event.id]))
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, room)
+    .map((event) => event.id);
+  const next = ids.reduce((current, id) => {
+    const record: AutoAcceptRecord = {
+      event: current.pending.find((event) => event.id === id) as MarketEvent,
+      match: current.matches[id],
+      proposal: current.proposals[id],
+    };
+    const impacts = record.proposal.impacts.map(({ symbol, direction, band, path }) => ({ symbol, direction, band, path }));
+    const decided = decide(current, id, { action: "accept", impacts, reason: AUTO_ACCEPT_REASON, viaProposal: true }, nowIso);
+    return { ...decided, decided: { ...decided.decided, [id]: { ...decided.decided[id], auto: record } } };
+  }, queue);
+  return { next, accepted: ids };
+}
+
+/**
+ * Undo an auto-accept: the event leaves the engine's list and goes back to
+ * review with its match and proposal, marked so the sweep never accepts it
+ * alone again. Only auto-accepts can be undone here; a person's own accept
+ * is theirs to keep.
+ */
+export function revertAutoAccept(queue: ReviewQueue, candidateId: string): ReviewQueue {
+  const decision = queue.decided[candidateId];
+  if (!decision?.auto) throw new ReviewError("Hanya penerimaan otomatis yang bisa dibatalkan di sini.");
+  const { event, match, proposal } = decision.auto;
+  const { [candidateId]: _removed, ...decided } = queue.decided;
+  void _removed;
+  return {
+    ...queue,
+    pending: [event, ...queue.pending.filter((e) => e.id !== candidateId)],
+    accepted: queue.accepted.filter((e) => e.id !== candidateId),
+    decided,
+    matches: { ...queue.matches, [candidateId]: { ...match, noAuto: true } },
+    proposals: { ...queue.proposals, [candidateId]: proposal },
+  };
+}
+
 export interface SourceHealth {
   sourceId: string;
   window: number;
@@ -483,10 +581,11 @@ interface OverlayCounts {
   decided: number;
   archived: number;
   proposals: number;
+  autoAccepted: number;
   archivedByRule: Partial<Record<TriageRule, number>>;
 }
 
-const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, archivedByRule: {} };
+const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, archivedByRule: {} };
 
 let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { events: [], ...zeroCounts, expiresAt: 0 };
 
@@ -499,6 +598,7 @@ export function overlayCounts(queue: ReviewQueue): OverlayCounts {
     decided: Object.keys(queue.decided).length,
     archived: Object.keys(queue.archived).length,
     proposals: Object.keys(queue.proposals).length,
+    autoAccepted: Object.values(queue.decided).filter((d) => d.auto).length,
     archivedByRule,
   };
 }
@@ -534,6 +634,7 @@ export function getOverlayStats(): OverlayCounts & { accepted: number } {
     decided: overlay.decided,
     archived: overlay.archived,
     proposals: overlay.proposals,
+    autoAccepted: overlay.autoAccepted,
     archivedByRule: overlay.archivedByRule,
     accepted: overlay.events.length,
   };

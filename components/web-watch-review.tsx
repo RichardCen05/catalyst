@@ -10,6 +10,7 @@ import { uiLabel } from "@/lib/ui-labels";
 import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
+import { cn } from "@/lib/utils";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 import type { TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
 import { TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
@@ -36,6 +37,23 @@ interface ArchivedRow {
   at: string;
 }
 
+interface AutoAcceptedRow {
+  id: string;
+  title: string;
+  url: string | null;
+  provider: string | null;
+  decidedAt: string;
+  impacts: Array<{ symbol: string; direction: string; band: string; path: string; rationale: string }>;
+}
+
+interface AutoAcceptStatus {
+  enabled: boolean;
+  source: string;
+  pinnedByEnv: boolean;
+  dailyMax: number;
+  usedToday: number;
+}
+
 interface ImpactDraft {
   symbol: string;
   direction: "Supported" | "Adverse" | "Mixed" | "Unrelated";
@@ -51,6 +69,8 @@ interface QueueData {
   batchable: string[];
   archived: ArchivedRow[];
   accepted: MarketEvent[];
+  autoAccepted: AutoAcceptedRow[];
+  autoAccept: AutoAcceptStatus;
   decidedCount: number;
   symbols: SymbolCode[];
   bands: Record<ImpactDraft["band"], number>;
@@ -528,6 +548,119 @@ function ArchivedList({ items, onRestored }: { items: ArchivedRow[]; onRestored:
   );
 }
 
+function AutoAcceptSwitch({ status, onChanged }: { status: AutoAcceptStatus; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const flip = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(apiUrl("/api/web-watch"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set-auto-accept", enabled: !status.enabled }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Gagal mengubah sakelar");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal mengubah sakelar");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Panel className="p-4" aria-label="Terima otomatis">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={status.enabled}
+          aria-label="Terima otomatis usulan band tinggi"
+          disabled={busy || status.pinnedByEnv}
+          onClick={() => void flip()}
+          className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", status.enabled ? "bg-foreground" : "bg-border-strong")}
+        >
+          <span className={cn("absolute top-0.5 size-5 rounded-full bg-background shadow transition-all", status.enabled ? "left-[22px]" : "left-0.5")} />
+        </button>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">Terima otomatis</p>
+          <p className="text-xs text-subtle-foreground">
+            {status.enabled ? "Aktif" : "Mati"} · {status.usedToday} dari {status.dailyMax} dalam 24 jam terakhir{status.pinnedByEnv ? " · dikunci operator" : ""}
+          </p>
+        </div>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+        Setelah sapuan, usulan model diterima tanpa menunggu Anda bila setiap emitennya band tinggi, arahnya jelas (menguatkan atau menekan), lolos pemeriksaan, dan disebut langsung di teks. Selebihnya tetap menunggu di antrean. Setiap penerimaan otomatis bisa dibatalkan.
+      </p>
+      {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+    </Panel>
+  );
+}
+
+function AutoAcceptedList({ items, onReverted }: { items: AutoAcceptedRow[]; onReverted: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  if (!items.length) return null;
+  const revert = async (id: string) => {
+    setBusy(id);
+    setError(null);
+    try {
+      const response = await fetch(apiUrl("/api/web-watch"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "revert-auto", candidateId: id }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Gagal membatalkan");
+      onReverted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membatalkan");
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <details aria-label="Diterima otomatis" className="rounded-lg border border-border bg-surface">
+      <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+        Diterima otomatis ({items.length})
+      </summary>
+      <div className="border-t border-border p-4">
+        <p className="text-xs text-muted-foreground">Diterima oleh sapuan, bukan oleh reviewer. Batalkan untuk mengeluarkannya dari engine dan mengembalikannya ke antrean; item itu tidak akan diterima otomatis lagi.</p>
+        {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+        <ul className="mt-3 space-y-3">
+          {items.map((item) => (
+            <li key={item.id} className="flex flex-col gap-2 border-b border-border pb-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium leading-snug">{item.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {item.provider ?? "sumber web"} · <time dateTime={item.decidedAt}>{item.decidedAt.slice(0, 16).replace("T", " ")}</time>
+                  {item.url ? (
+                    <>
+                      {" · "}
+                      <a href={item.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">Buka sumber asal</a>
+                    </>
+                  ) : null}
+                </p>
+                <ul className="mt-1 space-y-1 text-xs leading-5 text-muted-foreground">
+                  {item.impacts.map((impact) => (
+                    <li key={impact.symbol}>
+                      <span className="font-mono">{impact.symbol}</span> · {directionLabel[impact.direction as ImpactDraft["direction"]] ?? impact.direction} — {impact.path}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <Button variant="secondary" size="sm" disabled={busy !== null} onClick={() => revert(item.id)} className="shrink-0">
+                {busy === item.id ? "Membatalkan…" : "Batalkan"}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
+  );
+}
+
 export function WebWatchReview() {
   const [data, setData] = useState<QueueData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -602,6 +735,7 @@ export function WebWatchReview() {
         <Panel className="h-72 shimmer" aria-label="Memuat antrean pantauan" />
       ) : (
         <div className="space-y-8">
+          {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} onChanged={load} /> : null}
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
@@ -649,6 +783,7 @@ export function WebWatchReview() {
             )}
           </section>
 
+          <AutoAcceptedList items={data.autoAccepted ?? []} onReverted={load} />
           <ArchivedList items={data.archived} onRestored={load} />
 
           <section aria-label="Diterima engine">
