@@ -59,7 +59,7 @@ describe("isRefreshEnabled", () => {
 describe("getRuntimeSettings / saveRuntimeSettings", () => {
   it("returns defaults on a 404", async () => {
     vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce(null);
-    await expect(getRuntimeSettings()).resolves.toEqual({ sectorsRefreshEnabled: false, webWatchAutoAccept: false, updatedAt: "" });
+    await expect(getRuntimeSettings()).resolves.toEqual({ sectorsRefreshEnabled: false, webWatchAutoAccept: true, updatedAt: "" });
   });
 
   it("changing one flag keeps the other as stored", async () => {
@@ -92,27 +92,32 @@ describe("isAutoAcceptEnabled", () => {
     else process.env[KEY] = saved;
   };
 
-  it("is off by default, including a file written before the flag existed", async () => {
+  it("is on by default, including a file written before the flag existed", async () => {
     delete process.env[KEY];
     vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { sectorsRefreshEnabled: true, updatedAt: "t" }, generation: "1" });
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
+    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce(null);
+    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
     reset();
   });
 
-  it("follows the stored flag, and the env kill-switch wins", async () => {
+  it("is off only when someone switched it off, and the env kill-switch wins", async () => {
     delete process.env[KEY];
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: false, updatedAt: "t" }, generation: "1" });
+    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
     vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: true, updatedAt: "t" }, generation: "1" });
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
     process.env[KEY] = "false";
     await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "env" });
     reset();
   });
 
-  it("fails closed when GCS is unreachable", async () => {
-    delete process.env[KEY];
-    vi.mocked(gcs.gcsGetJson).mockRejectedValueOnce(new Error("network"));
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
-    reset();
+  it("flipping refresh leaves auto-accept at its default, and a switched-off flag stays off", async () => {
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { sectorsRefreshEnabled: false, updatedAt: "t" }, generation: "1" });
+    vi.mocked(gcs.gcsPutJson).mockResolvedValueOnce({ generation: "2" });
+    await expect(saveRuntimeSettings({ sectorsRefreshEnabled: true })).resolves.toMatchObject({ webWatchAutoAccept: true });
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: false, updatedAt: "t" }, generation: "2" });
+    vi.mocked(gcs.gcsPutJson).mockResolvedValueOnce({ generation: "3" });
+    await expect(saveRuntimeSettings({ sectorsRefreshEnabled: true })).resolves.toMatchObject({ webWatchAutoAccept: false });
   });
 });
 

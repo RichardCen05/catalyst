@@ -9,7 +9,9 @@
  *
  * Web-watch auto-accept gate, same tri-state for `WEB_WATCH_AUTO_ACCEPT`:
  * `"false"` is the operator kill-switch, `"true"` forces it on, unset lets
- * the Pantau switch decide (default off).
+ * the Pantau switch decide. Unlike refresh it defaults ON: only an explicit
+ * `false` in the file (someone switched it off) turns it off, so a file
+ * written before the flag existed, or none at all, means accepting.
  *
  * Layout in the cache bucket (default `katalis-recorded`):
  *   `catalyst/config/settings.json` → `{ sectorsRefreshEnabled, webWatchAutoAccept, updatedAt }`
@@ -31,18 +33,18 @@ export async function getRuntimeSettings(): Promise<RuntimeSettings> {
   const stored = await gcsGetJson<Partial<RuntimeSettings>>(BUCKET, SETTINGS_PATH).catch(() => null);
   return {
     sectorsRefreshEnabled: stored?.data?.sectorsRefreshEnabled === true,
-    webWatchAutoAccept: stored?.data?.webWatchAutoAccept === true,
+    webWatchAutoAccept: stored?.data?.webWatchAutoAccept !== false,
     updatedAt: typeof stored?.data?.updatedAt === "string" ? stored.data.updatedAt : "",
   };
 }
 
 /** Change one flag and keep the others as stored. A file written before a
- *  flag existed reads that flag as off. */
+ *  flag existed reads that flag at its default. */
 export async function saveRuntimeSettings(patch: Partial<Omit<RuntimeSettings, "updatedAt">>): Promise<RuntimeSettings> {
   const existing = await gcsGetJson<Partial<RuntimeSettings>>(BUCKET, SETTINGS_PATH).catch(() => null);
   const next: RuntimeSettings = {
     sectorsRefreshEnabled: patch.sectorsRefreshEnabled ?? existing?.data?.sectorsRefreshEnabled === true,
-    webWatchAutoAccept: patch.webWatchAutoAccept ?? existing?.data?.webWatchAutoAccept === true,
+    webWatchAutoAccept: patch.webWatchAutoAccept ?? existing?.data?.webWatchAutoAccept !== false,
     updatedAt: new Date().toISOString(),
   };
   await gcsPutJson(BUCKET, SETTINGS_PATH, next, existing ? { ifGenerationMatch: existing.generation } : { ifGenerationMatch: "0" });
@@ -64,13 +66,15 @@ export function isRefreshPinnedByEnv(): boolean {
 }
 
 /** Resolve whether web-watch may accept verified proposals without a person.
- *  GCS-unreachable reads fail closed (off). */
+ *  Default on. An unreadable settings file reads as the default too: the
+ *  sweep that would act on it writes to the same bucket, so if GCS is down
+ *  nothing is accepted either way. */
 export async function isAutoAcceptEnabled(): Promise<{ enabled: boolean; source: RefreshSource }> {
   const env = process.env.WEB_WATCH_AUTO_ACCEPT;
   if (env === "true") return { enabled: true, source: "env" };
   if (env === "false") return { enabled: false, source: "env" };
   const settings = await getRuntimeSettings().catch(() => null);
-  return { enabled: settings?.webWatchAutoAccept ?? false, source: "settings" };
+  return { enabled: settings?.webWatchAutoAccept ?? true, source: "settings" };
 }
 
 export function isAutoAcceptPinnedByEnv(): boolean {

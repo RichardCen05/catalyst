@@ -193,9 +193,11 @@ lives (`app/api/settings/refresh` pattern). It is off by default. Every auto-acc
 
 Built 2026-09-24 on `feat/web-watch-auto-accept` at the user's request. Not deployed.
 
-- The switch is on the Pantau page. It is stored as `webWatchAutoAccept` in
-  `catalyst/config/settings.json`, next to the refresh flag. `WEB_WATCH_AUTO_ACCEPT=false` is an
-  operator kill-switch, and `=true` forces it on.
+- **On by default** (MVP decision, 2026-09-24): the phase title above no longer holds. The
+  switch is on the Pantau page. It is stored as `webWatchAutoAccept` in
+  `catalyst/config/settings.json`, next to the refresh flag. Only an explicit `false` there turns it
+  off; a missing flag or file means accepting. `WEB_WATCH_AUTO_ACCEPT=false` is an optional operator
+  kill-switch, and `=true` forces it on. Neither needs to be set.
 - The sweep (`watchAll` and the single-source path) calls `autoAcceptPending` after drafting.
   It takes a proposal only when every impact is high band, verified, `Supported` or `Adverse`, and
   the candidate's own text names the emiten by ticker or registry name. A match by sector,
