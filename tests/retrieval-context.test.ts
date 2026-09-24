@@ -4,8 +4,9 @@ import { buildCaseBundle } from "@/lib/agent/retrieval/context/case";
 import { buildImpactBundle } from "@/lib/agent/retrieval/context/impact";
 import { buildCasesBundle } from "@/lib/agent/retrieval/context/cases";
 import { buildMetricBundle } from "@/lib/agent/retrieval/context/metric";
+import { METRIC_FORMULA } from "@/lib/agent/explain";
+import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
 import { viewEntries } from "@/lib/agent/retrieval/context";
-import { extractNumerals } from "@/lib/agent/llm/verify";
 import { companies, demoProfiles, coverageInfo } from "@/lib/data/fixtures";
 import type { RequestContext } from "@/lib/agent/retrieval/types";
 
@@ -66,6 +67,17 @@ describe("bundel metrik", () => {
     const bundle = await buildMetricBundle("HHI");
     expect(bundle.body).toContain("HHI");
     expect(bundle.figures).toHaveLength(0);
+  });
+
+  it("mengizinkan konstanta rumus, bukan nilai saat ini", async () => {
+    // Jawaban "dari mana angka relevansi" ditolak verifier karena "95" dari
+    // rumus tidak ada di daftar izin; draf yang setia jatuh ke teks mentah.
+    const label = "Relevansi eksposur";
+    const bundle = await buildMetricBundle(label);
+    expect(bundle.figures).toEqual(extractNumerals(METRIC_FORMULA[label]));
+    expect(verifyDraft("Filing mendapat 95, minimum 40.", bundle.figures, []).approved).toBe(true);
+    const unknown = await buildMetricBundle("label yang tidak ada");
+    expect(unknown.figures).toHaveLength(0);
   });
 });
 

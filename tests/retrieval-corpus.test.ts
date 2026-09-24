@@ -3,6 +3,7 @@ import { getCorpus } from "@/lib/agent/retrieval/corpus";
 import { companies, events } from "@/lib/data/fixtures";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { extractNumerals } from "@/lib/agent/llm/verify";
+import { METRIC_FORMULA } from "@/lib/agent/explain";
 import { demoProfiles } from "@/lib/data/fixtures";
 import type { RequestContext } from "@/lib/agent/retrieval/types";
 
@@ -95,11 +96,16 @@ describe("indeks korpus", () => {
     }
   }, 30000);
 
-  it("tidak pernah memberi angka pada bundel metrik", async () => {
+  it("bundel metrik hanya membawa konstanta rumusnya, bukan nilai saat ini", async () => {
     // Nilainya sudah ada di layar; angka karangan di sebelahnya lebih buruk
-    // daripada tidak ada kalimat sama sekali.
-    const metric = corpus.entries.find((entry) => entry.kind === "metric")!;
-    const bundle = await metric.load(context);
-    expect(bundle!.figures).toHaveLength(0);
+    // daripada tidak ada kalimat sama sekali. Konstanta rumus ("filing = 95")
+    // adalah bagian jawaban "bagaimana dihitung", jadi hanya itu yang diizinkan.
+    const metrics = corpus.entries.filter((entry) => entry.kind === "metric");
+    expect(metrics.length).toBeGreaterThan(0);
+    for (const entry of metrics) {
+      const bundle = (await entry.load(context))!;
+      const formula = METRIC_FORMULA[bundle.title];
+      expect(bundle.figures, entry.id).toEqual(formula ? extractNumerals(formula) : []);
+    }
   });
 });
