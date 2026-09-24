@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         {picker}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             Relevansi
             <select

@@ -174,6 +174,11 @@ const eventById = new Map(events.map((event) => [event.id, event]));
  *  diagram of grey slabs. The map holds this floor even when the whole board
  *  no longer fits, and pans instead. */
 const MIN_READABLE_ZOOM = 0.5;
+/** Shortest canvas that still holds the docked inspector: its header, one
+ *  paragraph and its close control. */
+const INSPECTOR_MIN_HEIGHT = 380;
+/** Space kept above and below a board once the canvas shrinks to fit it. */
+const BOARD_PAD = 24;
 
 /**
  * Focus, selection and viewport are mount state on purpose.
@@ -265,6 +270,12 @@ export function MarketCausalMap({
    *  which happens when the floor bites. Otherwise the wheel reads the board
    *  like a document. */
   const [freePan, setFreePan] = useState(false);
+  /** Once the floor bites the board is framed by its width, so on a phone a
+   *  three-row board sat at the top of a canvas three times its height — and
+   *  the empty part still took the finger that meant to scroll the page. The
+   *  canvas then shrinks to the board, never below what the docked inspector
+   *  needs to be read. */
+  const [pannedHeight, setPannedHeight] = useState<number | null>(null);
 
   // Re-frame whenever the board or the canvas changes shape: expanding a
   // channel widens the board, and the sidebar or the window can change the
@@ -276,7 +287,9 @@ export function MarketCausalMap({
     const apply = () => {
       const at = fit();
       if (!at) return;
-      setFreePan(layout.width * at.zoom > canvas.clientWidth + 1);
+      const panned = layout.width * at.zoom > canvas.clientWidth + 1;
+      setFreePan(panned);
+      setPannedHeight(panned ? Math.max(INSPECTOR_MIN_HEIGHT, Math.ceil(layout.height * at.zoom) + BOARD_PAD * 2) : null);
       frameBoard();
     };
     apply();
@@ -284,7 +297,7 @@ export function MarketCausalMap({
     const observer = new ResizeObserver(apply);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [fit, frameBoard, layout.width]);
+  }, [fit, frameBoard, layout.width, layout.height]);
 
   const closeInspector = useCallback(() => { setSelectedId(null); setSelectedEdgeId(null); }, []);
 
@@ -405,6 +418,7 @@ export function MarketCausalMap({
       <div
         ref={canvasRef}
         className={cn("map-in relative h-[min(76dvh,720px)] w-full transition-opacity", reloading && "opacity-50")}
+        style={pannedHeight ? { height: `min(76dvh, 720px, ${pannedHeight}px)` } : undefined}
         aria-label="Peta sebab akibat seluruh kasus"
       >
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
@@ -417,7 +431,7 @@ export function MarketCausalMap({
               Ringkas sumber
             </button>
           ) : null}
-          <span className="text-xs text-subtle-foreground">Kartu dapat Anda uraikan</span>
+          <span className="hidden text-xs text-subtle-foreground sm:inline">Kartu dapat Anda uraikan</span>
         </div>
         <ReactFlow
           nodes={nodes}

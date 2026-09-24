@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   </>;
 
   return (
-    <div className="relative min-h-dvh bg-background">
+    <div className="relative min-h-dvh bg-background pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <a href="#main-content" className="skip-link">Lewati navigasi</a>
       <div className="grid min-h-dvh xl:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-dvh flex-col gap-5 border-r border-border bg-surface px-3 py-5 xl:flex">
@@ -117,7 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
           <main id="main-content" tabIndex={-1} className="rise-in min-w-0 px-4 pb-32 pt-6 focus:outline-none sm:px-7 sm:pt-8 lg:px-12 lg:pt-10 xl:pb-32">{children}</main>
           <nav aria-label="Navigasi mobile" className="fixed inset-x-0 bottom-0 z-40 flex gap-1 overflow-x-auto border-t border-border bg-surface/98 px-2 pb-[env(safe-area-inset-bottom)] xl:hidden">
-            {mobileNavItems.map((item) => { const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-14 min-w-16 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg px-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "text-foreground" : "text-muted-foreground")}>{active ? <span aria-hidden="true" className="absolute top-0 h-[2px] w-6 rounded-full bg-brand" /> : null}<item.icon aria-hidden="true" className={cn("size-4", active && "text-primary")} />{item.label}</Link>; })}
+            {mobileNavItems.map((item) => { const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("relative flex min-h-14 min-w-16 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg px-1 text-center text-[11px] font-medium leading-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "text-foreground" : "text-muted-foreground")}>{active ? <span aria-hidden="true" className="absolute top-0 h-[2px] w-6 rounded-full bg-brand" /> : null}<item.icon aria-hidden="true" className={cn("size-4", active && "text-primary")} />{item.label}</Link>; })}
           </nav>
         </div>
 
@@ -125,7 +125,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {mobileNav ? <div className="fixed inset-0 z-100 xl:hidden"><button className="absolute inset-0 cursor-default bg-background/80 backdrop-blur-[2px]" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi" /><aside className="absolute inset-y-0 left-0 w-[min(86vw,300px)] border-r border-border bg-surface p-4 shadow-2xl"><div className="mb-6 flex items-center gap-3"><CatalystLogo /><span className="editorial text-base">Catalyst</span><Button variant="ghost" size="icon" className="ml-auto" onClick={() => setMobileNav(false)} aria-label="Tutup navigasi"><X aria-hidden="true" className="size-4" /></Button></div><nav className="space-y-0.5">{nav(() => setMobileNav(false))}</nav><div className="mt-7 space-y-3"><CommandPalette /><DataStamp /></div></aside></div> : null}
       {!copilotPage && !copilotOpen ? <CopilotLauncher triggerRef={copilotTrigger} /> : null}
-      {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full xl:pointer-events-auto xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-lg xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
+      {!copilotPage && copilotOpen ? <div className="fixed inset-0 z-100 bg-surface xl:pointer-events-none xl:bg-transparent"><div className="h-full pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] xl:pointer-events-auto xl:pb-0 xl:pt-0 xl:absolute xl:inset-y-4 xl:right-4 xl:w-[390px] xl:overflow-hidden xl:rounded-lg xl:border xl:border-border xl:shadow-2xl"><Copilot dismissible /></div></div> : null}
       <Suspense fallback={null}><RouteContextProbe /></Suspense>
       <OnboardingWizard />
       <GuidedTour />

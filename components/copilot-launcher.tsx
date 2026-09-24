@@ -99,13 +99,15 @@ export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButt
       type="button"
       onClick={() => setCopilotOpen(true)}
       aria-label="Tanya asisten"
-      className="group fixed bottom-[4.25rem] right-3 z-30 flex cursor-pointer flex-col items-end gap-2 transition-transform duration-100 active:scale-[0.98] focus-visible:outline-none xl:bottom-5 xl:right-5"
+      className="group fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-3 z-30 flex cursor-pointer flex-col items-end gap-2 transition-transform duration-100 active:scale-[0.98] focus-visible:outline-none xl:bottom-5 xl:right-5"
     >
       {/* A speech bubble above the face, with the tail pointing down at it:
           the tail is what says the line is being said by the creature under
           it, and the fixed width keeps the bubble from breathing in and out
           as the sentence types. */}
-      <span className="panel-chrome relative w-[min(17rem,calc(100vw-1.5rem))] rounded-lg rounded-br-[6px] border border-border bg-surface/85 px-4 py-2.5 text-left shadow-2xl backdrop-blur-xl transition-colors group-hover:border-foreground/30 group-focus-visible:ring-2 group-focus-visible:ring-ring">
+      {/* Phones get the face alone: at that width a two-line bubble sat over
+          the page's own buttons for as long as the page was open. */}
+      <span className="panel-chrome relative hidden w-[min(17rem,calc(100vw-1.5rem))] rounded-lg rounded-br-[6px] border border-border bg-surface/85 px-4 py-2.5 text-left shadow-2xl backdrop-blur-xl transition-colors group-hover:border-foreground/30 group-focus-visible:ring-2 group-focus-visible:ring-ring sm:block">
         {/* Hidden from the accessibility tree on purpose: a caret that changes
             twenty times a second is a live region nobody asked for, and the
             button already carries its name. */}
@@ -115,7 +117,7 @@ export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButt
         </span>
         <span aria-hidden="true" className="panel-chrome absolute -bottom-[7px] right-5 size-3 rotate-45 border-b border-r border-border bg-surface/85 backdrop-blur-xl transition-colors group-hover:border-foreground/30" />
       </span>
-      <Blobatar ref={faceRef} name={ASSISTANT_NAME} animate="always" background="circle" size={52} aria-hidden="true" className="mr-1 shrink-0 drop-shadow-lg" />
+      <Blobatar ref={faceRef} name={ASSISTANT_NAME} animate="always" background="circle" size={52} aria-hidden="true" className="mr-1 shrink-0 rounded-full drop-shadow-lg group-focus-visible:ring-2 group-focus-visible:ring-ring sm:group-focus-visible:ring-0" />
     </button>
   );
 }

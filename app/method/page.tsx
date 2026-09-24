@@ -39,7 +39,7 @@ export default function MethodPage() {
         <div className="grid gap-px bg-border md:grid-cols-2">{pillars.map((pillar, index) => <article key={pillar.name} className="bg-surface p-4 sm:p-5"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-lg bg-primary/10 font-mono text-xs font-semibold text-muted-foreground font-medium">{index + 1}</span><h2 className="font-semibold">{pillar.name}</h2></div><dl className="mt-4 space-y-3 text-sm"><div><dt className=" text-xs text-muted-foreground">Masukan yang diwakili</dt><dd className="mt-1 leading-6">{pillar.input}</dd></div><div><dt className=" text-xs text-muted-foreground">Proses</dt><dd className="mt-1 leading-6">{pillar.formula}</dd></div><div><dt className=" text-xs text-muted-foreground">Hasil</dt><dd className="mt-1 leading-6 text-muted-foreground">{pillar.output}</dd></div></dl></article>)}</div>
       </Panel>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* The stages and their count come from RESEARCH_LIFECYCLE, the same
             list the engine emits and the case page draws. This panel used to
             claim six hand-written stages that matched none of the five the app

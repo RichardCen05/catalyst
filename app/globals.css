@@ -225,6 +225,16 @@ summary.list-none::-webkit-details-marker { display: none; }
 .map-in .react-flow__node { animation: fade-in 450ms ease-out both; }
 .map-in .react-flow__edge { animation: fade-in 700ms ease-out 250ms both; }
 
+/* iOS Safari zooms the whole page when a field under 16px takes focus, and
+   leaves it zoomed after the keyboard closes. Phones get 16px fields; wider
+   screens keep the denser type the layout was drawn with. */
+@media (max-width: 639px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+}
+
+/* A double tap on a button or card should act, not zoom. */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 @media (prefers-reduced-transparency: reduce) {
   .panel-chrome { background: var(--surface) !important; backdrop-filter: none !important; }
 }
