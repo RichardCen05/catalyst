@@ -71,6 +71,10 @@ RAW = ROOT / "data" / "sectors"
 REGISTRY = RAW / "_requests.json"
 LEDGER = RAW / "_ledger.jsonl"
 BASE_URL = os.environ.get("SECTORS_BASE_URL", "https://api.sectors.app")
+# Sectors sits behind Cloudflare, which answers urllib's default
+# "Python-urllib/x.y" signature with 403 "error code: 1010" before the request
+# reaches the API — no credit spent, and no data either. Any named client passes.
+USER_AGENT = "catalyst-refresh/1.0 (+https://catalyst-web-ibyebnreqa-uc.a.run.app)"
 
 # Rate discipline, mirrored from lib/data/sectors-client.ts so the two callers
 # cannot disagree about what the API tolerates.
@@ -232,7 +236,7 @@ def fetch(path: str, params: dict, api_key: str) -> bytes:
     url = f"{BASE_URL}{path}"
     if params:
         url = f"{url}?{urllib.parse.urlencode(params)}"
-    request = urllib.request.Request(url, headers={"Authorization": api_key})
+    request = urllib.request.Request(url, headers={"Authorization": api_key, "User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
             return response.read()
