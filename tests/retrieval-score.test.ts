@@ -109,4 +109,15 @@ describe("scoreCorpus", () => {
     const ranked = scoreCorpus("dari mana angka broker ANTM", base);
     expect(ranked.some((row) => row.entry.kind === "endpoint" || row.entry.kind === "case")).toBe(true);
   });
+
+  it("tidak membiarkan kata sambung memutuskan entri mana yang menang", () => {
+    // Pertanyaan pada tangkapan layar di peta sebab akibat: "dari" cocok ke
+    // judul "Belajar dari pasar" dan ke setiap ringkasan arus asing, sehingga
+    // panel AI Learning mengalahkan rumus relevansi yang ditanyakan.
+    const ranked = scoreCorpus("dari mana angka relevansi muncul", { ...base, contextSymbol: "ADRO", view: "impact" });
+    const top = ranked.slice(0, DEFAULT_THRESHOLDS.retrievalTopK).map((row) => row.entry.id);
+    expect(top).toContain("metric:Relevansi eksposur");
+    expect(top.some((id) => id.startsWith("chrome:ai-learning:"))).toBe(false);
+    expect(top.some((id) => id.startsWith("event:flows-foreign-net-"))).toBe(false);
+  });
 });

@@ -1,4 +1,5 @@
 import { phraseMatches } from "@/lib/text/fuzzy";
+import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import type { AnalysisCase, Citation, MetricValue, PillarResult } from "@/lib/types";
 
 export { phraseMatches };
@@ -149,7 +150,7 @@ const METRIC_FORMULA: Record<string, string> = {
   "Imbal hasil sektor": "Σ (imbal hasil 3 hari emiten sektor × kapitalisasi pasarnya) ÷ Σ kapitalisasi pasar sektor",
   "Peristiwa terhubung": "jumlah peristiwa terekam yang punya jalur dampak ke emiten ini",
   "Arah utama": "arah jalur dampak peristiwa dengan relevansi tertinggi",
-  "Relevansi eksposur": "filing = 95; selain itu 88 dikurangi 6 untuk setiap simbol tambahan yang disebut sumber (minimum 40), +2 bila dimensinya keuangan atau proyeksi, dibatasi 97",
+  "Relevansi eksposur": `peringkat yang Catalyst tetapkan saat rekaman dibangun, bukan skor dari penyedia data. Berita: filing = 95; selain itu 88 dikurangi 6 untuk setiap simbol tambahan yang disebut sumber (minimum 40), +2 bila dimensinya keuangan atau proyeksi, dibatasi 97. Aksi korporasi dari corporate-actions: dividen 92; stock split, rights issue, dan buyback 90; perubahan pengurus 88. Perubahan kepemilikan 85; arus asing bersih dan harga komoditas 80; lonjakan perhatian 55. Peristiwa dari pantauan web memakai skor pita: tinggi ${RELEVANCE_BAND_SCORE.high}, sedang ${RELEVANCE_BAND_SCORE.medium}, rendah ${RELEVANCE_BAND_SCORE.low}`,
   "Paruh awal": "0,6745 × (volume terakhir − median paruh awal) ÷ MAD paruh awal",
   "Paruh akhir": "0,6745 × (volume terakhir − median paruh akhir) ÷ MAD paruh akhir",
   "Pembanding penuh": "0,6745 × (volume terakhir − median seluruh pembanding) ÷ MAD seluruh pembanding",

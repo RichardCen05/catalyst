@@ -59,6 +59,16 @@ const NAMED_VIEW_BOOST = VIEW_BOOST * 2;
  * what they are pointing at. "halaman Pantau isinya apa" is a question about
  * Pantau, but "halaman" also appears in the dashboard's own vocabulary, and
  * indexing it let the generic half of the question outvote the specific half.
+ *
+ * The third row is the grammar between the words. "dari mana angka relevansi
+ * muncul" matched the AI Learning heading "Belajar dari pasar" and every
+ * foreign-flow summary on "dari", and "angka" on a label beside it, so a
+ * panel sharing none of the question's subject outscored the relevance
+ * formula it asked for. "yang" and "saja" stay scored: "apa saja" is how a
+ * reader asks for a list, and the scoped entries carry both words through
+ * their phrases. Function words are kept out of scoring here only;
+ * `query.ts` keeps its own list for event overlap, which also drops domain
+ * words this index must keep ("pantau", "saham").
  */
 const QUESTION_WORDS = new Set([
   "apa", "apakah", "kenapa", "mengapa", "bagaimana", "berapa", "kapan", "dimana",
@@ -66,7 +76,9 @@ const QUESTION_WORDS = new Set([
   "what", "why", "how", "when", "where", "which", "explain", "tell", "please",
   "halaman", "laman", "panel", "bagian", "layar", "menu", "tombol", "tulisan",
   "page", "screen", "section", "button", "label", "isi", "isinya", "berisi",
-  "maksud", "arti", "artinya",
+  "maksud", "arti", "artinya", "angka", "muncul", "tampil", "ditampilkan",
+  "dari", "untuk", "pada", "dengan", "adalah", "ini", "itu", "dan",
+  "atau", "juga", "oleh", "tersebut", "the", "from", "and", "for", "this", "that",
 ]);
 
 /**
