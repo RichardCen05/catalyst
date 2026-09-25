@@ -194,7 +194,10 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           a reader is already using to move around the page — not floating in
           the header where it read as a stray chip. */}
       <div className="mb-4 flex flex-col-reverse gap-2 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <nav aria-label="Bagian AI Learning" className="flex min-w-0 gap-6 overflow-x-auto">
+        {/* Wraps instead of scrolling. `overflow-x-auto` forced overflow-y to
+            auto as well, and the tabs' `-mb-px` underline overflowed by one
+            pixel, so a vertical scrollbar sat over the last tab. */}
+        <nav aria-label="Bagian AI Learning" className="flex min-w-0 flex-wrap gap-x-6">
           {sections.map((item) => (
             <Link
               key={item.value}

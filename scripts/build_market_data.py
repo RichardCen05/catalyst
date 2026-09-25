@@ -73,6 +73,14 @@ CATEGORY_TAGS = [
 ]
 DIRECTION_TAGS = {"Bullish": "Supported", "Bearish": "Adverse", "Neutral": "Mixed"}
 
+# A counterparty agreement tagged as a compliance risk is a contract dispute —
+# an arbitration award, a compensation order. Its exposure runs through what
+# the issuer owes, not through the commodity it happens to deliver, so it
+# outranks the commodity tag the same item also carries. Both tags are
+# required: "Risk & Compliance" alone also marks policy and credit notes.
+DISPUTE_TAGS = {"Risk & Compliance", "Partnerships & Agreements"}
+DISPUTE_PATH = "Sengketa kontrak → kewajiban kompensasi → arus kas operasi dan kapasitas neraca"
+
 CATEGORY_PATH = {
     "commodity": "Harga komoditas → realisasi harga → margin",
     "rates": "Suku bunga → biaya dana dan yield aset → margin bunga",
@@ -242,6 +250,8 @@ revenue_segments = {s: top_revenue_segments(s) for s in SYMBOLS if top_revenue_s
 
 # --------------------------------------------------------------------------- events
 def category_of(tags):
+    if DISPUTE_TAGS <= tags:
+        return "company"
     for name, members in CATEGORY_TAGS:
         if members & tags:
             return name
@@ -294,7 +304,9 @@ def add_event(event_id, item, symbols_in_universe, source_type):
         relevance = 95 if source_type == "filing" else max(40, 88 - (spread - 1) * 6)
         relevance = min(97, relevance + (2 if dimension in ("financials", "future") else 0))
         segment = (revenue_segments.get(symbol) or [None])[0]
-        if category == "commodity" and segment:
+        if DISPUTE_TAGS <= tags:
+            path = DISPUTE_PATH
+        elif category == "commodity" and segment:
             path = f"{segment['segment']} ({pct(segment['share'], 0)} pendapatan {symbol}) → realisasi harga → margin"
         else:
             path = CATEGORY_PATH.get(category) or DIMENSION_PATH.get(dimension) or DIMENSION_PATH["technical"]

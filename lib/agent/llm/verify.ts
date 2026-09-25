@@ -1,4 +1,5 @@
 import { assertSafeOutput } from "@/lib/agent/gates";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type { Citation } from "@/lib/types";
 
 export interface VerificationResult {
@@ -85,8 +86,58 @@ export function detectLanguage(text: string): "id" | "en" | "unknown" {
  * pattern, so `ADVICE_PATTERN` stays defined once, in `gates.ts`, next to the
  * refusal that uses it on the way in.
  */
-export function verifyAnswer(draftText: string, evidenceNumbers: string[], question: string): VerificationResult {
+/**
+ * A sentence about the material instead of from it.
+ *
+ * "Ringkasan yang tersedia memuat informasi mengenai…" passes every other
+ * rule here: no figure, no advice, the right language. It still answers
+ * nothing, and it reads as the app having no data while the case page shows
+ * the answer. These are the shapes that description takes in both languages.
+ */
+const META_PATTERN = /\b(?:informasi|ringkasan|data|keterangan|bukti) yang (?:tersedia|diberikan|ada)(?: hanya)? (?:memuat|mencakup|berisi|menyebut|membahas)\b|\bmemuat informasi (?:mengenai|tentang)\b|\btidak (?:tercantum|disebutkan) (?:dalam|di) (?:ringkasan|informasi|data)\b|\b(?:the )?(?:available|provided) (?:information|summary|data|evidence) (?:contains|covers|includes|mentions|describes)\b/i;
+
+/** Words too common to show a sentence was written from the evidence. */
+const GROUNDING_STOPWORDS = new Set([
+  "yang", "untuk", "dari", "pada", "dengan", "adalah", "dalam", "karena", "tidak", "belum", "sudah", "masih",
+  "bisa", "dapat", "akan", "juga", "atau", "tetapi", "namun", "sebagai", "lebih", "antara", "tersebut", "bahwa",
+  "saat", "ini", "itu", "kasus", "emiten", "saham", "data", "bukti", "informasi", "ringkasan", "tersedia",
+  "which", "that", "this", "with", "from", "have", "been", "there", "their", "about", "into", "than", "these",
+  "those", "because", "while", "would", "could", "should", "case", "stock", "data", "evidence", "information",
+]);
+
+function contentTerms(text: string): Set<string> {
+  return new Set(
+    text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/)
+      .filter((word) => word.length >= 4 && !GROUNDING_STOPWORDS.has(word) && !/^\d/.test(word)),
+  );
+}
+
+/**
+ * Whether a draft states something the evidence says.
+ *
+ * A figure quoted from the evidence is enough on its own. Without one, the
+ * draft has to carry a few of the evidence's own content words — a status
+ * label, an indicator name, a trigger — so an answer written in the other
+ * language still passes on the tickers and terms it keeps verbatim.
+ */
+export function groundingViolation(draftText: string, evidenceText: string, evidenceNumbers: string[]): string | null {
+  if (META_PATTERN.test(draftText)) return "draft describes the evidence instead of stating it";
+  if (!evidenceText.trim()) return null;
+  const allowed = new Set(evidenceNumbers.map(canonicalNumeral));
+  const quoted = (draftText.match(NUMBER_PATTERN) ?? []).some((numeral) => allowed.has(canonicalNumeral(numeral)));
+  if (quoted) return null;
+  const evidence = contentTerms(evidenceText);
+  const shared = [...contentTerms(draftText)].filter((term) => evidence.has(term)).length;
+  return shared >= DEFAULT_THRESHOLDS.answerGroundedMinTerms
+    ? null
+    : `draft shares ${shared} content terms with the evidence and quotes no evidence figure`;
+}
+
+export function verifyAnswer(draftText: string, evidenceNumbers: string[], question: string, evidenceText = ""): VerificationResult {
   const violations = [...verifyDraft(draftText, evidenceNumbers, []).violations];
+
+  const grounding = groundingViolation(draftText, evidenceText, evidenceNumbers);
+  if (grounding) violations.push(grounding);
 
   try {
     assertSafeOutput(draftText);

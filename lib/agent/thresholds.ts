@@ -55,6 +55,23 @@ export const DEFAULT_THRESHOLDS = {
    *  entri melewati handlerScoreFloor dari kecocokan satu kata, dan tidak
    *  lebih. */
   retrievalScopeBoost: 0.3,
+  /** Pengali kecocokan untuk entri teks antarmuka (`chrome:*`) ketika
+   *  pertanyaannya bukan tentang antarmuka. Teks tombol dan judul panel
+   *  berbagi kata umum dengan pertanyaan riset ("dugaan", "otomatis"), dan
+   *  tanpa pengali ini teks halaman Pantau mengalahkan isi kasus yang
+   *  ditanyakan. Pertanyaan yang menyebut tombol, panel, atau halaman tetap
+   *  memakai kecocokan penuh. */
+  retrievalChromeSubstantiveWeight: 0.5,
+  /** Tambahan kecocokan untuk entri kasus emiten yang disebut pertanyaan.
+   *  Ini sengaja menambah kecocokan, bukan hanya skor: pertanyaan yang
+   *  menyebut PGAS adalah pertanyaan tentang kasus PGAS lebih dulu, dan
+   *  prior biasa tidak boleh mengubah urutan. */
+  retrievalSubjectCaseBoost: 0.5,
+  /** Istilah isi minimum yang harus dibagi jawaban model dengan bukti yang
+   *  diberikan, bila jawaban tidak mengutip satu pun angka bukti. Di bawah
+   *  ini jawaban hanya mendeskripsikan bukti ("informasi yang tersedia
+   *  memuat…") tanpa menyebut isinya, dan ditolak. */
+  answerGroundedMinTerms: 2,
   /** Entri yang dimuat untuk pertanyaan non-agregat. */
   retrievalTopK: 6,
   /** Batas teks bukti yang masuk prompt, dalam karakter. Nilai inilah yang
@@ -313,6 +330,9 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   handlerScoreFloor: "guess",
   retrievalScoreFloor: "guess",
   retrievalScopeBoost: "guess",
+  retrievalChromeSubstantiveWeight: "guess",
+  retrievalSubjectCaseBoost: "guess",
+  answerGroundedMinTerms: "guess",
   // Sisanya menjaga ukuran, bukan menilai bukti: berapa entri dimuat, berapa
   // karakter masuk prompt, berapa giliran diingat, berapa entri disimpan.
   retrievalTopK: "convention",
@@ -467,6 +487,9 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     handlerScoreFloor: DEFAULT_THRESHOLDS.handlerScoreFloor,
     retrievalScoreFloor: DEFAULT_THRESHOLDS.retrievalScoreFloor,
     retrievalScopeBoost: DEFAULT_THRESHOLDS.retrievalScopeBoost,
+    retrievalChromeSubstantiveWeight: DEFAULT_THRESHOLDS.retrievalChromeSubstantiveWeight,
+    retrievalSubjectCaseBoost: DEFAULT_THRESHOLDS.retrievalSubjectCaseBoost,
+    answerGroundedMinTerms: DEFAULT_THRESHOLDS.answerGroundedMinTerms,
     retrievalTopK: DEFAULT_THRESHOLDS.retrievalTopK,
     retrievalContextCharCap: DEFAULT_THRESHOLDS.retrievalContextCharCap,
     memoryPatchMaxBytes: DEFAULT_THRESHOLDS.memoryPatchMaxBytes,

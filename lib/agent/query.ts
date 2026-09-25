@@ -249,7 +249,15 @@ export function matchEventForQuestion(question: string, events: MarketEvent[], s
   const category = (CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => normalized.includes(term)))
     ?? CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => phraseMatches(normalized, term))))?.[1];
   if (category) {
-    const match = events.find((event) => event.category === category);
+    // A category word says what kind of event, not which one. "Sesuai aturan
+    // saya, apa yang dicek dulu untuk PGAS?" carries "aturan", a policy word,
+    // and used to be answered with the first policy event in the recordings —
+    // a bank credit note that touches no PGAS path. When the question names
+    // an emiten, the event has to reach that emiten; otherwise the category
+    // proves nothing and token overlap decides.
+    const named = findSymbolsRobust(question, symbols);
+    const match = events.find((event) => event.category === category
+      && (!named.length || event.impactLinks.some((link) => named.includes(link.symbol) && link.direction !== "Unrelated")));
     if (match) return match;
   }
   // Token overlap is a weaker signal: require more than a third of the

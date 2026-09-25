@@ -1,5 +1,6 @@
 import { DATA_AS_OF_LABEL, demoProfiles } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
+import { uiLabel } from "@/lib/ui-labels";
 import type { ContextBundle } from "@/lib/agent/retrieval/types";
 import type { SymbolCode } from "@/lib/types";
 
@@ -31,10 +32,19 @@ export async function buildCaseBundle(symbol: SymbolCode): Promise<ContextBundle
     `Perubahan material: ${analysis.materialChange.whatChanged}`,
     `Pembanding: ${analysis.materialChange.baseline}`,
     `Kenapa penting: ${analysis.materialChange.whyMaterial}`,
-    `Tindakan riset: ${analysis.researchDisposition.label}.`,
+    `Status bukti: ${uiLabel(analysis.evidenceState)}. ${analysis.thesis}`,
+    `Pemicu: ${analysis.trigger.title}`,
+    `Tindakan riset: ${analysis.researchDisposition.label}. ${analysis.researchDisposition.reason}`,
     `Jalur sebab akibat utama: ${analysis.primaryCausalPath}`,
-    ...analysis.pillars.map((pillar) => `${pillar.label}: ${pillar.summary}`),
-    ...(analysis.missingEvidence.length ? [`Belum tersedia: ${analysis.missingEvidence.join("; ")}`] : []),
+    ...analysis.pillars.map((pillar) => `${pillar.label} (${uiLabel(pillar.status)}): ${pillar.summary}`),
+    // What would overturn the case, and what is still open. These are the
+    // panels a reader asks "apa yang membatalkan" about; leaving them out of
+    // the material meant the question could only be matched to page copy.
+    `Bukti penyangkal: ${analysis.counterEvidence.join(" ")}`,
+    ...analysis.businessImpact.map((impact) => `Dampak bisnis ${impact.label} (${uiLabel(impact.status)}): ${impact.observable}.`),
+    `Pertanyaan yang belum terjawab: ${analysis.unresolvedQuestions.join(" ")}`,
+    `Indikator yang dipantau: ${analysis.researchDisposition.monitorObservable}. ${analysis.researchDisposition.reopenWhen}`,
+    ...(analysis.missingEvidence.length ? [`Batas data: ${analysis.missingEvidence.join("; ")}`] : []),
   ].join("\n");
   return {
     id: `case:${symbol}`,

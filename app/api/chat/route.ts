@@ -40,7 +40,12 @@ export async function POST(request: Request) {
       history: parsed.data.history as ChatRequest["history"],
       view: parsed.data.view,
     });
-    return NextResponse.json({ answer, mode: "recorded" });
+    // `generator` says whether the model wrote the sentence or the template
+    // did, which is safe to show anyone. The reason for a fallback is an
+    // error message and can name a gateway or a quota; outside development it
+    // stays in the `[llm-fallback]` log line, where it already is.
+    const { fallbackReason, ...shipped } = answer;
+    return NextResponse.json({ answer: process.env.NODE_ENV === "production" ? shipped : { ...shipped, ...(fallbackReason ? { fallbackReason } : {}) }, mode: "recorded" });
   } catch (error) {
     // Logged rather than returned: the message can name internals, and the
     // reader's copy is written by the panel from the status alone.

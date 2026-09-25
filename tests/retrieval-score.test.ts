@@ -1,6 +1,6 @@
 import { CHROME_BLOCKS } from "@/lib/data/chrome.generated";
 import { describe, expect, it } from "vitest";
-import { scoreCorpus } from "@/lib/agent/retrieval/score";
+import { scoreCorpus, topScore } from "@/lib/agent/retrieval/score";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { demoProfiles } from "@/lib/data/fixtures";
 import type { RequestContext } from "@/lib/agent/retrieval/types";
@@ -76,11 +76,16 @@ describe("scoreCorpus", () => {
     expect(onImpact!.score).toBeGreaterThan(neutral!.score);
   });
 
+  // Ordered by overlap (with the subject-case correction), not by the bid:
+  // the named emiten's case goes first even when another entry bids higher,
+  // and `topScore` takes the best bid wherever it sits.
   it("mengurutkan menurun", () => {
     const ranked = scoreCorpus("konsentrasi broker ANTM", base);
     for (let index = 1; index < ranked.length; index += 1) {
-      expect(ranked[index - 1].score).toBeGreaterThanOrEqual(ranked[index].score);
+      expect(ranked[index - 1].raw).toBeGreaterThanOrEqual(ranked[index].raw);
     }
+    expect(ranked[0].entry.kind).toBe("case");
+    expect(topScore(ranked)).toBe(Math.max(...ranked.map((row) => row.score)));
   });
 
   it("tidak pernah mengembalikan entri di bawah ambang entri", () => {

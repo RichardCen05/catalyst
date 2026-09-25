@@ -38,7 +38,10 @@ export function enforceCitations(pillars: PillarResult[]): void {
  * — the reader was asking about a figure already on their screen and got a
  * refusal instead. These phrases are removed before the advice test runs.
  */
-const DATA_TERMS = /\b(nilai|porsi|total|rasio|volume|harga|aliran|arus)\s+(beli|jual)\b/gi;
+// "tekanan beli/jual" is a mechanism node on the causal map, and its "Tanya
+// jalur ini" button sends that label back as a question — which the gate
+// refused as trading advice. The paired form is part of the term.
+const DATA_TERMS = /\b(nilai|porsi|total|rasio|volume|harga|aliran|arus|tekanan|sisi)\s+(beli|jual)(?:\s*\/\s*(beli|jual))?\b/gi;
 
 /**
  * Transactional language, including the affixed forms Indonesian actually
@@ -55,6 +58,18 @@ const DATA_TERMS = /\b(nilai|porsi|total|rasio|volume|harga|aliran|arus)\s+(beli
  * what excludes them.
  */
 const ADVICE_PATTERN = /\b(?:di|mem|men|meng|ber)?(?:beli|jual)\b|\b(?:entry|stop\s*loss|target\s*price|take\s*profit|cuan|buy|sell)\b/i;
+
+/**
+ * Timing and position questions that name no trading verb.
+ *
+ * "kapan waktu yang tepat masuk PGAS" asks when to buy without saying "beli",
+ * and was answered with the whole case as if it were research. "masuk" alone
+ * cannot be the trigger — "kenapa PGAS masuk daftar" is the most common
+ * question the panel gets — so it counts only next to a time word or a
+ * position word. Market slang for the same act ("serok", "haka") is listed
+ * because it is how the question is actually typed.
+ */
+const POSITION_PATTERN = /\bkapan\b[^.?!]*\b(?:masuk|keluar|ambil\s+posisi|tahan|hold)\b|\bwaktu\s+(?:yang\s+)?(?:tepat|pas|bagus)\b[^.?!]*\b(?:masuk|keluar|posisi)\b|\b(?:masuk|keluar)\s+(?:sekarang|posisi)\b|\bambil\s+posisi\b|\bsebaiknya\s+(?:saya\s+)?(?:tahan|masuk|keluar|hold)\b|\b(?:tahan|hold)\s+atau\b|\batau\s+(?:tahan|hold)\b|\b(?:cut\s*loss|average\s+down|averaging|serok|haka|haki)\b|\blayak\s+(?:untuk\s+)?(?:di)?investasi\b|\bshould\s+i\s+(?:hold|enter|exit|invest|keep)\b|\bwhen\s+(?:to|should\s+i)\s+(?:enter|exit|get\s+in|get\s+out|invest)\b/i;
 
 /**
  * What a reader may ask for that no recording can answer.
@@ -121,7 +136,7 @@ export interface LanguageVerdict {
 
 export function safeLanguage(input: string): LanguageVerdict {
   const screened = withoutDataTerms(input);
-  if (ADVICE_PATTERN.test(screened)) {
+  if (ADVICE_PATTERN.test(screened) || POSITION_PATTERN.test(screened)) {
     return {
       refused: true,
       kind: "advice",

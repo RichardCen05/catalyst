@@ -82,6 +82,22 @@ const QUESTION_WORDS = new Set([
 ]);
 
 /**
+ * Words that make a question about the interface itself.
+ *
+ * "tombol ini fungsinya apa" is answered from the panel's own text, and the
+ * `chrome:*` entries exist for exactly that. A research question — "apa yang
+ * membatalkan dugaan arbitrase" — shares ordinary words with button labels
+ * ("dugaan", "otomatis") and used to be answered with the Pantau page's copy.
+ * Without one of these words, interface text is weighed down rather than
+ * dropped, so a panel that really is the subject can still win on overlap.
+ */
+const INTERFACE_WORDS = new Set([
+  "tombol", "panel", "halaman", "laman", "layar", "menu", "bagian", "label", "judul", "kartu", "tab",
+  "klik", "fungsi", "fungsinya", "tampilan", "ikon", "button", "page", "screen", "section", "card",
+  "click", "icon", "heading",
+]);
+
+/**
  * Which recorded entries a question is about.
  *
  * The inverted term map means this touches only entries sharing a word with
@@ -108,6 +124,7 @@ export function scoreCorpus(
   if (!words.length) return [];
 
   const symbols = findSymbolsRobust(question, companies.map((company) => company.symbol));
+  const aboutInterface = normalized.split(" ").some((word) => INTERFACE_WORDS.has(word));
   // A third prior, and the same rule as the other two: it moves an entry up a
   // ranking the question already put it in. A reader who says "kasusku" is
   // asking about their list; a reader who says "berapa emiten terekam" is
@@ -161,8 +178,23 @@ export function scoreCorpus(
   for (const [id, overlap] of hits) {
     const entry = index.byId.get(id);
     if (!entry) continue;
-    const raw = overlap / words.length;
+    let raw = overlap / words.length;
+    // Two corrections to overlap itself, not priors: they are meant to change
+    // the order. Both apply only when the question names an emiten: then a
+    // button that shares its verbs ("membatalkan", "pantau") competes with
+    // that emiten's case, and the case is what a research question is about —
+    // unless the reader asks about the interface itself. A question naming
+    // no emiten keeps the plain overlap, so a panel title quoted from the
+    // screen still finds its panel.
+    if (entry.kind === "chrome" && symbols.length && !aboutInterface) raw *= DEFAULT_THRESHOLDS.retrievalChromeSubstantiveWeight;
+    // The bid is taken before the case boost. The boost exists to put the
+    // named emiten's case first among retrieved entries; letting it also
+    // raise what retrieval bids against the handlers made "berapa volume
+    // PGAS terbaru" lose its figure answer to a whole-case summary.
     let score = raw;
+    if (entry.kind === "case" && symbols.length && entry.symbols.some((symbol) => symbols.includes(symbol))) {
+      raw += DEFAULT_THRESHOLDS.retrievalSubjectCaseBoost;
+    }
     if (symbols.length && entry.symbols.some((symbol) => symbols.includes(symbol))) score += SYMBOL_BOOST;
     if (context.view && entry.view === context.view) score += VIEW_BOOST;
     if (entry.view && namedViews.has(entry.view)) score += NAMED_VIEW_BOOST;
@@ -217,5 +249,8 @@ function withinOneEdit(first: string, second: string): boolean {
 
 /** The best score any entry reached, or 0. What the retrieved handler bids with. */
 export function topScore(ranked: ScoredEntry[]): number {
-  return ranked[0]?.score ?? 0;
+  // The best bid anywhere in the list, not the first entry's: the subject
+  // case boost reorders the list, and reordering must not change what
+  // retrieval bids against the handlers.
+  return ranked.reduce((best, item) => Math.max(best, item.score), 0);
 }

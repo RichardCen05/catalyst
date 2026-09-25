@@ -6237,23 +6237,23 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Consumer": 9.8e-05,
   "Infrastructure": -0.042294,
-  "Energy": -0.016683,
   "Technology": -0.010155,
+  "Consumer": 9.8e-05,
   "Basic Materials": -0.010704,
-  "Financials": -0.014507
+  "Financials": -0.014507,
+  "Energy": -0.016683
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Food & Beverage": -0.003534,
-  "Food & Staples Retailing": 0.007692,
   "Software & IT Services": -0.010155,
-  "Oil, Gas & Coal": -0.016683,
-  "Telecommunication": -0.043325,
   "Basic Materials": -0.010704,
+  "Telecommunication": -0.043325,
+  "Banks": -0.014507,
   "Transportation Infrastructure": -0.027778,
-  "Banks": -0.014507
+  "Food & Beverage": -0.003534,
+  "Oil, Gas & Coal": -0.016683,
+  "Food & Staples Retailing": 0.007692
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
@@ -7723,7 +7723,7 @@ export const rawEvents: RawEvent[] = [
     "title": "PGAS Loses Partial Arbitration Award, Ordered to Pay 9 LNG Cargoes to Gunvor",
     "summary": "PT Perusahaan Gas Negara Tbk (PGAS) lost a partial arbitration award at the London Court of International Arbitration and must compensate Gunvor Singapore Pte Ltd with 9 LNG cargoes covering 2024 and 2025 deliveries. The partial award…",
     "body": "PT Perusahaan Gas Negara Tbk (PGAS) lost a partial arbitration award at the London Court of International Arbitration and must compensate Gunvor Singapore Pte Ltd with 9 LNG cargoes covering 2024 and 2025 deliveries. The partial award addresses Gunvor's claim for 4-8 cargoes in 2024 and 1-4 cargoes in 2025, while remaining claims for 2025 through 2027 are still pending. Gunvor reportedly claimed US$130.4 million (approximately Rp2.18 trillion) in the dispute, while PGAS provisioned US$72.02 million (approximately Rp1.2 trillion) in its December 2025 financial statements. The dispute stems from a 2022 master sales agreement for 8 cargoes annually through 2027, which PGAS declared force majeure on in November 2023. PGAS shares have fallen 18.59% year-to-date to Rp1,555.",
-    "category": "commodity",
+    "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-02T08:30:00+07:00",
     "sector": "Energy",
@@ -7732,7 +7732,7 @@ export const rawEvents: RawEvent[] = [
         "symbol": "PGAS",
         "direction": "Adverse",
         "relevance": 90,
-        "path": "Harga komoditas → realisasi harga → margin",
+        "path": "Sengketa kontrak → kewajiban kompensasi → arus kas operasi dan kapasitas neraca",
         "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Financial Metrics, Market Sentiment, Partnerships & Agreements, Risk & Compliance pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
@@ -7751,7 +7751,7 @@ export const rawEvents: RawEvent[] = [
     "title": "PGAS Ordered to Pay Compensation to Gunvor Singapore After LCIA Arbitration Rejects Force Majeure Claim",
     "summary": "Perusahaan Gas Negara (PGAS) must pay compensation to Gunvor Singapore following a partial award from the London Court of International Arbitration (LCIA) that rejected PGAS's force majeure declaration regarding LNG delivery obligations.…",
     "body": "Perusahaan Gas Negara (PGAS) must pay compensation to Gunvor Singapore following a partial award from the London Court of International Arbitration (LCIA) that rejected PGAS's force majeure declaration regarding LNG delivery obligations. The tribunal's decision covers nine LNG cargoes spanning cargoes 4-8 of 2024 and cargoes 1-4 of 2025, while reserving jurisdiction over remaining claims for 2025 through 2027 cargoes. Gunvor had previously claimed USD 130.4 million in the dispute arising from a master LNG sales and purchase agreement dated June 23, 2022, under which PGAS committed to deliver eight cargoes from January 2024 through December 2027. PGAS is currently conducting a comprehensive review with legal counsel Mayer Brown and relevant institutions to determine the impact and next steps. The award requires Gunvor to seek execution through the Central Jakarta District Court before enforcement.",
-    "category": "commodity",
+    "category": "company",
     "sourceType": "sectors",
     "publishedAt": "2026-09-02T06:39:00+07:00",
     "sector": "Energy",
@@ -7760,7 +7760,7 @@ export const rawEvents: RawEvent[] = [
         "symbol": "PGAS",
         "direction": "Adverse",
         "relevance": 88,
-        "path": "Harga komoditas → realisasi harga → margin",
+        "path": "Sengketa kontrak → kewajiban kompensasi → arus kas operasi dan kapasitas neraca",
         "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Export, Partnerships & Agreements, Risk & Compliance pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],

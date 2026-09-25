@@ -464,7 +464,8 @@ export interface ChatRequest {
 export interface ChatAnswer {
   text: string;
   refused: boolean;
-  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "retrieved" | "scoped-list" | "unknown";
+  intent: "why-listed" | "event-impact" | "compare" | "missing" | "provenance" | "explain" | "advice" | "clarify" | "retrieved" | "scoped-list"
+    | "attribution" | "falsifier" | "case-status" | "playbook" | "causal-path" | "unknown";
   hypotheses: HypothesisTrace[];
   citations: Citation[];
   preferenceNote: string;
@@ -492,6 +493,14 @@ export interface ChatAnswer {
    *  it is not a place to put anything that reader may not see. Absent when
    *  no retrieval ran, which is itself the fact worth reading. */
   entryIds?: string[];
+  /** Who wrote the text the reader sees: the model, verified, or the
+   *  deterministic path. No panel renders it. It is for the person checking
+   *  a live answer, who otherwise cannot tell a rewrite from a fallback. */
+  generator?: "llm" | "deterministic";
+  /** Why the deterministic text shipped when the model was asked: the
+   *  verifier's violations, a timeout, the daily budget, or the model layer
+   *  being off. Absent when the model's draft shipped or was never asked. */
+  fallbackReason?: string;
 }
 
 export interface CopilotContext {

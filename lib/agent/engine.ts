@@ -52,12 +52,13 @@ import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
-import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
+import { findSymbolsRobust, matchEventForQuestion, normalizeQuery } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
 import { namesAThreshold, PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, RELEVANCE_BAND_SCORE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
+import { attributionMaterial, causalPathMaterial, compareMaterial, falsifierMaterial, playbookMaterial, statusMaterial } from "@/lib/agent/case-answers";
 
 const percent = (value: number, digits = 1) =>
   new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
@@ -876,6 +877,27 @@ function insightTraces(insights: UserInsight[]): HypothesisTrace[] {
   }));
 }
 
+/** "Data apa yang belum ada": the recording gaps, then the business tests
+ *  nothing has been able to run yet. */
+function missingText(analysis: AnalysisCase): string {
+  const untested = analysis.businessImpact.filter((item) => item.status === "Open").map((item) => item.label.toLowerCase());
+  return [
+    analysis.missingEvidence.join(" "),
+    ...(untested.length ? [`Indikator yang belum diuji: ${untested.join(", ")}.`] : []),
+  ].join(" ");
+}
+
+/** The question with a quoted label taken out, ignoring case. */
+function withoutLabel(question: string, label: string): string {
+  const at = question.toLowerCase().indexOf(label.toLowerCase());
+  return at < 0 ? question : `${question.slice(0, at)} ${question.slice(at + label.length)}`;
+}
+
+/** "PGAS: PGAS Loses…" read as "PGAS masuk karena PGAS: PGAS Loses…". */
+function withoutSymbolPrefix(value: string, symbol: SymbolCode): string {
+  return value.startsWith(`${symbol}: `) ? value.slice(symbol.length + 2) : value;
+}
+
 function preferenceNote(request: ChatRequest, symbol: SymbolCode | undefined, insightCount = 0): string {
   const { profile, playbook, caseMandate } = request;
   const first = profile.config.pillarOrder[0];
@@ -896,12 +918,22 @@ const LLM_ANSWER_TIMEOUT_MS = 20_000;
  * verifier menolak angka baru, timeout/gagal selalu jatuh ke teks asli.
  * Penolakan saran transaksi tidak pernah ditulis ulang.
  */
+/** What a composed answer carries besides its text: who wrote it, and why the
+ *  model's draft did not ship when it was asked for one. */
+type Composed = Pick<ChatAnswer, "text" | "llmFallbackNote" | "generator" | "fallbackReason">;
+
+const MODEL_OFF_REASON = "model layer off (AGENT_MODE is not llm)";
+
+function fallbackReasonFor(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error)).slice(0, 300);
+}
+
 async function rewriteWithLlm(
   question: string,
   deterministicText: string,
   visibleFigures: string[] = [],
-): Promise<{ text: string; llmFallbackNote?: string }> {
-  if (agentMode() !== "llm") return { text: deterministicText };
+): Promise<Composed> {
+  if (agentMode() !== "llm") return { text: deterministicText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   try {
     // The allowed pool is every figure the reader can already see for this
     // case, not only the ones this particular sentence happens to mention.
@@ -916,15 +948,15 @@ async function rewriteWithLlm(
       composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
-    return { text: draft.text };
+    return { text: draft.text, generator: "llm" };
   } catch (error) {
     reportLlmFallback("answer", `pertanyaan ${question.length} karakter`, error);
     // A budget or rate-limit refusal is the one fallback the reader is told
     // about: it is a standing condition for the rest of the day, not a blip,
     // and `.env.example` promises the app says so.
     return error instanceof LlmBudgetError
-      ? { text: deterministicText, llmFallbackNote: budgetNoteFor(error.reason) }
-      : { text: deterministicText };
+      ? { text: deterministicText, llmFallbackNote: budgetNoteFor(error.reason), generator: "deterministic", fallbackReason: fallbackReasonFor(error) }
+      : { text: deterministicText, generator: "deterministic", fallbackReason: fallbackReasonFor(error) };
   }
 }
 
@@ -950,8 +982,8 @@ async function composeRetrieved(
   question: string,
   retrieved: RetrievedContext,
   cacheable: boolean,
-): Promise<{ text: string; llmFallbackNote?: string }> {
-  if (agentMode() !== "llm") return { text: retrieved.readerText };
+): Promise<Composed> {
+  if (agentMode() !== "llm") return { text: retrieved.readerText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   const cheap = cheapModel();
   const strong = strongModel();
   // No cheap tier named means one model does both jobs (see models.ts): the
@@ -959,6 +991,7 @@ async function composeRetrieved(
   // paying the wait twice for a draft drawn from the same distribution. One
   // attempt, then the retrieved bundle itself.
   const models = cheap === strong ? [strong] : [cheap, strong];
+  const reasons: string[] = [];
   for (const model of models) {
     // Only a first turn is cacheable. A follow-up's meaning depends on turns
     // the key does not carry, so "dan yang satunya?" would otherwise be served
@@ -966,7 +999,7 @@ async function composeRetrieved(
     const key = cacheable ? answerCacheKey(question, retrieved.text, model) : null;
     if (key) {
       const hit = await readAnswerCache(key);
-      if (hit?.text) return { text: hit.text };
+      if (hit?.text) return { text: hit.text, generator: "llm" };
     }
     try {
       const draft = await Promise.race([
@@ -977,18 +1010,19 @@ async function composeRetrieved(
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
       ]);
       if (key) await writeAnswerCache(key, { text: draft.text });
-      return { text: draft.text };
+      return { text: draft.text, generator: "llm" };
     } catch (error) {
       // A budget or rate-limit refusal ends the attempt entirely: the second
       // model draws on the same daily allowance, so retrying spends quota to
       // learn the same answer.
       if (error instanceof LlmBudgetError) {
-        return { text: retrieved.readerText, llmFallbackNote: budgetNoteFor(error.reason) };
+        return { text: retrieved.readerText, llmFallbackNote: budgetNoteFor(error.reason), generator: "deterministic", fallbackReason: fallbackReasonFor(error) };
       }
       reportLlmFallback("retrieval", `model ${model}, ${retrieved.entryIds.length} entri`, error);
+      reasons.push(`${model}: ${fallbackReasonFor(error)}`);
     }
   }
-  return { text: retrieved.readerText };
+  return { text: retrieved.readerText, generator: "deterministic", fallbackReason: reasons.join(" | ") };
 }
 
 /**
@@ -1077,6 +1111,103 @@ const EVENT_SUBJECT_PHRASES = ["berita", "peristiwa", "news", "event", "kabar"];
 const CONTEXT_POINTER = /\b(emiten|kasus|saham|perusahaan)\s+(ini|itu|tersebut)\b/;
 
 const WHY_PHRASES = ["kenapa", "mengapa", "daftar", "why", "listed"];
+
+/**
+ * "Turun karena berita atau ikut sektor?" — a question about cause.
+ *
+ * It had no handler. It reached `explain` because "sektor" names the metric
+ * `Imbal hasil sektor`, and the reader asking what moved PGAS got a glossary
+ * card for one figure. A cause question is either phrased around a cause word,
+ * or a why-word next to a price move.
+ */
+const ATTRIBUTION_PHRASES = [
+  "karena", "penyebab", "penyebabnya", "disebabkan", "sebabnya", "gara gara", "ikut sektor", "cuma ikut",
+  "hanya ikut", "because", "caused", "cause of", "due to", "driven by", "the sector",
+];
+const MOVE_WORDS = [
+  "turun", "naik", "jatuh", "anjlok", "melemah", "menguat", "merosot", "terkoreksi",
+  "drop", "dropped", "fell", "fall", "falling", "rose", "rise", "rising", "declined", "rallied",
+];
+
+/** "Kenapa statusnya bukti bercampur?" — the case's own verdict, explained. */
+const STATUS_PHRASES = [
+  "status bukti", "bercampur", "bukti selaras", "bukti belum cukup", "mixed", "corroborated",
+  "insufficient evidence", "evidence status",
+];
+/** "status" alone is also the review queue's status, a source's status, a
+ *  job's status. It asks about the case only when the case is named. */
+const STATUS_WORDS = ["status", "statusnya"];
+/** A falsifier phrase with no subject is still a case question when it
+ *  names what a case holds; "membatalkan" alone may be a Pantau button. */
+const CASE_OBJECT_WORDS = ["indikator", "dugaan", "tesis", "thesis", "hipotesis", "hypothesis"];
+
+/**
+ * "Apa yang membatalkan dugaan ini?" and "indikator apa yang dipantau?"
+ *
+ * Both are answered from the counter-evidence, the open tests and the reopen
+ * condition, which never reached the retrieval material, so the question was
+ * matched to the Pantau page's button copy instead.
+ */
+const FALSIFIER_PHRASES = [
+  "membatalkan", "pembatal", "batalkan", "menggugurkan", "penyangkal", "kapan salah", "terbukti salah",
+  "salah kalau", "salah jika", "melemahkan dugaan", "dibuka kembali", "buka kembali", "indikator apa",
+  "harus saya pantau", "perlu dipantau", "harus dipantau", "yang dipantau", "dipantau apa",
+  "invalidate", "disprove", "prove wrong", "proven wrong", "falsif", "reopen", "what to monitor",
+  "which indicator", "what should i watch", "what would change",
+];
+
+/** "Sesuai aturan saya…" — the reader's own Playbook, not the recordings. */
+const PLAYBOOK_PHRASES = [
+  "aturan saya", "aturanku", "sesuai aturan", "aturan pribadi", "playbook", "my rules", "my rule",
+  "according to my",
+];
+
+/** "Jelaskan jalur … untuk PGAS" — the question the map's "Tanya jalur ini" types. */
+const PATH_PHRASES = ["jalur", "path", "mekanisme", "mechanism"];
+
+function mentionsWord(question: string, words: string[]): boolean {
+  const tokens = new Set(question.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/));
+  return words.some((word) => tokens.has(word));
+}
+
+function isAttributionQuestion(question: string): boolean {
+  return mentions(question, ATTRIBUTION_PHRASES) || (mentions(question, WHY_PHRASES) && mentionsWord(question, MOVE_WORDS));
+}
+
+/**
+ * The emiten an earlier turn was about, when there was exactly one.
+ *
+ * "Kalau begitu, indikator apa yang harus saya pantau?" names nothing and
+ * points at nothing a pointer rule recognises, but it plainly continues the
+ * turn before. Used only for the case-shaped handlers, and only when neither
+ * the question nor the chip supplied a subject; with two candidates on the
+ * last turn it stays unresolved rather than guessing.
+ */
+function historySubject(history: HistoryTurn[]): SymbolCode | undefined {
+  const known = new Set<string>(SYMBOL_CODES);
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const turn = history[index];
+    if (turn.role !== "assistant" || !turn.symbols?.length) continue;
+    const symbols = [...new Set(turn.symbols.filter((symbol) => known.has(symbol)))];
+    return symbols.length === 1 ? symbols[0] as SymbolCode : undefined;
+  }
+  return undefined;
+}
+
+/** The node the question names on a symbol's causal chain, if any. */
+async function causalNodeFor(question: string, symbols: SymbolCode[], profile: UserProfile) {
+  const normalized = normalizeQuery(question);
+  for (const symbol of symbols) {
+    const graph = await buildCausalGraph(symbol, profile, { scope: "market", minRelevance: _DEFAULTS.chainRelevanceFloor });
+    const node = graph?.nodes
+      // The company node is labelled with the ticker, which every question
+      // about the emiten contains; it is the chain's anchor, not a path.
+      .filter((item) => item.kind !== "company" && normalizeQuery(item.label).length >= 4 && normalized.includes(normalizeQuery(item.label)))
+      .sort((first, second) => second.label.length - first.label.length)[0];
+    if (graph && node) return { graph, node };
+  }
+  return null;
+}
 
 /**
  * Padded so " vs " matches a real separator rather than any word ending in
@@ -1177,7 +1308,10 @@ async function provenanceAnswer(analysis: AnalysisCase, question: string): Promi
  * labelling a PGAS answer ANTM.
  */
 async function answerFollowUp(request: ChatRequest): Promise<ChatAnswer> {
-  const answer = await routeFollowUp(request);
+  const routed = await routeFollowUp(request);
+  // Handlers that never ask the model — provenance, refusals, the menu —
+  // wrote their text deterministically by design, so no reason is attached.
+  const answer: ChatAnswer = routed.generator ? routed : { ...routed, generator: "deterministic" };
   const named = findSymbols(request.question)[0];
   return named ? { ...answer, questionSymbol: named } : answer;
 }
@@ -1230,9 +1364,25 @@ async function retrievalFor(request: ChatRequest, followUp: FollowUp): Promise<R
 }
 
 async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
-  const guarded = safeLanguage(request.question);
   const symbols = findSymbols(request.question);
-  const primary = symbols[0] ?? request.contextSymbol;
+  const lowered = request.question.toLowerCase();
+  const attributionAsked = isAttributionQuestion(lowered);
+  const statusAsked = mentions(lowered, STATUS_PHRASES)
+    || (mentionsWord(lowered, STATUS_WORDS) && (symbols.length > 0 || CONTEXT_POINTER.test(lowered)));
+  const falsifierAsked = mentions(lowered, FALSIFIER_PHRASES);
+  const playbookAsked = mentions(lowered, PLAYBOOK_PHRASES);
+  const caseShaped = attributionAsked || statusAsked || falsifierAsked || playbookAsked;
+  const primary = symbols[0] ?? request.contextSymbol ?? (caseShaped ? historySubject(safeHistory(request.history)) : undefined);
+  // A path question from the map names its node by label. Resolved against
+  // the same chain the map draws, so the answer is about the card pressed.
+  const pathAsked = mentions(lowered, PATH_PHRASES);
+  const pathSymbols = symbols.length ? symbols : primary ? [primary] : [];
+  const pathHit = pathAsked && pathSymbols.length ? await causalNodeFor(request.question, pathSymbols, request.profile) : null;
+  // The node label is a recorded headline, not the reader's words. "IHSG
+  // Forecast … Analyst Recommendations" is a title the map shows; screening
+  // it as the reader asking for a forecast refused the map's own button.
+  const readerWords = pathHit ? withoutLabel(request.question, pathHit.node.label) : request.question;
+  const guarded = safeLanguage(readerWords);
   const analysis = primary ? await buildAnalysis(primary, request.profile) : null;
   const insights = relevantInsights(request.userInsights, primary);
   const openInsightTraces = insightTraces(insights);
@@ -1251,7 +1401,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // the question. Ranking cannot answer this: every entry is about some other
   // issuer, so the best match is always a confident answer about the wrong
   // one.
-  const unrecorded = unrecordedTickers(request.question);
+  const unrecorded = unrecordedTickers(readerWords);
   if (unrecorded.length) {
     const recorded = SYMBOL_CODES.join(", ");
     return {
@@ -1319,8 +1469,18 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // event question, the case together with a why-phrase for why-listed.
   const subjectNamed = symbols.length > 0 || (Boolean(request.contextSymbol) && CONTEXT_POINTER.test(question));
 
+  // The case-shaped handlers are listed ahead of `explain` and `event-impact`
+  // on purpose. Ties keep list order, and "turun karena berita atau ikut
+  // sektor" ties all three: it names a figure ("sektor") and an event word
+  // ("berita"), but what it asks for is the cause, which only the case holds.
+  const caseReady = Boolean(analysis);
   const winner = selectHandler([
     candidate("compare", { symbolNamedInQuestion: symbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: symbols.length >= 2 && mentions(question, COMPARE_PHRASES) }, symbols.length >= 2),
+    candidate("causal-path", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(pathHit), exactPhrase: pathAsked, fuzzyPhrase: false, evidenceReady: Boolean(pathHit) }, Boolean(pathHit)),
+    candidate("playbook", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: playbookAsked, fuzzyPhrase: false, evidenceReady: caseReady && playbookAsked }, playbookAsked),
+    candidate("falsifier", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: falsifierAsked, fuzzyPhrase: false, evidenceReady: caseReady && falsifierAsked }, falsifierAsked),
+    candidate("attribution", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: attributionAsked, fuzzyPhrase: false, evidenceReady: caseReady && attributionAsked }, attributionAsked),
+    candidate("case-status", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: statusAsked, fuzzyPhrase: false, evidenceReady: caseReady && statusAsked }, statusAsked),
     candidate("provenance", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }, isProvenanceQuestion(question)),
     candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }, figureNamed),
     candidate("event-impact", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && !namedFigure }, Boolean(event) || mentions(question, EVENT_SUBJECT_PHRASES)),
@@ -1347,25 +1507,44 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       };
     }
     if (first && second) {
-      if (question.includes("transmisi") || question.includes("bisnis") || question.includes("katalis")) {
-        const firstImpact = first.businessImpact.find((item) => item.status === "Primary test") ?? first.businessImpact[0];
-        const secondImpact = second.businessImpact.find((item) => item.status === "Primary test") ?? second.businessImpact[0];
-        const firstCatalyst = first.pillars.find((pillar) => pillar.key === "catalyst")!;
-        const secondCatalyst = second.pillars.find((pillar) => pillar.key === "catalyst")!;
-        return {
-          ...(await rewriteWithLlm(request.question, `${symbols[0]} menguji dampak ke ${firstImpact.label.toLowerCase()} dengan status katalis ${firstCatalyst.summary}. Tindakan risetnya ${first.researchDisposition.label.toLowerCase()}. ${symbols[1]} menguji dampak ke ${secondImpact.label.toLowerCase()} dengan status katalis ${secondCatalyst.summary}. Tindakan risetnya ${second.researchDisposition.label.toLowerCase()}. Perbedaan ini adalah objek riset, bukan skor daya tarik.`, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
-          refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
-          citations: uniqueCitations([...firstCatalyst.citations, ...secondCatalyst.citations, ...firstImpact.citations, ...secondImpact.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
-        };
-      }
-      const firstPillar = first.pillars.find((pillar) => pillar.key === "concentration")!;
-      const secondPillar = second.pillars.find((pillar) => pillar.key === "concentration")!;
+      // Every field the two case cards show, side by side. This used to read
+      // the Konsentrasi pillar alone, so "Bandingkan ANTM dan PGAS" answered
+      // with two participation shares and nothing about status, action,
+      // volume, momentum or what triggered either case.
+      const material = compareMaterial(first, second);
       return {
-        ...(await rewriteWithLlm(request.question, `${symbols[0]} memiliki ${firstPillar.summary} ${symbols[1]} memiliki ${secondPillar.summary} Konflik sumber tetap ditampilkan bila asal broker dan arus asing agregat berbeda.`, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
+        ...(await rewriteWithLlm(request.question, material.text, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
-        citations: uniqueCitations([...firstPillar.citations, ...secondPillar.citations]), preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
+        citations: material.citations, preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
       };
     }
+  }
+
+  if (winner.id === "causal-path" && pathHit) {
+    const material = causalPathMaterial(pathHit.graph, pathHit.node);
+    return {
+      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(analysis))),
+      refused: false, intent: "causal-path", hypotheses: openInsightTraces, citations: material.citations,
+      preferenceNote: personalizedNote(), relatedSymbols: [pathHit.graph.targetSymbol],
+    };
+  }
+
+  if (analysis && (winner.id === "attribution" || winner.id === "case-status" || winner.id === "falsifier" || winner.id === "playbook")) {
+    // The Playbook answer reads the case the way the reader's screen computes
+    // it — with their rules applied — because "sesuai aturan saya" is a
+    // question about exactly that difference.
+    const ruled = winner.id === "playbook"
+      ? await buildAnalysis(analysis.company.symbol, request.profile, { playbook: request.playbook, userInsights: request.userInsights, mandate: request.caseMandate }) ?? analysis
+      : analysis;
+    const material = winner.id === "attribution" ? attributionMaterial(analysis)
+      : winner.id === "case-status" ? statusMaterial(analysis)
+        : winner.id === "falsifier" ? falsifierMaterial(analysis, request.playbook)
+          : playbookMaterial(ruled, request.profile, request.playbook);
+    return {
+      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(ruled))),
+      refused: false, intent: winner.id, hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: material.citations,
+      preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
+    };
   }
 
   // Both run ahead of the event branch. `eventFromQuestion` matches loosely
@@ -1412,8 +1591,11 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const thresholdLed = Boolean(retrieved) && (
     retrieved!.entryIds[0]?.startsWith("threshold:") || namesAThreshold(request.question)
   );
-  if (!primary && !thresholdLed && !mentions(question, EVENT_PHRASES)
-    && (unboundFigure || (winner.id !== "retrieved" && mentions(question, WHY_PHRASES)))) {
+  // "Kenapa turun?" with nothing on screen: a cause question is always about
+  // one emiten, and answering it about whichever entry ranked first is a
+  // guess wearing citations.
+  if ((!primary && (attributionAsked || (falsifierAsked && mentionsWord(lowered, CASE_OBJECT_WORDS)))) || (!primary && !thresholdLed && !mentions(question, EVENT_PHRASES)
+    && (unboundFigure || (winner.id !== "retrieved" && mentions(question, WHY_PHRASES))))) {
     return {
       text: `Pertanyaan itu belum terikat ke satu kasus, jadi belum saya jawab. Kasus mana yang Anda maksud?`,
       refused: false, intent: "clarify", hypotheses: [], citations: [],
@@ -1453,7 +1635,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
 
   if (winner.id === "missing") {
     return {
-      ...(await rewriteWithLlm(request.question, analysis ? analysis.missingEvidence.join(" ") : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.", visibleFiguresFor(analysis))),
+      ...(await rewriteWithLlm(request.question, analysis ? missingText(analysis) : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.", visibleFiguresFor(analysis))),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
@@ -1478,7 +1660,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // phrase or a symbol the reader actually named.
   if (analysis && winner.id === "why-listed") {
     return {
-      ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${analysis.materialChange.whatChanged} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
+      ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${withoutSymbolPrefix(analysis.materialChange.whatChanged, analysis.company.symbol)} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
@@ -1501,6 +1683,8 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       hypotheses: openInsightTraces, citations: retrieved.citations,
       preferenceNote: personalizedNote(), relatedSymbols: retrieved.symbols,
       entryIds: retrieved.entryIds,
+      generator: composed.generator,
+      ...(composed.fallbackReason ? { fallbackReason: composed.fallbackReason } : {}),
       ...(composed.llmFallbackNote ? { llmFallbackNote: composed.llmFallbackNote } : {}),
     };
   }
