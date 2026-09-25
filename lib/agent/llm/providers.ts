@@ -17,7 +17,9 @@
  *
  * A provider that cannot hold the JSON schema contract is not usable here. The
  * guards downstream reject free prose, so a model that ignores the schema
- * renders nothing rather than something unverified.
+ * renders nothing rather than something unverified. A gateway that drops
+ * `json_schema` but honours `json_object` can still hold it when the schema
+ * travels in the system instruction instead — see LLM_SCHEMA_MODE below.
  */
 import { GoogleGenAI } from "@google/genai";
 
@@ -117,9 +119,47 @@ export class LlmHttpError extends Error {
 function reasoningField(): Record<string, unknown> | undefined {
   const raw = process.env.LLM_REASONING?.trim().toLowerCase();
   if (!raw) return undefined;
-  if (raw === "off" || raw === "false" || raw === "none") return { enabled: false };
-  if (raw === "low" || raw === "medium" || raw === "high") return { effort: raw };
-  throw new Error(`LLM_REASONING="${raw}" is not one of: off, low, medium, high`);
+  const off = raw === "off" || raw === "false" || raw === "none";
+  if (!off && raw !== "low" && raw !== "medium" && raw !== "high") {
+    throw new Error(`LLM_REASONING="${raw}" is not one of: off, low, medium, high`);
+  }
+  const shape = process.env.LLM_REASONING_FIELD?.trim().toLowerCase() || "reasoning";
+  if (shape === "reasoning") return { reasoning: off ? { enabled: false } : { effort: raw } };
+  // DeepSeek-style gateways read `thinking` and ignore `reasoning` without a
+  // word: measured on one, `reasoning: {enabled: false}` still spent 170-970
+  // reasoning tokens a call, `thinking: {type: "disabled"}` spent none. The
+  // field has no effort scale, so any effort means "on".
+  if (shape === "thinking") return { thinking: { type: off ? "disabled" : "enabled" } };
+  throw new Error(`LLM_REASONING_FIELD="${shape}" is not one of: reasoning, thinking`);
+}
+
+/**
+ * How the answer's JSON schema reaches the model.
+ *
+ * `strict` (the default) sends it as `response_format: json_schema`, which the
+ * vendor enforces. Some gateways accept that field and drop it, so the model
+ * answers in prose and every answer falls to the deterministic path while the
+ * key is healthy. `prompt` puts the schema in the system instruction and asks
+ * for `json_object` — enforced as JSON, not as this schema, which is why the
+ * guards in verify.ts still read every field before anything ships.
+ */
+function schemaMode(): "strict" | "prompt" {
+  const raw = process.env.LLM_SCHEMA_MODE?.trim().toLowerCase() || "strict";
+  if (raw === "strict" || raw === "prompt") return raw;
+  throw new Error(`LLM_SCHEMA_MODE="${raw}" is not one of: strict, prompt`);
+}
+
+function withSchema(request: LlmRequest): { system: string; responseFormat: Record<string, unknown> } {
+  if (schemaMode() === "strict") {
+    return {
+      system: request.systemInstruction,
+      responseFormat: { type: "json_schema", json_schema: { name: "answer", strict: true, schema: request.schema } },
+    };
+  }
+  return {
+    system: `${request.systemInstruction}\n\nReturn only one JSON object that satisfies this JSON Schema, with no other text:\n${JSON.stringify(request.schema)}`,
+    responseFormat: { type: "json_object" },
+  };
 }
 
 interface ChatCompletion {
@@ -135,6 +175,7 @@ const openAiCompatibleProvider: LlmProvider = {
     const apiKey = process.env.LLM_API_KEY;
     if (!apiKey) throw new Error("LLM_PROVIDER=openai-compatible requires LLM_API_KEY");
     const reasoning = reasoningField();
+    const { system, responseFormat } = withSchema(request);
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -146,15 +187,12 @@ const openAiCompatibleProvider: LlmProvider = {
         model: request.model,
         max_tokens: request.maxOutputTokens,
         temperature: ANSWER_TEMPERATURE,
-        ...(reasoning ? { reasoning } : {}),
+        ...reasoning,
         messages: [
-          { role: "system", content: request.systemInstruction },
+          { role: "system", content: system },
           { role: "user", content: request.contents },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: { name: "answer", strict: true, schema: request.schema },
-        },
+        response_format: responseFormat,
       }),
     });
 

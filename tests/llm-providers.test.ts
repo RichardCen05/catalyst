@@ -121,6 +121,49 @@ describe("the openai-compatible provider", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).reasoning).toEqual({ effort: "low" });
   });
 
+  /** DeepSeek-style gateways ignore `reasoning` and read `thinking`. */
+  it("turns thinking off in the thinking shape when the gateway reads that field", async () => {
+    process.env.LLM_REASONING = "off";
+    process.env.LLM_REASONING_FIELD = "thinking";
+    const fetchMock = stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await getLlmProvider().generate(request);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.thinking).toEqual({ type: "disabled" });
+    expect(body).not.toHaveProperty("reasoning");
+  });
+
+  it("names the accepted field shapes", async () => {
+    process.env.LLM_REASONING = "off";
+    process.env.LLM_REASONING_FIELD = "think";
+    stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await expect(getLlmProvider().generate(request)).rejects.toThrow(/reasoning, thinking/);
+  });
+
+  /** A gateway that drops json_schema answers in prose; the schema then has
+   *  to travel in the system instruction under json_object. */
+  it("carries the schema in the system instruction in prompt mode", async () => {
+    process.env.LLM_SCHEMA_MODE = "prompt";
+    const fetchMock = stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    const schema = { type: "object", properties: { sentence: { type: "string" } }, required: ["sentence"] };
+    await getLlmProvider().generate({ ...request, schema });
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.response_format).toEqual({ type: "json_object" });
+    expect(body.messages[0].role).toBe("system");
+    expect(body.messages[0].content.startsWith("s\n\n")).toBe(true);
+    expect(body.messages[0].content).toContain(JSON.stringify(schema));
+    expect(body.messages[1]).toEqual({ role: "user", content: "c" });
+  });
+
+  it("names the accepted schema modes", async () => {
+    process.env.LLM_SCHEMA_MODE = "loose";
+    stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
+    const { getLlmProvider } = await import("@/lib/agent/llm/providers");
+    await expect(getLlmProvider().generate(request)).rejects.toThrow(/strict, prompt/);
+  });
+
   it("names the accepted values rather than sending a typo to the vendor", async () => {
     process.env.LLM_REASONING = "medium-ish";
     stubFetch(200, { choices: [{ message: { content: "{}" }, finish_reason: "stop" }] });
