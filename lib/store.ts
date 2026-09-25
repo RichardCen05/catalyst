@@ -161,7 +161,7 @@ export const useCatalystStore = create<CatalystState>()(
         const learned: LearnedPreference = {
           id: `learned-${insight.id}`,
           label: `Verifikasi ulang ${insight.symbol}${insight.pillar ? ` · ${insight.pillar}` : ""}`,
-          explanation: "Catatan pengguna disimpan sebagai hipotesis terbuka sampai diperiksa terhadap sumber.",
+          explanation: "Catatan pengguna diterima dan diproses sebagai konteks analisis; bukan fakta pasar.",
           source: "feedback",
           active: true,
         };

@@ -6,7 +6,7 @@ import { useCatalystStore } from "@/lib/store";
 import { NextStep } from "@/components/next-step";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { AnalysisReview } from "@/components/analysis-review";
-import { CaseDisposition, CaseMemoActions } from "@/components/case-verdict";
+import { CaseMemoActions } from "@/components/case-verdict";
 import { CaseResolutionPanel } from "@/components/case-resolution";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
@@ -100,8 +100,8 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
         </section> : null}
 
         {activeTab === "review" ? <section aria-labelledby="decision-title" className="rise-in">
-          <StepHeader id="decision-title" title="Keputusan" description="Baca ringkasan di kiri, lalu simpan hasil kasus di kanan: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang." />
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+          <StepHeader id="decision-title" title="Keputusan" description="Baca ringkasan, lalu simpan hasil kasus di bawahnya: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang." />
+          <div className="space-y-6">
             <div className="min-w-0 space-y-4">
               <dl className="grid overflow-hidden rounded-lg border border-border sm:grid-cols-4">
                 {analysis.pillars.map((item) => <div key={item.key} className="border-border px-4 py-3 not-first:border-t sm:not-first:border-l sm:not-first:border-t-0"><dt className="text-xs font-medium text-muted-foreground">{item.label}</dt><dd className="mt-0.5 text-base font-semibold">{uiLabel(item.status)}</dd></div>)}
@@ -121,10 +121,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
               </section> : null}
               <CaseMemoActions researchCase={analysis} symbol={symbol} />
             </div>
-            <div className="min-w-0 space-y-4">
-              <CaseDisposition researchCase={analysis} symbol={symbol} />
-              <CaseResolutionPanel researchCase={analysis} symbol={symbol} />
-            </div>
+            <CaseResolutionPanel researchCase={analysis} symbol={symbol} />
           </div>
           <details className="group mt-6 rounded-lg border border-border">
             <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Koreksi analisis ini<span aria-hidden="true" className="ml-auto transition-transform group-open:rotate-180">▾</span></summary>

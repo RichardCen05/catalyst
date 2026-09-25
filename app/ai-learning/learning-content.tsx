@@ -71,7 +71,7 @@ const kindLabels: Record<LearningItem["kind"], string> = {
 
 const memoryGroups: Array<{ key: MemoryGroup; title: string; empty: string }> = [
   { key: "feedback", title: "Feedback untuk prioritas", empty: "Belum ada feedback aktif dari kartu bukti." },
-  { key: "insight", title: "Hipotesis pengguna", empty: "Belum ada ajaran aktif yang perlu diperiksa." },
+  { key: "insight", title: "Hipotesis pengguna", empty: "Belum ada ajaran aktif." },
   { key: "rule", title: "Aturan yang disetujui", empty: "Belum ada usulan aturan yang diterima." },
   { key: "explicit", title: "Memori eksplisit", empty: "Belum ada aturan eksplisit yang disimpan." },
 ];
@@ -169,15 +169,15 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
     router.replace(query ? `/ai-learning?${query}` : "/ai-learning", { scroll: false });
   };
 
-  // Antrean yang menunggu keputusan pembaca: koreksi yang belum diperiksa dan
-  // usulan aturan yang belum diterima atau ditolak. Dihitung dari snapshot,
+  // Antrean yang menunggu keputusan pembaca: usulan aturan yang belum diterima
+  // atau ditolak. Koreksi pengguna langsung diterima saat disimpan. Dihitung dari snapshot,
   // bukan dijumlah ulang di sini, agar lencana tab dan angka di bagian
   // Tinjauan tidak bisa berbeda.
   const pendingCount = snapshot.summary.pendingCount;
 
   const counters = [
     { label: "sudah diajarkan", value: snapshot.summary.inputCount },
-    { label: "menunggu diperiksa", value: snapshot.summary.pendingCount },
+    { label: "menunggu keputusan", value: snapshot.summary.pendingCount },
     { label: "dipakai sekarang", value: snapshot.summary.activeCount + snapshot.summary.explicitCount },
   ];
 
@@ -218,7 +218,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
       <details className="group mb-6 rounded-lg border border-border bg-surface" aria-label="Batas AI Learning">
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 text-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
           <Info aria-hidden="true" className="size-4 shrink-0" />
-          <span className="min-w-0 flex-1">Catalyst tidak melatih ulang model. Koreksi Anda tetap hipotesis sampai diperiksa.</span>
+          <span className="min-w-0 flex-1">Catalyst tidak melatih ulang model. Koreksi Anda langsung diterima dan diproses sebagai konteks, bukan fakta pasar.</span>
           <span className="shrink-0 font-medium text-foreground underline underline-offset-2 group-open:hidden">Selengkapnya</span>
         </summary>
         <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback.</p>
@@ -375,7 +375,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           di sini. */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]">
         <Panel className="overflow-hidden">
-          <PanelHeader title="Koreksi yang perlu diperiksa" />
+          <PanelHeader title="Koreksi yang diterima" />
           {insights.length ? (
             <div className="divide-y divide-border">
               {insights.map((insight) => (
@@ -383,8 +383,8 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs font-semibold text-muted-foreground font-medium">{insight.symbol}</span>
                     <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">{insight.pillar ? uiLabel(insight.pillar) : "Umum"}</span>
-                    <span className={cn("rounded-lg border px-1.5 py-0.5 text-xs", statusClass(insight.status === "pending" ? "pending" : insight.status === "incorporated" ? "reviewed" : "dismissed"))}>
-                      {insight.status === "pending" ? "menunggu" : insight.status === "incorporated" ? "diperiksa" : "diabaikan"}
+                    <span className={cn("rounded-lg border px-1.5 py-0.5 text-xs", statusClass(insight.status === "dismissed" ? "dismissed" : "accepted"))}>
+                      {statusText(insight.status === "dismissed" ? "dismissed" : "accepted")}
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6">{insight.note}</p>
@@ -394,10 +394,11 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
                     </a>
                   ) : null}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Button variant="secondary" size="sm" onClick={() => setInsightStatus(insight.id, insight.status === "pending" ? "incorporated" : "pending")}>
-                      {insight.status === "pending" ? "Tandai sudah diperiksa" : "Kembalikan ke antrean"}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setInsightStatus(insight.id, "dismissed")}>Abaikan</Button>
+                    {insight.status === "dismissed" ? (
+                      <Button variant="secondary" size="sm" onClick={() => setInsightStatus(insight.id, "incorporated")}>Pakai lagi</Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" onClick={() => setInsightStatus(insight.id, "dismissed")}>Abaikan</Button>
+                    )}
                     <Button variant="ghost" size="icon" onClick={() => removeInsight(insight.id)} aria-label={`Hapus catatan ${insight.symbol}`} className="ml-auto text-danger">
                       <Trash2 aria-hidden="true" className="size-4" />
                     </Button>
@@ -408,7 +409,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           ) : (
             <div className="flex flex-col items-start gap-3 px-4 py-8 text-sm leading-6 text-muted-foreground sm:flex-row sm:items-center">
               <Lightbulb aria-hidden="true" className="size-5 shrink-0 text-primary" />
-              <p className="max-w-2xl">Tidak ada koreksi yang menunggu pemeriksaan. Tulis satu kalimat di bagian Ajaran dan riwayat untuk membuka hipotesis baru.</p>
+              <p className="max-w-2xl">Belum ada koreksi. Tulis satu kalimat di bagian Ajaran dan riwayat; Catalyst langsung menerima dan memprosesnya.</p>
               <Link href="/ai-learning" className="inline-flex min-h-9 shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline sm:ml-auto">
                 Buka kotak ajaran<ArrowRight aria-hidden="true" className="size-3.5" />
               </Link>

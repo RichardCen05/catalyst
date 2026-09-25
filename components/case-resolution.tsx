@@ -48,7 +48,7 @@ export function CaseResolutionPanel({ researchCase, symbol }: { researchCase: Re
       {status === "closed" && stored ? (
         <div className="p-4">
           {savedNow ? <p role="status" className="mb-4 inline-flex items-center gap-1.5 text-xs text-positive"><Check aria-hidden="true" className="size-3.5" />Hasil tersimpan. Usulan aturan menunggu persetujuan.</p> : null}
-          <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border">
+          <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2">
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Hasil</dt><dd className="mt-1 text-sm font-semibold capitalize">{stored.outcome === "supported" ? "Mendukung" : stored.outcome === "challenged" ? "Terbantahkan" : "Masih terbuka"}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Tindakan riset</dt><dd className="mt-1 text-sm font-semibold">{dispositionLabel(stored.disposition ?? researchCase.researchDisposition.kind)}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Hipotesis akhir</dt><dd className="mt-1 text-sm leading-6">{stored.finalHypothesis}</dd></div>
@@ -60,7 +60,7 @@ export function CaseResolutionPanel({ researchCase, symbol }: { researchCase: Re
         </div>
       ) : (
         <form onSubmit={submit} className="p-4">
-          <div className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <label className="text-xs font-medium">Hasil pemeriksaan<select aria-label="Hasil pemeriksaan" value={form.outcome} onChange={(event) => setForm((current) => ({ ...current, outcome: event.target.value as CaseResolution["outcome"] }))} className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-foreground"><option value="supported">Mendukung</option><option value="challenged">Terbantahkan</option><option value="open">Masih terbuka</option></select></label>
             <label className="text-xs font-medium">Tindakan riset<select aria-label="Tindakan riset" value={form.disposition} onChange={(event) => setForm((current) => ({ ...current, disposition: event.target.value as CaseResolution["disposition"] }))} className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-foreground"><option value="escalate">Lanjutkan riset</option><option value="monitor">Pantau indikator</option><option value="dismiss">Abaikan pemicu</option></select></label>
             <label className="text-xs font-medium">Hipotesis akhir<textarea aria-label="Hipotesis akhir" rows={3} value={form.finalHypothesis} onChange={(event) => update("finalHypothesis", event.target.value)} className="mt-1.5 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm leading-6 outline-none focus:border-foreground" /></label>

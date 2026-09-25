@@ -1,7 +1,7 @@
 "use client";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
@@ -130,6 +130,26 @@ const checkLabel: Record<ScreenCheck, string> = {
   substance: "tanpa isi konkret",
   relevance: "tidak relevan bagi emiten",
 };
+/** How many rows a long list shows before a reviewer asks for the rest. Layout,
+ *  not a decision threshold: it hides nothing the engine reads. */
+const COLLAPSED_ROWS = 3;
+
+/** First rows of a long list plus a toggle for the remainder. */
+function Collapsible<T>({ items, render }: { items: T[]; render: (item: T) => ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const shown = open ? items : items.slice(0, COLLAPSED_ROWS);
+  const hidden = items.length - COLLAPSED_ROWS;
+  return (
+    <>
+      {shown.map(render)}
+      {hidden > 0 ? (
+        <Button variant="secondary" size="sm" aria-expanded={open} onClick={() => setOpen(!open)} className="w-full">
+          {open ? "Tampilkan lebih sedikit" : `Tampilkan ${hidden} lainnya`}
+        </Button>
+      ) : null}
+    </>
+  );
+}
 
 type ProposalImpact = TriageProposal["impacts"][number];
 const mapsSomething = (impact: ProposalImpact) => impact.direction !== "Unrelated";
@@ -317,7 +337,6 @@ function CandidateCard({
                 >
                   {busy ? "Menyimpan…" : "Terima usulan"}
                 </Button>
-                <Button variant="secondary" disabled={busy} onClick={() => setShowAccept(true)}>Ubah dulu</Button>
               </>
             ) : (
               <Button
@@ -334,10 +353,16 @@ function CandidateCard({
                 Tolak: tidak terkait
               </Button>
             )}
+            {!showAccept ? (
+              <Button variant="secondary" disabled={busy} onClick={() => setShowAccept(true)}>Edit</Button>
+            ) : null}
           </div>
         </section>
       ) : null}
 
+      {/* With a proposal on the card, the manual form stays closed until the
+          reviewer asks to edit it; without one it is the only way to accept. */}
+      {!proposal || showAccept ? (
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Terima — petakan ke emiten</h4>
         {!showAccept ? (
@@ -439,6 +464,7 @@ function CandidateCard({
           </>
         )}
       </div>
+      ) : null}
 
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Tolak</h4>
@@ -791,6 +817,32 @@ export function WebWatchReview() {
       ) : (
         <div className="space-y-8">
           {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} lastScreenAt={data.lastScreenAt ?? null} onChanged={load} /> : null}
+          <section aria-label="Diterima engine">
+            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
+            {data.accepted.length ? (
+              <div className="space-y-3">
+                <Collapsible
+                  items={data.accepted}
+                  render={(event) => (
+                    <Panel key={event.id} className="p-4">
+                      <h3 className="text-sm font-semibold leading-snug">{event.title}</h3>
+                      <EventMarkers markers={event.markers} className="mt-1 block" />
+                      <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                        {event.impactLinks.map((link) => (
+                          <li key={link.symbol} className="font-mono">
+                            {link.symbol} · {uiLabel(link.direction)} · {bandLabel[bandForRelevance(link.relevance)]} — {link.path}
+                          </li>
+                        ))}
+                      </ul>
+                    </Panel>
+                  )}
+                />
+              </div>
+            ) : (
+              <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
+            )}
+          </section>
+
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
@@ -826,18 +878,21 @@ export function WebWatchReview() {
                   <p className="mb-3 text-xs text-muted-foreground">Penyaring sudah membaca calon ini dan belum yakin. Keputusan Anda di sini dipakai untuk mengkalibrasi penyaring.</p>
                   {needsDecision.length ? (
                     <div className="space-y-4">
-                      {needsDecision.map((candidate) => (
-                        <CandidateCard
-                          key={candidate.id}
-                          candidate={candidate}
-                          symbols={data.symbols}
-                          bands={data.bands}
-                          match={data.matches[candidate.id]}
-                          proposal={data.proposals[candidate.id]}
-                          residual={residualById.get(candidate.id)}
-                          onDecided={load}
-                        />
-                      ))}
+                      <Collapsible
+                        items={needsDecision}
+                        render={(candidate) => (
+                          <CandidateCard
+                            key={candidate.id}
+                            candidate={candidate}
+                            symbols={data.symbols}
+                            bands={data.bands}
+                            match={data.matches[candidate.id]}
+                            proposal={data.proposals[candidate.id]}
+                            residual={residualById.get(candidate.id)}
+                            onDecided={load}
+                          />
+                        )}
+                      />
                     </div>
                   ) : (
                     <Panel className="p-6 text-sm text-muted-foreground">Tidak ada calon yang ditinggalkan penyaring untuk Anda.</Panel>
@@ -848,17 +903,20 @@ export function WebWatchReview() {
                     <h3 className="mb-1 text-base font-semibold">Menunggu penyaringan ({unscreened.length})</h3>
                     <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa memutuskannya sekarang.</p>
                     <div className="space-y-4">
-                      {unscreened.map((candidate) => (
-                        <CandidateCard
-                          key={candidate.id}
-                          candidate={candidate}
-                          symbols={data.symbols}
-                          bands={data.bands}
-                          match={data.matches[candidate.id]}
-                          proposal={data.proposals[candidate.id]}
-                          onDecided={load}
-                        />
-                      ))}
+                      <Collapsible
+                        items={unscreened}
+                        render={(candidate) => (
+                          <CandidateCard
+                            key={candidate.id}
+                            candidate={candidate}
+                            symbols={data.symbols}
+                            bands={data.bands}
+                            match={data.matches[candidate.id]}
+                            proposal={data.proposals[candidate.id]}
+                            onDecided={load}
+                          />
+                        )}
+                      />
                     </div>
                   </section>
                 ) : null}
@@ -870,29 +928,6 @@ export function WebWatchReview() {
 
           <AutoDecidedList items={data.autoAccepted ?? []} rejected={data.autoRejected ?? []} onReverted={load} />
           <ArchivedList items={data.archived} />
-
-          <section aria-label="Diterima engine">
-            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
-            {data.accepted.length ? (
-              <div className="space-y-3">
-                {data.accepted.map((event) => (
-                  <Panel key={event.id} className="p-4">
-                    <h3 className="text-sm font-semibold leading-snug">{event.title}</h3>
-                    <EventMarkers markers={event.markers} className="mt-1 block" />
-                    <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      {event.impactLinks.map((link) => (
-                        <li key={link.symbol} className="font-mono">
-                          {link.symbol} · {uiLabel(link.direction)} · {bandLabel[bandForRelevance(link.relevance)]} — {link.path}
-                        </li>
-                      ))}
-                    </ul>
-                  </Panel>
-                ))}
-              </div>
-            ) : (
-              <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
-            )}
-          </section>
 
           {/* Feed plumbing, not review material: which pages the crawler polls
               and whether any of them is failing. It sits closed under the queue

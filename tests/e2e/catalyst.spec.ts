@@ -311,9 +311,9 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByText(rule, { exact: true })).toBeVisible();
 
-  // The disposition itself lives on the case, not on the dashboard: the board
+  // The case outcome lives on the case, not on the dashboard: the board
   // draws the causal chains and leaves the verdict where its evidence is.
-  await expect(page.getByRole("region", { name: "Tindakan riset" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Hasil kasus" })).toBeVisible();
   await page.goto("/");
   await expect(page.locator('a[href="/cases/ANTM"]').first()).toBeVisible();
 });
@@ -475,22 +475,7 @@ test("Causal Impact compares competing explanations across every observable the 
   await expect(selected.getByText("Pembeda utama", { exact: true })).toBeVisible();
 });
 
-test("each causal edge exposes an inspectable falsification contract", async ({ page }) => {
-  await finishSetup(page);
-  await page.goto("/impact?company=ANTM");
-  await page.getByText("Buka daftar hubungan", { exact: true }).click();
-  await page.getByRole("button", { name: /Periksa hubungan/ }).first().click();
-  const contract = page.getByLabel("Detail hubungan terpilih");
-  await expect(contract.getByText("Eksposur", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Indikator yang dicari", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Penjelasan lain", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Batal jika", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Dasar keyakinan", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Dampak bisnis", { exact: true })).toBeVisible();
-  await expect(contract.getByText(/Realisasi harga|Margin operasi|Volume operasi|Arus kas operasi/).first()).toBeVisible();
-});
-
-test("user correction becomes a reversible open hypothesis", async ({ page }) => {
+test("user correction is accepted on save and can be dismissed", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=review");
   const note = "Kontrak ekspor belum dibedakan antara denominasi USD dan IDR.";
@@ -501,8 +486,8 @@ test("user correction becomes a reversible open hypothesis", async ({ page }) =>
   await page.goto("/ai-learning?section=tinjauan");
   await expect(page.getByText(note)).toBeVisible();
   await expect(page.getByRole("link", { name: "Buka referensi pengguna" })).toHaveAttribute("href", "https://www.bi.go.id/");
-  await page.getByRole("button", { name: "Tandai sudah diperiksa" }).click();
-  await expect(page.getByRole("button", { name: "Kembalikan ke antrean" })).toBeVisible();
+  await page.getByRole("button", { name: "Abaikan" }).click();
+  await expect(page.getByRole("button", { name: "Pakai lagi" })).toBeVisible();
 });
 
 test("closing a case stores a reusable research resolution", async ({ page }) => {

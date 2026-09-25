@@ -94,21 +94,28 @@ const feedbackCopy: Record<FeedbackEvent["action"], { input: string; learned: st
   },
 };
 
-const insightStatusCopy: Record<UserInsight["status"], { label: string; learning: string; effect: string }> = {
-  pending: {
-    label: "Menunggu pemeriksaan",
-    learning: "Disimpan sebagai hipotesis terbuka",
-    effect: "Muncul sebagai catatan pemeriksaan untuk ticker terkait; tidak mengubah fakta atau rumus.",
-  },
-  incorporated: {
-    label: "Sudah diperiksa",
-    learning: "Tetap disimpan sebagai konteks hipotesis",
-    effect: "Tetap dapat muncul sebagai catatan pemeriksaan untuk ticker terkait; tidak menjadi fakta pasar.",
+/**
+ * Every note a reader files is accepted and processed the moment it is saved:
+ * there is no queue a note waits in. The store still records `pending` versus
+ * `incorporated` (older copies carry both), but on this page the two are one
+ * state — only a note the reader dismissed reads differently.
+ */
+type InsightDisplayStatus = "accepted" | "dismissed";
+
+function insightDisplayStatus(status: UserInsight["status"]): InsightDisplayStatus {
+  return status === "dismissed" ? "dismissed" : "accepted";
+}
+
+const insightStatusCopy: Record<InsightDisplayStatus, { label: string; learning: string; effect: string }> = {
+  accepted: {
+    label: "Diterima",
+    learning: "Diterima dan diproses sebagai konteks analisis",
+    effect: "Dipakai sebagai konteks analisis untuk ticker terkait; tidak mengubah fakta atau rumus.",
   },
   dismissed: {
     label: "Diabaikan",
-    learning: "Tidak dipakai lagi sebagai hipotesis",
-    effect: "Tidak lagi masuk sebagai catatan pemeriksaan.",
+    learning: "Tidak dipakai lagi sebagai konteks",
+    effect: "Tidak lagi masuk sebagai konteks analisis.",
   },
 };
 
@@ -212,8 +219,13 @@ function toFeedbackItem(feedback: FeedbackEvent, preferences: LearnedPreference[
 }
 
 function toInsightItem(insight: UserInsight): LearningItem {
-  const copy = insightStatusCopy[insight.status];
-  const history = insight.reviewHistory.length ? insight.reviewHistory : [{ status: insight.status, at: insight.createdAt }];
+  const current = insightDisplayStatus(insight.status);
+  const copy = insightStatusCopy[current];
+  const recorded = insight.reviewHistory.length ? insight.reviewHistory : [{ status: insight.status, at: insight.createdAt }];
+  // pending → incorporated is one state here, so collapse the repeats it leaves.
+  const history = recorded
+    .map((entry) => ({ status: insightDisplayStatus(entry.status), at: entry.at }))
+    .filter((entry, index, all) => index === 0 || entry.status !== all[index - 1].status);
   return {
     id: `insight-${insight.id}`,
     kind: "insight",
@@ -222,16 +234,16 @@ function toInsightItem(insight: UserInsight): LearningItem {
     inputLabel: insightCategoryCopy[insight.category],
     inputDetail: insight.note,
     targetLabel: `${insight.symbol}${insight.pillar ? ` · ${insight.pillar}` : ""}`,
-    status: insight.status === "pending" ? "pending" : insight.status === "incorporated" ? "reviewed" : "dismissed",
+    status: current,
     statusLabel: copy.label,
     learningLabel: copy.learning,
-    learningDetail: "Catatan pengguna tidak menjadi fakta pasar sampai sumber memverifikasinya.",
+    learningDetail: "Catatan pengguna dipakai sebagai konteks, tidak menjadi fakta pasar sampai sumber memverifikasinya.",
     effectLabel: copy.effect,
     steps: [
       { label: "Catatan disimpan", detail: "Masukan disimpan untuk ticker terkait.", state: "complete", at: insight.createdAt },
-      { label: "Hipotesis terbuka", detail: "Catatan menjadi pertanyaan pemeriksaan, bukan perubahan data dasar.", state: insight.status === "dismissed" ? "skipped" : "complete" },
+      { label: "Diproses agen", detail: "Catatan masuk sebagai konteks analisis, bukan perubahan data dasar.", state: current === "dismissed" ? "skipped" : "complete" },
       ...history.map((entry, index) => ({
-        label: index === history.length - 1 ? copy.label : insightStatusCopy[entry.status].label,
+        label: insightStatusCopy[entry.status].label,
         detail: insightStatusCopy[entry.status].effect,
         state: index === history.length - 1 ? "current" as const : "complete" as const,
         at: entry.at,
@@ -381,7 +393,7 @@ export function buildLearningSnapshot(input: LearningSnapshotInput): LearningSna
     .map((insight) => ({
       id: `memory-insight-${insight.id}`,
       group: "insight" as const,
-      status: insight.status === "pending" ? "pending" as const : "reviewed" as const,
+      status: "accepted" as const,
       label: `Hipotesis ${insight.symbol}`,
       detail: insight.note,
       href: `/cases/${insight.symbol}?tab=review`,
@@ -404,7 +416,8 @@ export function buildLearningSnapshot(input: LearningSnapshotInput): LearningSna
     memories,
     summary: {
       inputCount: input.feedback.length + input.insights.length + Object.values(input.caseResolutions).filter(Boolean).length,
-      pendingCount: input.insights.filter((insight) => insight.status === "pending").length + input.ruleProposals.filter((proposal) => proposal.status === "pending").length,
+      // Only rule proposals wait on the reader; a filed note is accepted on save.
+      pendingCount: input.ruleProposals.filter((proposal) => proposal.status === "pending").length,
       activeCount: feedbackMemories.length + insightMemories.length + ruleMemories.length,
       explicitCount: explicit.length,
     },

@@ -25,8 +25,8 @@ const pillarLabels: Record<PillarKey, string> = {
 };
 
 const statusLabels: Record<UserInsight["status"], string> = {
-  pending: "menunggu",
-  incorporated: "diperiksa",
+  pending: "diterima",
+  incorporated: "diterima",
   dismissed: "diabaikan",
 };
 
