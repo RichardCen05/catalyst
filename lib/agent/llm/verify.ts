@@ -128,7 +128,14 @@ export function groundingViolation(draftText: string, evidenceText: string, evid
   if (quoted) return null;
   const evidence = contentTerms(evidenceText);
   const shared = [...contentTerms(draftText)].filter((term) => evidence.has(term)).length;
-  return shared >= DEFAULT_THRESHOLDS.answerGroundedMinTerms
+  // A translated answer keeps the ticker and the verbatim labels but little
+  // else: "Why is the PGAS evidence mixed?" answered faithfully in English
+  // shares one term with the Indonesian material. Across languages one shared
+  // term is the bar; the meta check above still applies in full.
+  const drafted = detectLanguage(draftText);
+  const recorded = detectLanguage(evidenceText);
+  const translated = drafted !== "unknown" && recorded !== "unknown" && drafted !== recorded;
+  return shared >= (translated ? 1 : DEFAULT_THRESHOLDS.answerGroundedMinTerms)
     ? null
     : `draft shares ${shared} content terms with the evidence and quotes no evidence figure`;
 }

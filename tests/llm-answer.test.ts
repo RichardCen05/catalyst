@@ -11,4 +11,29 @@ describe("composeAnswerWithLlm", () => {
     const call = vi.fn().mockResolvedValue({ text: "ANTM naik 999% hari ini." });
     await expect(composeAnswerWithLlm({ question: "Kenapa ANTM naik?", evidenceSummary: "Return 3 hari 4,2%.", evidenceNumbers: ["4,2%"] }, call)).rejects.toThrow(/999%/);
   });
+
+  it("tells the model the answer language in that language", async () => {
+    const call = vi.fn().mockResolvedValue({ text: "PGAS evidence is mixed because the market layer and the business layer disagree." });
+    await composeAnswerWithLlm({ question: "Why is the PGAS evidence mixed?", evidenceSummary: "Status bukti PGAS: Bukti bercampur. Lapisan pasar dan lapisan bisnis tidak searah.", evidenceNumbers: [] }, call);
+    expect(call.mock.calls[0][0].contents).toMatch(/Write the answer in English\./);
+  });
+  it("reads the language from the reader's words, not from a quoted headline", async () => {
+    const call = vi.fn().mockResolvedValue({ text: "Jalur ini menghubungkan sengketa kontrak dengan kewajiban kompensasi dan arus kas operasi." });
+    const question = "Jelaskan jalur PGAS Loses Partial Arbitration Award to Gunvor untuk PGAS.";
+    await composeAnswerWithLlm({
+      question, languageSource: "Jelaskan jalur untuk PGAS.",
+      evidenceSummary: "Jalur sengketa kontrak → kewajiban kompensasi → arus kas operasi.", evidenceNumbers: [],
+    }, call);
+    expect(call.mock.calls[0][0].contents).toMatch(/Tulis jawaban dalam bahasa Indonesia\.$/m);
+  });
+});
+
+describe("grounding across languages", () => {
+  it("an English draft of Indonesian material passes on the shared ticker, a meta draft does not", async () => {
+    const { groundingViolation } = await import("@/lib/agent/llm/verify");
+    const evidence = "Status bukti PGAS: Bukti bercampur. Lapisan pasar dan lapisan bisnis tidak searah.";
+    expect(groundingViolation("PGAS evidence is mixed because the market layer and the business layer disagree.", evidence, [])).toBeNull();
+    expect(groundingViolation("The available information contains details about this company.", evidence, [])).toBeTruthy();
+    expect(groundingViolation("Saham ini sedang dalam pengamatan yang panjang.", evidence, [])).toBeTruthy();
+  });
 });

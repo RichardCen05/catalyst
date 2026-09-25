@@ -1,7 +1,7 @@
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
-import { verifyAnswer } from "@/lib/agent/llm/verify";
+import { detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
 
 export interface LlmAnswerDraft {
   text: string;
@@ -11,6 +11,25 @@ export interface AnswerInput {
   question: string;
   evidenceSummary: string;
   evidenceNumbers: string[];
+  /** The reader's own words when the question quotes something else — a map
+   *  node's English headline made "Jelaskan jalur PGAS Loses …" read as an
+   *  English question, and the Indonesian draft was rejected for it. */
+  languageSource?: string;
+}
+
+/**
+ * The language instruction, repeated in the language asked for.
+ *
+ * Rule 5 of the system prompt says the same thing in Indonesian, next to an
+ * Indonesian summary, and DeepSeek answered English questions in Indonesian
+ * every time — the verifier rejected each draft and the reader got the
+ * Indonesian template. An instruction in the target language, after the
+ * material, is the one it follows.
+ */
+function languageLine(language: ReturnType<typeof detectLanguage>): string {
+  if (language === "en") return "\nWrite the answer in English. Keep tickers, figures and quoted labels exactly as they appear.";
+  if (language === "id") return "\nTulis jawaban dalam bahasa Indonesia.";
+  return "";
 }
 
 const ANSWER_SCHEMA = {
@@ -53,11 +72,11 @@ export async function composeAnswerWithLlm(
   const draft = await call<LlmAnswerDraft>({
     model: strongModel(),
     systemInstruction: SYSTEM_INSTRUCTION,
-    contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}`,
+    contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}${languageLine(detectLanguage(input.languageSource ?? input.question))}`,
     schema: ANSWER_SCHEMA,
     maxOutputTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
   });
-  const verification = verifyAnswer(draft.text, input.evidenceNumbers, input.question, input.evidenceSummary);
+  const verification = verifyAnswer(draft.text, input.evidenceNumbers, input.languageSource ?? input.question, input.evidenceSummary);
   if (!verification.approved) throw new Error(`Answer rejected by verifier: ${verification.violations.join("; ")}`);
   return draft;
 }

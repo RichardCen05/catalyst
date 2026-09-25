@@ -932,6 +932,7 @@ async function rewriteWithLlm(
   question: string,
   deterministicText: string,
   visibleFigures: string[] = [],
+  languageSource?: string,
 ): Promise<Composed> {
   if (agentMode() !== "llm") return { text: deterministicText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   try {
@@ -945,7 +946,7 @@ async function rewriteWithLlm(
     // guarantee that matters — no number the recordings never produced.
     const evidenceNumbers = extractNumerals(deterministicText, ...visibleFigures);
     const draft = await Promise.race([
-      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers }),
+      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers, ...(languageSource ? { languageSource } : {}) }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
     return { text: draft.text, generator: "llm" };
@@ -1523,7 +1524,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   if (winner.id === "causal-path" && pathHit) {
     const material = causalPathMaterial(pathHit.graph, pathHit.node);
     return {
-      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(analysis))),
+      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(analysis), readerWords)),
       refused: false, intent: "causal-path", hypotheses: openInsightTraces, citations: material.citations,
       preferenceNote: personalizedNote(), relatedSymbols: [pathHit.graph.targetSymbol],
     };
