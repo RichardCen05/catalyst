@@ -12,12 +12,14 @@ import { EVENT_MARKER_LABEL, type MarketEvent, type SymbolCode } from "@/lib/typ
 
 const profile = demoProfiles[0];
 
-/** A recorded event linked to a watchlist emiten, re-issued as an accepted
+/** A recorded article linked to a watchlist emiten, re-issued as an accepted
  *  web-watch event with a marker. Taken from the recordings, so nothing about
- *  the event is typed here. */
+ *  the event is typed here. Only an event with a body stands in for an
+ *  accepted web-watch article: a computed event (foreign flows) has none, and
+ *  a question about it routes to the metric explanation instead. */
 function markedEvent(): { event: MarketEvent; symbol: SymbolCode } {
   const watched = new Set<string>(profile.watchlist);
-  const base = events.find((event) => event.impactLinks.some((link) => watched.has(link.symbol)));
+  const base = events.find((event) => event.body !== null && event.impactLinks.some((link) => watched.has(link.symbol)));
   if (!base) throw new Error("no recorded event touches the demo watchlist");
   const symbol = base.impactLinks.find((link) => watched.has(link.symbol))!.symbol;
   return {
