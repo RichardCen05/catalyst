@@ -253,146 +253,146 @@
       "params": {},
       "path": "/v2/company/shareholders-composition/TLKM/"
     },
-    "v2_daily_ADRO__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_ADRO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/ADRO/"
     },
-    "v2_daily_AMRT__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_AMRT__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/AMRT/"
     },
-    "v2_daily_ANTM__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_ANTM__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/ANTM/"
     },
-    "v2_daily_BBCA__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_BBCA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/BBCA/"
     },
-    "v2_daily_BBRI__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_BBRI__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/BBRI/"
     },
-    "v2_daily_BMRI__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_BMRI__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/BMRI/"
     },
-    "v2_daily_BUKA__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_BUKA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/BUKA/"
     },
-    "v2_daily_EMTK__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_EMTK__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/EMTK/"
     },
-    "v2_daily_EXCL__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_EXCL__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/EXCL/"
     },
-    "v2_daily_GOTO__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_GOTO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/GOTO/"
     },
-    "v2_daily_ICBP__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_ICBP__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/ICBP/"
     },
-    "v2_daily_INCO__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_INCO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/INCO/"
     },
-    "v2_daily_JSMR__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_JSMR__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/JSMR/"
     },
-    "v2_daily_MYOR__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_MYOR__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/MYOR/"
     },
-    "v2_daily_PGAS__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_PGAS__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/PGAS/"
     },
-    "v2_daily_PTBA__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_PTBA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/PTBA/"
     },
-    "v2_daily_TINS__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_TINS__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/TINS/"
     },
-    "v2_daily_TLKM__end-2026-09-23_start-2026-08-01": {
+    "v2_daily_TLKM__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/daily/TLKM/"
@@ -601,146 +601,146 @@
       },
       "path": "/v2/financials/quarterly/TLKM/"
     },
-    "v2_foreign-flow_ADRO__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_ADRO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/ADRO/"
     },
-    "v2_foreign-flow_AMRT__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_AMRT__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/AMRT/"
     },
-    "v2_foreign-flow_ANTM__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_ANTM__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/ANTM/"
     },
-    "v2_foreign-flow_BBCA__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_BBCA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/BBCA/"
     },
-    "v2_foreign-flow_BBRI__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_BBRI__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/BBRI/"
     },
-    "v2_foreign-flow_BMRI__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_BMRI__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/BMRI/"
     },
-    "v2_foreign-flow_BUKA__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_BUKA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/BUKA/"
     },
-    "v2_foreign-flow_EMTK__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_EMTK__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/EMTK/"
     },
-    "v2_foreign-flow_EXCL__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_EXCL__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/EXCL/"
     },
-    "v2_foreign-flow_GOTO__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_GOTO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/GOTO/"
     },
-    "v2_foreign-flow_ICBP__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_ICBP__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/ICBP/"
     },
-    "v2_foreign-flow_INCO__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_INCO__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/INCO/"
     },
-    "v2_foreign-flow_JSMR__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_JSMR__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/JSMR/"
     },
-    "v2_foreign-flow_MYOR__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_MYOR__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/MYOR/"
     },
-    "v2_foreign-flow_PGAS__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_PGAS__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/PGAS/"
     },
-    "v2_foreign-flow_PTBA__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_PTBA__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/PTBA/"
     },
-    "v2_foreign-flow_TINS__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_TINS__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/TINS/"
     },
-    "v2_foreign-flow_TLKM__end-2026-09-23_start-2026-08-01": {
+    "v2_foreign-flow_TLKM__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/foreign-flow/TLKM/"
@@ -750,10 +750,10 @@
       "params": {},
       "path": "/v2/free-float/"
     },
-    "v2_index-daily_ihsg__end-2026-09-23_start-2026-08-01": {
+    "v2_index-daily_ihsg__end-2026-09-24_start-2026-08-01": {
       "est_cost": 1,
       "params": {
-        "end": "2026-09-23",
+        "end": "2026-09-24",
         "start": "2026-08-01"
       },
       "path": "/v2/index-daily/ihsg/"
