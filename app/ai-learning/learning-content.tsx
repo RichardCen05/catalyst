@@ -58,20 +58,20 @@ const sections: Array<{ value: LearningSection; label: string }> = [
 
 const filterLabels: Record<LearningFilter, string> = {
   all: "Semua",
-  feedback: "Feedback",
+  feedback: "Penilaian bukti",
   insight: "Ajaran Anda",
   resolution: "Hasil kasus",
 };
 
 const kindLabels: Record<LearningItem["kind"], string> = {
-  feedback: "Feedback",
+  feedback: "Penilaian bukti",
   insight: "Ajaran Anda",
   resolution: "Hasil kasus",
 };
 
 const memoryGroups: Array<{ key: MemoryGroup; title: string; empty: string }> = [
-  { key: "feedback", title: "Feedback untuk prioritas", empty: "Belum ada feedback aktif dari kartu bukti." },
-  { key: "insight", title: "Hipotesis pengguna", empty: "Belum ada ajaran aktif." },
+  { key: "feedback", title: "Penilaian bukti untuk prioritas", empty: "Belum ada penilaian aktif dari kartu bukti." },
+  { key: "insight", title: "Ajaran Anda", empty: "Belum ada ajaran aktif." },
   { key: "rule", title: "Aturan yang disetujui", empty: "Belum ada usulan aturan yang diterima." },
   { key: "explicit", title: "Memori eksplisit", empty: "Belum ada aturan eksplisit yang disimpan." },
 ];
@@ -178,7 +178,10 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
   const counters = [
     { label: "sudah diajarkan", value: snapshot.summary.inputCount },
     { label: "menunggu keputusan", value: snapshot.summary.pendingCount },
-    { label: "dipakai sekarang", value: snapshot.summary.activeCount + snapshot.summary.explicitCount },
+    { label: "ajaran dipakai", value: snapshot.summary.activeCount },
+    // Playbook settings are memory too, but they were set, not taught; a
+    // single "in use" total next to "0 taught" read as a contradiction.
+    { label: "pengaturan Playbook dipakai", value: snapshot.summary.explicitCount },
   ];
 
   return (
@@ -224,7 +227,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
           <span className="min-w-0 flex-1">Catalyst tidak melatih ulang model. Koreksi Anda langsung diterima dan diproses sebagai konteks, bukan fakta pasar.</span>
           <span className="shrink-0 font-medium text-foreground underline underline-offset-2 group-open:hidden">Selengkapnya</span>
         </summary>
-        <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback.</p>
+        <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Penilaian bukti mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena penilaian itu.</p>
       </details>
 
       {section === "ajaran" ? <>
@@ -249,10 +252,10 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter saham">
+          <div className="flex items-center gap-2 overflow-x-auto" role="group" aria-label="Filter emiten">
             <span aria-hidden="true" className="w-12 shrink-0 text-xs text-muted-foreground">Saham</span>
             <button type="button" aria-pressed={!symbol} onClick={() => setSearch({ symbol: null, selected: null })} className={chipClass(!symbol)}>
-              Semua saham
+              Semua emiten
             </button>
             {facets.map((facet) => (
               <button key={facet.symbol} type="button" aria-pressed={symbol === facet.symbol} onClick={() => setSearch({ symbol: facet.symbol, selected: null })} className={cn(chipClass(symbol === facet.symbol), "font-mono")}>
@@ -267,7 +270,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         {days.length ? (
           <>
             <div className="hidden grid-cols-[132px_minmax(0,1.05fr)_minmax(0,1fr)_28px] gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:grid">
-              <span>Kapan · saham</span>
+              <span>Kapan · emiten</span>
               <span>Yang Anda ajarkan</span>
               <span>Yang berubah pada Catalyst</span>
               <span className="sr-only">Rincian</span>
@@ -519,7 +522,7 @@ export function LearningContent({ predictionSlot }: { predictionSlot?: ReactNode
         })}
       </div>
 
-      <p className="mt-4 rounded-lg border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; browser, cookie, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan Copilot tidak disimpan.</p>
+      <p className="mt-4 rounded-lg border border-border bg-background px-4 py-3 text-xs leading-5 text-muted-foreground">Memori tersimpan di peramban ini dan dicadangkan ke GCS bila layanan tersedia. Tidak ada akun; peramban lain, cookie yang dihapus, atau perangkat baru dapat memulai memori baru. Catalyst tidak melatih ulang model dari data ini, dan pertanyaan ke Asisten tidak disimpan.</p>
       <NextStep title="Ubah aturan riset" description="Memori eksplisit di atas berasal dari aturan riset Anda. Ubah di sana bila cara Anda menguji tesis berubah." href="/playbook" action="Buka Aturan riset" />
       </> : null}
     </div>

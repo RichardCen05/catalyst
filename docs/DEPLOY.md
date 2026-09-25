@@ -23,9 +23,11 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
 
 The image lives in the `cloud-run-source-deploy` repository, which means the service is deployed
-from source with `gcloud run deploy --source .`. There is no `cloudbuild.yaml` in this repository
-and no Cloud Build trigger (`gcloud builds triggers list` returns nothing), so **no deploy happens
-automatically on push**. Every release is a manual command run by a person with project access.
+from source with `gcloud run deploy --source .`. A person starts a release with one
+`gcloud builds submit --config cloudbuild-deploy.yaml` (§6), which runs the gate and that deploy
+inside Cloud Build. There is no Cloud Build trigger (`gcloud builds triggers list` returns nothing),
+so **no deploy happens automatically on push**. The only unattended deploy is the scheduled data
+refresh (§10), which keeps the serving revision's env and secrets.
 
 ## 2. Runtime configuration on the live revision
 
@@ -191,7 +193,20 @@ python3 scripts/build_market_data.py
 
 ## 5. Gate before every deploy
 
-The gate runs on your machine, not inside the image:
+The deploy pipeline of §6 runs the gate itself, in Cloud Build, before it builds the image:
+`pnpm lint`, `pnpm typecheck`, `vitest` (without the gitignored `tests/zz-live.test.ts`), the NLI
+screen's `pytest` (stub model, no model files), Playwright against a dev server of the candidate
+(`playwright.ci.config.ts`, no LLM key, so answers take the deterministic path), then `pnpm build`
+inside the image. A red step fails the build and the serving revision is untouched.
+
+Left out on purpose: `tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model
+calls, not the candidate; the `zz-live-*` tests need a live key; the screen-payload and triage
+dry-run files are opt-in dump tools; and seven golden figure cases skip because their article text
+is fetched into a gitignored cache and never committed. The e2e step's image tag is `_PLAYWRIGHT`,
+which must equal the installed `@playwright/test`; the step stops with the right value when a
+lockfile update moves it.
+
+Running the gate locally first is still the faster way to find a failure:
 
 ```bash
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
@@ -203,30 +218,78 @@ revision answers from is always built from the source it was built with — a he
 `pnpm chrome:build` can no longer ship a stale index. `tests/chrome-registry.test.ts` still fails on
 a stale committed file, so the diff stays honest too; commit the regenerated file with the change.
 
-Do not deploy with a red gate. `pnpm test:e2e` (Playwright) is the slower local check and is worth
-running when UI or routing changed.
+Locally, `pnpm test:e2e` reuses any dev server already on port 3000, and with a live key in
+`.env.local` two `catalyst.spec.ts` assertions read model-written prose and drift; the pipeline has
+neither problem.
 
 ## 6. Deploy
 
-Two variants — pick one. Both run from the repository root on the branch you want live, and
-both build the image from current source (required: the provider switch only exists in code
-containing `fc5a247`). `--set-env-vars` and `--set-secrets` replace the whole set each time,
-so each command below is complete on its own: never mix half of one with half of the other.
-
-Pull the recordings the scheduled refresh last deployed before you build. The repository's
-recordings trail them — the scheduled job does not commit — so deploying without this step puts
-the board back on the committed window until the next evening's run. It costs no credit:
+One command, from the repository root on the branch you want live. Ask which model and provider
+first; `_PROVIDER` has no default and the build stops without one:
 
 ```bash
-gcloud storage rsync gs://ada-sectors-508410_cloudbuild/catalyst/recordings data/sectors \
-  --recursive --delete-unmatched-destination-objects
-python3 scripts/build_market_data.py      # the bundle's asOf should now match the live board
+gcloud builds submit --config cloudbuild-deploy.yaml --region=us-central1 \
+  --project=ada-sectors-508410 \
+  --substitutions=_PROVIDER=deepseek,_COMMIT=$(git rev-parse --short HEAD)
 ```
 
-Commit the refreshed `data/sectors/` and `lib/data/market.generated.ts` if you want the repository
-to catch up; the deploy does not need it.
+| `_PROVIDER` | Serves | Env and secret set |
+|---|---|---|
+| `deepseek` | `deepseek-v4-flash` via the bandelbanget.xyz gateway | §6a0 |
+| `openrouter` | `nex-agi/nex-n2.5-mini:free` via OpenRouter | §6a |
+| `gemini` | `gemini-3.8-flash` / `gemini-3.5-flash-lite` | §6b |
+| `keep` | whatever the serving revision serves | unchanged |
 
-### 6a0. With the bandelbanget.xyz gateway (live since 2026-09-25)
+`cloudbuild-deploy.yaml` runs, in order: pull the recordings the scheduled refresh last deployed
+from `gs://ada-sectors-508410_cloudbuild/catalyst/recordings` into `data/sectors/`, rebuild
+`lib/data/market.generated.ts` from them, install, gate (§5), then `gcloud run deploy --source .`
+with the profile's complete env and secret set. The profiles in that file are the only copy;
+the sections below explain each one and are not commands to paste.
+
+The recordings pull matters: the repository's recordings trail the published ones — the scheduled
+job does not commit — so a deploy built from the repository alone puts the board back on the
+committed window until the next evening's run. Pass `_PULL_RECORDINGS=false` only when you ran
+`scripts/refresh_sectors.py --execute` yourself and your recordings are newer than the bucket's.
+
+What is uploaded is the working tree minus `.gitignore`'d files: uncommitted edits ship,
+`.env.local` does not. Deploy from a clean tree when the revision should match a commit. `_COMMIT`
+labels the service with it (`commit=<sha>`), since source deploys carry no commit metadata of their
+own; record it in the pull request as well.
+
+The same run moves the scheduled refresh (§10) onto what it just deployed. That job rebuilds and
+redeploys the app from a source tarball through a body inlined into its scheduler job, so a stale
+tarball or body makes each refresh that lands a session roll the app back — on 25 September 2026 it
+redeployed the previous day's code. After a green deploy, the `sync-workers` step:
+
+- copies `gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz` to
+  `refresh-source.prev-<UTC stamp>.tgz` and the job's current body to `refresh-body.prev-<UTC stamp>.json`;
+- uploads this build's workspace (taken after the recordings pull, before `node_modules`) as the new
+  `refresh-source.tgz`;
+- replaces the `catalyst-data-refresh` body with `scripts/refresh_job_body.py`'s output, which is
+  rendered and checked before the deploy, so a broken body stops the release before anything changes.
+
+If the sync fails, the app is deployed and the worker still runs its previous source: the build is
+red, and re-running the release repairs it. To put the worker back by hand:
+
+```bash
+gcloud storage cp gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.prev-<STAMP>.tgz \
+  gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
+gcloud storage cp gs://ada-sectors-508410_cloudbuild/catalyst/refresh-body.prev-<STAMP>.json /tmp/body.json
+gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
+  --message-body-from-file=/tmp/body.json
+```
+
+`_DRY_RUN=true` runs every step, the gate included, and changes nothing — no deploy, no upload, no
+job update. Use it to prove a pipeline edit before it touches production.
+
+`catalyst-web-watch` needs no sync: it is an HTTP call to the app's `/api/internal/check-sources`,
+so its code ships with every deploy.
+
+Follow the run with `gcloud builds log --stream <BUILD_ID> --region=us-central1`, then verify (§7).
+
+### 6a0. `_PROVIDER=deepseek` — the bandelbanget.xyz gateway (live since 2026-09-25)
+
+Equivalent single command, for reference and for a deploy without Cloud Build:
 
 ```bash
 gcloud run deploy catalyst-web \
@@ -244,7 +307,9 @@ Needs an image containing `7c5000d`; on an older image `LLM_SCHEMA_MODE` and
 `LLM_REASONING_FIELD` are read by nothing and every answer falls back. Rolling back to Gemini
 from this revision is §6b, or `gcloud run services update ... --remove-env-vars=LLM_PROVIDER`.
 
-### 6a. With OpenRouter
+### 6a. `_PROVIDER=openrouter` — OpenRouter
+
+Equivalent single command:
 
 ```bash
 gcloud run deploy catalyst-web \
@@ -263,7 +328,9 @@ and the built-in defaults keep a rollback working without them. `GOOGLE_API_KEY`
 but unused — costless, and removing `LLM_PROVIDER` alone then rolls back to Gemini with no new
 secret version. `LLM_REASONING=off` is load-bearing (see §2), not cosmetic.
 
-### 6b. With Gemini (fallback)
+### 6b. `_PROVIDER=gemini` — Gemini (fallback)
+
+Equivalent single command:
 
 ```bash
 gcloud run deploy catalyst-web \
@@ -288,8 +355,9 @@ Dropping `INTERNAL_CRON_SECRET` in either variant makes `/api/internal/*` fail c
 the scheduler; dropping the `LLM_PROVIDER` group from 6a without switching to 6b silently keeps
 whatever the image defaults to, so always deploy one complete variant.
 
-Source deploys carry no commit metadata, so the serving revision cannot be traced back to a commit
-from the console. Record the commit in the pull request when you deploy.
+Source deploys carry no commit metadata of their own. The pipeline's `_COMMIT` label is how a
+revision is traced back to a commit; a hand-run command above has none, so record the commit in the
+pull request when you deploy.
 
 ## 7. Verify after deploying
 
@@ -427,6 +495,11 @@ gcloud storage cat gs://ada-sectors-508410_cloudbuild/catalyst/recordings/_ledge
 curl -s https://catalyst-web-ibyebnreqa-uc.a.run.app/api/health
 ```
 
+The refresh deploys with no `--set-env-vars` or `--set-secrets`, so the new revision inherits the
+serving revision's provider and keys. Until 25 September 2026 it pinned the Gemini set of §6b, and
+its 17:30 run that day (build `db77fb53`, revision `catalyst-web-00082-wp2`) undid the DeepSeek
+deploy of that afternoon. A scheduler body posted before that fix still does this.
+
 The scheduler POSTs an inline copy of the build, not `cloudbuild-refresh.yaml`. A change to the
 steps reaches the scheduled run only after the job body is replaced as well as the snapshot:
 
@@ -456,8 +529,9 @@ gcloud scheduler jobs pause catalyst-data-refresh --location=us-central1
 ### The source snapshot
 
 The scheduled build runs from a tarball in GCS, not from git, because no Cloud Build trigger is
-connected to the GitHub repository. Code changes do not reach the scheduled run until the snapshot
-is replaced. Upload it without running the pipeline (a `gcloud builds submit` would spend credit
+connected to the GitHub repository. Every release through `cloudbuild-deploy.yaml` replaces the
+tarball and the job body with what it deployed (§6). The hand upload below is only for a change to
+the worker that ships without an app release. Upload it without running the pipeline (a `gcloud builds submit` would spend credit
 and deploy):
 
 ```bash

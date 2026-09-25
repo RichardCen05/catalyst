@@ -345,7 +345,7 @@ function CandidateCard({
         <section aria-label="Usulan model" className="mt-4 rounded-lg border border-border bg-muted/40 p-3">
           <h4 className="text-sm font-semibold">Usulan model</h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Lolos pemeriksaan angka dan bahasa. Belum masuk engine sampai Anda menerimanya.
+            Lolos pemeriksaan angka dan bahasa. Belum masuk analisis sampai Anda menerimanya.
           </p>
           <ul className="mt-2 space-y-2 text-sm">
             {proposal.impacts.map((impact) => (
@@ -399,7 +399,7 @@ function CandidateCard({
           </div>
         ) : (
           <>
-        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih reviewer di sini, bukan dihitung mesin: {BANDS.map((band) => `${bandLabel[band].toLowerCase()} ${bands[band]}`).join(" · ")}.</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Band relevansi dipilih peninjau di sini, bukan dihitung mesin: {BANDS.map((band) => `${bandLabel[band].toLowerCase()} ${bands[band]}`).join(" · ")}.</p>
         <div className="mt-2 space-y-2">
           {impacts.map((impact, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[110px_130px_110px_minmax(0,1fr)_auto]">
@@ -459,10 +459,10 @@ function CandidateCard({
           </Button>
         </div>
         <input
-          aria-label="Catatan reviewer"
+          aria-label="Catatan peninjau"
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="Catatan reviewer (opsional)"
+          placeholder="Catatan peninjau (opsional)"
           className="mt-2 h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
         />
         {unmappedRows > 0 ? (
@@ -483,7 +483,7 @@ function CandidateCard({
               })
             }
           >
-            {busy ? "Menyimpan…" : "Terima ke engine"}
+            {busy ? "Menyimpan…" : "Terima ke analisis"}
           </Button>
           <Button variant="ghost" disabled={busy} onClick={() => setShowAccept(false)} className="ml-2">
             Batal
@@ -554,7 +554,7 @@ function BatchAccept({ candidates, proposals, onDone }: { candidates: MarketEven
   return (
     <>
       <Button variant="secondary" size="sm" onClick={() => dialog.current?.showModal()}>
-        Terima usulan band tinggi ({candidates.length})
+        Terima usulan relevansi tinggi ({candidates.length})
       </Button>
       <dialog
         ref={dialog}
@@ -562,7 +562,7 @@ function BatchAccept({ candidates, proposals, onDone }: { candidates: MarketEven
         className="m-auto w-[min(640px,calc(100vw-32px))] rounded-lg border border-border bg-surface p-5 text-foreground backdrop:bg-black/40"
       >
         <h2 id="batch-accept-title" className="text-base font-semibold">Terima {candidates.length} usulan sekaligus?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Setiap kandidat dicatat sebagai keputusan Anda, satu per satu. Hanya usulan band tinggi yang lolos pemeriksaan.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Setiap kandidat dicatat sebagai keputusan Anda, satu per satu. Hanya usulan berelevansi tinggi yang lolos pemeriksaan.</p>
         <ul className="mt-3 max-h-72 space-y-2 overflow-auto text-sm">
           {candidates.map((candidate) => (
             <li key={candidate.id}>
@@ -590,7 +590,7 @@ function ArchivedList({ items }: { items: ArchivedRow[] }) {
         Diarsipkan otomatis ({items.length})
       </summary>
       <div className="border-t border-border p-4">
-        <p className="text-xs text-muted-foreground">Disisihkan oleh aturan triase, bukan oleh reviewer. Tidak ada yang dihapus, tetapi arsip final: calon di sini tidak kembali ke antrean.</p>
+        <p className="text-xs text-muted-foreground">Disisihkan oleh aturan triase, bukan oleh peninjau. Tidak ada yang dihapus, tetapi arsip final: calon di sini tidak kembali ke antrean.</p>
         <ul className="mt-3 space-y-3">
           {items.map((item) => (
             <li key={item.id} className="border-b border-border pb-3 last:border-0">
@@ -655,13 +655,19 @@ function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcc
         <div className="min-w-0">
           <p className="text-sm font-semibold">Putuskan otomatis</p>
           <p className="text-xs text-subtle-foreground">
-            {status.enabled ? "Aktif" : "Mati"} · {status.usedToday} dari {status.dailyMax} dalam 24 jam terakhir{status.pinnedByEnv ? " · dikunci operator" : ""}
+            {status.enabled ? "Aktif" : "Mati"} · {status.usedToday} dari batas {status.dailyMax} keputusan otomatis dalam 24 jam terakhir{status.pinnedByEnv ? " · dikunci operator" : ""}
           </p>
         </div>
       </div>
-      <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Penyaring membaca calon di antrean. Calon yang terindikasi rumor atau judul menyesatkan masuk tab Terindikasi Rumor untuk Anda putuskan, bukan ditolak diam-diam. Calon tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
-      </p>
+      <div className="mt-2 text-xs leading-5 text-muted-foreground">
+        <p>Penyaring membaca setiap calon di antrean, lalu:</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5">
+          <li>Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.</li>
+          <li>Tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan: ditolak langsung, dan penolakan itu final.</li>
+          <li>Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.</li>
+          <li>Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.</li>
+        </ul>
+      </div>
       <p className="mt-1 text-xs text-subtle-foreground">
         {lastScreenAt ? (
           <>
@@ -706,7 +712,7 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
       <div className="border-t border-border p-4">
         <section aria-label="Diterima otomatis">
         <h3 className="text-sm font-semibold">Diterima otomatis ({items.length})</h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">Diterima oleh penyaring, bukan oleh reviewer. Batalkan untuk mengeluarkannya dari engine dan mengembalikannya ke antrean; item itu tidak akan diputuskan otomatis lagi.</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Diterima oleh penyaring, bukan oleh peninjau. Batalkan untuk mengeluarkannya dari analisis dan mengembalikannya ke antrean; item itu tidak akan diputuskan otomatis lagi.</p>
         {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
         <ul className="mt-3 space-y-3">
           {items.map((item) => (
@@ -933,7 +939,7 @@ export function WebWatchReview() {
     <div>
       <PageHeader
         title="Pantau"
-        description="Berita yang masuk engine. Lihat berita di media sosial dan ingin memeriksa ulang? Cari di tab Terindikasi Rumor atau Antrean, lalu putuskan."
+        description="Berita yang dipakai dalam analisis, dan berita baru yang menunggu keputusan Anda. Melihat kabar di media sosial? Cari di tab Terindikasi Rumor atau Antrean, lalu terima atau tolak."
         action={<Button variant="secondary" onClick={load}>Muat ulang</Button>}
       />
       {error ? (
@@ -963,7 +969,7 @@ export function WebWatchReview() {
           </nav>
 
           {tab === "diterima" ? (
-          <section aria-label="Diterima engine">
+          <section aria-label="Diterima ke analisis">
             <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
             {data.accepted.length ? (
               <div className="space-y-3">
@@ -991,7 +997,7 @@ export function WebWatchReview() {
           ) : null}
 
           {tab === "antrean" ? (
-          <section aria-label="Antrean review" data-tour="review-queue">
+          <section aria-label="Antrean tinjauan" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
                 <h2 className="editorial text-xl">Antrean ({visiblePending.length})</h2>
@@ -1049,7 +1055,7 @@ export function WebWatchReview() {
                 {unscreened.length ? (
                   <section aria-label="Menunggu penyaringan">
                     <h3 className="mb-1 text-base font-semibold">Menunggu penyaringan ({unscreened.length})</h3>
-                    <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa menerimanya ke engine atau menolaknya sekarang.</p>
+                    <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa menerimanya ke analisis atau menolaknya sekarang.</p>
                     <div className="space-y-4">
                       <Collapsible
                         items={unscreened}
@@ -1098,6 +1104,11 @@ export function WebWatchReview() {
           </section>
           ) : null}
 
+          {/* Bookkeeping of what already left the queue, and the feed plumbing
+              behind it. It belongs with the accepted list, not repeated under
+              every tab. */}
+          {tab === "diterima" ? (
+          <>
           <AutoDecidedList items={data.autoAccepted ?? []} rejected={data.autoRejected ?? []} onReverted={load} />
           <ArchivedList items={data.archived} />
 
@@ -1133,6 +1144,8 @@ export function WebWatchReview() {
               ) : null}
             </div>
           </details>
+          </>
+          ) : null}
           {data.pending.length ? <NextStep title={`Tinjau ${data.pending.length} temuan di antrean`} description="Terima temuan yang relevan agar masuk analisis, tolak yang tidak. Setelah itu buka kasusnya untuk melihat dampaknya." href="/cases" action="Buka Riset & Analisis" /> : <NextStep title="Tidak ada yang perlu ditinjau" description="Antrean kosong. Lanjutkan pemeriksaan kasus yang sudah terbuka." href="/cases" action="Buka Riset & Analisis" />}
         </div>
       )}

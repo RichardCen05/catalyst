@@ -91,7 +91,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
           <EvidenceCard pillar={catalystPillar} symbol={symbol} trailing={<CitationDialog citations={analysis.financialContext.flatMap((item) => item.citations)} label="Periksa data keuangan" />} />
           <section aria-labelledby="business-observables-title" className="mt-6">
             <h3 id="business-observables-title" className="editorial text-base">Indikator bisnis yang diuji</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Setiap indikator dinyatakan mendukung, berlawanan, atau belum teruji sebelum kasus selesai.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Label di bawah adalah peran indikator dalam kasus ini, bukan hasil ujinya. Uji utama: indikator yang harus berubah bila perubahannya nyata. Pendukung: dibaca untuk menguatkan. Belum diuji: di luar fokus kasus ini.</p>
             <ul className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border">
               {analysis.businessImpact.map((item) => <li key={item.dimension} className="grid gap-2 px-4 py-3 sm:grid-cols-[200px_160px_minmax(0,1fr)] sm:items-center"><span className="text-sm font-semibold">{item.label}</span><StatusBadge status={item.status} /><span className="text-sm text-muted-foreground">{item.observable}</span></li>)}
             </ul>

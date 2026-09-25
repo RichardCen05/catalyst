@@ -220,7 +220,7 @@ export function causalPathMaterial(graph: CausalGraph, node: CausalNode): CaseAn
     `Pembatal: ${sentence(edge.falsificationCondition)}`,
   ].join(" ");
   return {
-    text: [nodeLine, ...edges.slice(0, 2).map(edgeLine), `Bukti penyangkal: ${sentence(node.counterEvidence)}`].join("\n"),
+    text: [nodeLine, ...(node.supportingEvidence ? [`Bukti pendukung: ${sentence(node.supportingEvidence)}`] : []), ...edges.slice(0, 2).map(edgeLine), `Bukti penyangkal: ${sentence(node.counterEvidence)}`].join("\n"),
     citations: uniqueCitations([...node.citations, ...edges.flatMap((edge) => edge.citations)]),
   };
 }

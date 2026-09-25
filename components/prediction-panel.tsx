@@ -2,7 +2,7 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { CalibrationChart, VerdictChart, type CalibrationDatum, type VerdictDatum } from "@/components/prediction-charts";
 import { CALIBRATION_DIMENSION_LABELS, MIN_SAMPLE, type CalibrationBucket, type CalibrationDimension, type CalibrationReport } from "@/lib/agent/calibration";
 import {
-  PREDICTION_METRIC_LABELS,
+  PREDICTION_METRIC_LABELS, formatPredictionThreshold,
   PREDICTION_VERDICT_LABELS,
   type PredictionClaim,
   type PredictionOutcome,
@@ -58,7 +58,7 @@ const DIMENSION_NOTES: Record<CalibrationDimension, string> = {
   eventCategory: "Jenis peristiwa yang memicu klaim.",
   relevanceBand: "Skor pengaruh yang Catalyst berikan sebelum tahu hasilnya. Kalau band tinggi dan rendah berperilaku sama, pembedanya tidak bekerja.",
   sourceType: "Asal beritanya. Keterbukaan emiten otomatis diberi skor tinggi — di sini ketahuan apakah itu pantas.",
-  selection: "Termasuk berita yang kalah seleksi dan tidak pernah ditampilkan. Tanpa itu, angkanya hanya menilai berita yang sudah terlanjur dianggap penting.",
+  selection: "Termasuk berita yang tidak terpilih sebagai pemicu utama dan tidak pernah ditampilkan. Tanpa itu, angkanya hanya menilai berita yang sudah terlanjur dianggap penting.",
   metric: "Yang diperiksa: volume tidak wajar, atau gerak harga di luar yang dijelaskan IHSG.",
 };
 
@@ -112,11 +112,11 @@ function ClaimRow({ row }: { row: { claim: PredictionClaim; outcome: PredictionO
       </span>
       <span className="min-w-0 text-sm leading-6">
         {PREDICTION_METRIC_LABELS[claim.metric]}
-        {claim.shadow ? <span className="ml-2 text-xs text-muted-foreground">kalah seleksi</span> : null}
+        {claim.shadow ? <span className="ml-2 text-xs text-muted-foreground" title="Berita ini tidak terpilih sebagai pemicu utama dan tidak ditampilkan di kasus, tetapi klaimnya tetap dinilai.">tidak ditampilkan</span> : null}
       </span>
       <span className="min-w-0 text-xs leading-5 text-muted-foreground">{outcome.note}</span>
       <span className="min-w-0 font-mono text-xs text-muted-foreground">
-        {claim.issuedAt} · {claim.windowSessions[0]}–{claim.windowSessions[1]} sesi · {claim.threshold}
+        {claim.issuedAt} · {claim.windowSessions[0]}–{claim.windowSessions[1]} sesi · {formatPredictionThreshold(claim.metric, claim.threshold)}
       </span>
     </li>
   );
@@ -230,7 +230,7 @@ export function PredictionPanel({
         </Panel>
 
         <Panel className="overflow-hidden">
-          <PanelHeader title="Hasil klaim yang sudah ditagih" />
+          <PanelHeader title="Hasil klaim yang sudah dinilai" />
           {verdictData.length ? (
             <VerdictChart data={verdictData} />
           ) : (
@@ -282,7 +282,7 @@ export function PredictionPanel({
       {/* Satu baris = satu klaim. Judul metrik berulang-ulang, jadi yang
           dibedakan di kolom kiri adalah emitennya, bukan kalimatnya. */}
       <Panel className="mb-4 overflow-hidden">
-        <PanelHeader title="Apa yang sudah ditagih" />
+        <PanelHeader title="Klaim yang sudah dinilai" />
         {graded.length ? (
           <>
             <div className="hidden grid-cols-[92px_minmax(0,1.1fr)_minmax(0,1fr)_200px] gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:grid">

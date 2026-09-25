@@ -173,7 +173,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-xs text-muted-foreground"><span className="font-medium text-foreground">Pilih titik atau garis untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span>{graph.coverage.analyzed ? <><span aria-hidden="true">→</span><span>Dampak bisnis</span></> : null}</div>
       {graph.coverage.analyzed ? null : (
         <p className="border-b border-border bg-attention/10 px-4 py-2 text-xs leading-5 text-muted-foreground">
-          Rekaman {graph.targetSymbol} belum lengkap — {graph.coverage.missing.join(", ")} belum ada. Rantai berhenti di emiten: sumber dan mekanismenya terekam, dampak bisnisnya belum dapat diuji.
+          Data {graph.coverage.missing.join(", ")} untuk {graph.targetSymbol} belum terekam. Peta menunjukkan sumber dan mekanisme sampai emiten; dampak ke kinerja bisnis belum dapat diuji.
         </p>
       )}
       {graph.hiddenRelationshipCount > 0 ? (
@@ -190,15 +190,19 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       <section aria-label="Detail titik terpilih" className="border-t border-border bg-background p-4" aria-live="polite">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground font-medium">{uiLabel(selected.kind)}</span>
-          <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
-          <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">{selected.lag}</span>
+          {selected.kind === "company" ? null : (
+            <>
+              <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
+              <span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Jeda {selected.lag}</span>
+            </>
+          )}
         </div>
         <h3 className="mt-2 font-semibold">{uiLabel(selected.basis)}</h3>
         <p className="mt-1 text-sm font-medium">{selected.label}</p>
         <EventMarkers markers={selected.markers} className="mt-1 block" />
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{selected.detail}</p>
         <dl className="mt-3 grid gap-3 text-xs leading-5 md:grid-cols-2">
-          <div><dt className="font-semibold">Bukti pendukung</dt><dd className="mt-1 text-muted-foreground">{selected.basis === "Aggregation point" ? selected.detail : `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}</dd></div>
+          <div><dt className="font-semibold">Bukti pendukung</dt><dd className="mt-1 text-muted-foreground">{selected.supportingEvidence ?? `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}</dd></div>
           <div><dt className="font-semibold">Bukti penyangkal</dt><dd className="mt-1 text-muted-foreground">{selected.counterEvidence}</dd></div>
         </dl>
         <div className="mt-4 flex flex-wrap gap-2">

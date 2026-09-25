@@ -43,6 +43,7 @@ import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler, type HandlerId, type HandlerSignals } from "@/lib/agent/handlers";
 import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
+import { uiLabel } from "@/lib/ui-labels";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
@@ -62,6 +63,11 @@ import { attributionMaterial, causalPathMaterial, compareMaterial, falsifierMate
 
 const percent = (value: number, digits = 1) =>
   new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
+
+/** A fixed-precision figure in id-ID, so a ratio reads like the percentages
+ *  beside it. The verifier strips both separators, so the matcher is unaffected. */
+const decimal = (value: number, digits: number) =>
+  new Intl.NumberFormat("id-ID", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
 
 const compact = (value: number) =>
   new Intl.NumberFormat("id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value);
@@ -475,15 +481,15 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       conflict: conflict ? "Partisipan berlabel asing dominan, sementara arus asing agregat bernilai negatif." : undefined,
       protocol: {
         claim: "Perubahan didukung konsentrasi partisipasi yang konsisten pada ringkasan broker, asal broker, dan arus asing.",
-        supportingEvidence: `${percent(concentration.topBuyerShare)} nilai sisi akumulasi berasal dari peserta teratas; HHI ${concentration.hhi.toFixed(3)}.`,
+        supportingEvidence: `${percent(concentration.topBuyerShare)} nilai sisi akumulasi berasal dari peserta teratas; HHI ${decimal(concentration.hhi, 3)}.`,
         challengingEvidence: conflict ? "Asal partisipan dominan berlawanan dengan arus asing agregat." : "Konsentrasi belum membuktikan identitas, motif, atau keberlanjutan partisipan.",
         insufficientWhen: "Ringkasan broker, asal broker, arus asing, atau saham publik tidak tersedia pada jendela yang sama.",
         nextQuestion: "Apakah konsentrasi dan arus asing tetap searah setelah pemicu melewati jendela pengamatan?",
       },
       metrics: [
         { label: "Porsi peserta teratas", value: percent(concentration.topBuyerShare), citations: topShareCitations },
-        { label: "HHI", value: concentration.hhi.toFixed(3), citations: topShareCitations },
-        { label: "Peserta efektif", value: concentration.effectiveBuyers.toFixed(1), citations: topShareCitations },
+        { label: "HHI", value: decimal(concentration.hhi, 3), citations: topShareCitations },
+        { label: "Peserta efektif", value: decimal(concentration.effectiveBuyers, 1), citations: topShareCitations },
         { label: "Porsi asing", value: percent(concentration.foreignShare), citations: foreignShareCitations },
         { label: "Saham publik terserap", value: percent(concentration.floatAbsorbed, 2), citations: floatAbsorbedCitations },
       ], citations: concentrationCitations,
@@ -496,11 +502,11 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         substitution: [
           `Porsi peserta teratas = ${compact(topBuyerValue)} / ${compact(totalBuyValue)}`,
           `HHI = ${buyerValues.map((value) => `(${compact(value)}/${compact(totalBuyValue)})²`).join(" + ")}`,
-          `Peserta efektif = 1 / ${concentration.hhi.toFixed(3)}`,
+          `Peserta efektif = 1 / ${decimal(concentration.hhi, 3)}`,
           `Porsi asing = ${compact(brokerEvidence.netForeign)} / ${compact(brokerEvidence.totalMarketValue)}`,
           `Saham publik terserap = ${compact(totalBuyValue)} / (${compact(brokerEvidence.freeFloatShares)} × ${compact(brokerEvidence.referencePrice)})`,
         ].join("; "),
-        result: `HHI ${concentration.hhi.toFixed(3)} · ${concentration.effectiveBuyers.toFixed(1)} partisipan efektif · ${percent(concentration.floatAbsorbed, 2)} saham publik`,
+        result: `HHI ${decimal(concentration.hhi, 3)} · ${decimal(concentration.effectiveBuyers, 1)} partisipan efektif · ${percent(concentration.floatAbsorbed, 2)} saham publik`,
         notes: ["Porsi dihitung dari nilai sisi akumulasi pada jendela rekaman.", "Asal broker diperiksa silang dengan arus asing agregat.", "Konflik sumber menahan kesimpulan meski konsentrasi terlihat tinggi."],
       },
     },
@@ -508,16 +514,16 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       key: "volume", label: "Volume", status: volume.status,
       summary: volume.robustZ === null
         ? "Likuiditas atau pembanding tidak cukup untuk mengelompokkan anomali."
-        : `Volume terakhir memiliki skor z tahan pencilan ${volume.robustZ.toFixed(2)} terhadap pembanding ${windowLabel()}.`,
+        : `Volume terakhir memiliki skor z tahan pencilan ${decimal(volume.robustZ, 2)} terhadap pembanding ${windowLabel()}.`,
       protocol: {
         claim: "Aktivitas setelah pemicu menyimpang dari pembanding volume yang kuat terhadap pencilan.",
-        supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos batas." : `Skor z tahan pencilan ${volume.robustZ.toFixed(2)} dengan status ${volume.status === "Normal" ? "normal" : volume.status === "Elevated" ? "meningkat" : "ekstrem"}.`,
+        supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos batas." : `Skor z tahan pencilan ${decimal(volume.robustZ, 2)} dengan status ${volume.status === "Normal" ? "normal" : volume.status === "Elevated" ? "meningkat" : "ekstrem"}.`,
         challengingEvidence: volume.status === "Normal" ? "Volume masih berada dalam rentang pembanding." : "Kenaikan volume sendiri tidak mengidentifikasi penyebab atau arah eksposur.",
         insufficientWhen: `Pembanding kurang dari ${_DEFAULTS.comparatorMinObservations} pengamatan, MAD nol, atau median nilai harian di bawah batas likuiditas.`,
         nextQuestion: "Apakah anomali volume bertahan dan muncul setelah pemicu?",
       },
       metrics: [
-        { label: "Skor z tahan pencilan", value: volume.robustZ === null ? "Belum tersedia" : volume.robustZ.toFixed(2), citations: dailyCitations },
+        { label: "Skor z tahan pencilan", value: volume.robustZ === null ? "Belum tersedia" : decimal(volume.robustZ, 2), citations: dailyCitations },
         { label: "Volume terbaru", value: compact(currentPoint.volume), citations: dailyCitations },
         { label: "Pembanding", value: windowLabel(), citations: dailyCitations },
       ], citations: dailyCitations,
@@ -525,19 +531,19 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         name: "Anomali volume tahan pencilan",
         formula: `robust z = 0,6745 × (Vₜ − median(Vₙ)) / MAD(Vₙ), n = ${windowBaselineCount()} sesi pembanding`,
         substitution: `0,6745 × (${compact(currentPoint.volume)} − ${compact(baselineMedian)}) / ${compact(baselineMad)}`,
-        result: volume.robustZ === null ? "Data belum cukup" : `${volume.robustZ.toFixed(2)} · ${volume.status === "Normal" ? "Normal" : volume.status === "Elevated" ? "Meningkat" : "Ekstrem"}`,
+        result: volume.robustZ === null ? "Data belum cukup" : `${decimal(volume.robustZ, 2)} · ${volume.status === "Normal" ? "Normal" : volume.status === "Elevated" ? "Meningkat" : "Ekstrem"}`,
         notes: [`Pembanding memakai ${windowBaselineCount()} pengamatan sebelum hari terbaru dalam rekaman ${windowLabel()}.`, "Batas likuiditas minimum Rp10 miliar median nilai harian.", "MAD nol atau pembanding pendek menghasilkan data belum cukup."],
       },
     },
     {
       key: "momentum", label: "Momentum", status: momentum.status,
-      summary: `Imbal hasil 3 hari ${percent(stockReturn)}; residual terhadap IHSG ${percent(momentum.residual)}.`,
+      summary: `Imbal hasil 3 hari ${percent(stockReturn)}; gerak di luar IHSG ${percent(momentum.residual)}.`,
       protocol: {
         claim: "Perubahan harga tidak cukup dijelaskan oleh IHSG atau pergerakan sektor pada jendela yang sama.",
         supportingEvidence: `Residual setelah penyesuaian beta ${percent(momentum.residual)}; imbal hasil saham ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
         challengingEvidence: momentum.status === "Idiosyncratic" ? "Beta rekaman dan jendela tiga hari belum mengisolasi seluruh faktor pasar." : "Penjelasan pasar atau sektor masih relevan.",
         insufficientWhen: "Harga penutupan, IHSG, beta, atau pembanding sektor tidak tersedia untuk jendela yang sama.",
-        nextQuestion: "Apakah residual tetap terlihat pada jendela alternatif tanpa bergantung pada satu hari ekstrem?",
+        nextQuestion: "Apakah gerak di luar IHSG (residual) tetap terlihat pada jendela lain, tanpa bergantung pada satu hari ekstrem?",
       },
       metrics: [
         { label: "Imbal hasil 3 hari", value: percent(stockReturn), citations: dailyCitations },
@@ -548,7 +554,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       calculation: {
         name: "Momentum relatif pasar",
         formula: "residual₃ᴅ = return saham₃ᴅ − β × return IHSG₃ᴅ",
-        substitution: `${percent(stockReturn)} − ${fixture.beta.toFixed(2)} × ${percent(marketReturn)}`,
+        substitution: `${percent(stockReturn)} − ${decimal(fixture.beta, 2)} × ${percent(marketReturn)}`,
         result: `${percent(momentum.residual)} · ${momentum.status === "Market-aligned" ? "Mengikuti pasar" : momentum.status === "Sector-led" ? "Dipengaruhi sektor" : momentum.status === "Idiosyncratic" ? "Khusus emiten" : "Bercampur"}; pembanding sektor ${percent(fixture.sectorReturn)}`,
         notes: ["Imbal hasil dihitung dari harga penutupan tiga hari bursa.", "Beta dihitung dari data rekaman dan tidak dihitung ulang oleh asisten.", "Status sektor membandingkan selisih imbal hasil saham terhadap sektor."],
       },
@@ -614,7 +620,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         },
         {
           label: "Rasio churn broker teratas (proksi)",
-          value: topChurn ? `${topChurn.code} ${topChurn.churnRatio.toFixed(2)}` : "Tidak ada",
+          value: topChurn ? `${topChurn.code} ${decimal(topChurn.churnRatio, 2)}` : "Tidak ada",
           citations: [citations.broker(symbol)],
         },
       );
@@ -659,7 +665,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     }
   }
   const primaryLink = primaryEvent?.impactLinks.find((link) => link.symbol === symbol);
-  const defaultMandate = `Periksa perubahan ${symbol}: uji apakah pemicu, arus, aktivitas, dan momentum saling menguatkan serta tentukan bukti pembatalnya.`;
+  const defaultMandate = `Apakah pemicu, arus, aktivitas, dan momentum ${symbol} saling menguatkan — dan bukti apa yang akan membatalkannya?`;
   const mandate = context?.mandate?.trim() || defaultMandate;
   const appliedRules = compilePlaybook(symbol, context);
   // Task 2 + C9: setiap ambang non-bawaan yang mengubah hasil mendorong satu
@@ -766,7 +772,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     },
     materialChange: {
       whatChanged: `${symbol}: ${primaryEvent?.title ?? "ringkasan daftar pantauan berubah"}.`,
-      baseline: `Volume ${volumeRatio.toFixed(2)}× median ${windowBaselineCount()} sesi. Imbal hasil 3 hari ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
+      baseline: `Volume ${decimal(volumeRatio, 2)}× median ${windowBaselineCount()} sesi. Imbal hasil 3 hari ${percent(stockReturn)} dibanding sektor ${percent(fixture.sectorReturn)}.`,
       whyMaterial: primaryLink
         ? `Relevansi eksposur ${primaryLink.relevance}/100 dan jalur mencapai ${primaryBusinessImpact.label.toLowerCase()}.`
         : `Perubahan belum memiliki jalur eksposur yang cukup untuk melewati batas materialitas.`,
@@ -789,7 +795,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     unresolvedQuestions: [
       ...ordered.map((pillar) => pillar.protocol.nextQuestion),
       ...contagionCandidates.map((c) =>
-        `Penurunan ${c.symbol} ${c.date} tidak punya peristiwa terhubung, sementara ${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${c.correlation.toFixed(2)}. Apakah ini penularan sentimen atau jalur fundamental yang belum terekam?`,
+        `Penurunan ${c.symbol} ${c.date} tidak punya peristiwa terhubung, sementara ${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${decimal(c.correlation, 2)}. Apakah ini penularan sentimen atau jalur fundamental yang belum terekam?`,
       ),
       `Apakah ada perubahan penting pada eksposur emiten yang belum tercakup rekaman ${DATA_AS_OF_LABEL}?`,
     ],
@@ -835,7 +841,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       note: stability.note,
       windows: stability.windowScores.map((window) => ({
         label: window.label,
-        value: window.robustZ === null ? "Belum tersedia" : window.robustZ.toFixed(2),
+        value: window.robustZ === null ? "Belum tersedia" : decimal(window.robustZ, 2),
         detail: window.status,
         citations: dailyCitations,
       })),
@@ -1888,17 +1894,20 @@ async function buildCausalGraph(
     ? targetImpacts.map((item) => item.label)
     : [`Indikator bisnis belum terekam (${coverage.missing.join(", ") || "rekaman belum lengkap"})`];
   const targetObservableList = targetObservables.join(" dan ");
+  // The company card says what it is once. What reaches it and what it cannot
+  // show are written after the edges exist, from the edges themselves.
+  const companyName = company.name.replace(/\.+$/, "");
   const nodes: CausalGraph["nodes"] = [{
     id: `company-${symbol}`,
     label: symbol,
     kind: "company",
     detail: analysis
-      ? `${company.name}. Titik temu seluruh jalur; bukan kesimpulan transaksi.`
-      : `${company.name}. Titik temu jalur yang terekam. Rekaman yang belum ada: ${coverage.missing.join(", ")}. Rantai berhenti di emiten dan tidak menyatakan dampak bisnis.`,
+      ? `${companyName}. Semua jalur di peta ini bertemu di emiten ini, lalu diuji ke indikator kinerjanya.`
+      : `${companyName}. Semua jalur di peta ini bertemu di emiten ini.`,
     basis: "Aggregation point",
     confidence: "High",
     lag: "Tidak berlaku",
-    counterEvidence: "Emiten menghubungkan jalur, tetapi tidak membuktikan bahwa setiap masukan menyebabkan perubahan harga.",
+    counterEvidence: "",
     citations: company.citations,
   }];
   const edges: CausalGraph["edges"] = [];
@@ -1982,7 +1991,7 @@ async function buildCausalGraph(
       if (!nodes.some((n) => n.id === peerId)) {
         nodes.push({
           id: peerId, label: `${c.peer} · co-movement`, kind: "observation",
-          detail: `${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${c.correlation.toFixed(2)}. Pertanyaan penularan, bukan penyebab.`,
+          detail: `${c.peer} turun setelah ${c.peerEventTitle}. Korelasi imbal hasil berlebih ${decimal(c.correlation, 2)}. Pertanyaan penularan, bukan penyebab.`,
           sourceType: "market", direction: "Unverified", relevance: Math.round(c.correlation * 100),
           basis: "Observed correlation", confidence: "Low", lag: "0-1 sesi",
           counterEvidence: "Korelasi bukan sebab-akibat; jalur fundamental yang belum terekam masih mungkin.",
@@ -1997,12 +2006,38 @@ async function buildCausalGraph(
         expectedObservable: "Tidak ada — pertanyaan untuk diperiksa, bukan jalur yang diuji.",
         alternativeExplanation: "Gerak bersama karena faktor pasar atau jalur fundamental yang belum terekam.",
         falsificationCondition: "Pertanyaan gugur bila ada peristiwa terhubung ke target pada D/D-1 atau korelasi di bawah ambang.",
-        confidenceBasis: `Korelasi ${c.correlation.toFixed(2)} vs ambang ${t.contagionCorrelationFloor}. Selalu Rendah: co-movement bukan bukti sebab-akibat.`,
+        confidenceBasis: `Korelasi ${decimal(c.correlation, 2)} vs ambang ${decimal(t.contagionCorrelationFloor, 2)}. Selalu Rendah: co-movement bukan bukti sebab-akibat.`,
         businessImpactDimension: targetImpact?.dimension,
         businessImpactImplication: "Belum ada implikasi bisnis; periksa dulu apakah penularan atau jalur yang belum terekam.",
         citations: c.citations,
       });
     }
+  }
+
+  // Company card evidence, counted from the paths that actually reach it.
+  {
+    const incoming = edges.filter((edge) => edge.to === `company-${symbol}`);
+    const causal = incoming.filter((edge) => edge.basis === "Causal hypothesis");
+    const comove = incoming.length - causal.length;
+    const byDirection = new Map<string, number>();
+    for (const edge of causal) byDirection.set(edge.direction, (byDirection.get(edge.direction) ?? 0) + 1);
+    const breakdown = [...byDirection].sort((a, b) => b[1] - a[1]).map(([direction, count]) => `${count} ${uiLabel(direction).toLowerCase()}`).join(", ");
+    const strongest = causal.reduce<CausalGraph["edges"][number] | undefined>((best, edge) => (!best || edge.relevance > best.relevance ? edge : best), undefined);
+    const strongestSource = strongest ? nodes.find((node) => node.id === edges.find((edge) => edge.to === strongest.from)?.from)?.label : undefined;
+    const hub = nodes[0];
+    hub.supportingEvidence = causal.length
+      ? [
+          `${causal.length} jalur terekam masuk ke ${symbol}${breakdown ? ` (${breakdown})` : ""}.`,
+          strongest && strongestSource ? `Paling relevan: ${strongestSource}, ${strongest.relevance}/100.` : "",
+          comove ? `${comove} emiten lain bergerak bersama — pertanyaan penularan, bukan penyebab.` : "",
+        ].filter(Boolean).join(" ")
+      : `Belum ada jalur terekam yang melewati ambang relevansi ${graphFloor}/100.`;
+    const pulling = ["Supported", "Adverse"].filter((direction) => byDirection.has(direction));
+    hub.counterEvidence = [
+      pulling.length > 1 ? "Jalur tidak searah, jadi arah bersihnya tidak dapat dibaca dari peta ini." : "",
+      "Titik ini hanya mempertemukan jalur; tidak membuktikan masukan mana yang menggerakkan harga.",
+      analysis ? "" : `Data ${coverage.missing.join(", ")} belum terekam, jadi dampak ke kinerja bisnis belum dapat diuji.`,
+    ].filter(Boolean).join(" ");
   }
 
   return {

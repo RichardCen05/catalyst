@@ -30,7 +30,7 @@ describe("coverage tab", () => {
       const pillar = analysis!.pillars.find((item) => item.key === "volume")!;
       const recorded = pillar.metrics.find((metric) => metric.label === "Skor z tahan pencilan")!.value;
       const movement = checkMovement(priceSeries[company.symbol] ?? [], thresholds);
-      expect(movement.volumeZ === null ? "Belum tersedia" : movement.volumeZ.toFixed(2), company.symbol).toBe(recorded);
+      expect(movement.volumeZ === null ? "Belum tersedia" : new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(movement.volumeZ), company.symbol).toBe(recorded);
       expect(movement.volumeCrossed, company.symbol).toBe(pillar.status === "Elevated" || pillar.status === "Extreme");
     }
   });

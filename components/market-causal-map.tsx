@@ -152,7 +152,7 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
         <span className="mt-1 line-clamp-2 block text-xs font-semibold leading-[1.3]">{node.kind === "mechanism" ? node.label.charAt(0).toUpperCase() + node.label.slice(1) : node.label}</span>
         <span className="mt-auto flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
           <span className="truncate">{node.symbols.join(" · ")}</span>
-          {node.relevance ? <span className="ml-auto shrink-0">{node.relevance}</span> : null}
+          {node.relevance ? <span className="ml-auto shrink-0" title="Relevansi terhadap emiten, dari 100">{node.relevance}/100</span> : null}
         </span>
       </button>
       {!terminal ? <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" /> : null}
@@ -581,8 +581,12 @@ function NodeDetail({
   return (
     <>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
-        <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">{selected.lag}</span>
+        {selected.kind === "company" ? null : (
+          <>
+            <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Keyakinan {uiLabel(selected.confidence).toLowerCase()}</span>
+            <span className="rounded-lg border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Jeda {selected.lag}</span>
+          </>
+        )}
         {selected.symbols.length > 1 ? (
           <span className="rounded-lg border border-attention/50 bg-attention/10 px-1.5 py-0.5 font-mono text-xs text-attention-foreground">
             Dipakai {selected.symbols.length} emiten
@@ -618,13 +622,13 @@ function NodeDetail({
         <div>
           <dt className="font-semibold">Bukti pendukung</dt>
           <dd className="mt-0.5 text-muted-foreground">
-            {selected.basis === "Aggregation point" ? selected.detail : `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}
+            {selected.supportingEvidence ?? `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}
           </dd>
         </div>
         <div><dt className="font-semibold">Bukti penyangkal</dt><dd className="mt-0.5 text-muted-foreground">{selected.counterEvidence}</dd></div>
       </dl>
 
-      {incomplete.length && coverage.length ? (
+      {incomplete.length && coverage.length && selected.kind !== "company" ? (
         <p className="mt-3 rounded-lg border border-attention/30 bg-attention/8 px-3 py-2 text-xs leading-5 text-muted-foreground">
           Rantai {incomplete.join(", ")} berhenti di emiten — {[...new Set(incomplete.flatMap((symbol) => graph.coverage[symbol].missing))].join(", ")} belum terekam, jadi dampak bisnisnya belum dapat diuji.
         </p>

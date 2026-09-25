@@ -252,7 +252,7 @@ export function resolvePrediction(claim: PredictionClaim, series: PricePoint[], 
       observedValue: peak,
       observedAtDate: null,
       sessionsAvailable,
-      note: `Jendela ${minSession}-${maxSession} sesi lewat tanpa melampaui ambang ${claim.threshold}.`,
+      note: `Jendela ${minSession}-${maxSession} sesi lewat tanpa melampaui ambang ${formatPredictionThreshold(claim.metric, claim.threshold)}.`,
     };
   }
 
@@ -276,6 +276,13 @@ export function resolvePrediction(claim: PredictionClaim, series: PricePoint[], 
     sessionsAvailable,
     note,
   };
+}
+
+/** A claim's threshold in the unit its metric is measured in, id-ID. */
+export function formatPredictionThreshold(metric: PredictionMetric, value: number): string {
+  return metric === "volumeRobustZ"
+    ? `skor z ${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(value)}`
+    : new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: 1 }).format(value);
 }
 
 export const PREDICTION_METRIC_LABELS: Record<PredictionMetric, string> = {

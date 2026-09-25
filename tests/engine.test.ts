@@ -138,7 +138,7 @@ describe("Catalyst agent engine", async () => {
 
     expect(researchCase?.caseId).toMatch(/^KASUS-ANTM-/);
     expect(researchCase?.trigger.title).toBeTruthy();
-    expect(researchCase?.mandate).toContain("Periksa perubahan ANTM");
+    expect(researchCase?.mandate).toContain("momentum ANTM saling menguatkan");
     expect(researchCase?.lifecycle.map((step) => step.key)).toEqual(["mandate", "decompose", "source-plan", "evidence", "review"]);
     expect(researchCase?.sourcePlan.length).toBeGreaterThan(2);
     expect(researchCase?.unresolvedQuestions.length).toBeGreaterThan(3);

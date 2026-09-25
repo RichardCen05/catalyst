@@ -1,0 +1,232 @@
+# Manual deploy of catalyst-web, as one Cloud Build run.
+#
+# This replaces the four-command sequence of docs/DEPLOY.md §5–§6 (pull the published
+# recordings, rebuild the bundle, run the gate, `gcloud run deploy`) with one call:
+#
+#   gcloud builds submit --config cloudbuild-deploy.yaml \
+#     --region=us-central1 --substitutions=_PROVIDER=deepseek
+#
+# The gate runs here, on a clean checkout of what was uploaded, not on whichever laptop
+# ran the command, so a deploy is held to the same standard as the scheduled refresh.
+# A red gate fails the build and the serving revision is untouched.
+#
+# _PROVIDER has no default on purpose. The model is a decision per deploy, not a
+# property of the pipeline, so a run that does not name one stops before it spends
+# anything. `keep` redeploys current source with the serving revision's env and secrets
+# left exactly as they are — gcloud keeps every setting a deploy does not name.
+#
+# The env and secret sets below are the only copy. `--set-env-vars` and `--set-secrets`
+# replace the whole set, so each profile is complete on its own.
+#
+# Upload: `gcloud builds submit` sends the working tree minus .gitignore'd files, so
+# uncommitted edits ship and .env.local does not. Deploy from a clean tree when you want
+# the revision to match a commit, and pass _COMMIT so the revision records it.
+#
+# The release also moves the scheduled refresh (cloudbuild-refresh.yaml) onto what it
+# deployed. That job builds and redeploys the app from a source tarball in GCS, through a
+# body inlined into its scheduler job, so a tarball or body older than the serving code
+# makes every refresh that lands a session roll the app back. Here the tarball is taken
+# from this build's own workspace and the body is rendered before the deploy (a broken
+# body stops the release before anything changes); both replace the live ones only after
+# the deploy succeeds, with the previous ones kept beside them as .prev-<UTC stamp>.
+#
+# _DRY_RUN=true runs every step and changes nothing: no deploy, no upload, no job update.
+
+substitutions:
+  _PROVIDER: ""
+  _COMMIT: ""
+  _REGION: us-central1
+  _SERVICE: catalyst-web
+  _SERVICE_ACCOUNT: catalyst-run@ada-sectors-508410.iam.gserviceaccount.com
+  _RECORDINGS: gs://ada-sectors-508410_cloudbuild/catalyst/recordings
+  _PULL_RECORDINGS: "true"
+  _DRY_RUN: "false"
+  _SNAPSHOT: gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
+  _REFRESH_JOB: catalyst-data-refresh
+  _PLAYWRIGHT: "1.63.0"
+
+steps:
+  - id: check-provider
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        case "${_PROVIDER}" in
+          deepseek|openrouter|gemini|keep) echo "provider: ${_PROVIDER}" ;;
+          *) echo "set _PROVIDER to deepseek, openrouter, gemini or keep (got '${_PROVIDER}')"; exit 1 ;;
+        esac
+
+  # The recordings the scheduled refresh last deployed. The repository's trail them —
+  # the scheduled job does not commit — so building from the repository alone puts the
+  # board back on the committed window until the next evening's run. Costs no credit.
+  - id: pull-recordings
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "${_PULL_RECORDINGS}" = true ] || { echo "skip: building from the uploaded recordings"; exit 0; }
+        gcloud storage rsync "${_RECORDINGS}" data/sectors \
+          --recursive --delete-unmatched-destination-objects
+
+  - id: build-bundle
+    name: python:3.12
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        python3 scripts/build_market_data.py
+
+  # Before install, so node_modules stays out; after the pull, so the refresh starts from
+  # the recordings this release serves.
+  - id: snapshot
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        tar -czf /tmp/snapshot.tgz --exclude=./_snapshot.tgz --exclude=./_refresh-body.json -C /workspace .
+        mv /tmp/snapshot.tgz /workspace/_snapshot.tgz
+        ls -l /workspace/_snapshot.tgz
+
+  - id: render-worker-body
+    name: python:3.12
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        pip install --quiet --disable-pip-version-check --root-user-action=ignore pyyaml
+        python3 scripts/refresh_job_body.py > _refresh-body.json
+        python3 - <<'PY'
+        import json
+        body = json.load(open("_refresh-body.json"))
+        deploy = next(step for step in body["steps"] if step["id"] == "deploy")
+        script = " ".join(deploy["args"])
+        assert "--set-env-vars" not in script and "--set-secrets" not in script, "refresh would pin a provider"
+        print("refresh body:", len(body["steps"]), "steps, source", body["source"]["storageSource"]["object"])
+        PY
+
+  - id: install
+    name: node:22
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        corepack enable
+        pnpm install --frozen-lockfile
+
+  # docs/DEPLOY.md §5, in the same order. `pnpm build` is not repeated here: the image
+  # build runs it, and a failure there fails this run before anything is deployed.
+  - id: gate
+    name: node:22
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        corepack enable
+        pnpm lint
+        pnpm typecheck
+        pnpm vitest run --exclude 'tests/zz-live.test.ts'
+
+  # The NLI screen's unit tests run on a stub model, so no model files are needed.
+  - id: pytest
+    name: python:3.12
+    entrypoint: bash
+    env: [PYTHONDONTWRITEBYTECODE=1]
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        pip install --quiet --disable-pip-version-check --root-user-action=ignore \
+          -r scripts/screen/requirements.txt pytest
+        python3 -m pytest -q -p no:cacheprovider scripts/screen
+
+  # The image tag must match the installed @playwright/test, whose browsers it carries.
+  - id: e2e
+    name: mcr.microsoft.com/playwright:v${_PLAYWRIGHT}-noble
+    entrypoint: bash
+    env: [CI=1]
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        INSTALLED=$$(node -p "require('@playwright/test/package.json').version")
+        [ "$$INSTALLED" = "${_PLAYWRIGHT}" ] || { echo "set _PLAYWRIGHT=$$INSTALLED (pnpm-lock has it)"; exit 1; }
+        corepack enable
+        pnpm exec playwright test --config=playwright.ci.config.ts
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "${_DRY_RUN}" = true ] && { echo "dry run: skip deploy (${_PROVIDER})"; exit 0; }
+        BASE_SECRETS=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest
+        COMMON_ENV=AGENT_MODE=llm,LLM_RATE_LIMIT_STRIKES=3,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded
+        case "${_PROVIDER}" in
+          deepseek)
+            CONFIG=(--set-env-vars="$$COMMON_ENV,LLM_PROVIDER=openai-compatible,LLM_BASE_URL=https://bandelbanget.xyz/v1,LLM_MODEL=deepseek-v4-flash,LLM_REASONING=off,LLM_REASONING_FIELD=thinking,LLM_SCHEMA_MODE=prompt"
+                    --set-secrets="$$BASE_SECRETS,LLM_API_KEY=LLM_API_KEY:latest") ;;
+          openrouter)
+            CONFIG=(--set-env-vars="$$COMMON_ENV,LLM_PROVIDER=openai-compatible,LLM_BASE_URL=https://openrouter.ai/api/v1,LLM_MODEL=nex-agi/nex-n2.5-mini:free,LLM_REASONING=off"
+                    --set-secrets="$$BASE_SECRETS,LLM_API_KEY=LLM_API_KEY:latest") ;;
+          gemini)
+            CONFIG=(--set-env-vars="$$COMMON_ENV,GEMINI_MODEL=gemini-3.8-flash,GEMINI_MODEL_CHEAP=gemini-3.5-flash-lite"
+                    --set-secrets="$$BASE_SECRETS") ;;
+          keep)
+            CONFIG=() ;;
+        esac
+        LABELS=()
+        [ -n "${_COMMIT}" ] && LABELS=(--update-labels="commit=${_COMMIT}")
+        gcloud run deploy "${_SERVICE}" \
+          --source . \
+          --project="$PROJECT_ID" \
+          --region="${_REGION}" \
+          --service-account="${_SERVICE_ACCOUNT}" \
+          --allow-unauthenticated \
+          --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
+          "$${CONFIG[@]}" "$${LABELS[@]}"
+
+  # Only after the deploy lands, so the refresh never builds from source that is not live.
+  # A failure here leaves the app deployed and the worker on its previous source: the build
+  # goes red, and re-running the release repairs it.
+  - id: sync-workers
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "${_DRY_RUN}" = true ] && { echo "dry run: skip worker sync"; exit 0; }
+        STAMP=$$(date -u +%Y%m%dT%H%MZ)
+        SNAPSHOT="${_SNAPSHOT}"
+        BACKUP_DIR=$$(dirname "$$SNAPSHOT")
+        if gcloud storage ls "$$SNAPSHOT" > /dev/null 2>&1; then
+          gcloud storage cp "$$SNAPSHOT" "$${SNAPSHOT%.tgz}.prev-$$STAMP.tgz"
+        fi
+        # The API returns the body as URL-safe base64, which `base64 -d` rejects.
+        gcloud scheduler jobs describe "${_REFRESH_JOB}" --location="${_REGION}" \
+          --format='value(httpTarget.body)' \
+          | python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.urlsafe_b64decode(sys.stdin.read().strip()))' \
+          > /workspace/_refresh-body.prev.json
+        python3 -m json.tool /workspace/_refresh-body.prev.json > /dev/null
+        gcloud storage cp /workspace/_refresh-body.prev.json "$$BACKUP_DIR/refresh-body.prev-$$STAMP.json"
+        gcloud storage cp /workspace/_snapshot.tgz "${_SNAPSHOT}"
+        gcloud scheduler jobs update http "${_REFRESH_JOB}" --location="${_REGION}" \
+          --message-body-from-file=/workspace/_refresh-body.json
+        echo "worker synced: ${_SNAPSHOT}, ${_REFRESH_JOB}; backups at $$STAMP"
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+timeout: 2400s

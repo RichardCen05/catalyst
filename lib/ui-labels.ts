@@ -35,6 +35,12 @@ const labels: Record<string, string> = {
   "Company exposure": "Eksposur emiten",
   "Financial observable": "Indikator keuangan",
   "Aggregation point": "Titik penghubung",
+  // Metric tiles: the engine keeps the technical name (retrieval and the
+  // figure matcher key on it); the reader sees what the number measures.
+  "HHI": "HHI konsentrasi (0–1)",
+  "Peserta efektif": "Jumlah broker efektif",
+  "Skor z tahan pencilan": "Skor z volume (0 = biasa)",
+  "Residual setelah beta": "Gerak di luar IHSG",
   "source": "Sumber",
   "mechanism": "Mekanisme",
   "company": "Emiten",

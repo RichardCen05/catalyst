@@ -90,7 +90,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
   return (
     <Panel className={className}>
       <PanelHeader
-        title={symbol ? `Ajari Catalyst tentang ${symbol}` : "Ajari Catalyst tentang satu saham"}
+        title={symbol ? `Ajari Catalyst tentang ${symbol}` : "Ajari Catalyst tentang satu emiten"}
       />
       {/* Plain rows, top to bottom. An earlier two-column version left a hole
           in the left column whenever the textarea was taller than the field
@@ -201,7 +201,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
 
         <p className="flex gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
           <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>Catatan Anda langsung diterima dan diproses: ia muncul pada analisis saham ini sebagai konteks, tetapi tidak mengubah angka, rumus, atau sumber.</span>
+          <span>Catatan Anda langsung diterima dan diproses: ia muncul pada analisis emiten ini sebagai konteks, tetapi tidak mengubah angka, rumus, atau sumber.</span>
         </p>
       </form>
     </Panel>

@@ -12,6 +12,7 @@ import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
+import { uiLabel } from "@/lib/ui-labels";
 
 type ListKey = Exclude<keyof InvestorResearchPlaybook, "preferredComparables" | "relevanceFloor" | "thresholds">;
 
@@ -22,6 +23,9 @@ const fields: Array<{ key: ListKey; label: string; hint: string }> = [
   { key: "trustedSources", label: "Sumber tepercaya", hint: "Sumber yang ingin diperiksa lebih dulu." },
   { key: "falsifiers", label: "Kondisi pembatal", hint: "Bukti yang akan membatalkan tesis, bukan sekadar sinyal negatif." },
 ];
+
+const fixed = (value: number, digits: number) =>
+  new Intl.NumberFormat("id-ID", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
 
 export default function PlaybookPage() {
   const playbook = useCatalystStore((state) => state.playbook);
@@ -67,7 +71,7 @@ export default function PlaybookPage() {
                 />
                 <label htmlFor={`watch-${company.symbol}`} className="flex min-w-0 flex-1 cursor-pointer items-baseline gap-2">
                   <span className="shrink-0 font-mono text-sm font-semibold text-primary">{company.symbol}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{company.name}{company.analyzed ? "" : " · ringkas"}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{company.name}{company.analyzed ? "" : " · data ringkas"}</span>
                 </label>
                 <button
                   type="button"
@@ -76,13 +80,13 @@ export default function PlaybookPage() {
                   title={owned ? "Hapus tanda dimiliki" : "Tandai dimiliki"}
                   className={cn("min-h-9 shrink-0 rounded-lg border px-2.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", owned ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}
                 >
-                  {owned ? "Dimiliki" : "Tandai"}
+                  {owned ? "Dimiliki" : "Tandai dimiliki"}
                 </button>
               </div>
             );
           })}
         </div>
-        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Hanya emiten berlabel kasus penuh yang membuka analisis; sisanya tampil sebagai data ringkas.</p>
+        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Centang untuk memantau, tekan Tandai dimiliki untuk saham yang Anda pegang. Emiten bertanda “data ringkas” belum punya rekaman lengkap, jadi tampil tanpa analisis kasus.</p>
       </Panel>
 
       <Panel className="mb-4">
@@ -112,7 +116,7 @@ export default function PlaybookPage() {
             );
           })}
         </div>
-        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Posisi memengaruhi urutan kasus di Dashboard (bobot portofolio × materialitas). Harga memakai close rekaman, bukan live.</p>
+        <p className="border-t border-border px-4 py-3 text-xs leading-5 text-muted-foreground">Posisi memengaruhi urutan kasus di Dashboard (bobot portofolio × materialitas). Harga memakai penutupan sesi dari rekaman, bukan harga langsung.</p>
       </Panel>
 
       <Panel className="mb-4">
@@ -127,8 +131,8 @@ export default function PlaybookPage() {
       <Panel>
         <PanelHeader title="Aturan yang dapat dilihat dan diubah" />
         <div className="border-b border-border p-4">
-          <label htmlFor="relevance-floor" className="text-xs font-medium">Ambang relevansi materialitas: <span className="font-mono text-primary">{relevanceFloor}</span></label>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">Eksposur dengan relevansi di atas ambang ini menandai kasus High. Kasus tanpa jalur eksposur tetap Low.</p>
+          <label htmlFor="relevance-floor" className="text-xs font-medium">Ambang relevansi materialitas: <span className="font-mono text-primary">{relevanceFloor}</span> dari 100</label>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Eksposur dengan relevansi di atas ambang ini menandai kasus {uiLabel("High")}. Kasus tanpa jalur eksposur tetap {uiLabel("Low")}.</p>
           <input id="relevance-floor" type="range" min={40} max={97} step={1} value={relevanceFloor} onChange={(event) => { setSaved(false); setRelevanceFloor(Number(event.target.value)); }} className="mt-3 w-full max-w-md accent-[var(--primary)]" aria-valuetext={`${relevanceFloor} dari 100`} />
         </div>
         <div className="border-b border-border p-4">
@@ -137,12 +141,12 @@ export default function PlaybookPage() {
           <div className="mt-3 grid gap-4">
             {(
               [
-                { key: "concentrationFloor", label: "Ambang konsentrasi", min: 0.1, max: 0.8, step: 0.01, def: DEFAULT_THRESHOLDS.concentrationFloor, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit kasus berstatus Concentrated Flow." },
-                { key: "volumeZFloor", label: "Ambang volume (Meningkat)", min: 1, max: 6, step: 0.1, def: DEFAULT_THRESHOLDS.volumeZFloor, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Meningkat." },
-                { key: "volumeExtremeFloor", label: "Ambang volume (Ekstrem)", min: 3, max: 10, step: 0.1, def: DEFAULT_THRESHOLDS.volumeExtremeFloor, fmt: (v: number) => v.toFixed(1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Ekstrem." },
-                { key: "contagionDropFloor", label: "Ambang penurunan penularan", min: 0.01, max: 0.15, step: 0.005, def: DEFAULT_THRESHOLDS.contagionDropFloor, fmt: (v: number) => `${(v * 100).toFixed(1)}%`, hint: "Menaikkan ambang membuat lebih sedikit penurunan diperiksa sebagai penularan." },
-                { key: "contagionCorrelationFloor", label: "Ambang korelasi penularan", min: 0.1, max: 0.9, step: 0.05, def: DEFAULT_THRESHOLDS.contagionCorrelationFloor, fmt: (v: number) => v.toFixed(2), hint: "Menaikkan ambang membuat lebih sedikit co-movement layak diperiksa." },
-                { key: "distributionValueFloor", label: "Ambang nilai distribusi", min: 10000000000, max: 500000000000, step: 10000000000, def: DEFAULT_THRESHOLDS.distributionValueFloor, fmt: (v: number) => `Rp${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 0 })}M`, hint: "Menaikkan ambang membuat lebih sedikit pelepasan ditandai distribusi." },
+                { key: "concentrationFloor", label: "Ambang konsentrasi (HHI)", min: 0.1, max: 0.8, step: 0.01, def: DEFAULT_THRESHOLDS.concentrationFloor, fmt: (v: number) => fixed(v, 2), hint: `HHI bernilai 0 sampai 1: makin tinggi, makin sedikit broker yang menguasai transaksi. Menaikkan ambang membuat lebih sedikit kasus berstatus ${uiLabel("Concentrated Flow")}.` },
+                { key: "volumeZFloor", label: "Ambang volume Meningkat (skor z)", min: 1, max: 6, step: 0.1, def: DEFAULT_THRESHOLDS.volumeZFloor, fmt: (v: number) => fixed(v, 1), hint: "Skor z mengukur seberapa jauh volume hari ini dari volume biasanya; 0 berarti biasa. Menaikkan ambang membuat lebih sedikit volume berstatus Meningkat." },
+                { key: "volumeExtremeFloor", label: "Ambang volume Ekstrem (skor z)", min: 3, max: 10, step: 0.1, def: DEFAULT_THRESHOLDS.volumeExtremeFloor, fmt: (v: number) => fixed(v, 1), hint: "Menaikkan ambang membuat lebih sedikit volume berstatus Ekstrem." },
+                { key: "contagionDropFloor", label: "Ambang penurunan satu sesi (penularan)", min: 0.01, max: 0.15, step: 0.005, def: DEFAULT_THRESHOLDS.contagionDropFloor, fmt: (v: number) => `${fixed(v * 100, 1)}%`, hint: "Penularan: saham ikut turun karena emiten lain turun, tanpa berita sendiri. Menaikkan ambang membuat lebih sedikit penurunan diperiksa sebagai penularan." },
+                { key: "contagionCorrelationFloor", label: "Ambang korelasi penularan (0 sampai 1)", min: 0.1, max: 0.9, step: 0.05, def: DEFAULT_THRESHOLDS.contagionCorrelationFloor, fmt: (v: number) => fixed(v, 2), hint: "Korelasi mengukur seberapa searah dua saham bergerak; 1 berarti selalu searah. Menaikkan ambang membuat lebih sedikit gerak bersama layak diperiksa." },
+                { key: "distributionValueFloor", label: "Ambang nilai distribusi", min: 10000000000, max: 500000000000, step: 10000000000, def: DEFAULT_THRESHOLDS.distributionValueFloor, fmt: (v: number) => `Rp${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 0 })} miliar`, hint: "Distribusi: pihak besar melepas saham dalam nilai besar. Menaikkan ambang membuat lebih sedikit pelepasan ditandai distribusi." },
               ] as const
             ).map((row) => {
               const cur = (playbook.thresholds?.[row.key] ?? row.def) as number;

@@ -1,4 +1,5 @@
 import React from "react";
+import { uiLabel } from "@/lib/ui-labels";
 import { AlertTriangle, Calculator, ChevronDown, Database } from "lucide-react";
 import type { Citation, MetricValue, PillarResult, SymbolCode } from "@/lib/types";
 import { primarySymbol } from "@/lib/data/fixtures";
@@ -71,7 +72,7 @@ function DerivationRow({ pillar, metric }: { pillar: PillarResult; metric: Metri
   return (
     <li className="bg-surface p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="text-xs font-semibold text-foreground">{metric.label}</p>
+        <p className="text-xs font-semibold text-foreground">{uiLabel(metric.label)}</p>
         <p className="break-words font-mono text-sm font-semibold tabular-nums text-foreground">{displayFigure(metric.value)}</p>
       </div>
       {formula ? (
@@ -110,6 +111,7 @@ export function EvidenceCard({ pillar, symbol, trailing }: { pillar: PillarResul
           {trailing}
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-6">{pillar.protocol.claim}</p>
+        <p className="mt-1 text-xs text-muted-foreground">Klaim ini diperiksa, bukan disimpulkan. Hasil pemeriksaan: <span className="font-semibold text-foreground">{uiLabel(pillar.status)}</span>.</p>
         <div className="mt-5 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
           <div className="bg-background p-4"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>
           <div className="bg-background p-4"><p className="text-xs font-medium text-attention-foreground">Bukti penyangkal</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.challengingEvidence}</p></div>
@@ -121,7 +123,7 @@ export function EvidenceCard({ pillar, symbol, trailing }: { pillar: PillarResul
           cell the width of half the card. The tiles stretch to close the last
           row instead. */}
       <dl className="flex flex-wrap gap-px border-y border-border bg-border">
-        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-[45%] flex-1 overflow-hidden bg-background p-3 sm:min-w-[170px]"><dt className="truncate text-xs text-muted-foreground" title={metric.label}>{metric.label}</dt><dd className="mt-1 break-words font-mono text-base font-medium tabular-nums">{displayFigure(metric.value)}</dd>{metric.detail ? <dd className="mt-0.5 font-mono text-xs text-muted-foreground">{metric.detail}</dd> : null}<dd><SourceChip citations={metric.citations} /></dd></div>)}
+        {pillar.metrics.map((metric) => <div key={metric.label} className="min-w-[45%] flex-1 overflow-hidden bg-background p-3 sm:min-w-[170px]"><dt className="truncate text-xs text-muted-foreground" title={uiLabel(metric.label)}>{uiLabel(metric.label)}</dt><dd className="mt-1 break-words font-mono text-base font-medium tabular-nums">{displayFigure(metric.value)}</dd>{metric.detail ? <dd className="mt-0.5 font-mono text-xs text-muted-foreground">{metric.detail}</dd> : null}<dd><SourceChip citations={metric.citations} /></dd></div>)}
       </dl>
 
       <details className="group">

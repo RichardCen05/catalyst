@@ -559,6 +559,11 @@ def build_commodity_exposure():
 COMMODITY_EXPOSURE = build_commodity_exposure()
 
 
+# The endpoint names the commodity in English; the reader reads Indonesian.
+# A name missing here falls back to the endpoint's own spelling.
+COMMODITY_NAME_ID = {"Coal": "batu bara", "Gold": "emas", "Nickel": "nikel", "Tin": "timah"}
+
+
 def add_commodity_event(name):
     # The year range is whatever was recorded, not a pair of typed years: the
     # commodity recordings are refreshed on their own cadence and a hard-coded
@@ -591,8 +596,8 @@ def add_commodity_event(name):
         return
     events[event_id] = {
         "id": event_id,
-        "title": f"Harga {name} acuan {latest['date']}: USD{latest['price_usd_per_ton']}",
-        "summary": f"Harga referensi {name} (price_usd_per_ton) bergerak {pct(change)} dari {previous['date']} ke {latest['date']}, rekaman Sectors mining-commodities.",
+        "title": f"Harga acuan {COMMODITY_NAME_ID.get(name, name)} {latest['date']}: USD{latest['price_usd_per_ton']}",
+        "summary": f"Harga referensi {COMMODITY_NAME_ID.get(name, name)} (price_usd_per_ton) bergerak {pct(change)} dari {previous['date']} ke {latest['date']}, rekaman Sectors mining-commodities.",
         "body": None,
         "category": "commodity",
         "sourceType": "commodity",

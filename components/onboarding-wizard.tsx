@@ -40,7 +40,7 @@ export function OnboardingWizard() {
 
           <div className="min-h-[330px] p-5 sm:p-6">
             <div>
-              <h2 className="text-lg font-semibold">Pilih saham komoditas yang dipantau</h2>
+              <h2 className="text-lg font-semibold">Pilih emiten komoditas yang dipantau</h2>
               <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Catalyst berfokus pada emiten tambang dan energi. Perubahan harga komoditas, rupiah, cuaca, produksi, dan aturan dapat ditelusuri ke dampak bisnis.</p>
               <div className="relative mt-4">
                 <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

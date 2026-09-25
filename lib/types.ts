@@ -521,6 +521,9 @@ export interface CausalNode {
   confidence: "High" | "Medium" | "Low";
   lag: string;
   counterEvidence: string;
+  /** Supporting evidence written from the graph itself. Only the company node
+   *  sets it — every other node's support is its own relevance. */
+  supportingEvidence?: string;
   citations: Citation[];
   /** Carried from a source event the web-watch screen marked. */
   markers?: EventMarker[];

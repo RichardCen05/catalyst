@@ -130,6 +130,10 @@ export const citations = {
 
 export const companies: Company[] = rawCompanies.map((company) => ({
   ...company,
+  // The provider spells the same legal form three ways ("PT … Tbk", "… Tbk.",
+  // "… Tbk"). One spelling, so a list of issuers does not read as a list of
+  // different kinds of company.
+  name: company.name.replace(/^PT\s+/i, "").replace(/\s*\.+$/, ""),
   asOf: DATA_AS_OF,
   // Price and change come from the daily recording; name, sector, and market
   // cap from the company report overview. Two recordings, two citations.

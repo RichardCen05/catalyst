@@ -82,8 +82,20 @@ export async function retrieveContext(
     const wantedViews = [...new Set(
       loaded.flatMap((bundle) => (bundle?.view ? [bundle.view] : [])),
     )];
+    // A page can hold more than one spec — the cases page answers both
+    // "what is recorded" and "what is on my list". A panel is paired with the
+    // spec the question itself ranked highest for that page, so asking about
+    // the "Kasus aktif" tab brings the reader's own list, not the registry
+    // count that happens to be the page's first spec.
+    const rankedPage = new Map<ViewId, (typeof ranked)[number]["entry"]>();
+    for (const row of ranked) {
+      if (row.entry.kind === "view" && row.entry.view && !rankedPage.has(row.entry.view)) rankedPage.set(row.entry.view, row.entry);
+    }
     const pages = await Promise.all(
-      wantedViews.map((view) => loadPageBundle(view, context).catch(() => null)),
+      wantedViews.map((view) => {
+        const entry = rankedPage.get(view);
+        return (entry ? entry.load(context) : loadPageBundle(view, context)).catch(() => null);
+      }),
     );
     const pageByView = new Map<ViewId, ContextBundle>();
     wantedViews.forEach((view, index) => {
@@ -133,7 +145,13 @@ export async function retrieveContext(
   // builder threw is caught down to null, and applying the strict filter to
   // the survivors of a question that is no longer scoped could empty the
   // answer entirely.
-  const scopedAnswer = bundles[0]?.scope === "user";
+  //
+  // A panel the reader pointed at has no scope of its own; the page material
+  // paired right behind it says what the panel shows, so that page names the
+  // answer. Without this, "what is the Kasus aktif tab" mixed the reader's
+  // list with the registry count.
+  const lead = bundles[0]?.kind === "chrome" && bundles[1]?.view === bundles[0].view ? bundles[1] : bundles[0];
+  const scopedAnswer = lead?.scope === "user";
   const assembled = scopedAnswer
     ? bundles.filter((bundle) =>
         bundle.scope !== "registry" && bundle.symbols.every((symbol) => watched.has(symbol)))
@@ -170,6 +188,6 @@ export async function retrieveContext(
     score,
     // The winning entry names the answer. A neutral entry riding along does
     // not turn a registry answer into a scoped one, or the other way round.
-    scope: kept[0]?.scope ?? "registry",
+    scope: (scopedAnswer ? lead?.scope : kept[0]?.scope) ?? "registry",
   };
 }

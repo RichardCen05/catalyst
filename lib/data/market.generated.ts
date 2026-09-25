@@ -8368,8 +8368,8 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "commodity-coal-2025-12-15",
-    "title": "Harga Coal acuan 2025-12-15: USD100.81",
-    "summary": "Harga referensi Coal (price_usd_per_ton) bergerak 2,6% dari 2025-12-01 ke 2025-12-15, rekaman Sectors mining-commodities.",
+    "title": "Harga acuan batu bara 2025-12-15: USD100.81",
+    "summary": "Harga referensi batu bara (price_usd_per_ton) bergerak 2,6% dari 2025-12-01 ke 2025-12-15, rekaman Sectors mining-commodities.",
     "body": null,
     "category": "commodity",
     "sourceType": "commodity",
@@ -8398,8 +8398,8 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "commodity-gold-2025-12-01",
-    "title": "Harga Gold acuan 2025-12-01: USD4299.97",
-    "summary": "Harga referensi Gold (price_usd_per_ton) bergerak 5,3% dari 2025-11-01 ke 2025-12-01, rekaman Sectors mining-commodities.",
+    "title": "Harga acuan emas 2025-12-01: USD4299.97",
+    "summary": "Harga referensi emas (price_usd_per_ton) bergerak 5,3% dari 2025-11-01 ke 2025-12-01, rekaman Sectors mining-commodities.",
     "body": null,
     "category": "commodity",
     "sourceType": "commodity",

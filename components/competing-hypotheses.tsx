@@ -21,7 +21,11 @@ export function CompetingHypotheses({ graph }: { graph: CausalGraph }) {
   return (
     <section role="region" aria-label={`Hipotesis untuk ${observableList}`} className="mb-4 overflow-hidden rounded-lg border border-border bg-surface">
       <header className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-        <div className="max-w-2xl"><p className="text-xs font-medium text-muted-foreground">Perbandingan penyebab</p><h2 className="editorial mt-1 text-xl">Apa yang paling mungkin menjelaskan {observableList.toLowerCase()}?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{graph.competingHypotheses.length} penyebab diuji terhadap {observables.length} indikator yang sama.</p></div>
+        <div className="max-w-2xl"><p className="text-xs font-medium text-muted-foreground">Perbandingan penyebab</p>{graph.coverage.analyzed ? (
+          <><h2 className="editorial mt-1 text-xl">Apa yang paling mungkin menjelaskan {observableList.toLowerCase()}?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{graph.competingHypotheses.length} penyebab diuji terhadap {observables.length} indikator yang sama.</p></>
+        ) : (
+          <><h2 className="editorial mt-1 text-xl">Sumber mana yang paling kuat terhubung ke {graph.targetSymbol}?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{graph.competingHypotheses.length} penyebab diurutkan menurut relevansi. Data kinerja {graph.targetSymbol} belum terekam, jadi belum ada indikator bisnis untuk mengujinya.</p></>
+        )}</div>
         <span className="inline-flex min-h-9 items-center gap-2 self-start rounded-lg border border-border px-3 text-xs font-medium text-muted-foreground"><Scale aria-hidden="true" className="size-3.5" />{observables.length > 1 ? "Indikator yang sama, beberapa sebab" : "Satu indikator, beberapa sebab"}</span>
       </header>
 

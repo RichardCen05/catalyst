@@ -24,7 +24,7 @@ import { resolveThresholds, type ResolvedThresholds } from "@/lib/agent/threshol
 type CaseHubView = "active" | "coverage" | "picker";
 
 const views: Array<{ value: CaseHubView; label: string }> = [
-  { value: "active", label: "Analisis aktif" },
+  { value: "active", label: "Kasus aktif" },
   { value: "coverage", label: "Semua emiten" },
   { value: "picker", label: "Perbandingan emiten" },
 ];
@@ -119,9 +119,9 @@ function ResearchCasesContent() {
     { label: "Harga saham", render: (item) => <span className="flex items-center gap-2"><span className="font-mono tabular-nums">{formatCurrency(item.company.price)}</span><PriceChange value={item.company.changePct} className="text-xs" /></span>, score: (item) => Math.abs(item.company.changePct) },
     { label: "Status bukti", render: (item) => <StatusBadge status={item.evidenceState} />, score: (item) => strengthRank(item.evidenceState) },
     { label: "Uji bisnis utama", render: (item) => item.businessImpact.find((impact) => impact.status === "Primary test")?.label ?? "—" },
-    { label: "Konsentrasi (HHI)", render: (item) => figureOf(item, "concentration", "HHI"), score: (item) => magnitudeOf(item, "concentration", "HHI") },
-    { label: "Volume (skor z)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan"), score: (item) => magnitudeOf(item, "volume", "Skor z tahan pencilan") },
-    { label: "Residual vs IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta"), score: (item) => magnitudeOf(item, "momentum", "Residual setelah beta") },
+    { label: "Konsentrasi (HHI, 0–1)", render: (item) => figureOf(item, "concentration", "HHI"), score: (item) => magnitudeOf(item, "concentration", "HHI") },
+    { label: "Volume (skor z, 0 = biasa)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan"), score: (item) => magnitudeOf(item, "volume", "Skor z tahan pencilan") },
+    { label: "Gerak di luar IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta"), score: (item) => magnitudeOf(item, "momentum", "Residual setelah beta") },
     { label: "Imbal hasil sektor", render: (item) => figureOf(item, "momentum", "Imbal hasil sektor") },
     { label: "Materialitas", render: (item) => `${uiLabel(item.priority.materiality)} · ${item.priority.reason}` },
     { label: "Tantangan utama", render: (item) => item.counterEvidence[0] },
@@ -153,7 +153,7 @@ function ResearchCasesContent() {
           })}
         </ul>
       </div>
-        <p className="mt-3 text-xs text-subtle-foreground">Urutan mengikuti materialitas dan feedback Anda. Setiap kasus diperiksa dalam tiga langkah: 1 Pasar, 2 Bisnis, 3 Keputusan.</p>
+        <p className="mt-3 text-xs text-subtle-foreground">Urutan mengikuti materialitas dan penilaian bukti Anda. Setiap kasus diperiksa dalam tiga langkah: 1 Pasar, 2 Bisnis, 3 Keputusan.</p>
         <p className="mt-2 text-sm text-muted-foreground">{orderedCases.length} dari {companies.length} emiten punya kasus aktif. <Link href="/cases?view=coverage" className="font-medium text-foreground underline underline-offset-4 hover:no-underline">Lihat semua emiten</Link> untuk emiten yang tidak masuk daftar ini dan hasil uji ambangnya.</p>
         {firstOpen ? <NextStep title={`Mulai dari ${firstOpen.company.symbol}`} description={`${firstOpen.trigger.title}. Buka langkah 1 Pasar untuk memeriksa apakah pasar ikut bergerak.`} href={`/cases/${firstOpen.company.symbol}?tab=market`} action={`Buka ${firstOpen.company.symbol}`} secondary={{ href: "/cases?view=picker", label: "Bandingkan emiten" }} /> : <NextStep title="Semua kasus sudah ditutup" description="Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning." href="/ai-learning?section=tinjauan" action="Buka tinjauan dan usulan" />}
       </div> : null}
@@ -194,7 +194,7 @@ function ResearchCasesContent() {
           })}
         </div>
         <p className="mt-3 text-xs text-subtle-foreground">Ambang yang sama dengan pilar kasus: Ambang volume (Meningkat) untuk skor z volume dan Ambang penurunan penularan untuk penurunan harga satu sesi. Keduanya diubah di Aturan riset investor.</p>
-        <NextStep title="Kembali ke kasus aktif" description="Emiten yang melewati ambang tetapi rekamannya belum lengkap belum bisa dibuka sebagai kasus. Kasus yang bisa diperiksa ada di Analisis aktif." href="/cases" action="Buka Analisis aktif" secondary={{ href: "/playbook", label: "Aturan riset investor" }} />
+        <NextStep title="Kembali ke kasus aktif" description="Emiten yang melewati ambang tetapi rekamannya belum lengkap belum bisa dibuka sebagai kasus. Kasus yang bisa diperiksa ada di Kasus aktif." href="/cases" action="Buka Kasus aktif" secondary={{ href: "/playbook", label: "Aturan riset investor" }} />
       </div> : null}
 
       {activeView === "picker" ? <div>
@@ -245,7 +245,7 @@ function ResearchCasesContent() {
           </div>
           <p className="border-t border-border px-4 py-3 text-xs text-subtle-foreground">Terkuat: sinyal paling jauh dari nol di baris itu, atau status bukti yang paling kuat. Ini urutan pemeriksaan, bukan peringkat investasi.</p>
         </Panel>
-        {activeSymbols.length ? <NextStep title={`Periksa ${activeSymbols[0]} lebih dalam`} description="Perbandingan menunjukkan di mana bukti berbeda. Buka kasusnya untuk membaca buktinya langkah demi langkah." href={`/cases/${activeSymbols[0]}`} action={`Buka ${activeSymbols[0]}`} secondary={{ href: "/cases", label: "Kembali ke Analisis aktif" }} /> : <NextStep title="Pilih emiten untuk dibandingkan" description="Tekan Tambah emiten di kepala kolom, lalu pilih dari daftar atau ketik kode saham." href="/cases" action="Kembali ke Analisis aktif" />}
+        {activeSymbols.length ? <NextStep title={`Periksa ${activeSymbols[0]} lebih dalam`} description="Perbandingan menunjukkan di mana bukti berbeda. Buka kasusnya untuk membaca buktinya langkah demi langkah." href={`/cases/${activeSymbols[0]}`} action={`Buka ${activeSymbols[0]}`} secondary={{ href: "/cases", label: "Kembali ke Kasus aktif" }} /> : <NextStep title="Pilih emiten untuk dibandingkan" description="Tekan Tambah emiten di kepala kolom, lalu pilih dari daftar atau ketik kode saham." href="/cases" action="Kembali ke Kasus aktif" />}
       </div> : null}
     </div>
   );

@@ -17,7 +17,7 @@ export function EvidenceFeedback({ symbol, pillar, label }: { symbol: SymbolCode
   };
 
   return (
-    <div role="group" className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label={`Feedback bukti ${targetLabel}`}>
+    <div role="group" className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label={`Penilaian bukti ${targetLabel}`}>
       <span className="text-xs text-muted-foreground">Bukti ini</span>
       <button
         type="button"

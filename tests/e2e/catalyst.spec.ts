@@ -215,7 +215,7 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await page.goto("/cases/ANTM");
 
   await expect(page.getByText("Pertanyaan yang diuji", { exact: false })).toBeVisible();
-  await expect(page.getByText(/Periksa perubahan ANTM/)).toBeVisible();
+  await expect(page.getByText(/momentum ANTM saling menguatkan/)).toBeVisible();
   await expect(page.getByLabel("Apa yang ingin dibuktikan?")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Simpan dan susun ulang" })).toHaveCount(0);
   // No focus gate: the case tests every recorded dimension without asking.
