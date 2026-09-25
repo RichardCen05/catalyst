@@ -268,7 +268,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:case:keputusan",
     heading: "Keputusan",
     view: "case",
-    description: "Baca ringkasan di kiri, lalu simpan hasil kasus di kanan: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang.",
+    description: "Baca ringkasan, lalu simpan hasil kasus di bawahnya: pilih tindakan riset dan tulis satu aturan yang bisa dipakai ulang.",
     file: "components/research-case-workspace.tsx",
   },
   {
@@ -351,13 +351,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     view: "case",
     labels: ["Lanjutkan riset","Pantau indikator","Abaikan pemicu"],
     file: "components/case-resolution.tsx",
-  },
-  {
-    id: "chrome:case:tindakan-riset-2",
-    heading: "Tindakan riset",
-    view: "case",
-    labels: ["Tindakan riset yang disarankan dari bukti","Kapan dibuka kembali"],
-    file: "components/case-verdict.tsx",
   },
   {
     id: "chrome:cases:analisis-aktif",

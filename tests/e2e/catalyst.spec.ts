@@ -311,9 +311,9 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await page.getByText("Lihat rincian audit", { exact: true }).click();
   await expect(page.getByText(rule, { exact: true })).toBeVisible();
 
-  // The disposition itself lives on the case, not on the dashboard: the board
+  // The case outcome lives on the case, not on the dashboard: the board
   // draws the causal chains and leaves the verdict where its evidence is.
-  await expect(page.getByRole("region", { name: "Tindakan riset" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Hasil kasus" })).toBeVisible();
   await page.goto("/");
   await expect(page.locator('a[href="/cases/ANTM"]').first()).toBeVisible();
 });

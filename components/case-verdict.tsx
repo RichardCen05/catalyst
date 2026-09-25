@@ -6,37 +6,10 @@ import { buildInvestmentMemo } from "@/lib/memo";
 import { deriveMonitorTriggers } from "@/lib/monitor";
 import { useCatalystStore } from "@/lib/store";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
-import { dispositionLabel } from "@/lib/ui-labels";
 
 // Verdict, audit trail, monitor queue and memo export. These were the parts of
 // the removed summary tab that are not repeated anywhere else; they live in the
 // review tab now, next to the decision they belong to.
-
-export function CaseDisposition({ researchCase, symbol }: { researchCase: ResearchCase; symbol: SymbolCode }) {
-  const recordInsight = useCatalystStore((state) => state.recordInsight);
-  const [tracked, setTracked] = useState(false);
-
-  const trackObservable = () => {
-    recordInsight({
-      symbol,
-      category: "missing-context",
-      note: `Pantau: ${researchCase.researchDisposition.monitorObservable} Buka kembali bila: ${researchCase.researchDisposition.reopenWhen}`,
-    });
-    setTracked(true);
-  };
-
-  return (
-    <section aria-label="Tindakan riset" className="rounded-lg border border-foreground bg-background p-4">
-      <p className="text-xs font-medium text-muted-foreground">Tindakan riset yang disarankan dari bukti</p>
-      <h2 className="editorial mt-1 text-xl">{dispositionLabel(researchCase.researchDisposition.kind)}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">{researchCase.researchDisposition.reason}</p>
-      <dl className="mt-4 space-y-3 border-t border-border pt-4">
-        <div><dt className="text-xs font-medium text-muted-foreground">Pantau</dt><dd className="mt-0.5 text-sm">{researchCase.researchDisposition.monitorObservable}<button type="button" onClick={trackObservable} className="mt-2 flex min-h-9 items-center rounded-lg border border-border-strong px-3 text-sm font-medium transition-shadow hover:shadow-[0_0_0_3px_var(--muted)]">{tracked ? "Sudah masuk antrean pantauan" : "Jadikan item pantauan"}</button></dd></div>
-        <div><dt className="text-xs font-medium text-muted-foreground">Kapan dibuka kembali</dt><dd className="mt-0.5 text-sm text-muted-foreground">{researchCase.researchDisposition.reopenWhen}</dd></div>
-      </dl>
-    </section>
-  );
-}
 
 export function CaseAuditDetails({ researchCase, symbol }: { researchCase: ResearchCase; symbol: SymbolCode }) {
   const caseStatuses = useCatalystStore((state) => state.caseStatuses);
