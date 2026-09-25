@@ -6237,23 +6237,23 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Infrastructure": -0.042294,
   "Technology": -0.010155,
-  "Consumer": 9.8e-05,
   "Basic Materials": -0.010704,
   "Financials": -0.014507,
-  "Energy": -0.016683
+  "Consumer": 9.8e-05,
+  "Energy": -0.016683,
+  "Infrastructure": -0.042294
 };
 
 export const subsectorReturns: Record<string, number> = {
   "Software & IT Services": -0.010155,
+  "Oil, Gas & Coal": -0.016683,
   "Basic Materials": -0.010704,
-  "Telecommunication": -0.043325,
-  "Banks": -0.014507,
   "Transportation Infrastructure": -0.027778,
   "Food & Beverage": -0.003534,
-  "Oil, Gas & Coal": -0.016683,
-  "Food & Staples Retailing": 0.007692
+  "Banks": -0.014507,
+  "Food & Staples Retailing": 0.007692,
+  "Telecommunication": -0.043325
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
