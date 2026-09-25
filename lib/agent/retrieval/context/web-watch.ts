@@ -35,7 +35,13 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
     `Menurut jenis: ${[...byKind.entries()].map(([kind, count]) => `${kind} ${count}`).join(", ")}.`,
     `Menurut kategori peristiwa: ${[...byCategory.entries()].map(([category, count]) => `${category} ${count}`).join(", ")}.`,
     `Antrean review: ${stats.pending} calon menunggu keputusan, ${stats.decided} sudah diputus.`,
-    `Setiap malam penyaring berbasis model NLI lokal membaca calon yang menunggu. Calon yang belum bisa ia putuskan ditinggalkan untuk reviewer di bagian Perlu keputusan beserta alasannya: ${stats.residual}. Keputusan reviewer atas calon itu dipakai untuk mengkalibrasi penyaring.`,
+    `Penyaring berbasis model NLI lokal membaca calon yang menunggu. Calon yang belum bisa ia putuskan ditinggalkan untuk reviewer di bagian Perlu keputusan beserta alasannya: ${stats.residual}. Keputusan reviewer atas calon itu dipakai untuk mengkalibrasi penyaring.`,
+    // Said from the queue, not from the plan: the screen job is scheduled
+    // separately (DEPLOY.md §10b), and until it has applied a run nothing on
+    // this page has been screened.
+    stats.lastScreenAt
+      ? `Penyaringan terakhir diterapkan pada ${stats.lastScreenAt.slice(0, 10)}.`
+      : `Penyaring belum pernah berjalan: belum ada calon yang dibaca penyaring, jadi semua calon menunggu keputusan reviewer.`,
     `Sebelum sampai ke reviewer, setiap calon lewat triase berbasis aturan: duplikat, teks tanpa kalimat utuh, cuaca atau gempa di bawah ambang peringatan, dan calon yang tidak menyebut satu pun emiten terekam atau sumbernya tidak mendeklarasikan emiten disisihkan ke arsip beserta alasannya. Arsip tidak dihapus, tetapi final: calon yang diarsipkan tidak dikembalikan ke antrean.`,
     `Diarsipkan otomatis: ${stats.archived}${
       stats.archived

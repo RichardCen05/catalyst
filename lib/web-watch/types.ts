@@ -75,6 +75,8 @@ export interface WatchedSourceState extends WatchedSource {
   lastModified: string | null;
   /** sha256 of the *extracted text*, not the raw bytes. */
   lastTextSha: string | null;
+  /** `EXTRACTOR_VERSION` that produced `lastTextSha`. Absent = version 1. */
+  lastExtractorVersion?: number;
   seenEntryIds: string[];
   documentIds: string[];
   checks: number;

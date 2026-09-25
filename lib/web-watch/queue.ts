@@ -44,6 +44,7 @@ import { companies } from "@/lib/data/fixtures";
 import { bucket } from "@/lib/web-watch/registry";
 import { RELEVANCE_BAND_SCORE, resolveThresholds, type RelevanceBand } from "@/lib/agent/thresholds";
 import { sourceFor, TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
+import { repairStoredEvent } from "@/lib/web-watch/stored-fields";
 import type { WatchedSource } from "@/lib/web-watch/types";
 import type { EventMarker, ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
 
@@ -154,6 +155,11 @@ export interface ReviewQueue {
   matches: Record<string, TriageMatch>;
   restored: Record<string, RestoredCandidate>;
   proposals: Record<string, TriageProposal>;
+  /** When a screen run last applied verdicts (`/api/internal/web-watch-decide`
+   *  with `apply: true`). Absent until the first run: Pantau and the assistant
+   *  read it to say whether the screen has ever run, instead of promising a
+   *  nightly run that may not be scheduled. */
+  lastScreenAt?: string;
 }
 
 export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {}, proposals: {} };
@@ -162,16 +168,33 @@ const asRecord = <T>(value: unknown): Record<string, T> =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, T>) : {};
 
 /** Read any stored shape — including one written before triage existed — as
- *  a full queue. Missing sections are empty; present ones are kept as-is. */
+ *  a full queue. Missing sections are empty; present ones are kept as-is,
+ *  except that events written before feed dates were read as ISO, or before
+ *  a filename headline could fall back to the page title, are read the way a
+ *  new item is written (`repairStoredEvent`). The id never changes: it hashes
+ *  the text, not the headline or the date. */
 export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): ReviewQueue {
+  const minWords = resolveThresholds().webWatchHeadlineMinWords;
+  const repair = (events: MarketEvent[]) => events.map((event) => repairStoredEvent(event, minWords));
+  const archived = asRecord<ArchivedCandidate>(raw?.archived);
   return {
-    pending: Array.isArray(raw?.pending) ? raw.pending : [],
-    accepted: Array.isArray(raw?.accepted) ? raw.accepted : [],
-    decided: asRecord<ReviewDecision>(raw?.decided),
-    archived: asRecord<ArchivedCandidate>(raw?.archived),
+    pending: Array.isArray(raw?.pending) ? repair(raw.pending) : [],
+    accepted: Array.isArray(raw?.accepted) ? repair(raw.accepted) : [],
+    // An auto-accept keeps the event as it was while pending, which is what
+    // Pantau lists under "Diterima otomatis" and what a revert puts back.
+    decided: Object.fromEntries(
+      Object.entries(asRecord<ReviewDecision>(raw?.decided)).map(([id, decision]) => [
+        id,
+        decision?.auto?.event ? { ...decision, auto: { ...decision.auto, event: repairStoredEvent(decision.auto.event, minWords) } } : decision,
+      ]),
+    ),
+    archived: Object.fromEntries(
+      Object.entries(archived).map(([id, entry]) => [id, entry?.event ? { ...entry, event: repairStoredEvent(entry.event, minWords) } : entry]),
+    ),
     matches: asRecord<TriageMatch>(raw?.matches),
     restored: asRecord<RestoredCandidate>(raw?.restored),
     proposals: asRecord<TriageProposal>(raw?.proposals),
+    ...(typeof raw?.lastScreenAt === "string" ? { lastScreenAt: raw.lastScreenAt } : {}),
   };
 }
 
@@ -773,9 +796,11 @@ interface OverlayCounts {
   /** Items the screen dismissed alone; final. */
   autoRejected: number;
   archivedByRule: Partial<Record<TriageRule, number>>;
+  /** `ReviewQueue.lastScreenAt`; null before the screen's first applied run. */
+  lastScreenAt: string | null;
 }
 
-const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, residual: 0, autoRejected: 0, archivedByRule: {} };
+const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, residual: 0, autoRejected: 0, archivedByRule: {}, lastScreenAt: null };
 
 let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { events: [], ...zeroCounts, expiresAt: 0 };
 
@@ -792,6 +817,7 @@ export function overlayCounts(queue: ReviewQueue): OverlayCounts {
     residual: queue.pending.filter((event) => queue.matches[event.id]?.residual).length,
     autoRejected: Object.values(queue.decided).filter((d) => d.autoReject).length,
     archivedByRule,
+    lastScreenAt: queue.lastScreenAt ?? null,
   };
 }
 
@@ -830,6 +856,7 @@ export function getOverlayStats(): OverlayCounts & { accepted: number } {
     residual: overlay.residual,
     autoRejected: overlay.autoRejected,
     archivedByRule: overlay.archivedByRule,
+    lastScreenAt: overlay.lastScreenAt,
     accepted: overlay.events.length,
   };
 }

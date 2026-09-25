@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { checkSource, hintBuckets, keywordHits, type FetchImpl } from "@/lib/web-watch/check";
-import { FetchError, type Fetched } from "@/lib/web-watch/fetching";
+import { EXTRACTOR_VERSION, FetchError, type Fetched } from "@/lib/web-watch/fetching";
 import { addSource, claim, isLocked, listSources, memoryRegistryStore, release, saveRegistry } from "@/lib/web-watch/registry";
 import { isDue, newSourceState, type WatchedSource } from "@/lib/web-watch/types";
 import { watchAll } from "@/lib/web-watch/watch-all";
@@ -124,6 +124,28 @@ describe("checkSource — document", () => {
     expect(second.reason).toBe("same_text");
   });
 
+  it("re-baselines a hash from an older extractor instead of reporting a change", async () => {
+    const store = memoryRegistryStore();
+    await addSource(store, docSource);
+    await saveRegistry(store, (file) => {
+      // Written before extractor versions existed: a hash of text the
+      // current extractor no longer produces.
+      file.sources["src-doc"] = { ...file.sources["src-doc"], lastTextSha: "hash-from-extractor-1" };
+      return file;
+    });
+    let body = LONG;
+    const fetchImpl: FetchImpl = async () => fetched(page(body));
+    const first = await checkSource("src-doc", { store, fetchImpl, nowMs: 1 });
+    expect(first).toMatchObject({ status: "unchanged", reason: "extractor_rebaselined" });
+    expect(first.candidates ?? []).toHaveLength(0);
+    expect((await listSources(store))[0].lastExtractorVersion).toBe(EXTRACTOR_VERSION);
+
+    // Under the current extractor a difference is a real change again.
+    body = `${LONG} tambahan`;
+    const second = await checkSource("src-doc", { store, fetchImpl, nowMs: 2 }, true);
+    expect(second).toMatchObject({ status: "changed", reason: "text_changed" });
+  });
+
   it("honours 304 without downloading", async () => {
     const store = memoryRegistryStore();
     await addSource(store, docSource);
@@ -200,6 +222,30 @@ describe("checkSource — feed and listing", () => {
     expect(second.newEntries).toBe(1);
     expect(second.candidates).toHaveLength(1);
     expect(second.candidates![0].title).toBe("Tiga");
+  });
+
+  it("reads feed dates as ISO and gives a filename-titled listing item the page's own headline", async () => {
+    const store = memoryRegistryStore();
+    await addSource(store, feedSource);
+    let feedXml = feedV1;
+    const fetchImpl: FetchImpl = async (url) =>
+      url === "https://ex.id/feed" ? fetched(feedXml, { contentType: "application/rss+xml", url }) : fetched(article("item"), { url });
+    await checkSource("src-feed", { store, fetchImpl, nowMs: 1 });
+    feedXml = feedV1.replace("</channel>", `<item><guid>https://ex.id/n/3</guid><title>Tiga</title><link>https://ex.id/n/3</link><pubDate>Wed, 23 Sep 2026 16:09:01 +0700</pubDate></item></channel>`);
+    const result = await checkSource("src-feed", { store, fetchImpl, nowMs: 2 }, true);
+    expect(result.candidates![0].publishedAt).toBe("2026-09-23T09:09:01.000Z");
+
+    const listStore = memoryRegistryStore();
+    await addSource(listStore, { ...feedSource, id: "src-list", url: "https://ex.id/index", kind: "listing", linkPattern: "/Pages/sp_[0-9]+[.]aspx" });
+    let index = `<html><body><a href="/Pages/sp_1.aspx"></a><p>${LONG}</p></body></html>`;
+    const listFetch: FetchImpl = async (url) =>
+      url === "https://ex.id/index"
+        ? fetched(index, { url })
+        : fetched(`<html><head><title>Bank sentral menyalurkan bantuan ke tujuh provinsi terdampak</title></head><body><main><p>${LONG}</p></main></body></html>`, { url });
+    await checkSource("src-list", { store: listStore, fetchImpl: listFetch, nowMs: 1 });
+    index = index.replace("</body>", `<a href="/Pages/sp_2.aspx"></a></body>`);
+    const listed = await checkSource("src-list", { store: listStore, fetchImpl: listFetch, nowMs: 2 }, true);
+    expect(listed.candidates![0].title).toBe("Bank sentral menyalurkan bantuan ke tujuh provinsi terdampak");
   });
 
   it("a listing whose pattern matches nothing fails permanently and openly", async () => {

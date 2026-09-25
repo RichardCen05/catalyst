@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   contentRegion,
   extractLinks,
+  htmlTitle,
   htmlToText,
   parseFeed,
   FetchError,
@@ -35,6 +36,38 @@ describe("htmlToText", () => {
     const a = htmlToText(`<html><body data-sid="abc123">${body}</body></html>`);
     const b = htmlToText(`<html><body data-sid="xyz999" data-req="42">${body}</body></html>`);
     expect(a).toBe(b);
+  });
+});
+
+describe("htmlToText — portal markup", () => {
+  it("drops comments whole, tags they wrap included", () => {
+    const text = htmlToText(`<html><body><main><!-- <a href="/login">login</a> --><p>${LONG}</p></main></body></html>`);
+    expect(text).not.toContain("login");
+    expect(text).not.toContain("-->");
+  });
+
+  it("does not stop a tag at a > inside a quoted attribute", () => {
+    const html = `<html><body><main><div class="h-[30px] [&>ins]:rounded-sm [&>ins]:px-2">Isi</div><p>${LONG}</p></main></body></html>`;
+    const text = htmlToText(html);
+    expect(text).toContain("Isi");
+    expect(text).not.toContain("rounded-sm");
+  });
+
+  it("measures the content region in text, so class-heavy navigation does not outweigh the article", () => {
+    const nav = `<nav>${`<a class="${"x ".repeat(200)}" href="/m">MENU</a>`.repeat(40)}</nav>`;
+    const script = `<script>${"var a = 1;".repeat(5000)}</script>`;
+    const html = `<html><head>${script}</head><body>${nav}<main><h1>Judul</h1><p>${LONG}</p></main></body></html>`;
+    const text = htmlToText(html);
+    expect(text).toContain("Judul");
+    expect(text).not.toContain("MENU");
+  });
+});
+
+describe("htmlTitle", () => {
+  it("prefers og:title, falls back to <title>, answers null with neither", () => {
+    expect(htmlTitle(`<head><title>Situs | Judul</title><meta property="og:title" content="Judul &amp; isi"></head>`)).toBe("Judul & isi");
+    expect(htmlTitle(`<head><title>\n  Judul halaman  </title></head>`)).toBe("Judul halaman");
+    expect(htmlTitle(`<html><body>tanpa judul</body></html>`)).toBeNull();
   });
 });
 

@@ -114,6 +114,7 @@ export async function GET() {
         usedToday: queue ? autoAcceptedSince(queue, nowIso) : 0,
       },
       decidedCount: queue ? Object.keys(queue.decided).length : 0,
+      lastScreenAt: queue?.lastScreenAt ?? null,
       symbols: listKnownSymbols(),
       bands: RELEVANCE_BAND_SCORE,
     });

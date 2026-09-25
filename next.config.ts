@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Browsers ask for /favicon.ico whatever the page declares, and each ask
+  // was a 404 in the service log. Served from the same mark the metadata
+  // names, so there is one icon file.
+  async rewrites() {
+    return [{ source: "/favicon.ico", destination: "/catalyst-mark.png" }];
+  },
 };
 
 export default nextConfig;

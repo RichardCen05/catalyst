@@ -22,6 +22,7 @@
 
 import {
   ACCEPT_FEED,
+  EXTRACTOR_VERSION,
   FetchError,
   extractLinks,
   fetchUrl,
@@ -39,6 +40,7 @@ import { claim, release, type RegistryStore } from "@/lib/web-watch/registry";
 import { resolveThresholds } from "@/lib/agent/thresholds";
 import type { MarketEvent } from "@/lib/types";
 import { sentences } from "@/lib/web-watch/triage";
+import { isoTimestamp } from "@/lib/web-watch/stored-fields";
 import { isDue, type CheckResult, type TitleSource, type WatchedSourceState, type WebWatchCandidate } from "@/lib/web-watch/types";
 
 export type FetchImpl = (url: string, options?: FetchOptions) => Promise<Fetched>;
@@ -74,9 +76,13 @@ function hostOf(url: string): string {
 
 /** The headline and where it came from. A feed-supplied title wins: a human
  *  wrote it. A listing link with no text gave us its address as the title (BI
- *  `sp_2819226.aspx`, GAPKI slugs), so the first prose sentence of the body
- *  stands in for it; with none, the filename stays and says so. */
+ *  `sp_2819226.aspx`, GAPKI slugs), so the page's own headline stands in for
+ *  it, then the first prose sentence of the body; with neither, the filename
+ *  stays and says so. */
 function headlineFor(text: SourceText, fetchedUrl: string, title: string | null, titleIsUrl: boolean) {
+  if (title && titleIsUrl && text.pageTitle && text.pageTitle !== title) {
+    return { headline: text.pageTitle.slice(0, 200), titleSource: "body" as TitleSource, derived: null };
+  }
   if (title && titleIsUrl) {
     const [first] = sentences(text.text, resolveThresholds().webWatchProseSentenceMinWords);
     if (first) return { headline: first.slice(0, 200), titleSource: "body" as TitleSource, derived: null };
@@ -118,7 +124,8 @@ export function buildCandidate(
     body: text.text.slice(0, BODY_CAP),
     category: state.category,
     sourceType: state.sourceType,
-    publishedAt: publishedAt ?? nowIso,
+    // Feeds write RFC 822; everything that reads this field expects ISO.
+    publishedAt: isoTimestamp(publishedAt) ?? nowIso,
     asOf: nowIso,
     sector: "Market",
     impactLinks: [],
@@ -258,6 +265,22 @@ async function checkDocument(
     };
   }
   const text = toText(fetched.raw, fetched.contentType);
+  if (state.lastTextSha && textSha(text) !== state.lastTextSha && (state.lastExtractorVersion ?? 1) !== EXTRACTOR_VERSION) {
+    // The stored hash came from an older extractor, so a difference here
+    // says nothing about the page. Take the new hash as the baseline; a real
+    // change made in the same window shows up on the next read after it.
+    return {
+      result: { sourceId: state.id, url: state.url, label: state.label, status: "unchanged", reason: "extractor_rebaselined" },
+      updates: {
+        lastStatus: "unchanged",
+        lastError: null,
+        lastEtag: fetched.etag,
+        lastModified: fetched.lastModified,
+        lastTextSha: textSha(text),
+        lastExtractorVersion: EXTRACTOR_VERSION,
+      },
+    };
+  }
   if (state.lastTextSha && textSha(text) === state.lastTextSha) {
     return {
       result: { sourceId: state.id, url: state.url, label: state.label, status: "unchanged", reason: "same_text" },
@@ -266,6 +289,9 @@ async function checkDocument(
         lastError: null,
         lastEtag: fetched.etag,
         lastModified: fetched.lastModified,
+        // Same text under this extractor: the stored hash is now this
+        // version's, so the next difference is a real change.
+        lastExtractorVersion: EXTRACTOR_VERSION,
       },
     };
   }
@@ -286,6 +312,7 @@ async function checkDocument(
       lastEtag: fetched.etag,
       lastModified: fetched.lastModified,
       lastTextSha: textSha(text),
+      lastExtractorVersion: EXTRACTOR_VERSION,
       lastChangedAt: nowIso,
       changes: state.changes + 1,
       documentIds: [candidate.id, ...state.documentIds].slice(0, 50),

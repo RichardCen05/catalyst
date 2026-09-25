@@ -677,7 +677,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:putuskan-otomatis",
     heading: "Putuskan otomatis",
     view: "pantau",
-    labels: ["Putuskan otomatis","dalam 24 jam terakhir","Setiap malam penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
+    labels: ["Putuskan otomatis","dalam 24 jam terakhir","Penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
     file: "components/web-watch-review.tsx",
   },
   {

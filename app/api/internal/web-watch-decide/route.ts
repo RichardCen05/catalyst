@@ -178,7 +178,7 @@ export async function POST(request: Request) {
         const result = applyVerdicts(current, again.verdicts, nowIso);
         report = summarize(current, result);
         figures = summarizeFigures(current, again.figures);
-        return result.next;
+        return { ...result.next, lastScreenAt: nowIso };
       });
     }
     return NextResponse.json({ applied: apply && Boolean(loaded), report, figures });

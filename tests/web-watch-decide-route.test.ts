@@ -134,6 +134,8 @@ describe("/api/internal/web-watch-decide", () => {
     expect(queue.decided["web-a"].auto).toBeDefined();
     expect(queue.decided["web-b"]).toMatchObject({ status: "dismissed", autoReject: { check: "rumor", span: "kabarnya", score: 0.95 } });
     expect(queue.matches["web-c"].residual?.reason).toBe("NLI ragu");
+    // The applied run is what Pantau and the assistant read as "the screen ran".
+    expect(queue.lastScreenAt).toEqual(expect.any(String));
   });
 
   it("rejects an unknown verdict, a reject without a check, bad JSON, and too many verdicts", async () => {

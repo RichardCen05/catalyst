@@ -52,7 +52,21 @@ export interface SourceText {
   text: string;
   /** html | plain | json */
   method: "html" | "plain" | "json";
+  /** An HTML page's own headline (`og:title`, else `<title>`). Not part of
+   *  `text`, so it never moves `textSha`. */
+  pageTitle?: string;
 }
+
+/**
+ * Bumped whenever `htmlToText` reads the same page into different text. A
+ * document source compares hashes of extracted text, so an extractor change
+ * alone would look like every watched page changing at once; a source whose
+ * stored hash came from an older extractor is re-baselined instead (see
+ * `checkDocument` in `check.ts`).
+ *
+ * 2: comments dropped, quote-aware tags, content region measured in text.
+ */
+export const EXTRACTOR_VERSION = 2;
 
 export function sha256Hex(text: string): string {
   return createHash("sha256").update(text, "utf8").digest("hex");
@@ -168,14 +182,25 @@ export async function fetchUrl(url: string, options: FetchOptions = {}): Promise
 // ---------------------------------------------------------------------------
 
 const DROP_BLOCKS = /<(script|style|noscript|template|svg)\b[\s\S]*?<\/\1\s*>/gi;
+/** Comments can hold whole commented-out tags (`<!-- <a>login</a> -->`); a
+ *  tag pass alone leaves their text and the closing `-->` behind. */
+const COMMENTS = /<!--[\s\S]*?-->/g;
 const LINE_BREAKS = /<br\s*\/?>|<\/(p|div|tr|li|h[1-6]|table|section|article)\s*>/gi;
-const TAGS = /<[^>]+>/g;
+/** Quote-aware: a Tailwind class such as `[&>ins]:px-2` puts a `>` inside an
+ *  attribute value, and a bare `<[^>]+>` stopped there and left the rest of
+ *  the attribute in the text. `LOOSE_TAGS` then clears anything malformed. */
+const TAGS = /<(?:[^>"']|"[^"]*"|'[^']*')*>/g;
+const LOOSE_TAGS = /<[^>]+>/g;
 const INLINE_SPACE = /[ \t   ]+/g;
 const BLANK_LINES = /\n\s*\n\s*/g;
 
 /** A government CMS wraps the page in kilobytes of nav. `<main>` is where the
  *  page itself says its content starts — read that when it exists. */
 const MAIN_REGION = /<(main|article)\b[^>]*>([\s\S]*?)<\/\1\s*>/gi;
+
+function visibleLength(markup: string): number {
+  return markup.replace(TAGS, " ").replace(LOOSE_TAGS, " ").replace(/\s+/g, " ").trim().length;
+}
 
 export function contentRegion(markup: string): string {
   const matches: string[] = [];
@@ -185,7 +210,9 @@ export function contentRegion(markup: string): string {
   if (!matches.length) return markup;
   const best = matches.reduce((a, b) => (a.length >= b.length ? a : b));
   // A "content region" under a fifth of the page is a widget, not the page.
-  return best.length * 5 >= markup.length ? best : markup;
+  // Measured in visible text, not markup: a portal's navigation is mostly
+  // class attributes, and counting them made a full article look small.
+  return visibleLength(best) * 5 >= visibleLength(markup) ? best : markup;
 }
 
 function unescapeHtml(text: string): string {
@@ -198,9 +225,12 @@ function unescapeHtml(text: string): string {
 }
 
 export function htmlToText(markup: string): string {
-  let text = contentRegion(markup).replace(DROP_BLOCKS, " ");
+  // Scripts and comments go before the region is chosen: a page whose <head>
+  // carries 60 KB of tracker script made its real <main> look like a widget
+  // next to it, and the whole page, navigation included, was read instead.
+  let text = contentRegion(markup.replace(COMMENTS, " ").replace(DROP_BLOCKS, " "));
   text = text.replace(LINE_BREAKS, "\n");
-  text = text.replace(TAGS, " ");
+  text = text.replace(TAGS, " ").replace(LOOSE_TAGS, " ");
   text = unescapeHtml(text);
   text = text.replace(INLINE_SPACE, " ");
   text = text
@@ -209,6 +239,19 @@ export function htmlToText(markup: string): string {
     .join("\n");
   text = text.replace(BLANK_LINES, "\n\n");
   return text.trim();
+}
+
+const OG_TITLE = /<meta\b[^>]*?property\s*=\s*["']og:title["'][^>]*>/i;
+const CONTENT_ATTR = /\bcontent\s*=\s*("([^"]*)"|'([^']*)')/i;
+const TITLE_TAG = /<title\b[^>]*>([\s\S]*?)<\/title\s*>/i;
+
+/** The headline a page gives itself: `og:title` when present, else `<title>`. */
+export function htmlTitle(markup: string): string | null {
+  const og = OG_TITLE.exec(markup)?.[0];
+  const content = og ? CONTENT_ATTR.exec(og) : null;
+  const raw = content ? (content[2] ?? content[3] ?? "") : (TITLE_TAG.exec(markup)?.[1] ?? "");
+  const title = unescapeHtml(raw.replace(LOOSE_TAGS, " ")).replace(/\s+/g, " ").trim();
+  return title || null;
 }
 
 export function looksLikeHtml(raw: Buffer, contentType = ""): boolean {
@@ -232,7 +275,10 @@ export function toText(raw: Buffer, contentType = ""): SourceText {
   }
   const decoded = raw.toString("utf-8").replace(/�/g, "");
   const full = raw.toString("utf-8");
-  if (looksLikeHtml(raw, contentType)) return { text: htmlToText(full), method: "html" };
+  if (looksLikeHtml(raw, contentType)) {
+    const pageTitle = htmlTitle(full);
+    return { text: htmlToText(full), method: "html", ...(pageTitle ? { pageTitle } : {}) };
+  }
   return { text: decoded.trim(), method: "plain" };
 }
 

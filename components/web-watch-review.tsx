@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { WEB_WATCH_PATH_MIN_CHARS, WEB_WATCH_REASON_MIN_CHARS } from "@/lib/schemas";
+import { bandForRelevance } from "@/lib/agent/thresholds";
 import { uiLabel } from "@/lib/ui-labels";
 import { EventMarkers } from "@/components/event-markers";
 import { NextStep } from "@/components/next-step";
@@ -92,6 +93,8 @@ interface QueueData {
   autoRejected?: AutoRejectedRow[];
   autoAccept: AutoAcceptStatus;
   decidedCount: number;
+  /** When the screen last applied verdicts; null when it has never run. */
+  lastScreenAt?: string | null;
   symbols: SymbolCode[];
   bands: Record<ImpactDraft["band"], number>;
   unavailable?: boolean;
@@ -560,7 +563,7 @@ function ArchivedList({ items }: { items: ArchivedRow[] }) {
   );
 }
 
-function AutoAcceptSwitch({ status, onChanged }: { status: AutoAcceptStatus; onChanged: () => void }) {
+function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcceptStatus; lastScreenAt: string | null; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const flip = async () => {
@@ -603,7 +606,16 @@ function AutoAcceptSwitch({ status, onChanged }: { status: AutoAcceptStatus; onC
         </div>
       </div>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Setiap malam penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
+        Penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
+      </p>
+      <p className="mt-1 text-xs text-subtle-foreground">
+        {lastScreenAt ? (
+          <>
+            Penyaringan terakhir: <time dateTime={lastScreenAt}>{lastScreenAt.slice(0, 16).replace("T", " ")}</time>
+          </>
+        ) : (
+          "Penyaring belum pernah berjalan. Semua calon menunggu keputusan Anda."
+        )}
       </p>
       {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
     </Panel>
@@ -778,7 +790,7 @@ export function WebWatchReview() {
         <Panel className="h-72 shimmer" aria-label="Memuat antrean pantauan" />
       ) : (
         <div className="space-y-8">
-          {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} onChanged={load} /> : null}
+          {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} lastScreenAt={data.lastScreenAt ?? null} onChanged={load} /> : null}
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
@@ -870,7 +882,7 @@ export function WebWatchReview() {
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                       {event.impactLinks.map((link) => (
                         <li key={link.symbol} className="font-mono">
-                          {link.symbol} · {link.direction} · {link.relevance} — {link.path}
+                          {link.symbol} · {uiLabel(link.direction)} · {bandLabel[bandForRelevance(link.relevance)]} — {link.path}
                         </li>
                       ))}
                     </ul>

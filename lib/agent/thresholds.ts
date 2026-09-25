@@ -138,6 +138,10 @@ export const DEFAULT_THRESHOLDS = {
   /** Kata minimum agar satu potongan berakhiran titik dihitung kalimat, bukan
    *  label menu. */
   webWatchProseSentenceMinWords: 8,
+  /** Kata minimum agar baris pertama isi tersimpan dipakai sebagai judul
+   *  pengganti nama berkas (`sp 2819526.aspx`). Judul lebih pendek dari
+   *  kalimat: "Uang Beredar Tumbuh Positif pada Agustus 2026" tujuh kata. */
+  webWatchHeadlineMinWords: 4,
   /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
    *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
    *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
@@ -330,6 +334,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   // sampai ke reviewer, jadi `guess`; sisanya penjaga kualitas dan ukuran.
   webWatchProseMinChars: "convention",
   webWatchProseSentenceMinWords: "convention",
+  webWatchHeadlineMinWords: "convention",
   webWatchAliasMaxDocShare: "guess",
   webWatchAliasMinCorpus: "convention",
   webWatchDuplicateSentenceShare: "guess",
@@ -479,6 +484,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     comparatorMinObservations: DEFAULT_THRESHOLDS.comparatorMinObservations,
     webWatchProseMinChars: DEFAULT_THRESHOLDS.webWatchProseMinChars,
     webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
+    webWatchHeadlineMinWords: DEFAULT_THRESHOLDS.webWatchHeadlineMinWords,
     webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
     webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
     webWatchDuplicateSentenceShare: DEFAULT_THRESHOLDS.webWatchDuplicateSentenceShare,
