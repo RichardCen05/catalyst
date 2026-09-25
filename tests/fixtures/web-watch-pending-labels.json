@@ -1,0 +1,494 @@
+{
+  "about": "Provisional labels for the 50 items pending in catalyst/web-watch/queue.json on 2026-09-24. Written by Claude at the user's request, not by a human reviewer: treat them as a proxy until a person confirms or overturns them. Bodies stay in the queue file; this file holds only ids, titles and verdicts.",
+  "labeledBy": "claude-opus-5-5",
+  "labeledAt": "2026-09-24",
+  "reviewedBy": null,
+  "items": [
+    {
+      "candidateId": "web-src-bmkg-forecast-tanjung-tabalong-ea4f0ebcf2cf",
+      "title": "Prakiraan cuaca Tanjung, Tanjung, Tabalong (Kalimantan Selatan)",
+      "decision": "accept",
+      "symbols": [
+        "ADRO"
+      ],
+      "confidence": "low",
+      "reason": "Thunderstorm code at the ADRO Tabalong site; reviewers accepted the earlier forecast items for the mine sites.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-3d3bd35b",
+      "title": "Emiten Happy Hapsoro (BUVA) Ekspansi ke Bisnis Hiburan",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"bukit\" matched PTBA (Bukit Asam); the article is about BUVA (Bukit Uluwatu Villa). Alias false positive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-b631a4e3",
+      "title": "Video: Siasat Produsen Bahan Baku FdanB Saat Perang Dongkrak Biaya Impor",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Company video about BOBA; consumer-sector match only, no watched emiten named.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-news-4979f505",
+      "title": "Petani Tebu Ungkap Hal Aneh: Rendemen Rendah-Impor Gula Salah Waktu",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"rakyat indonesia\" matched BBRI; the article is about the sugarcane farmers association APTRI. Alias false positive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-eia-energy-2d15b54",
+      "title": "Public companies produce most U.S. crude oil and natural gas",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "US producer statistics; no path to a watched Indonesian emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-311ffbb5",
+      "title": "Kebutuhan Energi Meningkat, Industri Digital Berkembang Pesat, Indonesia Siap Menjadi Pusat Data",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Minister invites data-centre investment; no watched emiten affected.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-cb5a3843",
+      "title": "Menuju NZE 2050–2060, Pemerintah Dorong Investasi Kelistrikan 100 GW dan Penguatan EBT",
+      "decision": "accept",
+      "symbols": [
+        "ADRO",
+        "PTBA"
+      ],
+      "confidence": "low",
+      "reason": "Government restates 70% renewables in RUPTL and 100 GW build-out: a long-horizon demand path for thermal coal miners.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-ff71ff6a",
+      "title": "Aktivitas Anak Krakatau Menurun, Badan Geologi Turunkan Status dari Siaga Menjadi Waspada",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Volcano alert level lowered; no watched asset nearby.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-9ae3bddb",
+      "title": "Hasil Dari Perbaikan Tata Kelola, Harga Komoditas Membaik dan PNBP Meningkat",
+      "decision": "accept",
+      "symbols": [
+        "ADRO",
+        "PTBA"
+      ],
+      "confidence": "high",
+      "reason": "ESDM states supply-demand regulation lifted coal prices and minerba PNBP; direct policy on coal miners.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-89ce6dc7",
+      "title": "HUT Pertambangan dan Energi ke-81, Kementerian ESDM Himpun 2.000 Pendonor untuk Perkuat Kepedulian Sosial",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Ministry blood-donation drive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-9f26902f",
+      "title": "transformasi-digital-indonesia-masuk-era-ai-gapki-soroti-digitalisasi-industri-sawit",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "GAPKI item about a digital-transformation forum; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-katadata-6b8be26b",
+      "title": "Menko Airlangga: RI Punya Keunggulan Tarik Investasi AI DIbandingkan Vietnam",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Minister on AI investment versus Vietnam; energy-sector match only.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-bi-news-37b380a4",
+      "title": "sp 2819226.aspx",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "BI aid to provinces hit by forest fires; no bank exposure path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-bi-news-cfd253c5",
+      "title": "sp 2819126.aspx",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "BI QRIS award; no watched emiten affected.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-7caa5d63",
+      "title": "IHSG Parkir Anjlok 1,69% di Zona Merah, Ini Penyebabnya",
+      "decision": "accept",
+      "symbols": [
+        "BBRI"
+      ],
+      "confidence": "low",
+      "reason": "Market wrap naming BBRI among the drags on a -1.69% day; figures checkable against the recordings.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-136a1cea",
+      "title": "Siloam Mau Caplok 14 Perusahaan Pemilik Aset RS, Senilai Rp 6,9 T",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"central\" matched BBCA; the article is about Siloam (SILO). Alias false positive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-2a7a46bb",
+      "title": "Jadi Saingan RI, Bursa Saham Vietnam Naik Kelas ke Emerging Market",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"central\" matched BBCA; Vietnam FTSE upgrade has no direct path to BBCA.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-b5466f6b",
+      "title": "Video: Tren Mamin Kekinian Berlanjut,Bisnis Bahan Baku FdanB Laris Manis",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Company video about BOBA; consumer-sector match only.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-b7cea617",
+      "title": "IHSG Parkir di Zona Merah Turun 0,88%, Sektor Energi Jadi Pemberat",
+      "decision": "accept",
+      "symbols": [
+        "BBRI",
+        "ADRO",
+        "PTBA",
+        "PGAS"
+      ],
+      "confidence": "low",
+      "reason": "Market wrap: energy sector named as the main drag, BBRI named.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-eia-energy-2d15b16",
+      "title": "What goes into diesel prices?",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "US diesel price explainer; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-1bac3d0",
+      "title": "Bukan Sekadar Menyalakan Lampu, ESDM Ajak Mahasiswa UGM Menyalakan Ide untuk Energi Masa Depan",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "ESDM campus outreach.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-d3cf283a",
+      "title": "Lewat Goes to Campus, BPH Migas Ajak Mahasiswa Kawal Subsidi BBM Tepat Sasaran",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "BPH Migas campus outreach.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-a60ea263",
+      "title": "produksi-cpo-cukup-untuk-b50-tetapi-produktivitas-harus-jadi-kunci-menjaga-ekspor",
+      "decision": "reject",
+      "confidence": "low",
+      "reason": "CPO output versus B50; source-declared consumer names have no honest path, and \"mandiri\" matched BMRI as an alias false positive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-ff696c8e",
+      "title": "dsi-jadi-pengawas-atau-pedagang-menata-ekspor-sawit-tanpa-merusak-pasar",
+      "decision": "reject",
+      "confidence": "low",
+      "reason": "Public discussion of DSI overseeing exports; still a proposal (wacana). Named speakers on the record, so not a rumor, but no decision to map.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-katadata-4ca0a1f",
+      "title": "HARMAN Hapus 500 Ribu Tautan Produk JBL Ilegal di Marketplace",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "JBL counterfeit takedowns; consumer-sector match only.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-ojk-siaran-pers-af11d666",
+      "title": "Siaran Pers: OJK Terbitkan Peraturan Tentang Pemegang Saham Bursa Efek",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "OJK rule on stock-exchange shareholders; no bank exposure path for BBCA/BBRI.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-ojk-siaran-pers-17056ac0",
+      "title": "Siaran Pers: OJK Terbitkan Dua POJK Mengenai Bursa Mineral dan Komoditas Strategis",
+      "decision": "accept",
+      "symbols": [
+        "TINS"
+      ],
+      "confidence": "low",
+      "reason": "OJK issues two POJK for the mineral and strategic commodity exchange; tin is the first listed commodity. Triage matched BBCA/BBRI, which is wrong; the relevant emiten is TINS.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-bi-news-67f126e6",
+      "title": "sp 2819026.aspx",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "BI cross-border digital-trust event.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-b960f73d",
+      "title": "Video: Urgensi Teknologi Filtrasi Jaga Keandalan Mesin Era B50 dan E50",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Company video on fuel filtration.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-39bb4de0",
+      "title": "Jelang Akhir Pekan, IHSG Turun 0,33% ke Level 6.441",
+      "decision": "accept",
+      "symbols": [
+        "ANTM",
+        "BBCA"
+      ],
+      "confidence": "low",
+      "reason": "Market wrap naming ANTM and BBCA.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-1704b97a",
+      "title": "Usai B50, Pemerintah Siapkan E50 Langkah Baru Kurangi Ketergantungan BBM Impor",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "E50 ethanol plan; no watched emiten with an honest path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-c5e24e3f",
+      "title": "Pemerintah Umumkan Pemenang Lelang Penawaran Langsung dan Lelang Reguler Area Studi ABT 2025 Wilayah Kerja Minyak dan Gas Bumi Tahap I Tahun 2026 dan Umumkan Penawaran Lelang Wilayah Kerja Minyak dan ",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Oil and gas block auction results; no watched emiten named.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-a615df6f",
+      "title": "Lewat Goes to Campus, BPH Migas Ajak Mahasiswa Kawal Subsidi BBM Tepat Sasarani",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Republished copy of item #21 (same article, typo in the title). Content duplicate that triage did not catch.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-ccfb4e49",
+      "title": "gapki-soroti-tata-kelola-dan-daya-saing-ekspor-sawit-dalam-kesiapan-bursa-mineral-dan-komoditas-strategis-bmks",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "GAPKI on BMKS readiness for palm exports; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-2b8d8c7",
+      "title": "IHSG Sesi II Ditutup Menguat 0,40% ke Level 6.462",
+      "decision": "accept",
+      "symbols": [
+        "BMRI"
+      ],
+      "confidence": "low",
+      "reason": "Market wrap naming BMRI on an up day.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-bi-news-7a974bbc",
+      "title": "sp 2818926.aspx",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "BI inauguration of unit heads.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-bi-news-12b61edd",
+      "title": "sp 2818826.aspx",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "External debt statistics; macro, no emiten path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-news-8d240447",
+      "title": "Pengembang Properti Bangkrut, Karyawan di PHK-Ratusan Proyek Terancam",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"mandiri\" matched BMRI; the article is about an Australian developer. Alias false positive.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-e896f293",
+      "title": "Hadapi Gejolak Energi Global, Wamen ESDM Ungkap Jurus Jitu RI di Forum G20",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Deputy minister at the G20; no emiten path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-54ee3272",
+      "title": "DPR Apresiasi Percepatan Penetapan Penerima BPBL, ESDM Dorong Akses Listrik Lebih Cepat",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Electricity connection subsidy; no emiten path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-1d15a96f",
+      "title": "Dorong Pemerataan Akses Energi, 82 Persen Anggaran ESDM 2027 untuk Infrastruktur",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "ESDM 2027 budget split; no emiten path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-e5fc280a",
+      "title": "gapki-soroti-tumpang-tindih-regulasi-dan-usulkan-ruu-reforma-agraria-tidak-berlaku-surut",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "GAPKI on overlapping regulation; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-5f22d0e4",
+      "title": "karhutla-kalimantan-dan-sumatra-sinergi-penanganan-lintas-pihak",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "GAPKI on forest-fire coordination; no watched plantation emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-gapki-45f9f529",
+      "title": "kemarau-panjang-akibat-el-nino-gapki-sungai-mengering-ganggu-distribusi-cpo-di-kalimantan-barat",
+      "decision": "reject",
+      "confidence": "low",
+      "reason": "Dry rivers disrupt CPO distribution in West Kalimantan; no watched emiten with an honest path.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-b255d6d1",
+      "title": "IHSG Masih Lesu! Dibuka Turun 0,17%",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "\"timah\" matched TINS inside an opening-bell wrap that does not concern TINS.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-cnbc-market-497e75ee",
+      "title": "Timah Jadi Komoditas Pertama Dijual di Bursa Mineral ICOMEX",
+      "decision": "accept",
+      "symbols": [
+        "TINS"
+      ],
+      "confidence": "high",
+      "reason": "OJK: tin is the first commodity traded on the ICOMEX mineral exchange; PT Timah named.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-eia-energy-2d15ad8",
+      "title": "Corpus Christi LNG expansion makes facility the second-largest in the United States",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "US LNG facility expansion; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-1eebedde",
+      "title": "Kawal Implementasi B50, Kementerian ESDM Perkuat Uji Teknis dan Dialog dengan Industri Otomotif",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "B50 technical rollout; no watched emiten.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-esdm-berita-5c723f0c",
+      "title": "Di Tengah Gejolak Geopolitik Dunia, Bahlil Jaga Harga BBM Bersubsidi dan Dorong Hilirisasi Berkeadilan",
+      "decision": "reject",
+      "confidence": "high",
+      "reason": "Fuel subsidy speech; triage matched GOTO/BUKA/EMTK, all unrelated.",
+      "rumor": false,
+      "misleadingTitle": false
+    },
+    {
+      "candidateId": "web-src-katadata-e6553225",
+      "title": "Perpres Terbit, PT Timah Kini Bisa Beli Hasil Tambang dari Luar WIUP",
+      "decision": "accept",
+      "symbols": [
+        "TINS"
+      ],
+      "confidence": "high",
+      "reason": "Presidential regulation lets PT Timah buy ore from outside its WIUP; direct supply effect on TINS.",
+      "rumor": false,
+      "misleadingTitle": false
+    }
+  ]
+}

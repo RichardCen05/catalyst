@@ -16,7 +16,8 @@ import type { MarketEvent, SymbolCode } from "@/lib/types";
  * pre-rename phrases from the old hand list (indomie, alfamart, adaro, …)
  * are intentionally gone: no recording carries them.
  */
-const LEGAL_TOKENS = new Set(["pt", "tbk", "persero", "com", "jk"]);
+/** Legal-form words in a recorded name: they identify no issuer on their own. */
+export const LEGAL_TOKENS: ReadonlySet<string> = new Set(["pt", "tbk", "persero", "com", "jk"]);
 
 /** Ordinary words that happen to sit inside recorded names. Generic question
  *  vocabulary, not registry — the same kind of list as STOPWORDS below. */
@@ -33,12 +34,18 @@ function normalizeName(value: string): string {
     .trim();
 }
 
+/** The words of a recorded company name, lowercased, legal forms removed:
+ *  "PT Bank Rakyat Indonesia (Persero) Tbk" → bank, rakyat, indonesia. */
+export function registryNameTokens(name: string): string[] {
+  return normalizeName(name)
+    .split(" ")
+    .filter((token) => token && !LEGAL_TOKENS.has(token));
+}
+
 function buildSymbolAliases(): Partial<Record<SymbolCode, string[]>> {
   const tokenOwners = new Map<string, Set<string>>();
   const prepared = companies.map((company) => {
-    const tokens = normalizeName(company.name)
-      .split(" ")
-      .filter((token) => token && !LEGAL_TOKENS.has(token));
+    const tokens = registryNameTokens(company.name);
     for (const token of new Set(tokens)) {
       let owners = tokenOwners.get(token);
       if (!owners) {

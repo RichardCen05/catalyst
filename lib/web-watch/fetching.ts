@@ -246,6 +246,8 @@ export interface FeedEntry {
   title: string;
   link: string;
   published: string | null;
+  /** Set when a listing link had no text and `title` was made from its address. */
+  titleFromUrl?: true;
 }
 
 export interface FeedRead {
@@ -376,12 +378,21 @@ export function extractLinks(markup: string, baseUrl: string, pattern: string): 
     const label = unescapeHtml((match[2] ?? "").replace(TAGS, " "))
       .replace(INLINE_SPACE, " ")
       .trim();
-    entries.push({ key: absolute, title: (label || titleFromUrl(absolute)).slice(0, 200), link: absolute, published: null });
+    entries.push({
+      key: absolute,
+      title: (label || titleFromUrl(absolute)).slice(0, 200),
+      link: absolute,
+      published: null,
+      ...(label ? {} : { titleFromUrl: true as const }),
+    });
   }
   return entries;
 }
 
-function titleFromUrl(url: string): string {
+/** The last path segment of an address, made readable. Exported so a caller
+ *  can tell a filename title from a written one on items stored without the
+ *  flag. */
+export function titleFromUrl(url: string): string {
   try {
     const path = new URL(url).pathname.replace(/\/+$/, "").split("/").pop() ?? "";
     const tail = decodeURIComponent(path).replace(/[_+]+/g, " ").replace(INLINE_SPACE, " ").trim();

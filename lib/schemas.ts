@@ -239,10 +239,6 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     candidateIds: z.array(z.string().min(1).max(120)).min(1).max(50),
   }),
   z.object({
-    action: z.literal("restore"),
-    candidateId: z.string().min(1).max(120),
-  }),
-  z.object({
     action: z.literal("revert-auto"),
     candidateId: z.string().min(1).max(120),
   }),

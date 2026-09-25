@@ -36,8 +36,10 @@ import {
 import { WEB_WATCH_ENDPOINT } from "@/lib/web-watch/endpoint";
 import { summarizeJsonPayload } from "@/lib/web-watch/json-summary";
 import { claim, release, type RegistryStore } from "@/lib/web-watch/registry";
+import { resolveThresholds } from "@/lib/agent/thresholds";
 import type { MarketEvent } from "@/lib/types";
-import { isDue, type CheckResult, type WatchedSourceState } from "@/lib/web-watch/types";
+import { sentences } from "@/lib/web-watch/triage";
+import { isDue, type CheckResult, type TitleSource, type WatchedSourceState, type WebWatchCandidate } from "@/lib/web-watch/types";
 
 export type FetchImpl = (url: string, options?: FetchOptions) => Promise<Fetched>;
 
@@ -70,9 +72,30 @@ function hostOf(url: string): string {
   }
 }
 
+/** The headline and where it came from. A feed-supplied title wins: a human
+ *  wrote it. A listing link with no text gave us its address as the title (BI
+ *  `sp_2819226.aspx`, GAPKI slugs), so the first prose sentence of the body
+ *  stands in for it; with none, the filename stays and says so. */
+function headlineFor(text: SourceText, fetchedUrl: string, title: string | null, titleIsUrl: boolean) {
+  if (title && titleIsUrl) {
+    const [first] = sentences(text.text, resolveThresholds().webWatchProseSentenceMinWords);
+    if (first) return { headline: first.slice(0, 200), titleSource: "body" as TitleSource, derived: null };
+    return { headline: title.slice(0, 200) || fetchedUrl, titleSource: "url" as TitleSource, derived: null };
+  }
+  if (title) return { headline: title.slice(0, 200) || fetchedUrl, titleSource: "feed" as TitleSource, derived: null };
+  // A JSON endpoint has no headline to slice, so the generic rule produced a
+  // title that was a slice of the payload. Derive one from the fields when the
+  // shape is recognised; an unrecognised or malformed payload returns null and
+  // nothing changes.
+  const derived = summarizeJsonPayload(text.text);
+  if (derived) return { headline: derived.title.slice(0, 200) || fetchedUrl, titleSource: "json" as TitleSource, derived };
+  return { headline: (text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl, titleSource: "body" as TitleSource, derived };
+}
+
 /** A change, packaged exactly like any other event input — but with no
  *  impact links. The mapping to symbols happens at review time, in the open,
- *  not inside the fetcher. */
+ *  not inside the fetcher. The id hashes the text, never the headline, so a
+ *  headline rule can change without an already-decided item coming back. */
 export function buildCandidate(
   state: WatchedSourceState,
   text: SourceText,
@@ -81,17 +104,14 @@ export function buildCandidate(
   publishedAt: string | null,
   key: string,
   nowIso: string,
-): MarketEvent {
-  // A JSON endpoint has no headline to slice, so the generic rule produced a
-  // title that was a slice of the payload. Derive one from the fields when the
-  // shape is recognised; an unrecognised or malformed payload returns null and
-  // nothing changes. A feed-supplied title always wins — a human wrote it.
-  const derived = title ? null : summarizeJsonPayload(text.text);
-  const headline = (title ?? derived?.title ?? text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl;
+  titleIsUrl = false,
+): WebWatchCandidate {
+  const { headline, titleSource, derived } = headlineFor(text, fetchedUrl, title, titleIsUrl);
   const citationId = `web-${state.id}-${textSha(text).slice(0, 8)}`;
   return {
     id: candidateId(state.id, key, textSha(text)),
     title: headline,
+    titleSource,
     // The raw text stays in `body` either way — the citation and the audit
     // trail must not lose it.
     summary: (derived?.summary ?? text.text).slice(0, 500),
@@ -335,7 +355,7 @@ async function checkItems(
       const itemFetch = await fetchImpl(item.link);
       const itemText = toText(itemFetch.raw, itemFetch.contentType);
       guardSize(itemText, item.link);
-      candidates.push(buildCandidate(state, itemText, itemFetch.url, item.title, item.published, item.key, nowIso));
+      candidates.push(buildCandidate(state, itemText, itemFetch.url, item.title, item.published, item.key, nowIso, item.titleFromUrl === true));
       readKeys.push(item.key);
     } catch (error) {
       if (error instanceof FetchError) {

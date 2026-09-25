@@ -7,12 +7,13 @@ import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
 import { WEB_WATCH_PATH_MIN_CHARS, WEB_WATCH_REASON_MIN_CHARS } from "@/lib/schemas";
 import { uiLabel } from "@/lib/ui-labels";
+import { EventMarkers } from "@/components/event-markers";
 import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
-import type { TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
+import type { ScreenCheck, TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
 import { TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
 
 /** The fields this page reads. `/api/web-watch` also returns poll counters and
@@ -46,6 +47,23 @@ interface AutoAcceptedRow {
   impacts: Array<{ symbol: string; direction: string; band: string; path: string; rationale: string }>;
 }
 
+interface AutoRejectedRow {
+  id: string;
+  title: string | null;
+  url: string | null;
+  decidedAt: string;
+  check: ScreenCheck | null;
+  span: string | null;
+  score: number | null;
+  reason: string;
+}
+
+interface ResidualRow {
+  id: string;
+  reason: string;
+  at: string;
+}
+
 interface AutoAcceptStatus {
   enabled: boolean;
   source: string;
@@ -69,7 +87,9 @@ interface QueueData {
   batchable: string[];
   archived: ArchivedRow[];
   accepted: MarketEvent[];
+  residual?: ResidualRow[];
   autoAccepted: AutoAcceptedRow[];
+  autoRejected?: AutoRejectedRow[];
   autoAccept: AutoAcceptStatus;
   decidedCount: number;
   symbols: SymbolCode[];
@@ -97,6 +117,15 @@ const matchLabel: Record<MatchKind, string> = {
   source: "sumber",
   region: "wilayah",
   weather: "cuaca",
+};
+
+/** Names for the screen checks a verdict records. Field labels, true of every case. */
+const checkLabel: Record<ScreenCheck, string> = {
+  rumor: "rumor",
+  "misleading-title": "judul tidak sesuai isi",
+  figure: "angka bertentangan dengan rekaman",
+  substance: "tanpa isi konkret",
+  relevance: "tidak relevan bagi emiten",
 };
 
 type ProposalImpact = TriageProposal["impacts"][number];
@@ -175,6 +204,7 @@ function CandidateCard({
   bands,
   match,
   proposal,
+  residual,
   onDecided,
 }: {
   candidate: MarketEvent;
@@ -182,6 +212,7 @@ function CandidateCard({
   bands: QueueData["bands"];
   match?: TriageMatch;
   proposal?: TriageProposal;
+  residual?: ResidualRow;
   onDecided: () => void;
 }) {
   const related = proposal?.impacts.filter(mapsSomething) ?? [];
@@ -234,6 +265,11 @@ function CandidateCard({
         ) : null}
       </div>
       <h3 className="mt-2 text-base font-semibold leading-snug">{candidate.title}</h3>
+      {residual ? (
+        <p className="mt-1 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">
+          Penyaring belum yakin: {residual.reason}
+        </p>
+      ) : null}
       <p className="mt-1 text-sm leading-6 text-muted-foreground">{candidate.summary}</p>
       {candidate.body ? (
         <details className="mt-2 text-sm">
@@ -490,38 +526,17 @@ function BatchAccept({ candidates, proposals, onDone }: { candidates: MarketEven
   );
 }
 
-function ArchivedList({ items, onRestored }: { items: ArchivedRow[]; onRestored: () => void }) {
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const restore = async (id: string) => {
-    setBusy(id);
-    setError(null);
-    try {
-      const response = await fetch(apiUrl("/api/web-watch"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "restore", candidateId: id }),
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error ?? "Gagal mengembalikan");
-      onRestored();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal mengembalikan");
-    } finally {
-      setBusy(null);
-    }
-  };
+function ArchivedList({ items }: { items: ArchivedRow[] }) {
   return (
     <details aria-label="Diarsipkan otomatis" className="rounded-lg border border-border bg-surface">
       <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
         Diarsipkan otomatis ({items.length})
       </summary>
       <div className="border-t border-border p-4">
-        <p className="text-xs text-muted-foreground">Disisihkan oleh aturan triase, bukan oleh reviewer. Tidak ada yang dihapus; kembalikan bila aturannya keliru.</p>
-        {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+        <p className="text-xs text-muted-foreground">Disisihkan oleh aturan triase, bukan oleh reviewer. Tidak ada yang dihapus, tetapi arsip final: calon di sini tidak kembali ke antrean.</p>
         <ul className="mt-3 space-y-3">
           {items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-2 border-b border-border pb-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
+            <li key={item.id} className="border-b border-border pb-3 last:border-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium leading-snug">{item.title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -536,9 +551,6 @@ function ArchivedList({ items, onRestored }: { items: ArchivedRow[]; onRestored:
                 </p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.reason}</p>
               </div>
-              <Button variant="secondary" size="sm" disabled={busy !== null} onClick={() => restore(item.id)} className="shrink-0">
-                {busy === item.id ? "Mengembalikan…" : "Kembalikan"}
-              </Button>
             </li>
           ))}
         </ul>
@@ -570,13 +582,13 @@ function AutoAcceptSwitch({ status, onChanged }: { status: AutoAcceptStatus; onC
     }
   };
   return (
-    <Panel className="p-4" aria-label="Terima otomatis">
+    <Panel className="p-4" aria-label="Putuskan otomatis">
       <div className="flex items-center gap-3">
         <button
           type="button"
           role="switch"
           aria-checked={status.enabled}
-          aria-label="Terima otomatis usulan band tinggi"
+          aria-label="Putuskan otomatis hasil penyaringan"
           disabled={busy || status.pinnedByEnv}
           onClick={() => void flip()}
           className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", status.enabled ? "bg-foreground" : "bg-border-strong")}
@@ -584,24 +596,24 @@ function AutoAcceptSwitch({ status, onChanged }: { status: AutoAcceptStatus; onC
           <span className={cn("absolute top-0.5 size-5 rounded-full bg-background shadow transition-all", status.enabled ? "left-[22px]" : "left-0.5")} />
         </button>
         <div className="min-w-0">
-          <p className="text-sm font-semibold">Terima otomatis</p>
+          <p className="text-sm font-semibold">Putuskan otomatis</p>
           <p className="text-xs text-subtle-foreground">
             {status.enabled ? "Aktif" : "Mati"} · {status.usedToday} dari {status.dailyMax} dalam 24 jam terakhir{status.pinnedByEnv ? " · dikunci operator" : ""}
           </p>
         </div>
       </div>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Setelah sapuan, usulan model yang lolos pemeriksaan diterima tanpa menunggu Anda bila setiap emitennya punya arah jelas (menguatkan atau menekan) dan disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya tetap menunggu di antrean. Setiap penerimaan otomatis bisa dibatalkan.
+        Setiap malam penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
       </p>
       {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
     </Panel>
   );
 }
 
-function AutoAcceptedList({ items, onReverted }: { items: AutoAcceptedRow[]; onReverted: () => void }) {
+function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedRow[]; rejected: AutoRejectedRow[]; onReverted: () => void }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  if (!items.length) return null;
+  if (!items.length && !rejected.length) return null;
   const revert = async (id: string) => {
     setBusy(id);
     setError(null);
@@ -621,12 +633,14 @@ function AutoAcceptedList({ items, onReverted }: { items: AutoAcceptedRow[]; onR
     }
   };
   return (
-    <details aria-label="Diterima otomatis" className="rounded-lg border border-border bg-surface">
+    <details aria-label="Diputuskan otomatis" className="rounded-lg border border-border bg-surface">
       <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-        Diterima otomatis ({items.length})
+        Diputuskan otomatis ({items.length + rejected.length})
       </summary>
       <div className="border-t border-border p-4">
-        <p className="text-xs text-muted-foreground">Diterima oleh sapuan, bukan oleh reviewer. Batalkan untuk mengeluarkannya dari engine dan mengembalikannya ke antrean; item itu tidak akan diterima otomatis lagi.</p>
+        <section aria-label="Diterima otomatis">
+        <h3 className="text-sm font-semibold">Diterima otomatis ({items.length})</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">Diterima oleh penyaring, bukan oleh reviewer. Batalkan untuk mengeluarkannya dari engine dan mengembalikannya ke antrean; item itu tidak akan diputuskan otomatis lagi.</p>
         {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
         <ul className="mt-3 space-y-3">
           {items.map((item) => (
@@ -656,6 +670,32 @@ function AutoAcceptedList({ items, onReverted }: { items: AutoAcceptedRow[]; onR
             </li>
           ))}
         </ul>
+        {!items.length ? <p className="mt-3 text-sm text-muted-foreground">Belum ada yang diterima otomatis.</p> : null}
+        </section>
+        <section aria-label="Ditolak otomatis" className="mt-6">
+          <h3 className="text-sm font-semibold">Ditolak otomatis ({rejected.length})</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">Ditolak oleh penyaring, bukan oleh reviewer. Final: calon di sini tidak kembali ke antrean. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya.</p>
+          <ul className="mt-3 space-y-3">
+            {rejected.map((item) => (
+              <li key={item.id} className="border-b border-border pb-3 last:border-0">
+                <p className="text-sm font-medium leading-snug">{item.title ?? item.id}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {item.check ? <span className="rounded-full border border-border px-2 py-0.5">{checkLabel[item.check] ?? item.check}</span> : null}{" "}
+                  <time dateTime={item.decidedAt}>{item.decidedAt.slice(0, 16).replace("T", " ")}</time>
+                  {item.url ? (
+                    <>
+                      {" · "}
+                      <a href={item.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">Buka sumber asal</a>
+                    </>
+                  ) : null}
+                </p>
+                {item.span ? <blockquote className="mt-1 border-l-2 border-border pl-2 text-xs leading-5 text-muted-foreground">{item.span}</blockquote> : null}
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.reason}</p>
+              </li>
+            ))}
+          </ul>
+          {!rejected.length ? <p className="mt-3 text-sm text-muted-foreground">Belum ada yang ditolak otomatis.</p> : null}
+        </section>
       </div>
     </details>
   );
@@ -717,6 +757,9 @@ export function WebWatchReview() {
         proposalRank(data?.proposals[a.id]) - proposalRank(data?.proposals[b.id]) ||
         b.publishedAt.localeCompare(a.publishedAt),
     );
+  const residualById = new Map((data?.residual ?? []).map((row) => [row.id, row]));
+  const needsDecision = visiblePending.filter((candidate) => residualById.has(candidate.id));
+  const unscreened = visiblePending.filter((candidate) => !residualById.has(candidate.id));
   const proposalCount = (data?.pending ?? []).filter((candidate) => data?.proposals[candidate.id]).length;
   const batchable = (data?.batchable ?? [])
     .map((id) => data?.pending.find((candidate) => candidate.id === id))
@@ -741,7 +784,7 @@ export function WebWatchReview() {
               <div className="mr-auto">
                 <h2 className="editorial text-xl">Antrean ({visiblePending.length})</h2>
                 <p className="text-xs text-muted-foreground">
-                  {proposalCount} dengan usulan model · {data.archived.length} diarsipkan otomatis
+                  {residualById.size} perlu keputusan · {proposalCount} dengan usulan model · {data.archived.length} diarsipkan otomatis
                 </p>
               </div>
               <BatchAccept candidates={batchable} proposals={data.proposals} onDone={load} />
@@ -765,26 +808,56 @@ export function WebWatchReview() {
               />
             </div>
             {visiblePending.length ? (
-              <div className="space-y-4">
-                {visiblePending.map((candidate) => (
-                  <CandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    symbols={data.symbols}
-                    bands={data.bands}
-                    match={data.matches[candidate.id]}
-                    proposal={data.proposals[candidate.id]}
-                    onDecided={load}
-                  />
-                ))}
+              <div className="space-y-8">
+                <section aria-label="Perlu keputusan">
+                  <h3 className="mb-1 text-base font-semibold">Perlu keputusan ({needsDecision.length})</h3>
+                  <p className="mb-3 text-xs text-muted-foreground">Penyaring sudah membaca calon ini dan belum yakin. Keputusan Anda di sini dipakai untuk mengkalibrasi penyaring.</p>
+                  {needsDecision.length ? (
+                    <div className="space-y-4">
+                      {needsDecision.map((candidate) => (
+                        <CandidateCard
+                          key={candidate.id}
+                          candidate={candidate}
+                          symbols={data.symbols}
+                          bands={data.bands}
+                          match={data.matches[candidate.id]}
+                          proposal={data.proposals[candidate.id]}
+                          residual={residualById.get(candidate.id)}
+                          onDecided={load}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Panel className="p-6 text-sm text-muted-foreground">Tidak ada calon yang ditinggalkan penyaring untuk Anda.</Panel>
+                  )}
+                </section>
+                {unscreened.length ? (
+                  <section aria-label="Menunggu penyaringan">
+                    <h3 className="mb-1 text-base font-semibold">Menunggu penyaringan ({unscreened.length})</h3>
+                    <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa memutuskannya sekarang.</p>
+                    <div className="space-y-4">
+                      {unscreened.map((candidate) => (
+                        <CandidateCard
+                          key={candidate.id}
+                          candidate={candidate}
+                          symbols={data.symbols}
+                          bands={data.bands}
+                          match={data.matches[candidate.id]}
+                          proposal={data.proposals[candidate.id]}
+                          onDecided={load}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               </div>
             ) : (
               <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong. Tidak ada perubahan baru yang menunggu tinjauan."}</Panel>
             )}
           </section>
 
-          <AutoAcceptedList items={data.autoAccepted ?? []} onReverted={load} />
-          <ArchivedList items={data.archived} onRestored={load} />
+          <AutoDecidedList items={data.autoAccepted ?? []} rejected={data.autoRejected ?? []} onReverted={load} />
+          <ArchivedList items={data.archived} />
 
           <section aria-label="Diterima engine">
             <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
@@ -793,6 +866,7 @@ export function WebWatchReview() {
                 {data.accepted.map((event) => (
                   <Panel key={event.id} className="p-4">
                     <h3 className="text-sm font-semibold leading-snug">{event.title}</h3>
+                    <EventMarkers markers={event.markers} className="mt-1 block" />
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                       {event.impactLinks.map((link) => (
                         <li key={link.symbol} className="font-mono">

@@ -8,7 +8,7 @@
  * archive, with sampled titles and reasons, and writes nothing. Only a body
  * of `{ "apply": true }` writes, through the same generation-guarded
  * `saveQueue` every other queue write uses. Archived items stay in the queue
- * file and can be restored from Pantau; nothing is accepted here.
+ * file, and archiving is final; nothing is accepted here.
  *
  * Auth: `INTERNAL_CRON_SECRET` bearer, same as `check-sources`
  * (`lib/internal-auth.ts`).

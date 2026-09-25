@@ -444,6 +444,115 @@ python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY; add 
 python3 scripts/build_market_data.py
 ```
 
+## 10b. Nightly web-watch screen (to run — not created yet)
+
+**Status on 25 Sep 2026: nothing in this section exists in the live project.** The code is on
+`feat/alief/wire-ui`, uncommitted, and not deployed. Revision `catalyst-web-00073-c2g` still
+auto-accepts inside the 17:30 sweep (§1). The commands below are what a person runs, in order, once
+the branch is committed and deployed. Update this section to "live" only after they have run.
+
+What changes when this branch ships:
+
+- The sweep (`check-sources`) no longer accepts anything by itself. Deep-filter phase 1 moved
+  every decision without a person into one route, `POST /api/internal/web-watch-decide`.
+- A Cloud Build job, `cloudbuild-screen.yaml`, reads the pending items from that route's `GET`,
+  scores each one with a local multilingual NLI model (no LLM call), and posts one verdict per item:
+  accept, reject or residual.
+- The route runs the figure check against the recordings compiled into the serving revision, then
+  applies the verdicts through the same generation-guarded write every queue change uses. The build
+  never writes `queue.json`.
+- **Rejects are final.** A rejected item keeps its check, the span the check read and the score, and
+  it never returns to the queue. An accept can still be undone from Pantau, and residual items wait
+  in Pantau under "Perlu keputusan".
+
+| What | Value (planned) |
+|---|---|
+| Scheduler job | `catalyst-web-watch-screen`, `30 22 * * 1-5` Asia/Jakarta, region `us-central1`. It runs after the last refresh try (21:30), so the figure check reads that evening's recordings. |
+| Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
+| Build identity | `1019003607640-compute@developer.gserviceaccount.com` (same as §10) |
+| Source | `gs://ada-sectors-508410_cloudbuild/catalyst/screen-source.tgz` |
+| Model cache | `gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7`. The first run fills it from Hugging Face. |
+| Runtime | About 15 minutes for 50 pending items on the default machine; `timeout: 3600s`. Do not add `machineType`. |
+| Kill switch | The Pantau toggle "Putuskan otomatis", or `WEB_WATCH_AUTO_DECIDE=false` on the service (this pins it). With either one off, the route answers `{ applied: false, disabled: true }` and writes nothing. |
+
+Run these in order:
+
+1. **Deploy the branch** (§5 gate, then §6). Ask which model and provider first. Then check that the
+   route exists and that it refuses a request without the bearer:
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://catalyst-web-ibyebnreqa-uc.a.run.app/api/internal/web-watch-decide   # expect 401
+   ```
+
+2. **Grant the build identity what the job reads and writes.** Check the current policy first,
+   because the refresh job may already hold part of it:
+
+   ```bash
+   gcloud secrets get-iam-policy INTERNAL_CRON_SECRET
+   gcloud secrets add-iam-policy-binding INTERNAL_CRON_SECRET \
+     --member=serviceAccount:1019003607640-compute@developer.gserviceaccount.com \
+     --role=roles/secretmanager.secretAccessor
+   gcloud storage buckets get-iam-policy gs://katalis-recorded
+   # The model cache step reads objects, and creates them on the first run. If the identity
+   # cannot create objects in this bucket, grant roles/storage.objectCreator on it, or fill the
+   # cache once by hand from scripts/screen/.model/.
+   ```
+
+3. **Upload the source snapshot.** The job builds from a tarball, not from git, the same as §10. The
+   tarball holds `scripts/screen/`, including `calibration.json`, so commit first:
+
+   ```bash
+   git archive --format=tar.gz -o /tmp/screen-source.tgz HEAD scripts/screen
+   gcloud storage cp /tmp/screen-source.tgz gs://ada-sectors-508410_cloudbuild/catalyst/screen-source.tgz
+   ```
+
+4. **Create the job as a dry-run.** `_APPLY` is empty in the YAML, so the route reports what the
+   verdicts would do and writes nothing:
+
+   ```bash
+   python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \
+     --snapshot-object catalyst/screen-source.tgz > /tmp/screen-body.json
+   gcloud scheduler jobs create http catalyst-web-watch-screen --location=us-central1 \
+     --schedule="30 22 * * 1-5" --time-zone=Asia/Jakarta \
+     --uri=https://cloudbuild.googleapis.com/v1/projects/ada-sectors-508410/locations/us-central1/builds \
+     --http-method=POST --headers=Content-Type=application/json \
+     --message-body-from-file=/tmp/screen-body.json \
+     --oauth-service-account-email=1019003607640-compute@developer.gserviceaccount.com \
+     --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
+   gcloud scheduler jobs run catalyst-web-watch-screen --location=us-central1
+   ```
+
+5. **Read the dry-run report.** The build log prints the route's answer: counts of accept, reject
+   and residual, sampled titles for each, and the figure-check results. Read every reject in it.
+
+   ```bash
+   gcloud builds list --region=us-central1 --limit=3
+   gcloud builds log <BUILD_ID> --region=us-central1 | tail -80
+   ```
+
+6. **Switch to apply, only after a person has read that report:**
+
+   ```bash
+   python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \
+     --snapshot-object catalyst/screen-source.tgz --sub _APPLY=--apply > /tmp/screen-body.json
+   gcloud scheduler jobs update http catalyst-web-watch-screen --location=us-central1 \
+     --message-body-from-file=/tmp/screen-body.json
+   ```
+
+Stop it:
+
+```bash
+gcloud scheduler jobs pause catalyst-web-watch-screen --location=us-central1
+gcloud run services update catalyst-web --region=us-central1 --update-env-vars=WEB_WATCH_AUTO_DECIDE=false
+```
+
+Calibration. `scripts/screen/calibration.json` was fitted on labels that Claude wrote and that no
+person has reviewed yet (`labeledBy` says so). Every decision a person makes on a residual item is
+stored with `fromResidual: true` in `queue.json`: these are the labels to review and refit from.
+After a refit, re-run the offline replay and its hard gate (`scripts/screen/replay.py`), then upload
+a new snapshot (step 3). A change to `cloudbuild-screen.yaml` needs the job body replaced as well
+(step 6, with or without `--sub _APPLY=--apply`, whichever the job runs now).
+
 ## 11. Rotate a secret
 
 ```bash

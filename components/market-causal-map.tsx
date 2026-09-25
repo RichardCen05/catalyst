@@ -28,6 +28,7 @@ import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { SourceText } from "@/components/source-text";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { EventMarkers } from "@/components/event-markers";
 import {
   IconClose,
   IconCompanies,
@@ -599,6 +600,7 @@ function NodeDetail({
         ) : selected.label}
       </h3>
       <p className="mt-1 text-xs text-muted-foreground">{uiLabel(selected.basis)}</p>
+      <EventMarkers markers={selected.markers} className="mt-1 block" />
       <p className="mt-2 whitespace-pre-line text-xs leading-5 text-muted-foreground">{selected.detail}</p>
 
       {group ? (

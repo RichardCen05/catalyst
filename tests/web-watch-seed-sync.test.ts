@@ -94,3 +94,17 @@ describe("declared symbols and region", () => {
     for (const source of withRegion) expect(source.label, source.id).toContain(source.region);
   });
 });
+
+describe("declared language", () => {
+  it("re-applies lang from the seed onto an entry written before the field existed", () => {
+    const legacy = registryWith({ checks: 2 });
+    expect(legacy.sources["src-bmkg-forecast-sample"]).not.toHaveProperty("lang");
+    const next = applySeedDeclarations(legacy, [seed({ lang: "en" })]);
+    expect(next.sources["src-bmkg-forecast-sample"].lang).toBe("en");
+    expect(next.sources["src-bmkg-forecast-sample"].checks).toBe(2);
+  });
+
+  it("declares a language on every seed", () => {
+    for (const source of SEED_SOURCES) expect(["id", "en"], source.id).toContain(source.lang);
+  });
+});

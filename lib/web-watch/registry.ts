@@ -115,6 +115,7 @@ export function applySeedDeclarations(file: RegistryFile, seeds: WatchedSource[]
       sourceType: seed.sourceType,
       symbols: seed.symbols,
       region: seed.region,
+      lang: seed.lang,
     };
   }
   return { version: 1, sources };

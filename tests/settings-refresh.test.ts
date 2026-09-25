@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as gcs from "@/lib/gcp/gcs";
-import { getRuntimeSettings, isAutoAcceptEnabled, isRefreshEnabled, isRefreshPinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
+import { getRuntimeSettings, isAutoDecideEnabled, isAutoDecidePinnedByEnv, isRefreshEnabled, isRefreshPinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
 import { planRefresh } from "@/lib/data/sectors-refresh";
 
 vi.mock("@/lib/gcp/gcs", () => ({
@@ -84,40 +84,61 @@ describe("getRuntimeSettings / saveRuntimeSettings", () => {
   });
 });
 
-describe("isAutoAcceptEnabled", () => {
-  const KEY = "WEB_WATCH_AUTO_ACCEPT";
-  const saved = process.env[KEY];
-  const reset = () => {
-    if (saved === undefined) delete process.env[KEY];
-    else process.env[KEY] = saved;
-  };
+describe("isAutoDecideEnabled", () => {
+  const KEYS = ["WEB_WATCH_AUTO_DECIDE", "WEB_WATCH_AUTO_ACCEPT"] as const;
+  const saved = Object.fromEntries(KEYS.map((key) => [key, process.env[key]]));
+  const clear = () => KEYS.forEach((key) => delete process.env[key]);
+  const reset = () =>
+    KEYS.forEach((key) => {
+      if (saved[key] === undefined) delete process.env[key];
+      else process.env[key] = saved[key];
+    });
+  const stored = (data: Record<string, unknown> | null) =>
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce(data ? { data: { updatedAt: "t", ...data }, generation: "1" } : null);
 
-  it("is on by default, including a file written before the flag existed", async () => {
-    delete process.env[KEY];
-    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { sectorsRefreshEnabled: true, updatedAt: "t" }, generation: "1" });
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
-    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce(null);
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
+  it("is on by default, including a file written before either flag existed", async () => {
+    clear();
+    stored({ sectorsRefreshEnabled: true });
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
+    stored(null);
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
     reset();
   });
 
-  it("is off only when someone switched it off, and the env kill-switch wins", async () => {
-    delete process.env[KEY];
-    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: false, updatedAt: "t" }, generation: "1" });
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
-    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: true, updatedAt: "t" }, generation: "1" });
-    process.env[KEY] = "false";
-    await expect(isAutoAcceptEnabled()).resolves.toEqual({ enabled: false, source: "env" });
+  it("reads the new flag first, then the older auto-accept flag", async () => {
+    clear();
+    stored({ webWatchAutoAccept: false });
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
+    stored({ webWatchAutoAccept: false, webWatchAutoDecide: true });
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: true, source: "settings" });
+    stored({ webWatchAutoAccept: true, webWatchAutoDecide: false });
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: false, source: "settings" });
     reset();
   });
 
-  it("flipping refresh leaves auto-accept at its default, and a switched-off flag stays off", async () => {
+  it("either env pins it over any stored flag, the new env first", async () => {
+    clear();
+    process.env.WEB_WATCH_AUTO_ACCEPT = "false";
+    stored({ webWatchAutoDecide: true });
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: false, source: "env" });
+    expect(isAutoDecidePinnedByEnv()).toBe(true);
+    process.env.WEB_WATCH_AUTO_DECIDE = "true";
+    await expect(isAutoDecideEnabled()).resolves.toEqual({ enabled: true, source: "env" });
+    clear();
+    process.env.WEB_WATCH_AUTO_DECIDE = "maybe";
+    expect(isAutoDecidePinnedByEnv()).toBe(false);
+    reset();
+  });
+
+  it("flipping refresh leaves both web-watch flags as stored", async () => {
     vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { sectorsRefreshEnabled: false, updatedAt: "t" }, generation: "1" });
     vi.mocked(gcs.gcsPutJson).mockResolvedValueOnce({ generation: "2" });
-    await expect(saveRuntimeSettings({ sectorsRefreshEnabled: true })).resolves.toMatchObject({ webWatchAutoAccept: true });
-    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: false, updatedAt: "t" }, generation: "2" });
+    const first = await saveRuntimeSettings({ sectorsRefreshEnabled: true });
+    expect(first).toMatchObject({ webWatchAutoAccept: true });
+    expect(first.webWatchAutoDecide).toBeUndefined();
+    vi.mocked(gcs.gcsGetJson).mockResolvedValueOnce({ data: { webWatchAutoAccept: false, webWatchAutoDecide: false, updatedAt: "t" }, generation: "2" });
     vi.mocked(gcs.gcsPutJson).mockResolvedValueOnce({ generation: "3" });
-    await expect(saveRuntimeSettings({ sectorsRefreshEnabled: true })).resolves.toMatchObject({ webWatchAutoAccept: false });
+    await expect(saveRuntimeSettings({ sectorsRefreshEnabled: true })).resolves.toMatchObject({ webWatchAutoAccept: false, webWatchAutoDecide: false });
   });
 });
 

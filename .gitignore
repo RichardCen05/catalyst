@@ -27,3 +27,13 @@ test-results/
 # Browser-tool snapshots and machine-local live tests
 .playwright-mcp/
 tests/zz-live.test.ts
+
+brag-output/
+# Third-party article text fetched for the web-watch golden set; never committed
+tests/fixtures/.cache/
+
+# NLI screen: model files and Python caches
+scripts/screen/.model/
+scripts/screen/__pycache__/
+scripts/screen/.pytest_cache/
+.pytest_cache/

@@ -7,7 +7,6 @@ import {
   enqueue,
   memoryQueueStore,
   normalizeQueue,
-  restore,
   saveQueue,
   type ReviewQueue,
 } from "@/lib/web-watch/queue";
@@ -116,7 +115,7 @@ describe("triage rule 3: touches something watched", () => {
   });
 
   it("matches a registry name with an Indonesian enclitic attached", () => {
-    const result = triage(event({ body: `${PROSE} Produksi timahnya turun tajam.` }), ctx());
+    const result = triage(event({ body: `${PROSE} Produksi PT Timahnya turun tajam.` }), ctx());
     expect(result.verdict).toBe("review");
     if (result.verdict === "review") expect(result.symbols).toContain("TINS");
   });
@@ -135,9 +134,9 @@ describe("triage rule 3: touches something watched", () => {
   });
 
   it("drops an alias the queue uses as an ordinary word, once there is enough queue to judge", () => {
-    const asiaNews = (n: number) => event({ title: `Kawasan ${n}`, body: `${PROSE} Pertumbuhan di Asia melambat ${n}.` });
-    const seen = Array.from({ length: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus }, (_, n) => ({ event: asiaNews(n), where: "pending" as const }));
-    const probe = asiaNews(999);
+    const valeNews = (n: number) => event({ title: `Kawasan ${n}`, body: `${PROSE} Laporan kinerja di Vale melambat ${n}.` });
+    const seen = Array.from({ length: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus }, (_, n) => ({ event: valeNews(n), where: "pending" as const }));
+    const probe = valeNews(999);
     expect(triage(probe, ctx({ seen }))).toMatchObject({ verdict: "archive", rule: "no-watched-match" });
     // Too little queue to tell a word from a name: the alias still counts.
     expect(triage(probe, ctx()).verdict).toBe("review");
@@ -150,6 +149,85 @@ describe("triage rule 3: touches something watched", () => {
       expect(result.symbols).toEqual(expect.arrayContaining(["ICBP", "MYOR", "AMRT"]));
       expect(result.matchedBy.some((e) => e.by === "source")).toBe(true);
     }
+  });
+});
+
+// Real sentences from the production queue, 2026-09-24. Each was matched to a
+// watched emiten by a word of its registry name used as an ordinary word or
+// inside another company's name (tests/fixtures/web-watch-pending-labels.json).
+describe("triage rule 3: registry names used as names, not words", () => {
+  const archived = (sentence: string) =>
+    expect(triage(event({ body: `${PROSE} ${sentence}` }), ctx())).toMatchObject({ verdict: "archive", rule: "no-watched-match" });
+  const matched = (sentence: string, symbol: string) => {
+    const result = triage(event({ body: `${PROSE} ${sentence}` }), ctx());
+    expect(result.verdict).toBe("review");
+    if (result.verdict === "review") expect(result.symbols).toContain(symbol);
+  };
+
+  it("does not read 'Bukit' inside PT Bukit Uluwatu Villa as Bukit Asam", () => {
+    archived("Emiten perhotelan yang terafiliasi dengan pengusaha Happy Hapsoro, PT Bukit Uluwatu Villa Tbk (BUVA), berekspansi di Bali.");
+  });
+
+  it("does not read a farmers' association as Bank Rakyat Indonesia", () => {
+    archived("Asosiasi Petani Tebu Rakyat Indonesia (APTRI) membawa sejumlah persoalan yang dihadapi petani tebu ke DPR.");
+  });
+
+  it("does not read 'Central' inside another company's name, or 'central' the word, as Bank Central Asia", () => {
+    archived("Siloam juga mengambil alih PT Yogya Central Terpadu (YCT) Divisi Rumah Sakit yang memiliki aset rumah sakit.");
+    archived("Investor menilai rencana kliring lawan transaksi terpusat (central counterparty clearing/CCP) segera berjalan.");
+  });
+
+  it("does not read 'Kota Mandiri' in a sidebar headline as Bank Mandiri", () => {
+    archived("Kabar mengejutkan datang dari industri properti Australia yang tengah menghadapi krisis keuangan serius. Bangun Kota Mandiri, Paramount Land Andalkan Strategi Ini!");
+  });
+
+  it("does not read the commodity tin as PT Timah", () => {
+    archived("Timah akan menjadi komoditas tambang strategis pertama yang diperdagangkan di bursa mineral.");
+    archived("Harga timah dunia naik tajam seiring pasokan dari produsen utama yang menipis.");
+  });
+
+  it("does not read the tail of a name ('asia', 'rakyat indonesia') as the company", () => {
+    archived("Mayoritas bursa saham di kawasan Asia ditutup melemah pada perdagangan sore ini.");
+  });
+
+  it("still matches the company written as a name", () => {
+    matched("Saham yang menekan indeks antara lain PT. Bank Rakyat Indonesia (Persero) Tbk. yang turun paling dalam.", "BBRI");
+    matched("Penopang indeks datang dari saham PT Bank Central Asia Tbk yang menguat sepanjang sesi.", "BBCA");
+    matched("Bukit Asam mencatat pasokan DMO lebih dari 54% dari total penjualan tahun ini.", "PTBA");
+    matched("Perpres baru membuat PT Timah kini bisa membeli hasil tambang dari luar wilayah izinnya.", "TINS");
+    matched("Penyaluran kredit Bank Mandiri tumbuh dua digit sepanjang semester pertama tahun ini.", "BMRI");
+    matched("Pemerintah meminta Telkom mempercepat pembangunan jaringan di wilayah timur Indonesia.", "TLKM");
+    // A capital that opens the sentence is grammar, not part of the name.
+    matched("Kinerja Bank Mandiri membaik pada kuartal ketiga seiring pertumbuhan kredit korporasi.", "BMRI");
+  });
+});
+
+describe("triage rule 1: duplicate, republished", () => {
+  const esdm = (title: string, views: number) =>
+    event({
+      source: "src-esdm-berita",
+      title,
+      body:
+        `Beranda Media Center Arsip Berita ${title} Rabu, 16 September 2026 - Dibaca ${views} kali MALANG - Sejumlah perwakilan mahasiswa tidak hanya mempelajari tata kelola BBM bersubsidi dari dalam kampus. ` +
+        "Mereka juga diajak melihat langsung proses distribusi di salah satu SPBU di Kota Malang. " +
+        "Kegiatan tersebut merupakan bagian dari program literasi energi yang digelar untuk kalangan mahasiswa. " +
+        "Badan pengatur menggelarnya untuk memperkuat partisipasi masyarakat dalam pengawasan penyaluran BBM bersubsidi. " +
+        "Anggota komite menilai keterlibatan mahasiswa penting karena sektor hilir migas dekat dengan aktivitas sehari-hari.",
+    });
+
+  it("archives a republished article whose title and view counter changed but whose sentences did not", () => {
+    const first = esdm("Lewat Goes to Campus, BPH Migas Ajak Mahasiswa Kawal Subsidi BBM Tepat Sasaran", 1273);
+    const again = esdm("Lewat Goes to Campus, BPH Migas Ajak Mahasiswa Kawal Subsidi BBM Tepat Sasarani", 568);
+    const result = triage(again, ctx({ seen: [{ event: first, where: "pending" }] }));
+    expect(result).toMatchObject({ verdict: "archive", rule: "duplicate" });
+    if (result.verdict === "archive") expect(result.reason).toContain("kalimat");
+  });
+
+  it("does not call two articles duplicates because they share a site footer", () => {
+    const footer = "Dapatkan berita terkini dan kejutan menarik dari situs ini dengan mendaftarkan diri sekarang juga.";
+    const a = event({ body: `${PROSE} ${footer} Harga batu bara acuan bulan ini ditetapkan lebih tinggi dari bulan lalu oleh kementerian.` });
+    const b = event({ body: `${PROSE} ${footer} Bank sentral menahan suku bunga acuan untuk menjaga stabilitas nilai tukar rupiah.` });
+    expect(triage(b, ctx({ seen: [{ event: a, where: "pending" }] }))).not.toMatchObject({ rule: "duplicate" });
   });
 });
 
@@ -238,14 +316,21 @@ describe("queue with triage", () => {
     expect(next.matches[news.id].symbols).toEqual(["PTBA"]);
   });
 
-  it("restores an archived item to review, and backfill leaves a restored item alone", () => {
+  it("an old file's restored entries still stand: backfill leaves a restored item alone", () => {
     const noise = event({ title: "Jamie Dimon Prediksi AI" });
-    const archived = enqueue(emptyQueue, [noise], { sources: SEED_SOURCES }, "2026-09-24T00:00:00.000Z");
-    const restored = restore(archived, noise.id, "2026-09-24T01:00:00.000Z");
-    expect(restored.pending.map((e) => e.id)).toEqual([noise.id]);
-    expect(restored.archived[noise.id]).toBeUndefined();
-    expect(restored.restored[noise.id]).toMatchObject({ rule: "no-watched-match", restoredAt: "2026-09-24T01:00:00.000Z" });
-    const { next, report } = backfillTriage(restored, { sources: SEED_SOURCES }, "2026-09-24T02:00:00.000Z");
+    // A queue written before archiving became final, as stored JSON.
+    const stored = normalizeQueue(
+      JSON.parse(
+        JSON.stringify({
+          pending: [noise],
+          accepted: [],
+          decided: {},
+          restored: { [noise.id]: { restoredAt: "2026-09-24T01:00:00.000Z", rule: "no-watched-match", reason: "dikembalikan reviewer" } },
+        }),
+      ),
+    );
+    expect(stored.restored[noise.id]).toMatchObject({ rule: "no-watched-match" });
+    const { next, report } = backfillTriage(stored, { sources: SEED_SOURCES }, "2026-09-24T02:00:00.000Z");
     expect(next.pending.map((e) => e.id)).toEqual([noise.id]);
     expect(report.archived).toBe(0);
   });

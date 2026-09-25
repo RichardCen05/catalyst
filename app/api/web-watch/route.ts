@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { webWatchReviewSchema } from "@/lib/schemas";
-import { isAutoAcceptEnabled, isAutoAcceptPinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
+import { isAutoDecideEnabled, isAutoDecidePinnedByEnv, saveRuntimeSettings } from "@/lib/settings";
 import { listSources, gcsRegistryStore } from "@/lib/web-watch/registry";
 import {
   acceptProposals,
@@ -12,12 +12,12 @@ import {
   isBatchAcceptable,
   listKnownSymbols,
   overlayCounts,
-  restore,
   revertAutoAccept,
   ReviewError,
   saveQueue,
   setOverlayForTests,
   sourceHealth,
+  withResidualLabel,
   type ReviewQueue,
 } from "@/lib/web-watch/queue";
 import { resolveThresholds } from "@/lib/agent/thresholds";
@@ -27,9 +27,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET — everything the Pantau page needs: source health, the pending queue
- * with triage matches and verified proposals, what triage archived, accepted
- * events, what the sweep accepted by itself, the auto-accept switch, and the
- * symbol universe for mapping.
+ * with triage matches and verified proposals, which pending items the screen
+ * left for a person (`residual`, with its reason), what triage archived,
+ * accepted events, what the screen decided alone (`autoAccepted`, undoable;
+ * `autoRejected`, final), the auto-decide switch, and the symbol universe
+ * for mapping.
  */
 export async function GET() {
   try {
@@ -37,7 +39,7 @@ export async function GET() {
     const [sources, queue, auto] = await Promise.all([
       listSources(gcsRegistryStore).catch(() => []),
       gcsQueueStore.load().then((r) => r?.data ?? null).catch(() => null),
-      isAutoAcceptEnabled(),
+      isAutoDecideEnabled(),
     ]);
     const nowIso = new Date().toISOString();
     const autoAccepted = Object.values(queue?.decided ?? {})
@@ -51,6 +53,23 @@ export async function GET() {
         decidedAt: decision.decidedAt,
         impacts: (decision.auto?.proposal.impacts ?? []).map(({ symbol, direction, band, path, rationale }) => ({ symbol, direction, band, path, rationale })),
       }));
+    const autoRejected = Object.values(queue?.decided ?? {})
+      .filter((decision) => decision.autoReject)
+      .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
+      .map((decision) => ({
+        id: decision.candidateId,
+        title: decision.autoReject?.title ?? null,
+        url: decision.autoReject?.url ?? null,
+        decidedAt: decision.decidedAt,
+        check: decision.autoReject?.check ?? null,
+        span: decision.autoReject?.span ?? null,
+        score: decision.autoReject?.score ?? null,
+        reason: decision.reason,
+      }));
+    const residual = (queue?.pending ?? []).flatMap((event) => {
+      const mark = queue?.matches[event.id]?.residual;
+      return mark ? [{ id: event.id, reason: mark.reason, at: mark.at }] : [];
+    });
     const health = new Map((queue ? sourceHealth(queue, sources) : []).map((h) => [h.sourceId, h]));
     const archived = Object.entries(queue?.archived ?? {})
       .sort(([, a], [, b]) => b.at.localeCompare(a.at))
@@ -82,14 +101,15 @@ export async function GET() {
       proposals: queue?.proposals ?? {},
       batchable: Object.keys(queue?.proposals ?? {}).filter((id) => isBatchAcceptable(queue?.proposals[id])),
       archived,
-      restored: queue?.restored ?? {},
       healthWindow: resolveThresholds().webWatchSourceHealthWindow,
       accepted: queue?.accepted ?? [],
+      residual,
       autoAccepted,
+      autoRejected,
       autoAccept: {
         enabled: auto.enabled,
         source: auto.source,
-        pinnedByEnv: isAutoAcceptPinnedByEnv(),
+        pinnedByEnv: isAutoDecidePinnedByEnv(),
         dailyMax: resolveThresholds().webWatchAutoAcceptDailyMax,
         usedToday: queue ? autoAcceptedSince(queue, nowIso) : 0,
       },
@@ -108,9 +128,10 @@ export async function GET() {
 /**
  * POST — accept (with reviewer-mapped impacts, or a verified proposal the
  * reviewer took as-is), accept several high-band proposals at once, dismiss a
- * candidate, restore one triage archived, undo an auto-accept, or flip the
- * auto-accept switch. Every one of these is a person pressing a button;
- * the sweep's own accepts happen in `autoAcceptPending`, not here.
+ * candidate, undo an auto-accept, or flip the auto-decide switch. Every one
+ * of these is a person pressing a button; decisions made without a person
+ * happen in the internal decide route (`applyVerdicts`), not here. Archived
+ * and auto-rejected items are final: there is no action that brings them back.
  * Accepted events join the queue's `accepted` list and the engine overlay;
  * the engine itself is untouched.
  *
@@ -134,32 +155,31 @@ export async function POST(request: Request) {
   const nowIso = new Date().toISOString();
   const input = parsed.data;
   if (input.action === "set-auto-accept") {
-    if (isAutoAcceptPinnedByEnv()) {
-      const gate = await isAutoAcceptEnabled();
+    if (isAutoDecidePinnedByEnv()) {
+      const gate = await isAutoDecideEnabled();
       return NextResponse.json(
-        { error: "Terima otomatis dikunci operator lewat WEB_WATCH_AUTO_ACCEPT; sakelar ini tidak berlaku.", enabled: gate.enabled },
+        { error: "Keputusan otomatis dikunci operator lewat WEB_WATCH_AUTO_DECIDE atau WEB_WATCH_AUTO_ACCEPT; sakelar ini tidak berlaku.", enabled: gate.enabled },
         { status: 409 },
       );
     }
     try {
-      const saved = await saveRuntimeSettings({ webWatchAutoAccept: input.enabled });
-      return NextResponse.json({ ok: true, enabled: saved.webWatchAutoAccept });
+      const saved = await saveRuntimeSettings({ webWatchAutoDecide: input.enabled });
+      return NextResponse.json({ ok: true, enabled: saved.webWatchAutoDecide });
     } catch {
       return NextResponse.json({ error: "Gagal menyimpan sakelar terima otomatis" }, { status: 500 });
     }
   }
   try {
     const next = await saveQueue(gcsQueueStore, (queue): ReviewQueue => {
-      if (input.action === "restore") return restore(queue, input.candidateId, nowIso);
-      if (input.action === "accept-proposals") return acceptProposals(queue, input.candidateIds, nowIso);
+      if (input.action === "accept-proposals") return withResidualLabel(queue, acceptProposals(queue, input.candidateIds, nowIso), input.candidateIds);
       if (input.action === "revert-auto") return revertAutoAccept(queue, input.candidateId);
-      return decide(queue, input.candidateId, input, nowIso);
+      return withResidualLabel(queue, decide(queue, input.candidateId, input, nowIso), [input.candidateId]);
     });
     // Push freshly accepted events straight into this instance's overlay so
     // the next analysis on the same instance sees them before the TTL lapses.
     setOverlayForTests(next.accepted, overlayCounts(next));
     const status =
-      input.action === "restore" || input.action === "revert-auto"
+      input.action === "revert-auto"
         ? "restored"
         : input.action === "accept-proposals"
           ? "accepted"

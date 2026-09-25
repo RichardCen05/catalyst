@@ -1,0 +1,96 @@
+# Nightly NLI screen for the web-watch review queue (System One).
+#
+# Cloud Scheduler triggers this once each evening at 22:30 WIB. It reads the
+# pending items from the live service, scores each one with a local
+# multilingual NLI model, and posts one verdict per item (accept, reject or
+# residual) back to the service. It never calls an LLM.
+#
+# Why 22:30 WIB. The last data-refresh try runs at 21:30 WIB
+# (cloudbuild-refresh.yaml) and can deploy a new revision with new recordings.
+# The decide route runs the figure check (d) against the recordings compiled
+# into the serving revision, so the screen waits until the last refresh has
+# landed (W5).
+#
+# Why Cloud Build, not a Cloud Run Job. None exists in this project, and
+# Scheduler → Cloud Build is the pattern the refresh already uses (W10). The
+# default machine keeps a run inside the free build minutes. The offline replay
+# over 50 pending items (about 1,350 window × hypothesis pairs) took 29 CPU
+# minutes, so expect about 15 minutes on the default two vCPUs; the timeout
+# leaves room for a fuller queue. Do not add `machineType`.
+#
+# Why it never writes the queue. The decide route is the only writer of
+# catalyst/web-watch/queue.json (W11). It applies the verdicts through the same
+# generation-guarded write every other queue change uses, re-runs the figure
+# check inside that write, and refuses a verdict when the auto-decide switch is
+# off. This build therefore needs no GCS write access to the queue; it reads the
+# model cache and calls the service with the INTERNAL_CRON_SECRET bearer.
+#
+# Why _APPLY starts empty. Rejects are final. The first runs are dry-runs: the
+# route reports what the verdicts would do and writes nothing. Set
+# _APPLY=--apply only after a person has read those reports (docs/DEPLOY.md).
+#
+# Source. Like the refresh, the scheduled run builds from a snapshot tarball,
+# not from the repository: scripts/screen/ (screen.py, requirements.txt,
+# calibration.json). The model files are cached in _MODEL_CACHE; a missing
+# cache falls back to Hugging Face and fills the cache for the next run.
+#
+# Labels. calibration.json was fit on labels written by Claude that no person
+# has reviewed yet (W17); until a check has webWatchCalibrationMinLabels labels
+# it uses the strict uncalibrated floor instead.
+#
+# Access this build needs (granted by a person, see docs/DEPLOY.md):
+# - roles/secretmanager.secretAccessor on INTERNAL_CRON_SECRET for the build
+#   identity;
+# - object read and create on _MODEL_CACHE.
+
+substitutions:
+  _SERVICE_URL: https://catalyst-web-ibyebnreqa-uc.a.run.app
+  _MODEL_CACHE: gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7
+  _MODEL_REPO: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
+  _APPLY: ""
+
+steps:
+  - id: model
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        mkdir -p /workspace/scripts/screen/.model
+        cd /workspace/scripts/screen/.model
+        if gcloud storage cp "${_MODEL_CACHE}/*" . 2>/dev/null && [ -s model_quantized.onnx ]; then
+          echo "model: from cache"
+        else
+          echo "model: cache empty, fetching ${_MODEL_REPO}"
+          base="https://huggingface.co/${_MODEL_REPO}/resolve/main"
+          curl -fsSL -o model_quantized.onnx "$$base/onnx/model_quantized.onnx"
+          curl -fsSL -o tokenizer.json "$$base/tokenizer.json"
+          curl -fsSL -o config.json "$$base/config.json"
+          gcloud storage cp model_quantized.onnx tokenizer.json config.json "${_MODEL_CACHE}/"
+        fi
+        ls -l
+
+  - id: screen
+    name: python:3.12-slim
+    entrypoint: bash
+    secretEnv: [INTERNAL_CRON_SECRET]
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        pip install --quiet --no-cache-dir -r scripts/screen/requirements.txt
+        python scripts/screen/screen.py \
+          --service-url "${_SERVICE_URL}" \
+          --calibration scripts/screen/calibration.json \
+          --model-dir scripts/screen/.model \
+          ${_APPLY}
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/ada-sectors-508410/secrets/INTERNAL_CRON_SECRET/versions/latest
+      env: INTERNAL_CRON_SECRET
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 3600s

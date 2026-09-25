@@ -24,6 +24,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "company",
     sourceType: "macro",
+    lang: "id",
   },
   {
     id: "src-cnbc-news",
@@ -34,6 +35,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "policy",
     sourceType: "macro",
+    lang: "id",
   },
   {
     id: "src-katadata",
@@ -44,6 +46,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "company",
     sourceType: "macro",
+    lang: "id",
   },
   {
     // Energy fact sheets for PGAS (gas), ADRO/PTBA (coal). The US source is
@@ -57,6 +60,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "commodity",
     sourceType: "commodity",
+    lang: "en",
     symbols: ["PGAS", "ADRO", "PTBA"],
   },
 
@@ -78,6 +82,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/berita-dan-kegiatan/siaran-pers/Pages/[^\"']+\\.aspx",
     category: "policy",
     sourceType: "policy",
+    lang: "id",
     symbols: ["BBCA", "BBRI"],
   },
   {
@@ -95,6 +100,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/publikasi/ruang-media/news-release/Pages/sp_[^\"']+\\.aspx",
     category: "rates",
     sourceType: "macro",
+    lang: "id",
     symbols: ["BBCA", "BBRI", "BMRI", "ANTM", "INCO"],
   },
   {
@@ -113,6 +119,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/media-center/arsip-berita/[^\"']+",
     category: "policy",
     sourceType: "policy",
+    lang: "id",
     symbols: ["ADRO", "PTBA", "PGAS", "TINS"],
   },
   {
@@ -127,6 +134,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "https://gapki\\.id/news/\\d{4}/\\d{2}/\\d{2}/[^\"']+",
     category: "commodity",
     sourceType: "commodity",
+    lang: "id",
     symbols: ["ICBP", "MYOR", "AMRT"],
   },
 
@@ -148,6 +156,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["TINS", "ADRO", "PTBA", "INCO"],
   },
   {
@@ -161,6 +170,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
   },
   {
     // Jakarta sample kept ONLY so the seed sync can switch it off in a
@@ -175,6 +185,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
   },
   // Per-village forecast API, one entry per mine site. Every adm4 below was
   // resolved from the Kemendagri code list and then fetched from BMKG on
@@ -192,6 +203,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["TINS"],
     region: "Bangka",
   },
@@ -205,6 +217,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["ADRO"],
     region: "Tabalong",
   },
@@ -218,6 +231,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["PTBA"],
     region: "Muara Enim",
   },
@@ -231,6 +245,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["ANTM"],
     region: "Kolaka",
   },
@@ -244,6 +259,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 12,
     category: "weather",
     sourceType: "weather",
+    lang: "id",
     symbols: ["INCO"],
     region: "Luwu Timur",
   },
@@ -265,6 +281,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/id/pressrelease/[^\"']+\\.html",
     category: "rates",
     sourceType: "macro",
+    lang: "id",
     symbols: ["BBCA", "BBRI", "BMRI", "ANTM", "INCO"],
   },
   {
@@ -279,6 +296,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "rates",
     sourceType: "macro",
+    lang: "en",
   },
   {
     // Index rebalancing calendar for the flows leg (banks + GOTO). IDX direct
@@ -293,6 +311,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "/index-announcements/[^\"']+",
     category: "flows",
     sourceType: "macro",
+    lang: "en",
     symbols: ["BBCA", "BBRI", "BMRI", "GOTO"],
   },
   {
@@ -307,6 +326,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "kpbn\\.co\\.id/[^\"']*",
     category: "commodity",
     sourceType: "commodity",
+    lang: "id",
     symbols: ["ICBP", "MYOR", "AMRT"],
   },
   {
@@ -321,6 +341,7 @@ export const SEED_SOURCES: WatchedSource[] = [
     checkIntervalHours: 24,
     category: "commodity",
     sourceType: "commodity",
+    lang: "id",
     symbols: ["ANTM"],
   },
 
@@ -341,5 +362,6 @@ export const SEED_SOURCES: WatchedSource[] = [
     linkPattern: "pengumuman[^\"']*",
     category: "company",
     sourceType: "filing",
+    lang: "id",
   },
 ];

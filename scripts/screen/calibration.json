@@ -1,0 +1,32 @@
+{
+  "about": "Temperature per NLI check, fit on labels written by Claude and not yet reviewed by a person (W17).",
+  "model": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+  "checks": {
+    "rumor": {
+      "n": 69,
+      "positives": 7,
+      "labeledBy": "claude-opus-5-5",
+      "T": 2.6904,
+      "ece_before": 0.1577,
+      "ece_after": 0.1834
+    },
+    "title": {
+      "n": 57,
+      "positives": 2,
+      "labeledBy": "claude-opus-5-5",
+      "T": 6.7543,
+      "ece_before": 0.2769,
+      "ece_after": 0.2816
+    },
+    "substance": {
+      "n": 0,
+      "positives": 0,
+      "labeledBy": "claude-opus-5-5"
+    },
+    "relevance": {
+      "n": 0,
+      "positives": 0,
+      "labeledBy": "claude-opus-5-5"
+    }
+  }
+}

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { resolveThresholds } from "@/lib/agent/thresholds";
 import { fewShotExamples } from "@/lib/web-watch/proposals";
 import {
+  applyVerdicts,
   AUTO_ACCEPT_REASON,
-  autoAccept,
   autoAcceptedSince,
   decide,
   emptyQueue,
@@ -11,13 +11,21 @@ import {
   memoryQueueStore,
   normalizeQueue,
   overlayCounts,
+  RESIDUAL_DAILY_CAP,
+  RESIDUAL_NO_PROPOSAL,
+  RESIDUAL_PROPOSAL_NOT_ELIGIBLE,
+  RESIDUAL_REVERTED,
   revertAutoAccept,
   ReviewError,
   type ReviewQueue,
+  type ScreenVerdict,
   type TriageMatch,
   type TriageProposal,
+  withResidualLabel,
 } from "@/lib/web-watch/queue";
-import { autoAcceptPending } from "@/lib/web-watch/watch-all";
+import { memoryRegistryStore } from "@/lib/web-watch/registry";
+import { memoryReviewStore } from "@/lib/web-watch/review";
+import { watchAll } from "@/lib/web-watch/watch-all";
 import { companies } from "@/lib/data/fixtures";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
@@ -52,6 +60,14 @@ function proposal(symbol: SymbolCode, overrides: Partial<TriageProposal["impacts
     model: "test",
     verifiedAt: NOW,
   };
+}
+
+/** Every pending item gets an accept verdict: what the old sweep-level
+ *  auto-accept did, now through the decide step. */
+function autoAccept(queue: ReviewQueue, nowIso: string, dailyMax?: number) {
+  const verdicts: ScreenVerdict[] = queue.pending.map((e) => ({ candidateId: e.id, verdict: "accept", reason: "bersih" }));
+  const result = applyVerdicts(queue, verdicts, nowIso, dailyMax);
+  return { next: result.next, accepted: result.accepted };
 }
 
 function queueWith(items: Array<{ event: MarketEvent; match?: TriageMatch; proposal?: TriageProposal }>): ReviewQueue {
@@ -103,7 +119,7 @@ describe("isAutoAcceptable", () => {
   });
 });
 
-describe("autoAccept", () => {
+describe("applyVerdicts: accept", () => {
   it("accepts only eligible items and records each as auto with its pending state", () => {
     const good = event();
     const weak = event();
@@ -116,6 +132,8 @@ describe("autoAccept", () => {
     const { next, accepted } = autoAccept(queue, NOW, 5);
     expect(accepted).toEqual([good.id]);
     expect(next.pending.map((e) => e.id)).toEqual([weak.id, bare.id]);
+    expect(next.matches[weak.id].residual?.reason).toBe(RESIDUAL_PROPOSAL_NOT_ELIGIBLE);
+    expect(next.matches[bare.id].residual?.reason).toBe(RESIDUAL_NO_PROPOSAL);
     expect(next.accepted[0].id).toBe(good.id);
     expect(next.accepted[0].impactLinks[0].symbol).toBe(A);
     const decision = next.decided[good.id];
@@ -192,25 +210,187 @@ describe("fewShotExamples", () => {
   });
 });
 
-describe("autoAcceptPending", () => {
-  it("does nothing while the switch is off", async () => {
-    const item = event();
-    const store = memoryQueueStore(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]));
-    await expect(autoAcceptPending(store, NOW, async () => false)).resolves.toBeNull();
-    expect((await store.load())?.data.pending).toHaveLength(1);
+describe("applyVerdicts: reject and residual", () => {
+  const reject = (id: string, extra: Partial<ScreenVerdict> = {}): ScreenVerdict => ({
+    candidateId: id,
+    verdict: "reject",
+    check: "rumor",
+    reason: "rumor: hanya sumber anonim",
+    span: "kabarnya akan diakuisisi",
+    score: 0.97,
+    ...extra,
   });
 
-  it("accepts and persists when the switch is on", async () => {
+  it("rejects finally, with the check and the span it read", () => {
     const item = event();
-    const store = memoryQueueStore(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]));
-    await expect(autoAcceptPending(store, NOW, async () => true)).resolves.toEqual({ accepted: 1 });
-    const data = (await store.load())?.data;
-    expect(data?.pending).toEqual([]);
-    expect(data?.decided[item.id].auto).toBeDefined();
+    const { next, rejected } = applyVerdicts(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]), [reject(item.id)], NOW);
+    expect(rejected).toEqual([item.id]);
+    expect(next.pending).toEqual([]);
+    expect(next.accepted).toEqual([]);
+    expect(next.proposals[item.id]).toBeUndefined();
+    expect(next.decided[item.id]).toMatchObject({
+      status: "dismissed",
+      reason: "rumor: hanya sumber anonim",
+      autoReject: { check: "rumor", span: "kabarnya akan diakuisisi", score: 0.97, at: NOW },
+    });
+    // No undo path: the auto-accept revert refuses it.
+    expect(() => revertAutoAccept(next, item.id)).toThrow(ReviewError);
   });
 
-  it("never fails the sweep when the setting cannot be read", async () => {
-    const store = memoryQueueStore();
-    await expect(autoAcceptPending(store, NOW, async () => { throw new Error("gcs down"); })).resolves.toBeNull();
+  it("never rejects an item a reviewer took back from an auto-accept", () => {
+    const item = event();
+    const { next, rejected, skipped } = applyVerdicts(queueWith([{ event: item, match: { ...match(A), noAuto: true } }]), [reject(item.id)], NOW);
+    expect(rejected).toEqual([]);
+    expect(skipped.map((s) => s.id)).toEqual([item.id]);
+    expect(next.pending.map((e) => e.id)).toEqual([item.id]);
+  });
+
+  it("skips ids no longer pending, and a second verdict for the same id", () => {
+    const item = event();
+    let queue = queueWith([{ event: item, match: match(A) }]);
+    queue = decide(queue, item.id, { action: "dismiss", reason: "Bukan berita pasar." }, NOW);
+    const other = event();
+    queue = { ...queue, pending: [other], matches: { [other.id]: match(A) } };
+    const { next, skipped } = applyVerdicts(queue, [reject(item.id), reject(other.id), { ...reject(other.id), verdict: "accept" }], NOW);
+    expect(skipped).toEqual([
+      { id: item.id, why: "tidak lagi menunggu" },
+      { id: other.id, why: "verdict ganda untuk calon yang sama" },
+    ]);
+    expect(next.decided[item.id].reason).toBe("Bukan berita pasar.");
+    expect(next.decided[other.id].autoReject).toBeDefined();
+  });
+
+  it("an accept on a reverted item waits for a person, and says why", () => {
+    const item = event();
+    const { next, residual } = applyVerdicts(queueWith([{ event: item, match: { ...match(A), noAuto: true }, proposal: proposal(A) }]), [{ candidateId: item.id, verdict: "accept", reason: "bersih" }], NOW);
+    expect(residual).toEqual([item.id]);
+    expect(next.matches[item.id].residual?.reason).toBe(RESIDUAL_REVERTED);
+  });
+
+  it("a stored proposal that no longer validates does not sink the batch", () => {
+    const bad = event();
+    const gone = event();
+    const queue = queueWith([
+      { event: bad, match: match(A), proposal: proposal(A, { path: "pendek" }) },
+      { event: gone, match: match(A) },
+    ]);
+    const { next, accepted, rejected, residual } = applyVerdicts(queue, [
+      { candidateId: bad.id, verdict: "accept", reason: "bersih" },
+      { candidateId: gone.id, verdict: "reject", check: "rumor", reason: "rumor: anonim" },
+    ], NOW);
+    expect(accepted).toEqual([]);
+    expect(rejected).toEqual([gone.id]);
+    expect(residual).toEqual([bad.id]);
+    expect(next.matches[bad.id].residual?.reason).toContain(RESIDUAL_PROPOSAL_NOT_ELIGIBLE);
+  });
+
+  it("marks a residual item and leaves it pending", () => {
+    const item = event();
+    const queue = queueWith([{ event: item, match: match(A) }]);
+    const { next, residual } = applyVerdicts(queue, [{ candidateId: item.id, verdict: "residual", reason: "NLI ragu" }], NOW);
+    expect(residual).toEqual([item.id]);
+    expect(next.pending).toEqual(queue.pending);
+    expect(next.matches[item.id]).toEqual({ ...match(A), residual: { at: NOW, reason: "NLI ragu" } });
+  });
+
+  it("an empty verdict list changes nothing", () => {
+    const queue = queueWith([{ event: event(), match: match(A), proposal: proposal(A) }]);
+    const result = applyVerdicts(queue, [], NOW);
+    expect(result.next).toBe(queue);
+    expect([result.accepted, result.rejected, result.residual, result.skipped]).toEqual([[], [], [], []]);
+  });
+
+  it("over the cap, the rest of the accepts wait for a person", () => {
+    const items = Array.from({ length: 25 }, (_, i) => event(`2026-09-24T0${Math.floor(i / 10)}:${String(i % 10).padStart(2, "0")}:00.000Z`));
+    const queue = queueWith(items.map((e) => ({ event: e, match: match(A), proposal: proposal(A) })));
+    const verdicts: ScreenVerdict[] = items.map((e) => ({ candidateId: e.id, verdict: "accept", reason: "bersih" }));
+    const { next, accepted, residual } = applyVerdicts(queue, verdicts, NOW, 20);
+    expect(accepted).toHaveLength(20);
+    expect(residual).toHaveLength(5);
+    // Newest first: the five oldest are the ones left.
+    expect(new Set(residual)).toEqual(new Set(items.slice(0, 5).map((e) => e.id)));
+    expect(next.matches[residual[0]].residual?.reason).toBe(RESIDUAL_DAILY_CAP);
+  });
+
+  it("machine rejects never become few-shot examples", () => {
+    const item = event();
+    const { next } = applyVerdicts(queueWith([{ event: item, match: match(A) }]), [reject(item.id, { reason: "rumor: hanya sumber anonim tanpa pernyataan resmi" })], NOW);
+    expect(fewShotExamples(next, 10)).toEqual([]);
+  });
+});
+
+describe("watchAll", () => {
+  it("accepts nothing by itself, even an eligible verified proposal", async () => {
+    const item = event();
+    const queue = memoryQueueStore(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]));
+    await watchAll({ store: memoryRegistryStore(), review: memoryReviewStore(), queue, nowMs: Date.parse(NOW) });
+    const data = (await queue.load())?.data;
+    expect(data?.pending.map((e) => e.id)).toEqual([item.id]);
+    expect(data?.decided).toEqual({});
+  });
+});
+
+describe("residual labels, markers and counts", () => {
+  it("an accepted item carries the verdict's markers; the undo copy stays unmarked", () => {
+    const item = event();
+    const queue = queueWith([{ event: item, match: match(A), proposal: proposal(A) }]);
+    const { next, accepted } = applyVerdicts(queue, [{ candidateId: item.id, verdict: "accept", reason: "bersih", markers: ["unconfirmed", "unconfirmed"] }], NOW);
+    expect(accepted).toEqual([item.id]);
+    expect(next.accepted[0].markers).toEqual(["unconfirmed"]);
+    expect(next.decided[item.id].auto?.event.markers).toBeUndefined();
+    expect(revertAutoAccept(next, item.id).pending[0].markers).toBeUndefined();
+  });
+
+  it("an accept without markers adds no field", () => {
+    const item = event();
+    const { next } = applyVerdicts(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]), [{ candidateId: item.id, verdict: "accept", reason: "bersih" }], NOW);
+    expect("markers" in next.accepted[0]).toBe(false);
+  });
+
+  it("an auto reject keeps the title and address it rejected", () => {
+    const item = event();
+    const { next } = applyVerdicts(queueWith([{ event: item, match: match(A) }]), [{ candidateId: item.id, verdict: "reject", check: "rumor", reason: "rumor" }], NOW);
+    expect(next.decided[item.id].autoReject).toMatchObject({ title: item.title, url: item.citations[0].url });
+  });
+
+  it("a person's decision on a residual item is labelled; on any other item it is not", () => {
+    const residualItem = event();
+    const fresh = event();
+    const screened = applyVerdicts(queueWith([{ event: residualItem, match: match(A) }, { event: fresh, match: match(A) }]), [{ candidateId: residualItem.id, verdict: "residual", reason: "NLI ragu" }], NOW).next;
+    const afterResidual = withResidualLabel(screened, decide(screened, residualItem.id, { action: "dismiss", reason: "Bukan berita pasar." }, NOW), [residualItem.id]);
+    expect(afterResidual.decided[residualItem.id].fromResidual).toBe(true);
+    const afterFresh = withResidualLabel(afterResidual, decide(afterResidual, fresh.id, { action: "dismiss", reason: "Bukan berita pasar." }, NOW), [fresh.id]);
+    expect(afterFresh.decided[fresh.id].fromResidual).toBeUndefined();
+  });
+
+  it("never labels a decision the screen made", () => {
+    const item = event();
+    const screened = applyVerdicts(queueWith([{ event: item, match: match(A) }]), [{ candidateId: item.id, verdict: "residual", reason: "NLI ragu" }], NOW).next;
+    const rejected = applyVerdicts(screened, [{ candidateId: item.id, verdict: "reject", check: "rumor", reason: "rumor" }], NOW).next;
+    expect(withResidualLabel(screened, rejected, [item.id]).decided[item.id].fromResidual).toBeUndefined();
+  });
+
+  it("counts residual and auto-rejected items for the assistant", () => {
+    const [kept, dropped, other] = [event(), event(), event()];
+    const queue = queueWith([{ event: kept, match: match(A) }, { event: dropped, match: match(A) }, { event: other, match: match(A) }]);
+    const { next } = applyVerdicts(queue, [
+      { candidateId: kept.id, verdict: "residual", reason: "NLI ragu" },
+      { candidateId: dropped.id, verdict: "reject", check: "relevance", reason: "tidak relevan" },
+    ], NOW);
+    expect(overlayCounts(next)).toMatchObject({ pending: 2, residual: 1, autoRejected: 1, autoAccepted: 0 });
+  });
+});
+
+describe("revertAutoAccept and the residual list", () => {
+  it("drops a residual mark from before the accept, so no stale doubt is shown or labelled", () => {
+    const item = event();
+    const screened = applyVerdicts(queueWith([{ event: item, match: match(A), proposal: proposal(A) }]), [{ candidateId: item.id, verdict: "residual", reason: "relevansi ragu" }], NOW).next;
+    const { next } = applyVerdicts(screened, [{ candidateId: item.id, verdict: "accept", reason: "bersih" }], "2026-09-25T10:00:00.000Z");
+    expect(next.decided[item.id].auto?.match.residual?.reason).toBe("relevansi ragu");
+    const reverted = revertAutoAccept(next, item.id);
+    expect(reverted.matches[item.id].residual).toBeUndefined();
+    expect(reverted.matches[item.id].noAuto).toBe(true);
+    const human = withResidualLabel(reverted, decide(reverted, item.id, { action: "dismiss", reason: "Bukan berita pasar." }, NOW), [item.id]);
+    expect(human.decided[item.id].fromResidual).toBeUndefined();
   });
 });

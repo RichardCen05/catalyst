@@ -12,7 +12,14 @@ cannot drift by hand-copying.
     python3 scripts/refresh_job_body.py > /tmp/refresh-body.json
     gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \\
       --message-body-from-file=/tmp/refresh-body.json
+
+The nightly web-watch screen (cloudbuild-screen.yaml) is posted the same way,
+from its own snapshot, with any substitution overridden on the command line:
+
+    python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \\
+      --snapshot-object catalyst/screen-source.tgz [--sub _APPLY=--apply]
 """
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -37,11 +44,21 @@ def resolve(value, substitutions: dict):
     return value
 
 
-def main() -> int:
-    config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    substitutions = config.get("substitutions") or {}
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--config", default=str(CONFIG), help="Cloud Build YAML to inline")
+    parser.add_argument("--snapshot-object", default=SNAPSHOT["object"], help="source tarball in the snapshot bucket")
+    parser.add_argument("--sub", action="append", default=[], metavar="KEY=VALUE", help="override one substitution")
+    args = parser.parse_args(argv)
+    config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
+    substitutions = dict(config.get("substitutions") or {})
+    for item in args.sub:
+        key, sep, value = item.partition("=")
+        if not sep or key not in substitutions:
+            parser.error(f"--sub {item!r}: not KEY=VALUE for a substitution the config declares")
+        substitutions[key] = value
     body = {
-        "source": {"storageSource": SNAPSHOT},
+        "source": {"storageSource": {**SNAPSHOT, "object": args.snapshot_object}},
         "steps": resolve(config["steps"], substitutions),
         "availableSecrets": config["availableSecrets"],
         "options": config["options"],

@@ -98,7 +98,7 @@ export function verifyExposureDraft(
 export function fewShotExamples(queue: ReviewQueue, max: number, minWords = resolveThresholds().webWatchFewShotReasonMinWords): string[] {
   const titleOf = new Map(queue.accepted.map((event) => [event.id, event.title]));
   return Object.values(queue.decided)
-    .filter((decision) => !decision.auto)
+    .filter((decision) => !decision.auto && !decision.autoReject)
     .filter((decision) => decision.impacts?.length || decision.reason.trim().split(/\s+/).length >= minWords)
     .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
     .slice(0, max)

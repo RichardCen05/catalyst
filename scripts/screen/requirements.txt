@@ -1,0 +1,6 @@
+# System One NLI screen. CPU only; no torch. Pinned to the versions the
+# replay and the unit tests ran with.
+numpy==2.4.6
+onnxruntime==1.29.0
+tokenizers==0.22.2
+requests==2.34.2

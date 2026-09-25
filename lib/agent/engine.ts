@@ -32,6 +32,7 @@ import type {
   UserInsight,
   UserProfile,
 } from "@/lib/types";
+import { EVENT_MARKER_LABEL } from "@/lib/types";
 import { assessExposureWithLlm } from "@/lib/agent/llm/exposure";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { answerableFigures, describeCaseSources, explainFigure, matchFieldName, matchFigure, matchFigureWithStrength, METRIC_FORMULA, namesAMetric, phraseMatches } from "@/lib/agent/explain";
@@ -1440,7 +1441,10 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     const direction = (value: ImpactDirection) => value === "Supported" ? "Mendukung" : value === "Adverse" ? "Berlawanan" : value === "Mixed" ? "Bercampur" : value === "Unrelated" ? "Tidak terkait" : "Belum terverifikasi";
     // Name the event. The reader cannot check an impact path without knowing
     // which trigger it belongs to.
-    const header = `Peristiwa: ${selected.title}.`;
+    // A marker the screen set travels as its label, never as a sentence about
+    // this event, so the rewrite can say "belum dikonfirmasi resmi" verified.
+    const markerNote = selected.markers?.length ? ` Penanda: ${selected.markers.map((marker) => EVENT_MARKER_LABEL[marker]).join(", ")}.` : "";
+    const header = `Peristiwa: ${selected.title}.${markerNote}`;
     const text = scoped.length
       ? `${header} ${scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")}`
       : `${header} Peristiwa ini tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.`;
@@ -1720,6 +1724,7 @@ async function buildCausalGraph(
       sourceType: event.sourceType, direction: resolvedLink.direction, relevance: resolvedLink.relevance,
       basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
       counterEvidence: `Nilai ini berasal dari rekaman ${DATA_AS_OF_LABEL}. Kejadian, waktu, dan cakupan produksi masih perlu diperiksa pada sumber langsung.`, citations: event.citations,
+      ...(event.markers?.length ? { markers: event.markers } : {}),
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}${exposureAssumption(event)}`,

@@ -10,8 +10,8 @@
  * Three commitments:
  *
  * **Nothing is accepted here.** The only verdicts are "archive" and "review".
- * Archived items stay in the queue file with their rule and reason, and a
- * reviewer can restore any of them.
+ * Archived items stay in the queue file with their rule and reason. Archiving
+ * is final: nothing moves an item back to review.
  *
  * **Nothing is typed per case.** Symbols, names and sectors come from the
  * registry (`companies`, `SYMBOL_ALIASES`), declared emiten and regions from
@@ -24,7 +24,7 @@
  * not produce; an extra item in review only costs a glance.
  */
 
-import { ENCLITICS, SYMBOL_ALIASES } from "@/lib/agent/query";
+import { ENCLITICS, LEGAL_TOKENS, SYMBOL_ALIASES, registryNameTokens } from "@/lib/agent/query";
 import { resolveThresholds, type ResolvedThresholds } from "@/lib/agent/thresholds";
 import { companies as registryCompanies } from "@/lib/data/fixtures";
 import { readForecast, readQuake, summarizeJsonPayload } from "@/lib/web-watch/json-summary";
@@ -61,7 +61,10 @@ export interface TriageContext {
   sources: WatchedSource[];
   /** Events the queue already holds. Duplicates are judged against these. */
   seen: Array<{ event: MarketEvent; where: SeenWhere }>;
-  companies?: Array<Pick<Company, "symbol" | "sector" | "subsector">>;
+  /** Without `name`, a company is matched by ticker, acronym, sector and
+   *  subsector only: its name words are what `nameMatcher` checks a mention
+   *  against. */
+  companies?: Array<Pick<Company, "symbol" | "sector" | "subsector"> & { name?: string }>;
   aliases?: Partial<Record<SymbolCode, string[]>>;
   thresholds?: ResolvedThresholds;
 }
@@ -85,7 +88,7 @@ function phrasePattern(phrase: string): RegExp {
 /** A code-like token as written in capitals only. `BUKA` is a ticker; `buka`
  *  is the word "open", and a case-insensitive match would file half the
  *  Indonesian web under Bukalapak. */
-function codePattern(code: string): RegExp {
+export function codePattern(code: string): RegExp {
   return new RegExp(`${BOUNDARY_BEFORE}${escapeRegex(code.toUpperCase())}${BOUNDARY_AFTER}`, "u");
 }
 
@@ -106,14 +109,36 @@ function bodyKey(event: MarketEvent): string {
   return `${text.length}:${(hash >>> 0).toString(16)}`;
 }
 
+/** The whole sentences of a text page, whitespace-collapsed and lowercased.
+ *  A republished article keeps these while its title, view counter and
+ *  sidebar change. */
+function sentenceKeys(event: MarketEvent, minWords: number): Set<string> {
+  return new Set(sentences(event.body || event.summary, minWords).map((s) => s.replace(/\s+/g, " ").toLowerCase()));
+}
+
 const isStructured = (event: MarketEvent) => summarizeJsonPayload(event.body ?? "") !== null;
 
-/** Every run of text that ends the way a sentence ends. Menus, "Baca Juga"
- *  headline lists and ticker ribbons do not, which is the point. */
-function sentences(text: string, minWords = 1): string[] {
-  return (text.match(/[^.!?\n]+[.!?](?=\s|$)/g) ?? [])
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.split(/\s+/).length >= minWords);
+/** A run of text that ends the way a sentence ends. A dot followed by a digit
+ *  is a number ("7.583", "Rp 3.180"), not an ending: without that exception a
+ *  sentence carrying a price lost everything before the number, ticker
+ *  included. */
+const SENTENCE = /(?:[^.!?\n]|\.(?=\d))+[.!?](?=\s|$)/g;
+
+/** Every sentence of a text with where it starts. Menus, "Baca Juga" headline
+ *  lists and ticker ribbons do not end like a sentence, which is the point. */
+export function sentenceSpans(text: string, minWords = 1): Array<{ text: string; start: number }> {
+  const spans: Array<{ text: string; start: number }> = [];
+  for (const match of text.matchAll(SENTENCE)) {
+    const raw = match[0];
+    const sentence = raw.trim();
+    if (sentence.split(/\s+/).length < minWords) continue;
+    spans.push({ text: sentence, start: (match.index ?? 0) + raw.indexOf(sentence) });
+  }
+  return spans;
+}
+
+export function sentences(text: string, minWords = 1): string[] {
+  return sentenceSpans(text, minWords).map((span) => span.text);
 }
 
 /** Characters that sit inside whole sentences — what a navigation menu lacks. */
@@ -151,7 +176,134 @@ interface Matcher {
   symbol: SymbolCode;
   by: MatchKind;
   term: string;
-  pattern: RegExp;
+  test: (text: string) => boolean;
+}
+
+const fromPattern = (pattern: RegExp) => (text: string) => pattern.test(text);
+
+const isCapitalized = (word: string) => /^\p{Lu}/u.test(word);
+const bareWord = (word: string) => word.toLowerCase().replace(new RegExp(`${ENCLITIC_TAIL}$`, "u"), "");
+
+const atSentenceStart = (text: string, start: number) => {
+  const before = text.slice(0, start);
+  return !before.trim() || /[\n.!?:"“”]\s*$/u.test(before);
+};
+
+/** The capitalised words directly around a span that are not `ours`,
+ *  stopping at the first lowercase word or at any punctuation — a comma, a
+ *  full stop, a bracket. A word that opens a sentence is capitalised by
+ *  grammar, not because it names anything, so the scan stops there too. */
+function foreignNeighbours(text: string, start: number, end: number, ours: (word: string) => boolean): string[] {
+  const out: string[] = [];
+  let left = start;
+  for (;;) {
+    const m = /([\p{L}\p{N}]+)[ \t]+$/u.exec(text.slice(Math.max(0, left - 80), left));
+    if (!m || !isCapitalized(m[1])) break;
+    left -= m[0].length;
+    if (ours(m[1])) continue;
+    if (!atSentenceStart(text, left)) out.push(m[1]);
+    break;
+  }
+  let right = end;
+  for (;;) {
+    const m = /^[ \t]+([\p{L}\p{N}]+)/u.exec(text.slice(right, right + 80));
+    if (!m || !isCapitalized(m[1])) break;
+    right += m[0].length;
+    if (ours(m[1])) continue;
+    out.push(m[1]);
+    break;
+  }
+  return out;
+}
+
+/** Whether the word right before or after a span is one of `ours` (so a
+ *  single matched word at a sentence start still reads as part of a name:
+ *  "Timah Tbk mencatat …"). */
+function hasOwnNeighbour(text: string, start: number, end: number, ours: (word: string) => boolean): boolean {
+  const before = /([\p{L}\p{N}]+)[ \t]+$/u.exec(text.slice(Math.max(0, start - 80), start));
+  const after = /^[ \t]+([\p{L}\p{N}]+)/u.exec(text.slice(end, end + 80));
+  return Boolean((before && ours(before[1])) || (after && isCapitalized(after[1]) && ours(after[1])));
+}
+
+/**
+ * A registry name as a name, not as a word. On 2026-09-24 the production
+ * queue matched "bukit" in PT Bukit Uluwatu Villa, "rakyat indonesia" in
+ * Asosiasi Petani Tebu Rakyat Indonesia, "central" in PT Yogya Central
+ * Terpadu and in "central counterparty clearing", "mandiri" in "Kota
+ * Mandiri", and "timah" the commodity. A mention counts only when
+ *
+ * - every matched word is capitalised, as a name is written;
+ * - the capitalised words around it are all words of this company's recorded
+ *   name or legal forms (PT, Tbk, Persero) — otherwise it is part of some
+ *   other proper name;
+ * - a lone word does not open a sentence, where every word is capitalised.
+ *
+ * Headlines written in Title Case fail the second test; the article body,
+ * which names the company in full, is what matches.
+ */
+function nameMatcher(alias: string, own: ReadonlySet<string>): (text: string) => boolean {
+  const pattern = new RegExp(phrasePattern(alias).source, "giu");
+  return (text) => {
+    for (const hit of text.matchAll(pattern)) {
+      const start = hit.index ?? 0;
+      const end = start + hit[0].length;
+      const words = hit[0].split(/[\s-]+/u).filter(Boolean);
+      if (!words.every(isCapitalized)) continue;
+      const ours = (word: string) => own.has(bareWord(word)) || LEGAL_TOKENS.has(word.toLowerCase());
+      if (foreignNeighbours(text, start, end, ours).length) continue;
+      if (words.length === 1 && atSentenceStart(text, start) && !hasOwnNeighbour(text, start, end, ours)) continue;
+      return true;
+    }
+    return false;
+  };
+}
+
+/**
+ * Which derived aliases can stand for a company in news text, and how each
+ * is tested. `SYMBOL_ALIASES` serves reader questions as well, where "asia"
+ * or "resources" typed alone may well mean the issuer; news prose uses those
+ * words for everything else. So here:
+ *
+ * - an acronym of the name, whatever its length, reads like a ticker —
+ *   capitals only;
+ * - the squashed name ("bukitasam") is unambiguous as it stands;
+ * - a phrase counts only when it opens the recorded name ("bank rakyat",
+ *   never "rakyat indonesia", which is also a farmers' association);
+ * - a single word counts only when it is the name's first distinctive word
+ *   ("central" for Bank Central Asia, never "asia").
+ *
+ * Phrases and words both go through `nameMatcher`.
+ */
+interface AliasMatcher {
+  alias: string;
+  term: string;
+  /** Acronyms are judged by their capitals, not by how often a word appears. */
+  acronym: boolean;
+  test: (text: string) => boolean;
+}
+
+function aliasMatchers(symbol: SymbolCode, name: string | undefined, aliases: string[]): AliasMatcher[] {
+  const tokens = name ? registryNameTokens(name) : [];
+  if (!tokens.length) return [];
+  const own = new Set(tokens);
+  const acronym = tokens.map((token) => token[0]).join("");
+  const squashed = tokens.join("");
+  const head = tokens.find((token) => token !== symbol.toLowerCase() && aliases.includes(token));
+  const out: AliasMatcher[] = [];
+  for (const alias of aliases) {
+    if (alias === symbol.toLowerCase()) continue;
+    const words = alias.split(" ");
+    if (alias === acronym) {
+      out.push({ alias, term: alias.toUpperCase(), acronym: true, test: fromPattern(codePattern(alias)) });
+    } else if (alias === squashed && words.length === 1 && !own.has(alias)) {
+      out.push({ alias, term: alias, acronym: false, test: fromPattern(phrasePattern(alias)) });
+    } else if (words.length > 1 && words.every((word, i) => tokens[i] === word)) {
+      out.push({ alias, term: alias, acronym: false, test: nameMatcher(alias, own) });
+    } else if (words.length === 1 && alias === head) {
+      out.push({ alias, term: alias, acronym: false, test: nameMatcher(alias, own) });
+    }
+  }
+  return out;
 }
 
 function buildMatchers(ctx: TriageContext, corpus: string[], t: ResolvedThresholds): Matcher[] {
@@ -160,24 +312,19 @@ function buildMatchers(ctx: TriageContext, corpus: string[], t: ResolvedThreshol
   const judgeShare = corpus.length >= t.webWatchAliasMinCorpus;
   const matchers: Matcher[] = [];
   for (const company of companies) {
-    matchers.push({ symbol: company.symbol, by: "symbol", term: company.symbol, pattern: codePattern(company.symbol) });
-    for (const alias of aliases[company.symbol] ?? []) {
-      if (alias === company.symbol.toLowerCase()) continue;
-      // Acronyms ("bca", "pgn") are code-like: capitals only, same as tickers.
-      if (!alias.includes(" ") && alias.length <= 3) {
-        matchers.push({ symbol: company.symbol, by: "name", term: alias.toUpperCase(), pattern: codePattern(alias) });
-        continue;
-      }
-      const pattern = phrasePattern(alias);
-      if (judgeShare) {
-        const share = corpus.filter((text) => pattern.test(text)).length / corpus.length;
+    matchers.push({ symbol: company.symbol, by: "symbol", term: company.symbol, test: fromPattern(codePattern(company.symbol)) });
+    for (const { term, acronym, test } of aliasMatchers(company.symbol, company.name, aliases[company.symbol] ?? [])) {
+      // A name the queue writes in a large share of its items is being used
+      // as an ordinary word there, whatever its shape.
+      if (judgeShare && !acronym) {
+        const share = corpus.filter(test).length / corpus.length;
         if (share > t.webWatchAliasMaxDocShare) continue;
       }
-      matchers.push({ symbol: company.symbol, by: "name", term: alias, pattern });
+      matchers.push({ symbol: company.symbol, by: "name", term, test });
     }
-    matchers.push({ symbol: company.symbol, by: "sector", term: company.sector, pattern: phrasePattern(company.sector) });
+    matchers.push({ symbol: company.symbol, by: "sector", term: company.sector, test: fromPattern(phrasePattern(company.sector)) });
     if (company.subsector && company.subsector !== company.sector) {
-      matchers.push({ symbol: company.symbol, by: "subsector", term: company.subsector, pattern: phrasePattern(company.subsector) });
+      matchers.push({ symbol: company.symbol, by: "subsector", term: company.subsector, test: fromPattern(phrasePattern(company.subsector)) });
     }
   }
   return matchers;
@@ -275,10 +422,13 @@ export function triageAll(
 
   const byTitle = new Map<string, { event: MarketEvent; where: SeenWhere }>();
   const byBody = new Map<string, { event: MarketEvent; where: SeenWhere }>();
+  const bySentences: Array<{ event: MarketEvent; where: SeenWhere; keys: Set<string> }> = [];
   const remember = (event: MarketEvent, where: SeenWhere) => {
     if (!isStructured(event)) {
       const title = normalizeTitle(event.title);
       if (title && !byTitle.has(title)) byTitle.set(title, { event, where });
+      const keys = sentenceKeys(event, t.webWatchProseSentenceMinWords);
+      if (keys.size >= t.webWatchDuplicateMinSentences) bySentences.push({ event, where, keys });
     }
     const key = bodyKey(event);
     if (!byBody.has(key)) byBody.set(key, { event, where });
@@ -306,6 +456,24 @@ export function triageAll(
         rule: "duplicate",
         reason: `Duplikat: ${how} sama dengan "${dup.event.title.slice(0, 120)}", yang ${WHERE_LABEL[dup.where]}.`,
       };
+    }
+    //    A republished copy: new title or view counter, same sentences.
+    if (!structured) {
+      const keys = sentenceKeys(candidate, t.webWatchProseSentenceMinWords);
+      if (keys.size >= t.webWatchDuplicateMinSentences) {
+        for (const prior of bySentences) {
+          if (prior.event.id === candidate.id) continue;
+          let shared = 0;
+          for (const key of keys) if (prior.keys.has(key)) shared += 1;
+          const share = shared / Math.min(keys.size, prior.keys.size);
+          if (share < t.webWatchDuplicateSentenceShare) continue;
+          return {
+            verdict: "archive",
+            rule: "duplicate",
+            reason: `Duplikat: ${fmt(shared)} dari ${fmt(Math.min(keys.size, prior.keys.size))} kalimat isinya sama dengan "${prior.event.title.slice(0, 120)}", yang ${WHERE_LABEL[prior.where]} (ambang ${fmt(Math.round(t.webWatchDuplicateSentenceShare * 100))}%).`,
+          };
+        }
+      }
     }
 
     // 2. Empty extract. A payload is data, not prose; only text pages are judged.
@@ -336,7 +504,7 @@ export function triageAll(
     for (const symbol of source?.symbols ?? []) evidence.push({ symbol, by: "source", term: source?.label ?? "" });
     const text = matchText(candidate);
     for (const matcher of matchers) {
-      if (matcher.pattern.test(text)) evidence.push({ symbol: matcher.symbol, by: matcher.by, term: matcher.term });
+      if (matcher.test(text)) evidence.push({ symbol: matcher.symbol, by: matcher.by, term: matcher.term });
     }
     const matchedBy = dedupeEvidence(evidence);
     if (!matchedBy.length) {

@@ -141,13 +141,23 @@ export const DEFAULT_THRESHOLDS = {
   /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
    *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
    *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
-   *  produksi: "asia" 23%, "rakyat" 10%, "resources" 7% — sementara nama yang
-   *  benar-benar nama ("timah", "mandiri", "telkom") di bawah 4%. */
+   *  produksi: "asia" 23%, "rakyat" 10%, "resources" 7%. Porsi rendah tidak
+   *  membuktikan sebuah kata dipakai sebagai nama: "timah" (komoditas) dan
+   *  "mandiri" (kata sifat) di bawah 4% tetap mencocokkan berita yang salah,
+   *  jadi triage juga memeriksa bentuk nama di teks (lihat `nameMatcher`). */
   webWatchAliasMaxDocShare: 0.05,
   /** Jumlah kandidat minimum sebelum porsi di atas dihitung. Pada antrean
    *  sekecil ini porsi tidak berarti apa-apa, jadi kata nama tetap dipakai —
    *  lebih baik satu kandidat berlebih ditinjau daripada satu diarsipkan salah. */
   webWatchAliasMinCorpus: 50,
+  /** Porsi kalimat utuh yang sama (terhadap kandidat yang kalimatnya lebih
+   *  sedikit) agar dua kandidat dianggap satu berita. Judul dan penghitung
+   *  "Dibaca N kali" berubah saat situs menerbitkan ulang, isinya tidak:
+   *  2026-09-24 satu siaran ESDM masuk dua kali dengan salah ketik di judul. */
+  webWatchDuplicateSentenceShare: 0.8,
+  /** Kalimat utuh minimum di kedua sisi sebelum porsi di atas dihitung. Teks
+   *  sependek ini (halaman video) bisa berbagi kalimat penutup situs saja. */
+  webWatchDuplicateMinSentences: 3,
   /** Curah hujan per langkah prakiraan BMKG (3 jam), mm, yang membuat
    *  prakiraan lokasi tambang layak ditinjau. */
   webWatchRainMmPerStep: 10,
@@ -192,9 +202,54 @@ export const DEFAULT_THRESHOLDS = {
    *  dinonaktifkan otomatis. */
   webWatchSourceNoiseShare: 0.9,
   /** Usulan yang boleh diterima otomatis dalam 24 jam terakhir, bila sakelar
-   *  "Terima otomatis" menyala. Sisanya menunggu reviewer seperti biasa, jadi
-   *  satu sapuan yang salah paling banyak memasukkan sejumlah ini ke engine. */
-  webWatchAutoAcceptDailyMax: 5,
+   *  keputusan otomatis menyala. Pemutus sirkuit untuk langkah putus: sisanya
+   *  menunggu reviewer, jadi satu putaran yang salah paling banyak memasukkan
+   *  sejumlah ini ke engine. Disamakan dengan `webWatchSweepLlmCalls` (20),
+   *  yaitu draf usulan satu sapuan; dulu 5, saat penerimaan masih di sapuan. */
+  webWatchAutoAcceptDailyMax: 20,
+  /** Karakter paling banyak dalam satu jendela teks untuk penyaring NLI.
+   *  1.200 karakter kira-kira 300 token mDeBERTa, di bawah batas 512 token
+   *  model bersama hipotesisnya. Jendela dirakit dari kalimat utuh saja. */
+  webWatchNliWindowChars: 1200,
+  /** Jendela per kandidat yang dibaca penyaring NLI, dari awal teks. Enam
+   *  jendela = 7.200 karakter kalimat, lebih panjang dari hampir semua berita;
+   *  batas ini menjaga waktu Cloud Build (mesin bawaan, 5 cek × jendela × 50
+   *  kandidat) bila satu halaman sangat panjang. */
+  webWatchNliMaxWindows: 6,
+  /** Selisih relatif harga penutupan (artikel lawan rekaman) yang masih
+   *  dianggap sama. Rekaman IHSG dibulatkan ke bilangan bulat dan judul
+   *  membulatkan angka; 0,5% tidak pernah tersandung pembulatan, tetapi
+   *  menangkap level yang dikarang (artikel 7.583 lawan rekaman 6.277). */
+  webWatchPriceToleranceShare: 0.005,
+  /** Selisih persentase perubahan harian, poin persen, yang masih dianggap
+   *  sama. Artikel membulatkan ke dua desimal (±0,005) dan IHSG terekam bulat
+   *  (±0,02 poin persen pada level 6.000-an). */
+  webWatchPctTolerancePp: 0.05,
+  /** Selisih relatif volume harian emiten yang masih dianggap sama. Artikel
+   *  menulis "272,88 juta lembar"; kesalahan lot lawan lembar (×100) jauh di
+   *  luar batas ini. */
+  webWatchVolumeToleranceShare: 0.05,
+  /** Angka artikel di luar rentang rekaman seri yang sama, dibagi atau dikali
+   *  faktor ini, dianggap salah baca (pemisah desimal hilang: "639234",
+   *  "anjlok 781 persen") dan tidak dapat dicek, bukan dibantah. Penolakan
+   *  final tidak boleh bersandar pada tebakan pembacaan angka. */
+  webWatchFigurePlausibleFactor: 2,
+  /** Peluang terkalibrasi paling rendah agar penyaring NLI memutus sendiri:
+   *  menolak (rumor, judul menyesatkan tanpa isi, tidak substantif, tidak
+   *  relevan untuk semua emiten) atau menyatakan satu cek bersih. Di bawahnya
+   *  kandidat jatuh ke sisa untuk reviewer. Tolakan final, jadi tinggi. */
+  webWatchDecideMinConfidence: 0.9,
+  /** Label per cek yang dibutuhkan sebelum suhu kalibrasi dipakai. Di
+   *  bawahnya penyaring memakai `webWatchNliStrictFloor` pada skor mentah;
+   *  suhu dari segelintir label terlalu goyah untuk tolakan final. */
+  webWatchCalibrationMinLabels: 50,
+  /** Ambang skor NLI mentah (belum terkalibrasi) selama label sebuah cek
+   *  belum cukup. Lebih ketat dari `webWatchDecideMinConfidence` karena
+   *  mDeBERTa terkenal terlalu yakin pada skor mentahnya. */
+  webWatchNliStrictFloor: 0.97,
+  /** Bagian kandidat yang boleh jatuh ke sisa reviewer dalam satu putaran
+   *  penyaring. Hanya dilaporkan oleh replay, tidak menghalangi apa pun. */
+  webWatchResidualMaxShare: 0.3,
 } as const;
 
 /**
@@ -277,6 +332,8 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchProseSentenceMinWords: "convention",
   webWatchAliasMaxDocShare: "guess",
   webWatchAliasMinCorpus: "convention",
+  webWatchDuplicateSentenceShare: "guess",
+  webWatchDuplicateMinSentences: "convention",
   webWatchRainMmPerStep: "guess",
   webWatchWarningWeatherCode: "guess",
   webWatchWindKmh: "guess",
@@ -292,6 +349,20 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchSourceHealthWindow: "convention",
   webWatchSourceNoiseShare: "guess",
   webWatchAutoAcceptDailyMax: "guess",
+  // Penyaring mendalam. Ukuran jendela menjaga batas token dan waktu; toleransi
+  // angka menentukan apa yang ditolak, jadi `guess` sampai ada label.
+  webWatchNliWindowChars: "convention",
+  webWatchNliMaxWindows: "convention",
+  webWatchPriceToleranceShare: "guess",
+  webWatchPctTolerancePp: "guess",
+  webWatchVolumeToleranceShare: "guess",
+  webWatchFigurePlausibleFactor: "guess",
+  // Penyaring NLI. Label ditulis Claude dan belum ditinjau orang (W17), jadi
+  // semua ambang keputusan tetap `guess` sampai replay atas label tinjauan.
+  webWatchDecideMinConfidence: "guess",
+  webWatchCalibrationMinLabels: "guess",
+  webWatchNliStrictFloor: "guess",
+  webWatchResidualMaxShare: "guess",
 };
 
 /**
@@ -410,6 +481,8 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
     webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
     webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
+    webWatchDuplicateSentenceShare: DEFAULT_THRESHOLDS.webWatchDuplicateSentenceShare,
+    webWatchDuplicateMinSentences: DEFAULT_THRESHOLDS.webWatchDuplicateMinSentences,
     webWatchRainMmPerStep: DEFAULT_THRESHOLDS.webWatchRainMmPerStep,
     webWatchWarningWeatherCode: DEFAULT_THRESHOLDS.webWatchWarningWeatherCode,
     webWatchWindKmh: DEFAULT_THRESHOLDS.webWatchWindKmh,
@@ -425,6 +498,16 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchSourceHealthWindow: DEFAULT_THRESHOLDS.webWatchSourceHealthWindow,
     webWatchSourceNoiseShare: DEFAULT_THRESHOLDS.webWatchSourceNoiseShare,
     webWatchAutoAcceptDailyMax: DEFAULT_THRESHOLDS.webWatchAutoAcceptDailyMax,
+    webWatchNliWindowChars: DEFAULT_THRESHOLDS.webWatchNliWindowChars,
+    webWatchNliMaxWindows: DEFAULT_THRESHOLDS.webWatchNliMaxWindows,
+    webWatchPriceToleranceShare: DEFAULT_THRESHOLDS.webWatchPriceToleranceShare,
+    webWatchPctTolerancePp: DEFAULT_THRESHOLDS.webWatchPctTolerancePp,
+    webWatchVolumeToleranceShare: DEFAULT_THRESHOLDS.webWatchVolumeToleranceShare,
+    webWatchFigurePlausibleFactor: DEFAULT_THRESHOLDS.webWatchFigurePlausibleFactor,
+    webWatchDecideMinConfidence: DEFAULT_THRESHOLDS.webWatchDecideMinConfidence,
+    webWatchCalibrationMinLabels: DEFAULT_THRESHOLDS.webWatchCalibrationMinLabels,
+    webWatchNliStrictFloor: DEFAULT_THRESHOLDS.webWatchNliStrictFloor,
+    webWatchResidualMaxShare: DEFAULT_THRESHOLDS.webWatchResidualMaxShare,
   };
 }
 

@@ -2,29 +2,36 @@
  * Review queue — one GCS object.
  *
  *   catalyst/web-watch/queue.json = {
- *     pending:  MarketEvent[]                 // waiting for a human
+ *     pending:  MarketEvent[]                 // waiting for a decision
  *     accepted: MarketEvent[]                 // reviewed, mapped, engine-visible
  *     decided:  Record<candidateId, ReviewDecision>
  *     archived: Record<candidateId, ArchivedCandidate>   // set aside by triage
  *     matches:  Record<candidateId, TriageMatch>         // why a pending item is here
- *     restored: Record<candidateId, RestoredCandidate>   // triage overruled by a human
- *     proposals: Record<candidateId, TriageProposal>     // verified model draft, for a human to accept
+ *     restored: Record<candidateId, RestoredCandidate>   // read-only: past human overrules of triage
+ *     proposals: Record<candidateId, TriageProposal>     // verified model draft
  *   }
  *
  * The last four were added with triage (`lib/web-watch/triage.ts`). A file
  * written before them loads with each defaulted to empty (`normalizeQueue`),
- * and nothing in the first three changed shape. Auto-accept added only
- * optional fields (`ReviewDecision.auto`, `TriageMatch.noAuto`).
+ * and nothing in the first three changed shape. Auto-accept and auto-decide
+ * added only optional fields (`ReviewDecision.auto`, `ReviewDecision.autoReject`,
+ * `TriageMatch.noAuto`, `TriageMatch.residual`).
  *
  * Candidates enter via `enqueue` (called by the sweep), which triages every
  * one of them: an item that repeats one already held, carries no prose,
  * reports ordinary weather, or touches no watched emiten is archived with the
- * rule and a reason, never deleted and never accepted. When the auto-accept
- * switch is on, the sweep accepts a narrow slice of verified proposals by
- * itself (`autoAccept`), capped per day and undoable. A reviewer maps each
- * one to symbols with a direction, a relevance *band*, and a written exposure
- * path — the band is chosen by a human in the open, never computed by the
- * fetcher. Dismissed candidates stay in `decided` so a re-run of the same
+ * rule and a reason, never deleted and never accepted. Archiving is final:
+ * nothing moves an archived item back. `restored` is kept only so the
+ * overrules people made before that rule still stand.
+ *
+ * Pending items are decided without a person by `applyVerdicts`, which the
+ * internal decide route runs on verdicts an offline screen posts. When the
+ * auto-decide switch is on, a verdict can reject an item (final), accept it
+ * (only a verified proposal the auto-accept rules allow, capped per day and
+ * undoable), or leave it for a person as residual. A reviewer maps each item
+ * a person decides to symbols with a direction, a relevance *band*, and a
+ * written exposure path — the band is chosen in the open, never computed by
+ * the fetcher. Dismissed candidates stay in `decided` so a re-run of the same
  * address does not resurrect them.
  *
  * The engine reads `accepted` through an in-process overlay (`ensureOverlay`,
@@ -38,7 +45,7 @@ import { bucket } from "@/lib/web-watch/registry";
 import { RELEVANCE_BAND_SCORE, resolveThresholds, type RelevanceBand } from "@/lib/agent/thresholds";
 import { sourceFor, TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
 import type { WatchedSource } from "@/lib/web-watch/types";
-import type { ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
+import type { EventMarker, ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
 
 export const QUEUE_PATH = "catalyst/web-watch/queue.json";
 
@@ -61,10 +68,31 @@ export interface ReviewDecision {
   /** The reviewer accepted the model's verified proposal (possibly in a
    *  batch) rather than mapping by hand. Still a human decision. */
   viaProposal?: boolean;
-  /** Accepted by the sweep with no person involved, because the auto-accept
-   *  switch was on. Holds what the item looked like while pending, so a
-   *  reviewer can put it back exactly (`revertAutoAccept`). */
+  /** Accepted with no person involved, because the auto-decide switch was
+   *  on. Holds what the item looked like while pending, so a reviewer can put
+   *  it back exactly (`revertAutoAccept`). */
   auto?: AutoAcceptRecord;
+  /** Dismissed with no person involved, by a screen verdict. Final: there is
+   *  no path back to pending. */
+  autoReject?: AutoRejectRecord;
+  /** A person decided an item the screen had left for them (residual). This
+   *  decision is a calibration label (W17); auto decisions never carry it. */
+  fromResidual?: boolean;
+}
+
+/** Which screen check decided a verdict. */
+export type ScreenCheck = "rumor" | "misleading-title" | "figure" | "substance" | "relevance";
+
+export interface AutoRejectRecord {
+  check?: ScreenCheck;
+  /** The text the check read when it decided. */
+  span?: string;
+  score?: number;
+  at: string;
+  /** A dismissed decision keeps no event, so the list of auto rejects shows
+   *  what was rejected from these. */
+  title?: string;
+  url?: string;
 }
 
 export interface AutoAcceptRecord {
@@ -89,9 +117,11 @@ export interface TriageMatch {
    *  not yet tried; a budget that closed mid-sweep leaves it absent so the
    *  next sweep tries again. */
   drafted?: { at: string; outcome: "proposed" | "rejected" | "failed" };
-  /** A reviewer undid an auto-accept of this item. The sweep never
-   *  auto-accepts it again; only a person can. */
+  /** A reviewer undid an auto-accept of this item. Nothing decides it
+   *  again without a person. */
   noAuto?: boolean;
+  /** The last screen left this item for a person, and why. */
+  residual?: { at: string; reason: string };
 }
 
 /** One verified model-drafted impact. Same fields a reviewer fills in, plus
@@ -107,7 +137,9 @@ export interface TriageProposal {
   verifiedAt: string;
 }
 
-/** A human moved an archived candidate back. Triage never archives it again. */
+/** A human moved an archived candidate back, before archiving became final.
+ *  Nothing writes these any more; triage still never archives such an item
+ *  again, so a person's past overrule stands. */
 export interface RestoredCandidate {
   restoredAt: string;
   rule: TriageRule;
@@ -187,7 +219,8 @@ export function listKnownSymbols(): SymbolCode[] {
   return companies.map((c) => c.symbol);
 }
 
-const PENDING_MAX = 200;
+/** Most items the queue holds pending; also caps how many verdicts one decide call may carry. */
+export const PENDING_MAX = 200;
 
 /** What triage needs beyond the queue itself. Required, so no caller can
  *  enqueue without triage. */
@@ -248,20 +281,6 @@ export function enqueue(
     archived: capArchive(archived),
     matches: prunePendingRecords(matches, pending),
     proposals: prunePendingRecords(queue.proposals, pending),
-  };
-}
-
-/** Move an archived candidate back to review, and remember a human did so. */
-export function restore(queue: ReviewQueue, candidateId: string, nowIso: string): ReviewQueue {
-  const entry = queue.archived[candidateId];
-  if (!entry) throw new ReviewError("Kandidat tidak ada di arsip (mungkin sudah dikembalikan).");
-  const { [candidateId]: _removed, ...archived } = queue.archived;
-  void _removed;
-  return {
-    ...queue,
-    pending: [entry.event, ...queue.pending.filter((e) => e.id !== candidateId)],
-    archived,
-    restored: { ...queue.restored, [candidateId]: { restoredAt: nowIso, rule: entry.rule, reason: entry.reason } },
   };
 }
 
@@ -410,6 +429,20 @@ export function decide(
   };
 }
 
+/**
+ * Mark the decisions a person just made on items the screen had left for
+ * them. `before` is the queue the person decided from, so the mark says the
+ * item was residual when they chose, whatever happens to its match record
+ * afterwards. Only the human routes call this; the screen never does.
+ */
+export function withResidualLabel(before: ReviewQueue, after: ReviewQueue, candidateIds: string[]): ReviewQueue {
+  const labelled = candidateIds.filter((id) => before.matches[id]?.residual && after.decided[id] && !after.decided[id].auto && !after.decided[id].autoReject);
+  if (!labelled.length) return after;
+  const decided = { ...after.decided };
+  for (const id of labelled) decided[id] = { ...decided[id], fromResidual: true };
+  return { ...after, decided };
+}
+
 /** A proposal a reviewer may accept in a batch: every impact high band and a
  *  direction that maps something. Anything else needs a look first. */
 export function isBatchAcceptable(proposal: TriageProposal | undefined): proposal is TriageProposal {
@@ -483,33 +516,157 @@ export function autoAcceptedSince(queue: ReviewQueue, nowIso: string): number {
 
 export const AUTO_ACCEPT_REASON = "otomatis: usulan terverifikasi, emiten disebut di teks (band tinggi/sedang) atau dideklarasikan sumber (band tinggi).";
 
+/** Accept one pending item on its verified proposal, recording the pending
+ *  state it came from so a reviewer can undo it. The caller has already
+ *  checked `isAutoAcceptable` and the daily cap. */
+function acceptOnProposal(queue: ReviewQueue, id: string, nowIso: string, markers: EventMarker[] = []): ReviewQueue {
+  const record: AutoAcceptRecord = {
+    event: queue.pending.find((event) => event.id === id) as MarketEvent,
+    match: queue.matches[id],
+    proposal: queue.proposals[id],
+  };
+  const impacts = record.proposal.impacts.map(({ symbol, direction, band, path }) => ({ symbol, direction, band, path }));
+  const decided = decide(queue, id, { action: "accept", impacts, reason: AUTO_ACCEPT_REASON, viaProposal: true }, nowIso);
+  // The markers ride on the accepted event only. The pending copy in `record`
+  // stays as it was, so an undo puts back exactly what the screen saw.
+  const unique = [...new Set(markers)];
+  const accepted = unique.length ? decided.accepted.map((event) => (event.id === id ? { ...event, markers: unique } : event)) : decided.accepted;
+  return { ...decided, accepted, decided: { ...decided.decided, [id]: { ...decided.decided[id], auto: record } } };
+}
+
+/** One screen's verdict on one pending item. */
+export interface ScreenVerdict {
+  candidateId: string;
+  verdict: "accept" | "reject" | "residual";
+  /** Which check decided a reject, with the evidence span it read. */
+  check?: ScreenCheck;
+  reason: string;
+  span?: string;
+  score?: number;
+  markers?: EventMarker[];
+}
+
+export interface VerdictResult {
+  next: ReviewQueue;
+  accepted: string[];
+  rejected: string[];
+  residual: string[];
+  skipped: Array<{ id: string; why: string }>;
+}
+
+export const RESIDUAL_NO_PROPOSAL = "belum ada usulan terverifikasi";
+export const RESIDUAL_PROPOSAL_NOT_ELIGIBLE = "usulan belum memenuhi syarat terima otomatis";
+export const RESIDUAL_DAILY_CAP = "batas harian terima otomatis tercapai";
+export const RESIDUAL_REVERTED = "penerimaan otomatisnya pernah dibatalkan reviewer; hanya orang yang memutuskan";
+
 /**
- * Accept every auto-acceptable proposal, newest first, up to what the daily
- * cap leaves. Each gets its own decision record marked `auto`, holding the
- * pending state it came from. Pure; the caller persists.
+ * Apply screen verdicts to the pending items. Pure; the caller persists.
+ *
+ *   - Only ids still pending are touched; any other id is skipped.
+ *   - `reject` dismisses the item with the verdict's reason and an
+ *     `autoReject` record. Final: nothing puts it back.
+ *   - `accept` accepts only a verified proposal `isAutoAcceptable` allows,
+ *     newest first, under the daily cap. Without one, or over the cap, the
+ *     item is left for a person (residual) with the reason why.
+ *   - `residual` leaves the item pending, marked with the reason.
+ *
+ * An item a reviewer took back from an auto-accept (`noAuto`) is never
+ * rejected here, and never accepted (the rule above already refuses it).
  */
-export function autoAccept(
+export function applyVerdicts(
   queue: ReviewQueue,
+  verdicts: ScreenVerdict[],
   nowIso: string,
   dailyMax: number = resolveThresholds().webWatchAutoAcceptDailyMax,
-): { next: ReviewQueue; accepted: string[] } {
-  const room = Math.max(0, dailyMax - autoAcceptedSince(queue, nowIso));
-  const ids = queue.pending
-    .filter((event) => isAutoAcceptable(queue.proposals[event.id], queue.matches[event.id]))
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-    .slice(0, room)
-    .map((event) => event.id);
-  const next = ids.reduce((current, id) => {
-    const record: AutoAcceptRecord = {
-      event: current.pending.find((event) => event.id === id) as MarketEvent,
-      match: current.matches[id],
-      proposal: current.proposals[id],
+): VerdictResult {
+  const pending = new Map(queue.pending.map((event) => [event.id, event]));
+  const skipped: VerdictResult["skipped"] = [];
+  const seen = new Set<string>();
+  const live: ScreenVerdict[] = [];
+  for (const verdict of verdicts) {
+    const id = verdict.candidateId;
+    if (seen.has(id)) {
+      skipped.push({ id, why: "verdict ganda untuk calon yang sama" });
+      continue;
+    }
+    seen.add(id);
+    if (!pending.has(id)) {
+      skipped.push({ id, why: "tidak lagi menunggu" });
+      continue;
+    }
+    if (verdict.verdict === "reject" && queue.matches[id]?.noAuto) {
+      skipped.push({ id, why: RESIDUAL_REVERTED });
+      continue;
+    }
+    live.push(verdict);
+  }
+
+  const accepted: string[] = [];
+  const rejected: string[] = [];
+  const residual: string[] = [];
+  const leave = new Map<string, string>();
+  let next = queue;
+
+  for (const verdict of live.filter((v) => v.verdict === "reject")) {
+    const id = verdict.candidateId;
+    next = decide(next, id, { action: "dismiss", reason: verdict.reason }, nowIso);
+    const event = pending.get(id);
+    const url = event?.citations[0]?.url;
+    const autoReject: AutoRejectRecord = {
+      ...(event?.title ? { title: event.title.slice(0, 300) } : {}),
+      ...(url ? { url } : {}),
+      ...(verdict.check ? { check: verdict.check } : {}),
+      ...(verdict.span ? { span: verdict.span.slice(0, 500) } : {}),
+      ...(typeof verdict.score === "number" ? { score: verdict.score } : {}),
+      at: nowIso,
     };
-    const impacts = record.proposal.impacts.map(({ symbol, direction, band, path }) => ({ symbol, direction, band, path }));
-    const decided = decide(current, id, { action: "accept", impacts, reason: AUTO_ACCEPT_REASON, viaProposal: true }, nowIso);
-    return { ...decided, decided: { ...decided.decided, [id]: { ...decided.decided[id], auto: record } } };
-  }, queue);
-  return { next, accepted: ids };
+    next = { ...next, decided: { ...next.decided, [id]: { ...next.decided[id], autoReject } } };
+    rejected.push(id);
+  }
+
+  let room = Math.max(0, dailyMax - autoAcceptedSince(queue, nowIso));
+  const accepts = live
+    .filter((v) => v.verdict === "accept")
+    .sort((a, b) => (pending.get(b.candidateId)?.publishedAt ?? "").localeCompare(pending.get(a.candidateId)?.publishedAt ?? ""));
+  for (const verdict of accepts) {
+    const id = verdict.candidateId;
+    const proposal = next.proposals[id];
+    if (next.matches[id]?.noAuto) {
+      leave.set(id, RESIDUAL_REVERTED);
+      continue;
+    }
+    if (!isAutoAcceptable(proposal, next.matches[id])) {
+      leave.set(id, proposal ? RESIDUAL_PROPOSAL_NOT_ELIGIBLE : RESIDUAL_NO_PROPOSAL);
+      continue;
+    }
+    if (room <= 0) {
+      leave.set(id, RESIDUAL_DAILY_CAP);
+      continue;
+    }
+    try {
+      next = acceptOnProposal(next, id, nowIso, verdict.markers);
+    } catch (error) {
+      // A stored proposal that no longer validates (e.g. a symbol since
+      // dropped from the registry) waits for a person; it must not sink the
+      // rest of the batch.
+      if (!(error instanceof ReviewError)) throw error;
+      leave.set(id, `${RESIDUAL_PROPOSAL_NOT_ELIGIBLE}: ${error.message}`);
+      continue;
+    }
+    room -= 1;
+    accepted.push(id);
+  }
+
+  for (const verdict of live.filter((v) => v.verdict === "residual")) leave.set(verdict.candidateId, verdict.reason);
+  if (leave.size) {
+    const matches = { ...next.matches };
+    for (const [id, reason] of leave) {
+      matches[id] = { ...(matches[id] ?? { symbols: [], matchedBy: [], at: nowIso }), residual: { at: nowIso, reason: reason.slice(0, 500) } };
+      residual.push(id);
+    }
+    next = { ...next, matches };
+  }
+  return { next, accepted, rejected, residual, skipped };
 }
 
 /**
@@ -518,6 +675,12 @@ export function autoAccept(
  * alone again. Only auto-accepts can be undone here; a person's own accept
  * is theirs to keep.
  */
+function withoutResidual(match: TriageMatch): TriageMatch {
+  const { residual: _stale, ...rest } = match;
+  void _stale;
+  return rest;
+}
+
 export function revertAutoAccept(queue: ReviewQueue, candidateId: string): ReviewQueue {
   const decision = queue.decided[candidateId];
   if (!decision?.auto) throw new ReviewError("Hanya penerimaan otomatis yang bisa dibatalkan di sini.");
@@ -529,7 +692,11 @@ export function revertAutoAccept(queue: ReviewQueue, candidateId: string): Revie
     pending: [event, ...queue.pending.filter((e) => e.id !== candidateId)],
     accepted: queue.accepted.filter((e) => e.id !== candidateId),
     decided,
-    matches: { ...queue.matches, [candidateId]: { ...match, noAuto: true } },
+    // A residual mark the match carried from an earlier screen run is
+    // dropped: the screen resolved that doubt when it accepted, so neither the
+    // page nor a later calibration label should read it. The next screen run
+    // marks the item again (an accept on a `noAuto` item stays residual).
+    matches: { ...queue.matches, [candidateId]: { ...withoutResidual(match), noAuto: true } },
     proposals: { ...queue.proposals, [candidateId]: proposal },
   };
 }
@@ -601,10 +768,14 @@ interface OverlayCounts {
   archived: number;
   proposals: number;
   autoAccepted: number;
+  /** Pending items the last screen left for a person. */
+  residual: number;
+  /** Items the screen dismissed alone; final. */
+  autoRejected: number;
   archivedByRule: Partial<Record<TriageRule, number>>;
 }
 
-const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, archivedByRule: {} };
+const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, residual: 0, autoRejected: 0, archivedByRule: {} };
 
 let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { events: [], ...zeroCounts, expiresAt: 0 };
 
@@ -618,6 +789,8 @@ export function overlayCounts(queue: ReviewQueue): OverlayCounts {
     archived: Object.keys(queue.archived).length,
     proposals: Object.keys(queue.proposals).length,
     autoAccepted: Object.values(queue.decided).filter((d) => d.auto).length,
+    residual: queue.pending.filter((event) => queue.matches[event.id]?.residual).length,
+    autoRejected: Object.values(queue.decided).filter((d) => d.autoReject).length,
     archivedByRule,
   };
 }
@@ -654,6 +827,8 @@ export function getOverlayStats(): OverlayCounts & { accepted: number } {
     archived: overlay.archived,
     proposals: overlay.proposals,
     autoAccepted: overlay.autoAccepted,
+    residual: overlay.residual,
+    autoRejected: overlay.autoRejected,
     archivedByRule: overlay.archivedByRule,
     accepted: overlay.events.length,
   };

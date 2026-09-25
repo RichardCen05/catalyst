@@ -1,0 +1,264 @@
+{
+  "about": "Golden set for the web-watch deep filter: rumor (b), misleading title (c) and figure contradiction (d). Labeled by Claude at the user's request on 2026-09-24; a person has not reviewed it. Article text is not stored here (third-party copyright); the eval harness fetches each URL into a gitignored cache and skips any it cannot fetch. Pending-queue items used as controls are labeled in web-watch-pending-labels.json.",
+  "labeledBy": "claude-opus-5-5",
+  "labeledAt": "2026-09-24",
+  "reviewedBy": null,
+  "titleRule": "A title is misleading when its claim is not supported by the body: wrong direction, a magnitude word far beyond the reported move, or a promised fact the body never gives. A hyperbolic verb in the direction the body reports is not misleading.",
+  "rumorRule": "The article's actionable claim rests only on unnamed sources, 'dikabarkan' or 'disebut', or market talk, with no issuer statement, disclosure or named official on the record. An official denial or confirmation is not a rumor even when its subject was one.",
+  "figureRule": "Compare only closing figures tied to one resolved trading date inside the recordings and to one registry symbol or the IHSG series. Session, intraday, opening, weekly-range and unparseable figures are uncheckable.",
+  "text": [
+    {
+      "id": "r01",
+      "url": "https://www.idxchannel.com/market-news/haji-isam-dirumorkan-tawar-62-persen-saham-byan-rp52-triliun-diskon-80-persen",
+      "title": "Haji Isam Dirumorkan Tawar 62 Persen Saham BYAN Rp52 Triliun, Diskon 80 Persen",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Offer reported via Bloomberg's unnamed sources ('dikabarkan'); no issuer statement."
+    },
+    {
+      "id": "r02",
+      "url": "https://money.kompas.com/read/2026/07/09/204001326/taipan-jerry-ng-disebut-pertimbangkan-merger-bfi-finance-dan-bank-jago",
+      "title": "Taipan Jerry Ng Disebut Pertimbangkan Merger BFI Finance dan Bank Jago",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Source 'yang enggan disebut namanya'; the company says it has no information to disclose."
+    },
+    {
+      "id": "r03",
+      "url": "https://katadata.co.id/finansial/bursa/6a4f7110d7c83/arto-dan-bfin-dikabarkan-merger-kapitalisasi-pasar-berpotensi-tembus-rp-25-t",
+      "title": "ARTO dan BFIN Dikabarkan Merger, Kapitalisasi Pasar Berpotensi Tembus Rp 25 T",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Merger 'dikabarkan', relayed from Bloomberg; no disclosure. Katadata is one of the watched feeds."
+    },
+    {
+      "id": "r04",
+      "url": "https://www.bareksa.com/berita/saham/2026-04-22/saham-bdmn-ara-25-usai-rumor-merger-bank-danamon-mufg-valuasi-disebut-rp8000",
+      "title": "Saham BDMN ARA 25% usai Rumor Merger Bank Danamon-MUFG, Valuasi Disebut Rp8.000",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Merger and valuation stated as rumor ('disebut'); extracted body is mostly page chrome, a hard case for windowing."
+    },
+    {
+      "id": "r07",
+      "url": "https://sindojabar.com/nasional/rumor-akuisisi-byan-naik-kelas-bei-ojk-diminta-tak-sekadar-menunggu/",
+      "title": "Rumor Akuisisi BYAN Naik Kelas, BEI-OJK Diminta Tak Sekadar Menunggu",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Commentary on a still-unconfirmed offer; the named commentator says the offer is not a transaction."
+    },
+    {
+      "id": "r08",
+      "url": "https://www.mikirduit.com/memahami-rumor-isap-diakuisisi-perusahaan-nikel-china-yang-tidak-jelas/",
+      "title": "Memahami Rumor ISAP Diakuisisi Perusahaan Nikel China yang Tidak Jelas",
+      "rumor": true,
+      "misleadingTitle": false,
+      "hard": true,
+      "why": "Analysis that traces an acquisition rumor with no identifiable source; the actionable claim is unconfirmed."
+    },
+    {
+      "id": "r09",
+      "url": "https://www.lurusin.com/danantara-jajaki-kepemilikan-bandara-internasional-madinah",
+      "title": "Danantara Jajaki Kepemilikan Bandara Internasional Madinah",
+      "rumor": true,
+      "misleadingTitle": false,
+      "why": "Claim from an unnamed internal official; the article states there is no written confirmation."
+    },
+    {
+      "id": "r11",
+      "url": "https://market.bisnis.com/read/20260917/192/2005131/tepis-rumor-low-tuck-kwong-lepas-30-saham-bayan-byan-ke-jhonlin",
+      "title": "Tepis Rumor, Low Tuck Kwong Lepas 30% Saham Bayan (BYAN) ke Jhonlin",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Director quoted from a keterbukaan informasi; the CSPA date and share count are stated."
+    },
+    {
+      "id": "r12",
+      "url": "https://www.liputan6.com/bisnis/read/8296440/rkab-bayan-resources-terbit-kementerian-esdm-tegaskan-tak-terkait-haji-isam",
+      "title": "RKAB Bayan Resources Terbit, Kementerian ESDM Tegaskan Tak Terkait Haji Isam",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Named Director General on the record."
+    },
+    {
+      "id": "r13",
+      "url": "https://market.bisnis.com/read/20260820/192/1997782/pgun-buka-suara-soal-isu-akuisisi-bayan-resources-byan",
+      "title": "PGUN Buka Suara soal Isu Akuisisi Bayan Resources (BYAN)",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "An official denial in a disclosure letter answering the exchange. The subject is a rumor, but the article's own claim is confirmed."
+    },
+    {
+      "id": "r14",
+      "url": "https://www.emitennews.com/news/akuisisi-saham-bayan-byan-oleh-emiten-haji-isam-belum-kantongi-izin",
+      "title": "Akuisisi Saham Bayan (BYAN) Oleh Emiten Haji Isam Belum Kantongi Izin",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Named Director General on the record."
+    },
+    {
+      "id": "c02",
+      "url": "https://wartakini.id/ihsg-ambruk-lagi-investor-panik-jumat-kelabu/",
+      "title": "IHSG Ambruk Lagi Investor Panik Jumat Kelabu",
+      "rumor": false,
+      "misleadingTitle": true,
+      "subtype": "memancing emosi",
+      "why": "The index fell about a third of a percent that Friday (recorded 17 to 18 Sep); 'ambruk' and 'panik' are not supported. The body also carries garbled figures ('anjlok 125 persen')."
+    },
+    {
+      "id": "c18",
+      "url": "https://www.cnbcindonesia.com/research/20260923191335-128-770378/trump--xi-jinping-belum-bertemu-amerika-sudah-kirim-badai-ke-ri",
+      "title": "Trump - Xi Jinping Belum Bertemu, Amerika Sudah Kirim \"Badai\" ke RI",
+      "rumor": false,
+      "misleadingTitle": true,
+      "subtype": "memancing emosi",
+      "hard": true,
+      "why": "An ominous 'badai' headline over a body that opens on a 1.56% rebound. Low confidence: the storm may refer to US rates later in the piece."
+    },
+    {
+      "id": "c03",
+      "url": "https://sewaktu.id/ekonomi-bisnis/ihsg-mendadak-ambruk-investor-mulai-waswas-ini-biang-keroknya",
+      "title": "IHSG Mendadak Ambruk, Investor Mulai Waswas? Ini Biang Keroknya",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Hyperbolic verb on a -1.33% close that the body reports and explains. Hyperbole in the stated direction is not clickbait under this set's rule."
+    },
+    {
+      "id": "c07",
+      "url": "https://www.cnbcindonesia.com/research/20260903160159-128-764741/10-saham-dengan-lonjakan-gila-gilaan-ada-yang-terbang-1000",
+      "title": "10 Saham dengan Lonjakan Gila-gilaan! Ada yang Terbang 1.000%",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Sensational, but the body lists ALKA up more than 1,000% YTD. A hard negative for the title check."
+    },
+    {
+      "id": "c08",
+      "url": "https://ekbis.sindonews.com/read/1748963/178/ihsg-sepekan-ambruk-143-kapitalisasi-pasar-tergerus-jadi-rp11446-triliun-1789175371",
+      "title": "IHSG Sepekan Ambruk 1,43%, Kapitalisasi Pasar Tergerus Jadi Rp11.446 Triliun",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "The weekly figures in the title are reported in the body."
+    },
+    {
+      "id": "c14",
+      "url": "https://ekbis.sindonews.com/read/1749631/178/ihsg-terjun-bebas-170-di-sesi-siang-sentuh-level-6429-transaksi-rp79-triliun-1789362596",
+      "title": "IHSG Terjun Bebas 1,70% di Sesi Siang Sentuh Level 6.429, Transaksi Rp7,9 Triliun",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Title matches the session-I figures in the body."
+    },
+    {
+      "id": "c15",
+      "url": "https://jabarpos.id/berita/11964/ihsg-terjun-bebas-investor-asing-kabur/",
+      "title": "IHSG Terjun Bebas Investor Asing Kabur",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "The -1.69% close and the net foreign sell are both in the body."
+    },
+    {
+      "id": "c16",
+      "url": "https://jabarpos.id/berita/11946/ihsg-terperosok-tajam-ke-zona-merah/",
+      "title": "IHSG Terperosok Tajam ke Zona Merah",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Supported by the body."
+    },
+    {
+      "id": "c17",
+      "url": "https://www.rancakmedia.com/finance/100255/investor-asing-ramai-lepas-saham-bank-jumbo-bmri-bbca-dan-bbri-apa-pemicunya/",
+      "title": "Investor Asing Ramai Lepas Saham Bank Jumbo BMRI, BBCA, Dan BBRI, Apa Pemicunya?",
+      "rumor": false,
+      "misleadingTitle": false,
+      "why": "Question headline answered in the body by a named analyst."
+    }
+  ],
+  "figures": [
+    {
+      "id": "c06",
+      "url": "https://www.beritadua.com/ihsg-anjlok-169-sentuh-zona-merah-energi-jadi-biang-keladi",
+      "title": "IHSG Anjlok 1,69% Sentuh Zona Merah, Energi Jadi Biang Keladi",
+      "expect": "contradicts",
+      "claim": {
+        "series": "ihsg",
+        "date": "2026-09-22",
+        "kind": "close",
+        "articleValue": 7583
+      },
+      "why": "The percent matches, but the level is far from the recorded 22 Sep close. The article also calls 22 Sep a Monday (it was a Tuesday) and treats Pertamina as a listed stock: fabricated content."
+    },
+    {
+      "id": "c17d",
+      "url": "https://www.rancakmedia.com/finance/100255/investor-asing-ramai-lepas-saham-bank-jumbo-bmri-bbca-dan-bbri-apa-pemicunya/",
+      "title": "Investor Asing Ramai Lepas Saham Bank Jumbo BMRI, BBCA, Dan BBRI, Apa Pemicunya?",
+      "expect": "consistent",
+      "claims": [
+        {
+          "symbol": "BBRI",
+          "date": "2026-09-22",
+          "kind": "close",
+          "articleValue": 3180
+        },
+        {
+          "symbol": "BMRI",
+          "date": "2026-09-22",
+          "kind": "close",
+          "articleValue": 4160
+        },
+        {
+          "symbol": "BBCA",
+          "date": "2026-09-22",
+          "kind": "close",
+          "articleValue": 6200
+        }
+      ],
+      "why": "All three closes and their percent changes match the recordings. A clean control."
+    },
+    {
+      "id": "c15d",
+      "url": "https://jabarpos.id/berita/11964/ihsg-terjun-bebas-investor-asing-kabur/",
+      "title": "IHSG Terjun Bebas Investor Asing Kabur",
+      "expect": "consistent",
+      "claim": {
+        "series": "ihsg",
+        "date": "2026-09-22",
+        "kind": "close",
+        "articleValue": 6277.04
+      },
+      "why": "Matches the recorded close."
+    },
+    {
+      "id": "c03d",
+      "url": "https://sewaktu.id/ekonomi-bisnis/ihsg-mendadak-ambruk-investor-mulai-waswas-ini-biang-keroknya",
+      "title": "IHSG Mendadak Ambruk, Investor Mulai Waswas? Ini Biang Keroknya",
+      "expect": "consistent",
+      "claim": {
+        "series": "ihsg",
+        "date": "2026-09-10",
+        "kind": "close",
+        "articleValue": 6589.34
+      },
+      "why": "Matches the recorded close. The same article carries intraday 11 Sep figures that must be skipped."
+    },
+    {
+      "id": "c14d",
+      "url": "https://ekbis.sindonews.com/read/1749631/178/ihsg-terjun-bebas-170-di-sesi-siang-sentuh-level-6429-transaksi-rp79-triliun-1789362596",
+      "title": "IHSG Terjun Bebas 1,70% di Sesi Siang Sentuh Level 6.429, Transaksi Rp7,9 Triliun",
+      "expect": "uncheckable",
+      "why": "Session-I (midday) level, not a close; comparing it with the recorded close would be a false contradiction. Also uses the English number format (6,429.88)."
+    },
+    {
+      "id": "c20d",
+      "url": "https://investortrust.id/market/117113/asing-lepas-rp-1-61-triliun-saham-big-banks-bi-rate-jadi-katalis-yang-ditunggu-pasar",
+      "title": "Asing Lepas Rp 1,61 Triliun Saham 'Big Banks', BI Rate Jadi Katalis yang Ditunggu Pasar",
+      "expect": "uncheckable",
+      "why": "Prices given for a 15-21 September range with no single date; they match no single recorded close. Must not be read as a contradiction."
+    },
+    {
+      "id": "c11d",
+      "url": "https://haluannews.id/saham-raksasa-ini-bikin-ihsg-terjun-bebas/",
+      "title": "Saham Raksasa Ini Bikin IHSG Terjun Bebas",
+      "expect": "uncheckable",
+      "why": "Decimal separators stripped ('639234', 'anjlok 781 persen'). An unparseable figure is 'tidak dapat dicek', never a contradiction."
+    }
+  ]
+}

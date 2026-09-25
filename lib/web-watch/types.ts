@@ -11,6 +11,19 @@ import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 export type WebWatchKind = "document" | "feed" | "listing";
 
+/**
+ * Where a candidate's headline came from. `feed`: the feed or the listing
+ * link's own text. `json`: derived from a recognised payload. `body`: the
+ * first line of the text, or its first prose sentence when the link had no
+ * text. `url`: the link had no text and no prose sentence could stand in, so
+ * the headline is a filename; a title-versus-body check means nothing on it.
+ */
+export type TitleSource = "feed" | "url" | "body" | "json";
+
+/** A sweep candidate: an event, plus where its headline came from. Items
+ *  enqueued before the field existed carry none. */
+export type WebWatchCandidate = MarketEvent & { titleSource?: TitleSource };
+
 export type WebWatchStatus =
   | "never"
   | "unchanged"
@@ -45,7 +58,13 @@ export interface WatchedSource {
    *  itself spells it (a BMKG regency name). Triage matches quake reports
    *  against it by text; no coordinates are stored or invented. */
   region?: string;
+  /** Language the source writes in, declared with the seed. The NLI screen
+   *  picks its hypothesis sentences by it. Absent on entries written before
+   *  the field existed; read as "id", the language of nearly every source. */
+  lang?: SourceLang;
 }
+
+export type SourceLang = "id" | "en";
 
 export interface WatchedSourceState extends WatchedSource {
   lastCheckedAt: string | null;
@@ -116,9 +135,6 @@ export interface WatchAllResult {
   summary: WatchSummary;
   results: CheckResult[];
   checkedAt: string;
-  /** How many proposals the sweep accepted by itself. Absent when the
-   *  auto-accept switch is off. */
-  autoAccepted?: number;
   /** What the drafting pass did after the sweep (`lib/web-watch/proposals.ts`). */
   drafts?: {
     attempted: number;

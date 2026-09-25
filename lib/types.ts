@@ -379,7 +379,21 @@ export interface MarketEvent {
   sector: Sector | "Market";
   impactLinks: ImpactLink[];
   citations: Citation[];
+  /** What the web-watch screen noted about an event it accepted: the claim is
+   *  not confirmed by an official source, or the headline says more than the
+   *  body. Labels, never prose; absent on recorded events. */
+  markers?: EventMarker[];
 }
+
+export const EVENT_MARKERS = ["unconfirmed", "misleadingTitle"] as const;
+export type EventMarker = (typeof EVENT_MARKERS)[number];
+
+/** What a reader sees for each marker, on screen and in the assistant's
+ *  material. Field labels, true of every marked event. */
+export const EVENT_MARKER_LABEL: Record<EventMarker, string> = {
+  unconfirmed: "Belum dikonfirmasi resmi",
+  misleadingTitle: "Judul tidak sesuai isi",
+};
 
 export interface AgentConfig {
   horizon: Horizon;
@@ -499,6 +513,8 @@ export interface CausalNode {
   lag: string;
   counterEvidence: string;
   citations: Citation[];
+  /** Carried from a source event the web-watch screen marked. */
+  markers?: EventMarker[];
 }
 
 export interface CausalEdge {
