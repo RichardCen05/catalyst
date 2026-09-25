@@ -475,21 +475,6 @@ test("Causal Impact compares competing explanations across every observable the 
   await expect(selected.getByText("Pembeda utama", { exact: true })).toBeVisible();
 });
 
-test("each causal edge exposes an inspectable falsification contract", async ({ page }) => {
-  await finishSetup(page);
-  await page.goto("/impact?company=ANTM");
-  await page.getByText("Buka daftar hubungan", { exact: true }).click();
-  await page.getByRole("button", { name: /Periksa hubungan/ }).first().click();
-  const contract = page.getByLabel("Detail hubungan terpilih");
-  await expect(contract.getByText("Eksposur", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Indikator yang dicari", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Penjelasan lain", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Batal jika", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Dasar keyakinan", { exact: true })).toBeVisible();
-  await expect(contract.getByText("Dampak bisnis", { exact: true })).toBeVisible();
-  await expect(contract.getByText(/Realisasi harga|Margin operasi|Volume operasi|Arus kas operasi/).first()).toBeVisible();
-});
-
 test("user correction becomes a reversible open hypothesis", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=review");

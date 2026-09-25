@@ -1,23 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Background,
+  BaseEdge,
   Controls,
   Handle,
   MarkerType,
   Position,
   ReactFlow,
+  getSmoothStepPath,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
 } from "@xyflow/react";
 import type { CausalGraph, CausalNode, ImpactDirection } from "@/lib/types";
 import { CHAIN_NODE_HEIGHT, CHAIN_NODE_WIDTH, connectedIds, layoutChainPositions } from "@/lib/agent/chain-layout";
-import { events } from "@/lib/data/fixtures";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
-import { SourceText } from "@/components/source-text";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { IconCompanies, IconDocument, IconGauge, IconGraph, IconPolicy, IconSource, IconWeather } from "@/components/ui/icons";
 import { uiLabel } from "@/lib/ui-labels";
@@ -45,13 +46,31 @@ function ChainNode({ data }: NodeProps<ChainFlowNode>) {
       className={`h-[140px] w-[210px] overflow-hidden rounded-lg border bg-surface shadow-panel transition-opacity ${node.kind === "company" ? "border-primary ring-2 ring-primary/15" : node.kind === "source" ? "border-attention/40" : "border-border"} ${data.dimmed ? "opacity-25" : ""}`}
     >
       {node.kind !== "source" ? <Handle type="target" position={Position.Left} className="!size-2 !border-0 !bg-primary" /> : null}
-      <button type="button" onClick={() => data.onSelect(node.id)} className="w-full cursor-pointer rounded-[inherit] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><span className="flex items-center gap-2"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-3.5" /></span><span className=" text-xs text-muted-foreground">{uiLabel(node.kind)}</span></span><span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5">{node.label}</span><span className="mt-2 block font-mono text-xs text-muted-foreground">{uiLabel(node.basis)}{node.relevance ? ` · ${node.relevance}/100` : ""}</span></button>
+      <button type="button" onClick={(event) => { event.stopPropagation(); data.onSelect(node.id); }} className="w-full cursor-pointer rounded-[inherit] p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"><span className="flex items-center gap-2"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-3.5" /></span><span className=" text-xs text-muted-foreground">{uiLabel(node.kind)}</span></span><span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5">{node.label}</span><span className="mt-2 block font-mono text-xs text-muted-foreground">{uiLabel(node.basis)}{node.relevance ? ` · ${node.relevance}/100` : ""}</span></button>
       {!terminal ? <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-primary" /> : null}
     </div>
   );
 }
 
 const nodeTypes = { chain: ChainNode };
+
+type ChainEdgeData = { labelLeg: "source" | "target" | "middle" };
+type ChainFlowEdge = Edge<ChainEdgeData, "chain">;
+
+/** A step edge bends at the midpoint between its cards. Edges that converge
+ *  on one card share the trunk and the last leg; edges that fan out of one
+ *  card share the first leg. A label on a shared stretch covers the lines and
+ *  arrowheads of its neighbours, so it sits on the leg only this edge draws. */
+function ChainEdge({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, label, ...rest }: EdgeProps<ChainFlowEdge>) {
+  const [path, middleX, middleY] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  const bendX = (sourceX + targetX) / 2;
+  const leg = data?.labelLeg ?? "middle";
+  const labelX = leg === "source" ? (sourceX + bendX) / 2 : leg === "target" ? (bendX + targetX) / 2 : middleX;
+  const labelY = leg === "source" ? sourceY : leg === "target" ? targetY : middleY;
+  return <BaseEdge path={path} labelX={labelX} labelY={labelY} label={label} markerEnd={rest.markerEnd} style={rest.style} labelStyle={rest.labelStyle} labelBgStyle={rest.labelBgStyle} labelBgPadding={rest.labelBgPadding} labelBgBorderRadius={rest.labelBgBorderRadius} interactionWidth={rest.interactionWidth} />;
+}
+
+const edgeTypes = { chain: ChainEdge };
 
 /* Edge greys come from the theme tokens, so one map reads in both themes. */
 const edgeColor: Record<ImpactDirection, string> = {
@@ -70,21 +89,21 @@ const edgeDash: Partial<Record<ImpactDirection, string>> = {
   Unverified: "2 4",
 };
 
-const eventById = new Map(events.map((event) => [event.id, event]));
-
 export function CausalChain({ graph }: { graph: CausalGraph }) {
-  const [selectedId, setSelectedId] = useState(`company-${graph.targetSymbol}`);
+  // Nothing selected means nothing dimmed; the detail panel then reads the
+  // company card, where every path meets.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  // Edge labels appear only on the selected or hovered edge: with a full
-  // graph, a label on every edge collides with cards (seen in review).
-  const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   // Label text grows once the user zooms in — projector-legible on demand,
   // compact by default.
   const [zoom, setZoom] = useState(1);
-  const selected = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0];
+  const selected = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes.find((node) => node.id === `company-${graph.targetSymbol}`) ?? graph.nodes[0];
   const selectedEdge = graph.edges.find((edge) => edge.id === selectedEdgeId);
-  const selectedEdgeSpan = selectedEdge?.citations[0]?.span;
-  const selectedEdgeSourceEvent = selectedEdgeSpan ? eventById.get(selectedEdgeSpan.documentId) : undefined;
+  // A second click on the same card or line clears it, as does a click on
+  // the empty canvas.
+  const toggleNode = useCallback((id: string) => { setSelectedEdgeId(null); setSelectedId((current) => (current === id ? null : id)); }, []);
+  const toggleEdge = (id: string) => { setSelectedEdgeId((current) => (current === id ? null : id)); };
+  const clearSelection = () => { setSelectedId(null); setSelectedEdgeId(null); };
 
   const highlighted = useMemo(() => {
     if (selectedEdge) return connectedIds(graph.edges, [selectedEdge.from, selectedEdge.to]);
@@ -102,16 +121,29 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         id: node.id,
         type: "chain" as const,
         position,
-        data: { causal: node, dimmed: highlighted ? !highlighted.has(node.id) : false, onSelect: (id) => { setSelectedId(id); setSelectedEdgeId(null); } },
+        // Cards have a fixed size. Without `measured`, React Flow treats every
+        // rebuilt node as new, drops its handle positions and hides its edges
+        // until it re-measures — the edges then remount and their fade-in
+        // replays, so every hover or click made the lines blink.
+        width: CHAIN_NODE_WIDTH,
+        height: CHAIN_NODE_HEIGHT,
+        measured: { width: CHAIN_NODE_WIDTH, height: CHAIN_NODE_HEIGHT },
+        data: { causal: node, dimmed: highlighted ? !highlighted.has(node.id) : false, onSelect: toggleNode },
         draggable: false,
         connectable: false,
         focusable: false,
         ariaLabel: `${uiLabel(node.kind)}: ${node.label}`,
       };
     });
-    const flowEdges: Edge[] = graph.edges.map((edge) => {
+    const incoming = new Map<string, number>();
+    const outgoing = new Map<string, number>();
+    for (const edge of graph.edges) {
+      incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + 1);
+      outgoing.set(edge.from, (outgoing.get(edge.from) ?? 0) + 1);
+    }
+    const flowEdges: ChainFlowEdge[] = graph.edges.map((edge) => {
       const active = selectedEdgeId === edge.id;
-      const labelled = active || hoveredEdgeId === edge.id;
+      const labelLeg = (incoming.get(edge.to) ?? 0) > 1 ? "source" : (outgoing.get(edge.from) ?? 0) > 1 ? "target" : "middle";
       const dimmed = highlighted ? !(highlighted.has(edge.from) && highlighted.has(edge.to)) : false;
       // Task 8: co-movement (Observed correlation) tidak pernah seberat hipotesis
       // kausal — abu-abu putus-putus, bukan warna arah.
@@ -120,8 +152,9 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         id: edge.id,
         source: edge.from,
         target: edge.to,
-        type: "smoothstep",
-        label: labelled ? (isComove ? "teramati" : `${uiLabel(edge.confidence).toLowerCase()} · ${edge.relevance}`) : "",
+        type: "chain" as const,
+        data: { labelLeg },
+        label: isComove ? "teramati" : `${uiLabel(edge.confidence).toLowerCase()} · ${edge.relevance}`,
         markerEnd: { type: MarkerType.ArrowClosed, color: isComove ? "var(--muted-foreground)" : edgeColor[edge.direction] },
         style: isComove
           ? { stroke: "var(--muted-foreground)", strokeWidth: active ? 2 : 1.2, strokeDasharray: "6 5", opacity: dimmed ? 0.15 : 0.6 }
@@ -132,7 +165,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       };
     });
     return { nodes: flowNodes, edges: flowEdges };
-  }, [graph, highlighted, selectedEdgeId, hoveredEdgeId, zoom]);
+  }, [graph, highlighted, selectedEdgeId, zoom, toggleNode]);
 
   return (
     <div data-tour="causal-chain" className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -148,7 +181,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         </p>
       ) : null}
       <div role="group" className="map-in h-[560px] w-full" aria-label={`Rangkaian sebab akibat ${graph.targetSymbol}`}>
-        <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.3} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} onMove={(_, viewport) => setZoom(viewport.zoom)} onNodeClick={(_, node) => { setSelectedId(node.id); setSelectedEdgeId(null); }} onEdgeClick={(_, edge) => setSelectedEdgeId(edge.id)} onEdgeMouseEnter={(_, edge) => setHoveredEdgeId(edge.id)} onEdgeMouseLeave={() => setHoveredEdgeId(null)}>
+        <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.3} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false} onMove={(_, viewport) => setZoom(viewport.zoom)} onNodeClick={(_, node) => toggleNode(node.id)} onEdgeClick={(_, edge) => toggleEdge(edge.id)} onPaneClick={clearSelection}>
           <Background gap={20} size={1} color="var(--chart-grid)" />
           <Controls showInteractive={false} />
         </ReactFlow>
@@ -171,7 +204,6 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
           <AskAgentButton context={{ label: `${graph.targetSymbol} · ${selected.label}`, question: `Jelaskan jalur ${selected.label} untuk ${graph.targetSymbol}.`, symbol: graph.targetSymbol }} label="Tanya jalur ini" />
         </div>
       </section>
-      {selectedEdge ? <section aria-label="Detail hubungan terpilih" className="border-t border-primary/30 bg-primary/5 p-4" aria-live="polite"><div className="flex flex-wrap items-center gap-2"><span className="text-xs text-muted-foreground font-medium">Syarat pembatalan</span><span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Keyakinan {uiLabel(selectedEdge.confidence).toLowerCase()}</span><span className="rounded-lg border border-border px-1.5 py-0.5 text-xs text-muted-foreground">Jeda {selectedEdge.lag}</span><StatusBadge status={selectedEdge.direction} /></div><h3 className="mt-2 font-semibold">{graph.nodes.find((node) => node.id === selectedEdge.from)?.label} → {graph.nodes.find((node) => node.id === selectedEdge.to)?.label}</h3><dl className="mt-4 grid gap-3 text-xs leading-5 md:grid-cols-2 xl:grid-cols-3"><div><dt className="font-semibold">Eksposur</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.exposure}</dd></div><div><dt className="font-semibold">Indikator yang dicari</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.expectedObservable}</dd></div><div><dt className="font-semibold">Dampak bisnis</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.businessImpactDimension ? <span className="font-mono text-primary">{uiLabel(selectedEdge.businessImpactDimension)}</span> : null}<span className="mt-1 block">{selectedEdge.businessImpactImplication}</span></dd></div><div><dt className="font-semibold">Penjelasan lain</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.alternativeExplanation}</dd></div><div><dt className="font-semibold">Batal jika</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.falsificationCondition}</dd></div><div><dt className="font-semibold">Dasar keyakinan</dt><dd className="mt-1 text-muted-foreground">{selectedEdge.confidenceBasis}</dd></div></dl><div className="mt-4 flex flex-wrap gap-2"><CitationDialog citations={selectedEdge.citations} label="Bukti hubungan" /><AskAgentButton context={{ label: `${graph.targetSymbol} · hubungan`, question: `Jelaskan hubungan ${graph.nodes.find((node) => node.id === selectedEdge.from)?.label} ke ${graph.nodes.find((node) => node.id === selectedEdge.to)?.label}`, symbol: graph.targetSymbol }} label="Uji lewat asisten" /></div>{selectedEdgeSpan ? <div className="mt-3"><p className="text-xs font-medium">{selectedEdgeSourceEvent?.title ?? "Sumber terlapor"}</p><SourceText span={selectedEdgeSpan} body={selectedEdgeSourceEvent?.body ?? null} /></div> : <p className="mt-3 text-xs text-muted-foreground">Klaim hubungan ini tidak tertaut ke kalimat sumber — perlakukan sebagai hipotesis, bukan kutipan.</p>}</section> : null}
       <details className="border-t border-border"><summary className="flex min-h-11 cursor-pointer items-center px-4 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Buka daftar hubungan</summary><div className="overflow-x-auto border-t border-border"><table className="w-full min-w-[860px] text-left text-xs"><thead className="bg-muted text-muted-foreground"><tr><th className="px-4 py-2 font-medium">Dari</th><th className="px-4 py-2 font-medium">Ke</th><th className="px-4 py-2 font-medium">Dasar</th><th className="px-4 py-2 font-medium">Arah</th><th className="px-4 py-2 font-medium">Relevansi</th></tr></thead><tbody className="divide-y divide-border">{graph.edges.map((edge) => { const from = graph.nodes.find((node) => node.id === edge.from)?.label ?? edge.from; const to = graph.nodes.find((node) => node.id === edge.to)?.label ?? edge.to; return <tr key={edge.id}><td className="px-4 py-2.5">{from}</td><td className="px-4 py-2.5">{to}</td><td className="px-4 py-2.5">{uiLabel(edge.basis)}</td><td className="px-4 py-2.5"><StatusBadge status={edge.direction} /></td><td className="px-4 py-2.5 font-mono">{edge.relevance}/100</td></tr>; })}</tbody></table></div></details>
     </div>
   );

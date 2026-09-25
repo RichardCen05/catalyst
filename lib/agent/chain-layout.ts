@@ -13,7 +13,9 @@ import type { CausalNode } from "@/lib/types";
 export const CHAIN_NODE_WIDTH = 210;
 export const CHAIN_NODE_HEIGHT = 140;
 export const CHAIN_ROW_PITCH = 164;
-const CHAIN_COLUMN_GAP = 130;
+// Every edge carries its label on the leg between a card and the bend, half
+// this gap wide, so the gap has to hold a label ("sedang · 84") at full size.
+const CHAIN_COLUMN_GAP = 200;
 
 type ChainKind = CausalNode["kind"];
 

@@ -518,13 +518,6 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "app/impact/page.tsx",
   },
   {
-    id: "chrome:impact:detail-hubungan-terpilih",
-    heading: "Detail hubungan terpilih",
-    view: "impact",
-    labels: ["Syarat pembatalan","Indikator yang dicari","Dampak bisnis","Penjelasan lain","Batal jika","Dasar keyakinan"],
-    file: "components/causal-chain.tsx",
-  },
-  {
     id: "chrome:impact:detail-titik-terpilih",
     heading: "Detail titik terpilih",
     view: "impact",
