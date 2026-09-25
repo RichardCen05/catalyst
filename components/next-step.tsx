@@ -14,7 +14,7 @@ export function NextStep({ title, description, href, action, secondary, classNam
   description?: string;
   href: string;
   action: string;
-  secondary?: { href: string; label: string };
+  secondary?: { href: string; label: string; tourAction?: string };
   className?: string;
 }) {
   return (
@@ -25,7 +25,7 @@ export function NextStep({ title, description, href, action, secondary, classNam
         {description ? <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p> : null}
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
-        {secondary ? <Link href={secondary.href} className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{secondary.label}</Link> : null}
+        {secondary ? <Link href={secondary.href} data-tour-action={secondary.tourAction} className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{secondary.label}</Link> : null}
         <Link href={href} className="group inline-flex min-h-10 items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background transition-shadow hover:shadow-[0_0_0_3px_var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">{action}<ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-0.5" /></Link>
       </div>
     </aside>

@@ -16,7 +16,7 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00080-qgh`, deployed 2026-09-25, 100% of traffic. Built from `7f441bf` on `feat/alief/wire-ui` (source deploys carry no commit): everything in `00077-5tc`, plus the chat routing fixes (`9eab058`: attribution, falsifier, case-status, Playbook and causal-path handlers; compare over all pillars; subject case first in retrieval; verifier rejects meta answers; `generator` on every answer, `fallbackReason` outside production only; timing-advice refusal; contract-dispute events on the cash-flow path; AI Learning tabs wrap), English questions answered in English on this gateway (`54cfddf`), and range figures plus translated data gaps no longer rejected (`7f441bf`). Same provider variables as `00077-5tc`: `openai-compatible` against `https://bandelbanget.xyz/v1` with `deepseek-v4-flash`, `LLM_SCHEMA_MODE=prompt`, `LLM_REASONING=off`, `LLM_REASONING_FIELD=thinking`, `LLM_RATE_LIMIT_STRIKES=3`, on recordings pulled from the scheduled refresh (data as of 23 Sep). Verified live on this revision: `/api/health` ok, `/` 200, `/api/internal/check-sources` 401 without the bearer, `contextSymbol: "XXXX"` answers 400, and 51 `/api/chat` cases (the T1–T13 report set, 24 edge cases, and every node on the PGAS causal map) run three times each: 153/153 on the expected intent, refusals where expected, no meta phrasing, at most 4 sentences, answer language matching the question, p50 2.2 s and max 3.8 s, and no `[llm-fallback]` line in the revision log | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud logging read ... revision_name="catalyst-web-00080-qgh"` |
+| Serving revision | `catalyst-web-00084-484`, deployed 2026-09-25 13:00 UTC by the first run of `cloudbuild-deploy.yaml` (build `d8778fbe`), 100% of traffic, labelled `commit=27d97bb` (`feat/alief/wire-ui`). Everything in `00080-qgh` plus the Terindikasi Rumor tab on Pantau (`bd70929`) and the recordings bundle refreshed to 24 Sep (`27d97bb`). DeepSeek profile (`_PROVIDER=deepseek`): `openai-compatible` against `https://bandelbanget.xyz/v1` with `deepseek-v4-flash`, `LLM_SCHEMA_MODE=prompt`, `LLM_REASONING=off`, `LLM_REASONING_FIELD=thinking`, `LLM_RATE_LIMIT_STRIKES=3`, five secrets. The same run moved the refresh worker onto this source (§10). Verified live: `/api/health` ok with `dataAsOf` 24 Sep and 37 sessions, `/` and `/pantau` 200 with the Terindikasi Rumor tab, `/api/internal/check-sources` 401 without the bearer, `contextSymbol: "XXXX"` answers 400, and chat answers with `generator: llm` in Indonesian and English. The next scheduled refresh (build `db4c69d7`, triggered by hand) passed and skipped its deploy because live was current | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud logging read ... revision_name="catalyst-web-00084-484"` |
 | Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:9d939d79f8737…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
@@ -195,19 +195,27 @@ python3 scripts/build_market_data.py
 
 The deploy pipeline of §6 runs the gate itself, in Cloud Build, before it builds the image:
 `pnpm lint`, `pnpm typecheck`, `vitest` (without the gitignored `tests/zz-live.test.ts`), the NLI
-screen's `pytest` (stub model, no model files), then `pnpm build` inside the image. A red step fails
-the build and the serving revision is untouched.
+screen's `pytest` (stub model, no model files), the Playwright journeys in `tests/e2e`, then
+`pnpm build` inside the image. A red step fails the build and the serving revision is untouched.
 
-Playwright is not in the gate. The app's stores default to the production bucket
-(`GCS_CACHE_BUCKET || "katalis-recorded"`), and the build identity can write there, so an e2e run in
-Cloud Build writes its test profiles into production: the dry run of 25 September 2026 (build
-`08621ea5`, cancelled) left 35 profiles under `gs://katalis-recorded/catalyst/memory/`, created
-13:04–13:15 UTC. The same holds for `pnpm test:e2e` on a laptop with application-default
-credentials. It needs a bucket of its own before it can gate a release. Left out as well:
-`tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model calls; the `zz-live-*`
-tests need a live key; the screen-payload and triage dry-run files are opt-in dump tools; and seven
-golden figure cases skip because their article text is fetched into a gitignored cache and never
-committed.
+The Playwright step (`e2e`) builds the app, serves `.next/standalone`, and runs four workers in the
+`mcr.microsoft.com/playwright:v<_PLAYWRIGHT>-noble` image — about a minute for the suite. It never
+touches production state. The app's stores default to the production bucket
+(`GCS_CACHE_BUCKET || "katalis-recorded"`, and `GCS_MEMORY_BUCKET` the same) and the build identity
+can write there, so `playwright.config.ts` starts the server with both pointed at
+`gs://ada-sectors-508410-catalyst-e2e` (`_E2E_BUCKET`; US-CENTRAL1, uniform access, public access
+prevention, objects deleted after one day) and with `AGENT_MODE=deterministic`, so no model is called
+and no answer drifts. The step refuses a bucket that does not end in `-e2e`, and
+`tests/deploy-pipeline.test.ts` fails when the app reads a `GCS_*_BUCKET` variable the config does not
+redirect. This is why it was out of the gate before: the first attempt (build `08621ea5`, 25 September
+2026, cancelled) ran without that config and left 35 test profiles under
+`gs://katalis-recorded/catalyst/memory/`, created 13:04–13:15 UTC. `_PLAYWRIGHT` must match
+`@playwright/test` in the lockfile — the step stops with both versions named when it does not.
+
+Left out on purpose: `tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model
+calls (`pnpm exec playwright test -c playwright.prod.config.ts`); the `zz-live-*` tests need a live
+key; the screen-payload and triage dry-run files are opt-in dump tools; and seven golden figure
+cases skip because their article text is fetched into a gitignored cache and never committed.
 
 Running the gate locally first is still the faster way to find a failure:
 
@@ -221,9 +229,11 @@ revision answers from is always built from the source it was built with — a he
 `pnpm chrome:build` can no longer ship a stale index. `tests/chrome-registry.test.ts` still fails on
 a stale committed file, so the diff stays honest too; commit the regenerated file with the change.
 
-Locally, `pnpm test:e2e` reuses any dev server already on port 3000, and with a live key in
-`.env.local` two `catalyst.spec.ts` assertions read model-written prose and drift; the pipeline has
-neither problem.
+Locally, `pnpm test:e2e` starts `pnpm dev` on port 3100 with the same test bucket and deterministic
+agent (the variables set in `playwright.config.ts` win over `.env.local`), on one worker because a
+dev server compiles each route on first request. It reuses a server already on 3100, never the one on
+3000. To run it the way the pipeline does: `pnpm build`, copy `public` and `.next/static` into
+`.next/standalone`, then `CI=1 pnpm exec playwright test`.
 
 ## 6. Deploy
 

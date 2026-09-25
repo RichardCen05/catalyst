@@ -43,6 +43,8 @@ substitutions:
   _DRY_RUN: "false"
   _SNAPSHOT: gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
   _REFRESH_JOB: catalyst-data-refresh
+  _PLAYWRIGHT: 1.63.0
+  _E2E_BUCKET: ada-sectors-508410-catalyst-e2e
 
 steps:
   - id: check-provider
@@ -121,8 +123,9 @@ steps:
         corepack enable
         pnpm install --frozen-lockfile
 
-  # docs/DEPLOY.md §5, in the same order. `pnpm build` is not repeated here: the image
-  # build runs it, and a failure there fails this run before anything is deployed.
+  # docs/DEPLOY.md §5, in the same order. The e2e step builds once to serve the browser
+  # tests; the image build runs its own `pnpm build`, and a failure there fails this run
+  # before anything is deployed.
   - id: gate
     name: node:22
     entrypoint: bash
@@ -147,6 +150,35 @@ steps:
         pip install --quiet --disable-pip-version-check --root-user-action=ignore \
           -r scripts/screen/requirements.txt pytest
         python3 -m pytest -q -p no:cacheprovider scripts/screen
+
+  # Browser journeys (tests/e2e) against a production build of this source. The app's
+  # stores default to the production bucket; playwright.config.ts starts the server on
+  # _E2E_BUCKET instead (objects expire after a day) and on the deterministic agent, so
+  # this step writes nothing a reader sees and calls no model. copilot-prod.spec.ts is
+  # left to playwright.prod.config.ts, which drives the deployed service.
+  # The image pins the browsers; _PLAYWRIGHT must match @playwright/test in the lockfile.
+  - id: e2e
+    name: mcr.microsoft.com/playwright:v${_PLAYWRIGHT}-noble
+    entrypoint: bash
+    env:
+      - CI=1
+      - E2E_BUCKET=${_E2E_BUCKET}
+      - NEXT_TELEMETRY_DISABLED=1
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        case "${_E2E_BUCKET}" in
+          *-e2e) ;;
+          *) echo "_E2E_BUCKET must be the -e2e test bucket (got '${_E2E_BUCKET}')"; exit 1 ;;
+        esac
+        corepack enable
+        LOCKED=$$(node -p "require('@playwright/test/package.json').version")
+        [ "$$LOCKED" = "${_PLAYWRIGHT}" ] || { echo "image is Playwright ${_PLAYWRIGHT}, lockfile has $$LOCKED: set _PLAYWRIGHT"; exit 1; }
+        pnpm build
+        cp -r public .next/standalone/
+        cp -r .next/static .next/standalone/.next/
+        pnpm exec playwright test
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim

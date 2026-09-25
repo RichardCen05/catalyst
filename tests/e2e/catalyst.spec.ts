@@ -1,5 +1,19 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+// Asks from the floating assistant and returns its conversation once answered.
+async function askCopilot(page: Page, question: string) {
+  await page.getByRole("button", { name: "Tanya asisten" }).click();
+  const panel = page.getByRole("dialog", { name: "Asisten Catalyst" });
+  await panel.getByLabel("Tanya Catalyst").fill(question);
+  await panel.getByLabel("Tanya Catalyst").press("Enter");
+  const log = panel.getByRole("log", { name: "Percakapan asisten" });
+  await expect(log.getByText(question)).toBeVisible();
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 60_000 });
+  return log;
+}
 
 async function finishSetup(page: Page) {
   await page.goto("/");
@@ -34,11 +48,14 @@ async function expectDesktopTourComposition(page: Page, targetSelector: string) 
     dialogInsideViewport: true,
   });
 
-  const centerOffset = await page.locator(targetSelector).evaluate((target) => {
+  // Centred when the page can scroll it there; an action near the top of the
+  // page stays where it is, above the midline, with the page at its top.
+  const placement = await page.locator(targetSelector).evaluate((target) => {
     const rect = target.getBoundingClientRect();
-    return Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
+    const center = rect.top + rect.height / 2;
+    return { offset: Math.abs(center - window.innerHeight / 2), aboveMidlineAtTop: window.scrollY === 0 && center < window.innerHeight / 2 };
   });
-  expect(centerOffset).toBeLessThan(150);
+  if (!placement.aboveMidlineAtTop) expect(placement.offset).toBeLessThan(150);
 }
 
 test("desktop tutorial centers each action without covering it", async ({ page }) => {
@@ -48,8 +65,8 @@ test("desktop tutorial centers each action without covering it", async ({ page }
   await setup.getByRole("button", { name: "Mulai tour" }).click();
 
   await expect(page.locator("[data-guided-tour-card]")).toBeVisible();
-  await expectDesktopTourComposition(page, '[data-tour-action="open-antm-case"]');
-  await page.locator('[data-tour-action="open-antm-case"]').click();
+  await expectDesktopTourComposition(page, '[data-tour-action="open-case"]');
+  await page.locator('[data-tour-action="open-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/, { timeout: 15_000 });
   await expect(page.getByRole("dialog", { name: "Lacak penyebab dan dampaknya" })).toBeVisible();
   await expectDesktopTourComposition(page, '[data-tour-action="open-impact"]');
@@ -63,7 +80,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
 
   await expect(page.locator("[data-guided-tour-card]")).toContainText("Pilih kasus ANTM");
   await expect(page.locator("[data-tour-spotlight]")).toBeVisible();
-  await page.locator('[data-tour-action="open-antm-case"]').click();
+  await page.locator('[data-tour-action="open-case"]').click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
 
   await expect(page.getByRole("dialog", { name: "Lacak penyebab dan dampaknya" })).toContainText("Buka sebab akibat");
@@ -83,7 +100,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
   await expect(complete).toContainText("Tur selesai");
   await complete.getByRole("button", { name: "Selesai" }).click();
   await page.goto("/impact?company=ANTM");
-  await expect(page.getByRole("heading", { name: "Apa yang mendorong perubahan ini?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Sebab akibat" })).toBeVisible();
   const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasOverflow).toBe(false);
 });
@@ -91,7 +108,7 @@ test("first-time tutorial guides the core research flow", async ({ page }) => {
 test("onboarding is scoped to a discretionary event-driven research ritual", async ({ page }) => {
   await page.goto("/");
   const setup = page.getByRole("dialog", { name: "Siapkan ruang riset" });
-  await expect(setup.getByRole("heading", { name: "Pilih saham komoditas yang dipantau" })).toBeVisible();
+  await expect(setup.getByRole("heading", { name: "Pilih emiten komoditas yang dipantau" })).toBeVisible();
   await expect(setup.getByText(/emiten tambang dan energi/)).toBeVisible();
   await expect(setup.getByRole("button", { name: /Swing/ })).toHaveCount(0);
   await expect(setup.getByRole("button", { name: /Position/ })).toHaveCount(0);
@@ -99,36 +116,36 @@ test("onboarding is scoped to a discretionary event-driven research ritual", asy
 
 test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", async ({ page }) => {
   await finishSetup(page);
-  await expect(page.getByRole("heading", { name: "Semua kasus dalam satu jalur" })).toBeVisible();
   await expect(page.getByText("Emiten fixture")).toHaveCount(0);
   await expect(page.getByText("Kesehatan asisten")).toHaveCount(0);
 
   // Every watchlist chain lands on one canvas, with the four semantic columns
   // named once in the legend rather than per chain.
   const map = page.locator('[data-tour="market-map"]');
+  await expect(map.getByRole("application")).toBeVisible();
   // Which issuers the board draws is one control, above the canvas — the map
   // no longer carries a second row of symbol chips saying something else.
   await expect(map.getByRole("group", { name: "Fokus emiten" })).toHaveCount(0);
-  const boardPicker = page.getByRole("group", { name: "Emiten di papan" });
+  const boardPicker = page.getByRole("group", { name: "Emiten" });
   for (const symbol of ["ANTM", "INCO", "TINS", "PGAS", "ADRO", "PTBA"]) {
     await expect(boardPicker.getByRole("button", { name: symbol, exact: true })).toBeVisible();
+    await expect(map.locator(`.react-flow__node[aria-label^="Emiten: "][aria-label$="(${symbol})"]`)).toHaveCount(1);
   }
 
-  // The coal print is recorded against both ADRO and PTBA, so it must be one
-  // card carrying both — not two copies in separate chains. This is the whole
-  // reason the dashboard merges the chains instead of listing them.
-  const shared = map.locator('.react-flow__node', { hasText: "Harga Coal acuan" });
-  await expect(shared).toHaveCount(1);
-  await expect(shared).toContainText("2 emiten");
-  await expect(shared).toContainText("ADRO · PTBA");
-
-  // And the chains actually join: a transmission channel is one card that
-  // several issuers run through, not one copy per issuer. Without this the
-  // board is six parallel rows that happen to share a page.
-  const hub = map.locator('.react-flow__node[aria-label^="Mekanisme: realisasi harga"]');
+  // A source or channel several issuers share is one card that names all of
+  // them — not a copy per chain. This is the whole reason the dashboard merges
+  // the chains instead of listing them, and without it the board is parallel
+  // rows that happen to share a page. Which cards are shared follows the
+  // recordings, so the check reads the labels rather than naming a card.
+  const labels = await map.locator(".react-flow__node[aria-label]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-label") ?? ""));
+  const sharedBy = (label: string) => (label.match(/\(([^)]*)\)$/)?.[1] ?? "").split(", ").filter(Boolean);
+  expect(new Set(labels).size, "one card per label").toBe(labels.length);
+  const hubLabel = labels.find((label) => label.startsWith("Mekanisme: ") && sharedBy(label).length > 1);
+  expect(hubLabel, "a channel several issuers run through").toBeTruthy();
+  const hub = map.locator(".react-flow__node").and(map.getByLabel(hubLabel!, { exact: true }));
   await expect(hub).toHaveCount(1);
-  await expect(hub).toContainText("6 emiten");
-  await expect(hub).toContainText("ANTM · INCO · TINS · PGAS · ADRO · PTBA");
+  await expect(hub).toContainText(`${sharedBy(hubLabel!).length} emiten`);
+  await expect(hub).toContainText(sharedBy(hubLabel!).join(" · "));
 
   // Cards stay in their column: the layout is the argument, so nothing drags
   // and there is no layout to put back.
@@ -177,14 +194,14 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
 test("primary flow opens a watchlist change as a Research Case", async ({ page }) => {
   await finishSetup(page);
   const navigation = page.getByRole("navigation", { name: "Navigasi utama" });
-  await expect(navigation.getByRole("link")).toHaveText(["Dashboard", "Kasus", "Sebab akibat", "Pantau", "AI Learning"]);
+  await expect(navigation.getByRole("link")).toHaveText(["Dashboard", "Riset & Analisis", "Sebab akibat", "Pantau", "AI Learning"]);
   await expect(navigation.getByText("Companies", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Agent", { exact: true })).toHaveCount(0);
   await expect(navigation.getByText("Method", { exact: true })).toHaveCount(0);
 
   await page.locator('a[href="/cases/ANTM"]').first().click();
   await expect(page).toHaveURL(/\/cases\/ANTM$/);
-  await expect(page.getByRole("heading", { name: /Kasus ANTM/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "ANTM", exact: true })).toBeVisible();
   await expect(page.getByRole("tablist", { name: "Bagian kasus" })).toBeVisible();
 });
 
@@ -218,13 +235,12 @@ test("Kasus memakai pertanyaan bawaan dan fokus membuka rencana serta pemeriksaa
   await expect(page.getByText(/momentum ANTM saling menguatkan/)).toBeVisible();
   await expect(page.getByLabel("Apa yang ingin dibuktikan?")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Simpan dan susun ulang" })).toHaveCount(0);
-  // No focus gate: the case tests every recorded dimension without asking.
+  // No focus gate: the case tests every recorded dimension without asking,
+  // and opens straight onto the evidence.
   await expect(page.getByRole("heading", { name: "Hasil bisnis mana yang ingin diuji?" })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Rencana analisis" })).toBeVisible();
-  // Rincian audit sits in the review tab now, next to the decision it supports.
+  await expect(page.getByRole("tablist", { name: "Bagian kasus" })).toBeVisible();
   await page.goto("/cases/ANTM?tab=review");
-  await page.getByText("Lihat rincian audit", { exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Tahap kasus" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ringkasan kasus" })).toBeVisible();
   await page.getByRole("tab", { name: "Pasar" }).click();
   await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toBeVisible();
   await expect(page.getByText("Klaim yang diuji", { exact: true }).first()).toBeVisible();
@@ -241,19 +257,22 @@ test("kasus menguji setiap fokus terekam dan menunjukkan dampak bisnisnya", asyn
   await finishSetup(page);
   await page.goto("/cases/ANTM");
 
-  await expect(page.getByRole("region", { name: "Rencana analisis" })).toContainText("Fokus ·");
-
   await page.getByRole("tab", { name: "Bisnis" }).click();
   await expect(page.getByRole("heading", { name: "Dampak ke bisnis" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Di mana dampak harus terlihat?" })).toBeVisible();
-  await expect(page.getByText("Realisasi harga", { exact: true })).toBeVisible();
-  // One "Uji utama" badge per focus: the case tests every recorded dimension,
-  // so the count follows the plan rather than a single chosen one.
-  await expect(page.getByText("Uji utama", { exact: true })).toHaveCount(2);
-  await expect(page.getByText("Dampak valuasi", { exact: true })).toBeVisible();
+  const indicators = page.getByRole("region", { name: "Indikator bisnis yang diuji" });
+  await expect(indicators.getByRole("listitem").first()).toBeVisible();
+  // Every indicator carries its role in the case; the primary tests are the
+  // recorded dimensions, so there can be more than one.
+  const primary = indicators.getByRole("listitem").filter({ hasText: "Uji utama" });
+  const primaryCount = await primary.count();
+  expect(primaryCount).toBeGreaterThan(0);
 
+  // Causal Impact compares causes against exactly those primary tests: one
+  // "Diuji pada" line per indicator, not the first focus alone.
   await page.goto("/impact?company=ANTM");
-  await expect(page.getByRole("region", { name: /^Hipotesis untuk / })).toBeVisible();
+  const workspace = page.getByRole("region", { name: /^Hipotesis untuk / });
+  await expect(workspace).toBeVisible();
+  await expect(workspace.getByRole("region", { name: "Hipotesis terpilih" }).getByText(/^Diuji pada · /)).toHaveCount(primaryCount);
 });
 
 test("Research Case tabs keep each investigation layer focused and deep-linkable", async ({ page }) => {
@@ -307,9 +326,11 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await page.reload();
   await expect(page.getByLabel("Aturan materialitas")).toHaveValue(rule);
 
+  // The case reads with the reader's rules applied; the assistant's "sesuai
+  // aturan saya" answer is built from that ruled case and quotes the rule.
   await page.goto("/cases/ANTM?tab=review");
-  await page.getByText("Lihat rincian audit", { exact: true }).click();
-  await expect(page.getByText(rule, { exact: true })).toBeVisible();
+  const answer = await askCopilot(page, "Sesuai aturan saya, apa yang harus dicek dulu untuk ANTM?");
+  await expect(answer).toContainText(rule);
 
   // The case outcome lives on the case, not on the dashboard: the board
   // draws the causal chains and leaves the verdict where its evidence is.
@@ -318,71 +339,82 @@ test("Investor Research Playbook persists explicit judgment rules into a case", 
   await expect(page.locator('a[href="/cases/ANTM"]').first()).toBeVisible();
 });
 
-test("default theme uses the editorial black-cherry tokens", async ({ page }) => {
+test("default theme is the light token set declared in globals.css", async ({ page }) => {
   await finishSetup(page);
-  const tokens = await page.evaluate(() => {
-    const style = getComputedStyle(document.documentElement);
-    return {
-      background: style.getPropertyValue("--background").trim(),
-      surface: style.getPropertyValue("--surface").trim(),
-      primary: style.getPropertyValue("--primary").trim(),
-      brand: style.getPropertyValue("--brand").trim(),
-    };
-  });
-  expect(tokens).toEqual({ background: "#0d0a0c", surface: "#151013", primary: "#f08bb3", brand: "#9e0142" });
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  // The tokens come from the stylesheet, not from this test: the :root block is
+  // read from the source and compared, as resolved colours, with what renders.
+  const root = readFileSync(fileURLToPath(new URL("../../app/globals.css", import.meta.url)), "utf8").match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
+  const declared = Object.fromEntries(["background", "surface", "foreground", "primary", "brand"].map((token) => [token, root.match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1].trim()]));
+  for (const [token, value] of Object.entries(declared)) expect(value, `--${token} declared in :root`).toBeTruthy();
+  const rendered = await page.evaluate((tokens) => {
+    const probe = document.createElement("span");
+    document.body.append(probe);
+    const resolve = (color: string) => { probe.style.color = color; return getComputedStyle(probe).color; };
+    const result = Object.fromEntries(Object.entries(tokens).map(([token, value]) => [token, { declared: resolve(value as string), rendered: resolve(`var(--${token})`) }]));
+    probe.remove();
+    return result;
+  }, declared);
+  for (const [token, { declared: want, rendered: got }] of Object.entries(rendered)) expect(got, `--${token}`).toBe(want);
 });
 
 test("Case picker opens a focused inline comparison", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases?view=picker");
-  await page.getByRole("button", { name: "Tambah emiten" }).first().click();
-  await page.getByPlaceholder("Cari emiten").fill("ANTM");
-  await page.getByRole("button", { name: /^ANTM/ }).click();
-  await page.getByRole("button", { name: "Tambah emiten" }).first().click();
-  await page.getByPlaceholder("Cari emiten").fill("BBCA");
-  await page.getByRole("button", { name: /^BBCA/ }).click();
+  for (const [column, symbol] of [[1, "ANTM"], [2, "BBCA"]] as const) {
+    await page.getByRole("button", { name: "Tambah emiten" }).first().click();
+    const search = page.getByRole("combobox", { name: `Cari emiten untuk kolom ${column}` });
+    await search.fill(symbol);
+    await page.getByRole("listbox", { name: `Cari emiten untuk kolom ${column}` }).getByRole("option", { name: new RegExp(`^${symbol} `) }).click();
+  }
   await expect(page.getByRole("heading", { name: "Bandingkan bukti, bukan skor" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: /^ANTM/ })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: /^BBCA/ })).toBeVisible();
 });
 
-test("evidence opens Copilot with its company and pillar context", async ({ page }) => {
+test("a hypothesis opens Copilot with its company and rank as context", async ({ page }) => {
   await finishSetup(page);
-  await page.goto("/cases/ANTM?tab=market");
-  await page.getByRole("button", { name: "Tanya pilar Konsentrasi" }).click();
+  await page.goto("/impact?company=ANTM");
+  const selected = page.getByRole("region", { name: "Hipotesis terpilih" });
+  await selected.getByRole("button", { name: "Uji lewat asisten" }).click();
   const copilot = page.getByRole("dialog", { name: "Asisten Catalyst" });
   await expect(copilot).toBeVisible();
-  await expect(copilot.getByText("ANTM · Konsentrasi", { exact: true })).toBeVisible();
-  await expect(copilot.getByLabel("Tanya Catalyst")).toHaveValue("Jelaskan bukti Konsentrasi untuk ANTM.");
+  await expect(copilot.getByText("ANTM · hipotesis 1", { exact: true })).toBeVisible();
+  await expect(copilot.getByLabel("Tanya Catalyst")).toHaveValue(/^Uji hipotesis .+ terhadap bukti penyangkal dan pembeda utama\.$/);
   await copilot.getByRole("button", { name: "Tutup asisten" }).click();
   await expect(copilot).toBeHidden();
 });
 
 test("dashboard chart mode aligns events on an evidence timeline", async ({ page }) => {
   await finishSetup(page);
-  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  await page.getByRole("tab", { name: "Grafik indeks" }).click();
   // From "Semua" the first chip click narrows the board to one issuer, which
   // is the chart that carries events, the table, and the per-symbol export.
-  await page.getByRole("group", { name: "Emiten di papan" }).getByRole("button", { name: "ANTM", exact: true }).click();
+  await page.getByRole("group", { name: "Emiten" }).getByRole("button", { name: "ANTM", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Jejak bukti" })).toBeVisible();
-  await expect(page.getByText("Antam reports H1-2026 revenue of Rp 62.71 trillion, with gold sales exceeding Rp 50 trillion")).toBeVisible();
+  // Each event marker on the chart (E1, E2, …) has its card beside it.
+  const events = page.locator("main article").filter({ has: page.getByRole("heading", { level: 3 }) });
+  await expect(events.first()).toBeVisible();
+  await expect(events.first()).toContainText(/^E1 · /);
   await page.getByRole("button", { name: "Tanya jejak ANTM" }).click();
   await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText("ANTM · jejak bukti", { exact: true })).toBeVisible();
 });
 
 test("board reads one issuer or several, in both node and chart mode", async ({ page }) => {
   await finishSetup(page);
-  const picker = page.getByRole("group", { name: "Emiten di papan" });
+  const picker = page.getByRole("group", { name: "Emiten" });
   const openCount = await picker.getByRole("button").count() - 1;
+  const issuerCards = page.locator('[data-tour="market-map"] .react-flow__node[aria-label^="Emiten: "]');
+  await expect(issuerCards).toHaveCount(openCount);
 
   // Node mode: narrowing the board rebuilds the map from the picked issuers.
   await picker.getByRole("button", { name: "INCO", exact: true }).click();
-  await expect(page.getByText("1 kasus terbuka di peta")).toBeVisible();
+  await expect(issuerCards).toHaveCount(1);
   await picker.getByRole("button", { name: "TINS", exact: true }).click();
-  await expect(page.getByText("2 kasus terbuka di peta")).toBeVisible();
+  await expect(issuerCards).toHaveCount(2);
 
   // Chart mode keeps that selection and draws one line per issuer.
-  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  await page.getByRole("tab", { name: "Grafik indeks" }).click();
   await expect(page.getByText(/2 emiten dibanding IHSG/i)).toBeVisible();
   await expect(page.getByRole("button", { name: "Unduh CSV" })).toBeVisible();
 
@@ -399,19 +431,18 @@ test("board reads one issuer or several, in both node and chart mode", async ({ 
 test("user completes setup and opens a four-pillar company case", async ({ page }) => {
   await finishSetup(page);
   await page.getByRole("link", { name: /ANTM/ }).first().click();
-  await page.getByRole("tab", { name: "Pasar" }).click();
+  await expect(page).toHaveURL(/\/cases\/ANTM$/);
+  const caseTabs = page.getByRole("tablist", { name: "Bagian kasus" });
+  await caseTabs.getByRole("tab", { name: "Pasar" }).click();
   await expect(page.getByRole("heading", { name: "Konfirmasi pasar" })).toBeVisible();
   await expect(page.getByText("Rencana → Cari → Periksa → Ringkas")).toHaveCount(0);
-  await page.getByRole("tab", { name: /Keputusan/ }).click();
-  await page.getByRole("button", { name: "Buka audit" }).click();
-  const audit = page.getByRole("dialog", { name: "Audit analisis ANTM" });
-  await expect(audit.getByText("Rencana → Cari → Periksa → Ringkas")).toBeVisible();
-  await audit.getByRole("button", { name: "Tutup audit" }).click();
+  await caseTabs.getByRole("tab", { name: /Keputusan/ }).click();
+  await expect(page.getByRole("heading", { name: "Keputusan", exact: true })).toBeVisible();
   await page.goto("/");
-  await page.getByRole("tab", { name: /Grafik \d+ hari/ }).click();
+  await page.getByRole("tab", { name: "Grafik indeks" }).click();
   // From "Semua" the first chip click narrows the board to one issuer, which
   // is the chart that carries events, the table, and the per-symbol export.
-  await page.getByRole("group", { name: "Emiten di papan" }).getByRole("button", { name: "ANTM", exact: true }).click();
+  await page.getByRole("group", { name: "Emiten" }).getByRole("button", { name: "ANTM", exact: true }).click();
   await page.getByRole("button", { name: /Perbesar grafik/ }).click();
   await expect(page.getByRole("dialog", { name: "ANTM dibanding IHSG" })).toBeVisible();
   await page.getByRole("button", { name: "Tutup grafik" }).click();
@@ -421,7 +452,9 @@ test("causal map exposes multiple sources and copilot answers through the API", 
   await finishSetup(page);
   await page.goto("/impact?company=ANTM");
   await expect(page.getByRole("region", { name: /Hipotesis untuk/ })).toBeVisible();
-  await expect(page.getByText(/Rp 50 trillion/).first()).toBeVisible();
+  // More than one recorded source feeds the chain.
+  const sources = page.getByRole("group", { name: "Rangkaian sebab akibat ANTM" }).getByRole("button", { name: /^Sumber / });
+  await expect(sources.nth(1)).toBeVisible();
   await page.getByRole("button", { name: "Tanya asisten" }).click();
   await page.getByLabel("Tanya Catalyst").fill("Kenapa ANTM masuk daftar hari ini?");
   await page.getByLabel("Tanya Catalyst").press("Enter");
@@ -451,7 +484,7 @@ test("causal map labels hypotheses, confidence, lag, and counter-evidence", asyn
   const selected = page.getByLabel("Detail titik terpilih");
   await expect(selected.getByText("Hipotesis sebab akibat", { exact: true })).toBeVisible();
   await expect(selected.getByText("Keyakinan tinggi", { exact: true })).toBeVisible();
-  await expect(selected.getByText("1-10 sesi", { exact: true })).toBeVisible();
+  await expect(selected.getByText(/^Jeda \d+-\d+ sesi$/)).toBeVisible();
   await expect(selected.getByText(/Bukti penyangkal/)).toBeVisible();
   await selected.getByRole("button", { name: "Tanya jalur ini" }).click();
   await expect(page.getByRole("dialog", { name: "Asisten Catalyst" }).getByText(/ANTM · realisasi harga/)).toBeVisible();
@@ -479,6 +512,7 @@ test("user correction is accepted on save and can be dismissed", async ({ page }
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=review");
   const note = "Kontrak ekspor belum dibedakan antara denominasi USD dan IDR.";
+  await page.locator("summary", { hasText: "Koreksi analisis ini" }).click();
   await page.getByLabel("Yang ingin Anda ajarkan").fill(note);
   await page.getByLabel("Tautan referensi (opsional)").fill("https://www.bi.go.id/");
   await page.getByRole("button", { name: "Ajarkan ke Catalyst" }).click();
@@ -561,6 +595,10 @@ test("theme persists and core routes do not overflow target breakpoints", async 
 });
 
 test("core routes have no automatic WCAG A or AA violations", async ({ page }) => {
+  // Panels fade and rise in; scanned mid-animation, their text measures at a
+  // fraction of its contrast. Reduced motion settles every page before axe
+  // reads it, so what is judged is what a reader is left looking at.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await finishSetup(page);
   const routes = ["/", "/cases", "/cases/ANTM", "/impact", "/copilot", "/playbook", "/companies", "/compare?symbols=ANTM%2CBBCA", "/agent", "/method", "/pantau"];
   for (const theme of ["light", "dark"] as const) {

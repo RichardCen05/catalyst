@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -11,6 +11,7 @@ const root = join(__dirname, "..");
 const deploy = readFileSync(join(root, "cloudbuild-deploy.yaml"), "utf8");
 const refresh = readFileSync(join(root, "cloudbuild-refresh.yaml"), "utf8");
 const bodyScript = readFileSync(join(root, "scripts/refresh_job_body.py"), "utf8");
+const playwrightConfig = readFileSync(join(root, "playwright.config.ts"), "utf8");
 
 const stepIds = (yaml: string) => [...yaml.matchAll(/^ {2}- id: ([\w-]+)$/gm)].map((m) => m[1]);
 
@@ -34,6 +35,7 @@ describe("cloudbuild-deploy.yaml", () => {
       "install",
       "gate",
       "pytest",
+      "e2e",
       "deploy",
       "sync-workers",
     ]);
@@ -59,6 +61,17 @@ describe("cloudbuild-deploy.yaml", () => {
     expect(deploy).toMatch(new RegExp(`_SNAPSHOT: gs://ada-sectors-508410_cloudbuild/${object}\\n`));
   });
 
+  it("runs the browser journeys on the test bucket, never the production one", () => {
+    const script = step(deploy, "e2e");
+    const bucket = deploy.match(/^ {2}_E2E_BUCKET: (\S+)$/m)?.[1] ?? "";
+    expect(bucket).toMatch(/-e2e$/);
+    expect(bucket).not.toBe(deploy.match(/GCS_CACHE_BUCKET=([\w-]+)/)?.[1]);
+    expect(script).toContain("E2E_BUCKET=${_E2E_BUCKET}");
+    expect(script).toMatch(/\*-e2e\) ;;/);
+    expect(script).toContain("pnpm exec playwright test");
+    expect(script).toMatch(/node -p "require\('@playwright\/test\/package.json'\).version"/);
+  });
+
   it("leaves production untouched on a dry run", () => {
     for (const id of ["deploy", "sync-workers"]) {
       expect(step(deploy, id), id).toMatch(/\[ "\$\{_DRY_RUN\}" = true \] && \{ echo "dry run: skip/);
@@ -73,3 +86,26 @@ describe("cloudbuild-refresh.yaml", () => {
     expect(script).not.toContain("--set-secrets");
   });
 });
+
+describe("playwright.config.ts", () => {
+  // Every bucket the app reads from the environment, so a new store cannot start writing
+  // to production from a test run because nobody added it here.
+  const bucketVars = [...new Set(
+    readdirRecursive(join(root, "lib")).flatMap((file) => [...readFileSync(file, "utf8").matchAll(/process\.env\.(GCS_[A-Z_]+_BUCKET)/g)].map((m) => m[1])),
+  )];
+
+  it("points every app bucket at the test bucket and keeps the model out", () => {
+    expect(bucketVars.length).toBeGreaterThan(0);
+    for (const name of bucketVars) expect(playwrightConfig, name).toMatch(new RegExp(`${name}: E2E_BUCKET\\b`));
+    expect(playwrightConfig).toMatch(/AGENT_MODE: "deterministic"/);
+    expect(playwrightConfig).toMatch(/testIgnore: \[[^\]]*copilot-prod\.spec\.ts/);
+  });
+});
+
+function readdirRecursive(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return readdirRecursive(path);
+    return /\.tsx?$/.test(entry.name) ? [path] : [];
+  });
+}

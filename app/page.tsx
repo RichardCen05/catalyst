@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { buildMarketGraph } from "@/lib/agent/market-graph";
-import { companies, events } from "@/lib/data/fixtures";
+import { companies, events, primarySymbol } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { MarketCausalGraph, SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -94,6 +94,8 @@ export default function DashboardPage() {
   );
 
   const openCases = openSymbols.filter((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed));
+  // The guided tour's first step opens the registry's primary case from here, so it leads when open.
+  const firstCase = openCases.includes(primarySymbol) ? primarySymbol : openCases[0];
   const header = (
     <>
       <PageHeader
@@ -101,7 +103,7 @@ export default function DashboardPage() {
         description="Peta sebab akibat semua emiten pantauan: sumber, mekanisme, emiten, sampai dampak bisnis."
         action={modeSwitch}
       />
-      {openCases.length ? <NextStep className="mb-6 mt-0" title={`${openCases.length} kasus menunggu pemeriksaan`} description={`Peta ini menunjukkan apa yang terhubung. Untuk memeriksa satu perubahan sampai ke keputusan, buka kasusnya: ${openCases.join(", ")}.`} href="/cases" action="Buka Riset & Analisis" /> : null}
+      {openCases.length ? <NextStep className="mb-6 mt-0" title={`${openCases.length} kasus menunggu pemeriksaan`} description={`Peta ini menunjukkan apa yang terhubung. Untuk memeriksa satu perubahan sampai ke keputusan, buka kasusnya: ${openCases.join(", ")}.`} href="/cases" action="Buka Riset & Analisis" secondary={firstCase ? { href: `/cases/${firstCase}`, label: `Buka ${firstCase}`, tourAction: firstCase === primarySymbol ? "open-case" : undefined } : undefined} /> : null}
     </>
   );
 

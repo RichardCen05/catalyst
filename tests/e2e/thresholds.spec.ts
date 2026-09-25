@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { DEFAULT_THRESHOLDS } from "../../lib/agent/thresholds";
 
 async function finishSetup(page: Page) {
   await page.goto("/");
@@ -36,9 +37,17 @@ test("threshold slider persists and traces into the case", async ({ page }) => {
   await page.reload();
   await expect(page.locator("#threshold-concentrationFloor")).toHaveValue("0.2");
 
-  // Kasus ANTM harus memuat appliedRules dari ambang konsentrasi.
+  // Kasus ANTM harus memuat appliedRules dari ambang konsentrasi. Jawaban
+  // asisten "sesuai aturan saya" dibangun dari kasus yang sudah diberi aturan
+  // pembaca, jadi ambang yang diubah terbaca di sana beserta nilai bawaannya.
   await page.goto("/cases/ANTM");
   await dismissTourIfOpen(page);
-  await page.getByText("Lihat rincian audit", { exact: true }).click();
-  await expect(page.getByText(/Ambang konsentrasi 0\.2.*bawaan 0\.42/)).toBeVisible();
+  await page.getByRole("button", { name: "Tanya asisten" }).click();
+  const panel = page.getByRole("dialog", { name: "Asisten Catalyst" });
+  const question = "Sesuai aturan saya, apa yang harus dicek dulu untuk ANTM?";
+  await panel.getByLabel("Tanya Catalyst").fill(question);
+  await panel.getByLabel("Tanya Catalyst").press("Enter");
+  await expect(panel.getByRole("status")).toHaveCount(0, { timeout: 60_000 });
+  const fallback = String(DEFAULT_THRESHOLDS.concentrationFloor).replace(".", "\\.");
+  await expect(panel.getByRole("log", { name: "Percakapan asisten" })).toContainText(new RegExp(`Ambang konsentrasi 0\\.2.*bawaan ${fallback}`), { timeout: 30_000 });
 });

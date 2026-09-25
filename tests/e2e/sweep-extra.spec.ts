@@ -14,23 +14,25 @@ async function finishSetup(page: Page) {
 const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/", heading: "Dashboard" },
   { url: "/cases", heading: "Riset & Analisis" },
-  { url: "/cases/ANTM", heading: /Kasus ANTM/ },
+  { url: "/cases/ANTM", heading: /^ANTM$/ },
   { url: "/cases/ANTM?tab=market", heading: "Konfirmasi pasar" },
   { url: "/cases/ANTM?tab=business", heading: "Dampak ke bisnis" },
   { url: "/cases/ANTM?tab=review", heading: "Keputusan" },
-  { url: "/impact?company=ANTM", heading: "Apa yang mendorong perubahan ini?" },
+  { url: "/impact?company=ANTM", heading: "Sebab akibat" },
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Asisten" },
   { url: "/ai-learning", heading: "AI Learning" },
   { url: "/ai-learning?section=tinjauan", heading: "Koreksi yang diterima" },
   { url: "/ai-learning?section=pasar", heading: "Klaim yang sudah dinilai" },
-  { url: "/ai-learning?section=memori", heading: "Apa yang sedang disimpan" },
+  { url: "/ai-learning?section=memori", heading: "Memori eksplisit" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },
-  { url: "/pantau", heading: "Apa yang berubah di web sejak kemarin?" },
+  { url: "/pantau", heading: /^Pantau$/ },
   { url: "/method", heading: "Metode dan batas" },
 ];
 
 test("route inventory: 200 + heading + no overflow at 3 viewports", async ({ page }) => {
+  // One test walks every route at three widths; the budget is per route, not per test.
+  test.setTimeout(ROUTES.length * 10_000);
   await finishSetup(page);
   for (const r of ROUTES) {
     const resp = await page.goto(r.url);

@@ -23,7 +23,7 @@ async function finishSetup(page: Page) {
   await page.goto("/");
   const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await dialog.getByRole("button", { name: "Mulai tour" }).click();
-  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 }
 
@@ -264,7 +264,7 @@ test("G23: localStorage that throws on access leaves the app usable", async ({ p
   // took the page down, this never renders.
   await expect(page.getByRole("dialog", { name: "Siapkan ruang riset" })).toBeVisible();
   await page.getByRole("dialog", { name: "Siapkan ruang riset" }).getByRole("button", { name: "Mulai tour" }).click();
-  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   expect(pageErrors).toEqual([]);
   // Verdict: DEGRADES. Nothing persists between reloads (no localStorage, and
@@ -295,7 +295,7 @@ test("G24: QuotaExceededError on write does not break the session", async ({ pag
   await page.goto("/");
   await expect(page.getByRole("dialog", { name: "Siapkan ruang riset" })).toBeVisible();
   await page.getByRole("dialog", { name: "Siapkan ruang riset" }).getByRole("button", { name: "Mulai tour" }).click();
-  await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
+  await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   // Chromium raises the QuotaExceededError out of zustand's persist write as
   // an unhandled page error; the session itself is unaffected.
