@@ -50,7 +50,7 @@ async function dismissOnboarding(page: Page) {
   } catch {
     // Already onboarded in a reused context, or the wizard never appeared.
   }
-  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible({
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible({
     timeout: 60_000,
   });
 }

@@ -7,7 +7,7 @@ async function finishSetup(page: Page) {
   // "Mulai tour" both completes onboarding and opens the guided tour.
   await dialog.getByRole("button", { name: "Mulai tour" }).click();
   await page.locator("[data-guided-tour-card]").getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 }
 
 test("AI Learning traces feedback, correction, and accepted case rule without storing chat", async ({ page }) => {

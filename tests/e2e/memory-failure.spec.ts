@@ -24,7 +24,7 @@ async function finishSetup(page: Page) {
   const dialog = page.getByRole("dialog", { name: "Siapkan ruang riset" });
   await dialog.getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 }
 
 /**
@@ -265,7 +265,7 @@ test("G23: localStorage that throws on access leaves the app usable", async ({ p
   await expect(page.getByRole("dialog", { name: "Siapkan ruang riset" })).toBeVisible();
   await page.getByRole("dialog", { name: "Siapkan ruang riset" }).getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   expect(pageErrors).toEqual([]);
   // Verdict: DEGRADES. Nothing persists between reloads (no localStorage, and
   // components/memory-sync.tsx:52-57 returns early when the read throws, so the
@@ -296,7 +296,7 @@ test("G24: QuotaExceededError on write does not break the session", async ({ pag
   await expect(page.getByRole("dialog", { name: "Siapkan ruang riset" })).toBeVisible();
   await page.getByRole("dialog", { name: "Siapkan ruang riset" }).getByRole("button", { name: "Mulai tour" }).click();
   await page.getByRole("dialog", { name: "Pilih perubahan yang penting" }).getByRole("button", { name: "Lewati tur" }).click();
-  await expect(page.getByRole("heading", { name: "Apa yang menggerakkan daftar pantauan?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   // Chromium raises the QuotaExceededError out of zustand's persist write as
   // an unhandled page error; the session itself is unaffected.
   expect(pageErrors.length).toBeGreaterThan(0);
