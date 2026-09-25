@@ -35,7 +35,12 @@ function canonicalNumeral(numeral: string): string {
  * here rather than being re-typed at each call site.
  */
 export function extractNumerals(...texts: string[]): string[] {
-  return [...new Set(texts.flatMap((text) => text.match(NUMBER_PATTERN) ?? []))];
+  // "jeda 1-10 sesi" is a range, but the pattern reads it as 1 and -10, so a
+  // draft writing "1 hingga 10 sesi" was rejected for inventing a 10. A
+  // hyphen directly after a digit is a range separator; its right end is
+  // added unsigned as well.
+  const rangeEnds = (text: string) => [...text.matchAll(/(?<=\d)-(\d[\d.,]*%?)/g)].map((match) => match[1]);
+  return [...new Set(texts.flatMap((text) => [...(text.match(NUMBER_PATTERN) ?? []), ...rangeEnds(text)]))];
 }
 
 export function verifyDraft(draftText: string, evidenceNumbers: string[], _citations: Citation[]): VerificationResult {

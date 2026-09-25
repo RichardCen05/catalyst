@@ -881,7 +881,11 @@ function insightTraces(insights: UserInsight[]): HypothesisTrace[] {
  *  nothing has been able to run yet. */
 function missingText(analysis: AnalysisCase): string {
   const untested = analysis.businessImpact.filter((item) => item.status === "Open").map((item) => item.label.toLowerCase());
+  // Named first so a translated answer keeps the ticker: the gaps are
+  // written without it, and an English draft of them shared no word with the
+  // material and was rejected as ungrounded.
   return [
+    `Data yang belum ada untuk ${analysis.company.symbol}:`,
     analysis.missingEvidence.join(" "),
     ...(untested.length ? [`Indikator yang belum diuji: ${untested.join(", ")}.`] : []),
   ].join(" ");

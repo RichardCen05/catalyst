@@ -37,3 +37,12 @@ describe("grounding across languages", () => {
     expect(groundingViolation("Saham ini sedang dalam pengamatan yang panjang.", evidence, [])).toBeTruthy();
   });
 });
+
+describe("numeral ranges", () => {
+  it("the right end of a range is an allowed figure on its own", async () => {
+    const { extractNumerals, verifyDraft } = await import("@/lib/agent/llm/verify");
+    const allowed = extractNumerals("keyakinan Sedang, jeda 1-10 sesi.");
+    expect(verifyDraft("Jedanya 1 hingga 10 sesi.", allowed, []).approved).toBe(true);
+    expect(verifyDraft("Jedanya 1 hingga 12 sesi.", allowed, []).approved).toBe(false);
+  });
+});
