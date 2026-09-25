@@ -53,7 +53,7 @@ const VIEWS: ViewSpec[] = [
   {
     id: "view:pantau",
     view: "pantau",
-    vocabulary: ["pantau web", "sumber web", "antrean review", "review", "sumber yang diawasi", "feed"],
+    vocabulary: ["pantau web", "sumber web", "antrean review", "review", "sumber yang diawasi", "feed", "diterima", "antrean", "terindikasi rumor", "rumor", "bukan rumor"],
     load: () => buildWebWatchBundle(),
   },
   {

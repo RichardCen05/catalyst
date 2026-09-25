@@ -251,6 +251,16 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     candidateId: z.string().min(1).max(120),
     reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
   }),
+  z.object({
+    action: z.literal("dispute-rumor"),
+    candidateId: z.string().min(1).max(120),
+    reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
+  }),
+  z.object({
+    action: z.literal("dismiss-suspected"),
+    candidateId: z.string().min(1).max(120),
+    reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
+  }),
 ]);
 export const refreshToggleSchema = z.object({
   enabled: z.boolean(),

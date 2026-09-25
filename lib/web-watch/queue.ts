@@ -26,13 +26,21 @@
  *
  * Pending items are decided without a person by `applyVerdicts`, which the
  * internal decide route runs on verdicts an offline screen posts. When the
- * auto-decide switch is on, a verdict can reject an item (final), accept it
+ * auto-decide switch is on, a verdict can quarantine an item as suspected
+ * rumor (`suspected`, reviewable in the Terindikasi Rumor tab), accept it
  * (only a verified proposal the auto-accept rules allow, capped per day and
- * undoable), or leave it for a person as residual. A reviewer maps each item
- * a person decides to symbols with a direction, a relevance *band*, and a
- * written exposure path — the band is chosen in the open, never computed by
- * the fetcher. Dismissed candidates stay in `decided` so a re-run of the same
- * address does not resurrect them.
+ * undoable), or leave it for a person as residual. Reject verdicts for other
+ * checks (misleading figures, no substance, irrelevant) stay final. A
+ * reviewer maps each item a person decides to symbols with a direction, a
+ * relevance *band*, and a written exposure path — the band is chosen in the
+ * open, never computed by the fetcher. Dismissed candidates stay in `decided`
+ * so a re-run of the same address does not resurrect them.
+ *
+ * A suspected item is not decided: the reviewer either confirms it is rumor
+ * (`dismissSuspected`, final, with the reviewer's own reason) or disputes it
+ * (`disputeSuspected`, which moves the item back to pending with its match
+ * and proposal so the reviewer can accept it normally). A disputed item never
+ * goes back to the screen alone (`noAuto`): only a person decides it.
  *
  * The engine reads `accepted` through an in-process overlay (`ensureOverlay`,
  * TTL-guarded, best-effort): GCS-unavailable means fixtures-only, never an
@@ -74,8 +82,13 @@ export interface ReviewDecision {
    *  it back exactly (`revertAutoAccept`). */
   auto?: AutoAcceptRecord;
   /** Dismissed with no person involved, by a screen verdict. Final: there is
-   *  no path back to pending. */
+   *  no path back to pending. Never set for quarantine checks (`rumor`,
+   *  `misleading-title`): those go to `suspected`, not here. */
   autoReject?: AutoRejectRecord;
+  /** A person confirmed a suspected item as rumor and dismissed it. Carries
+   *  the screen evidence the reviewer confirmed, so the audit keeps what the
+   *  screen read without counting the decision as automatic. */
+  fromSuspect?: { check: ScreenCheck; span?: string; score?: number; at: string };
   /** A person decided an item the screen had left for them (residual). This
    *  decision is a calibration label (W17); auto decisions never carry it. */
   fromResidual?: boolean;
@@ -83,6 +96,17 @@ export interface ReviewDecision {
 
 /** Which screen check decided a verdict. */
 export type ScreenCheck = "rumor" | "misleading-title" | "figure" | "substance" | "relevance";
+
+/**
+ * Screen checks that quarantine instead of finally rejecting. A rumor or
+ * misleading-title verdict moves the item to `suspected` for a person to
+ * confirm or dispute; every other reject check stays final.
+ */
+export const QUARANTINE_CHECKS: ReadonlySet<ScreenCheck> = new Set(["rumor", "misleading-title"]);
+
+export function isQuarantineCheck(check: ScreenCheck | undefined): check is ScreenCheck {
+  return check !== undefined && QUARANTINE_CHECKS.has(check);
+}
 
 export interface AutoRejectRecord {
   check?: ScreenCheck;
@@ -147,6 +171,23 @@ export interface RestoredCandidate {
   reason: string;
 }
 
+/**
+ * A pending item the screen flagged as rumor or misleading-title. Not
+ * decided: the reviewer confirms it (final dismiss) or disputes it (back to
+ * pending). Holds the pending state it came from so a dispute restores the
+ * match and proposal exactly.
+ */
+export interface SuspectedCandidate {
+  event: MarketEvent;
+  match: TriageMatch;
+  proposal?: TriageProposal;
+  check: ScreenCheck;
+  reason: string;
+  span?: string;
+  score?: number;
+  at: string;
+}
+
 export interface ReviewQueue {
   pending: MarketEvent[];
   accepted: MarketEvent[];
@@ -155,6 +196,11 @@ export interface ReviewQueue {
   matches: Record<string, TriageMatch>;
   restored: Record<string, RestoredCandidate>;
   proposals: Record<string, TriageProposal>;
+  /** Items the screen flagged as rumor or misleading-title, waiting for a
+   *  person to confirm or dispute. Absent on files written before the
+   *  Terindikasi Rumor tab existed: `normalizeQueue` defaults it to empty,
+   *  and legacy rumor auto-rejects are read as suspected by the API. */
+  suspected: Record<string, SuspectedCandidate>;
   /** When a screen run last applied verdicts (`/api/internal/web-watch-decide`
    *  with `apply: true`). Absent until the first run: Pantau and the assistant
    *  read it to say whether the screen has ever run, instead of promising a
@@ -162,7 +208,7 @@ export interface ReviewQueue {
   lastScreenAt?: string;
 }
 
-export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {}, proposals: {} };
+export const emptyQueue: ReviewQueue = { pending: [], accepted: [], decided: {}, archived: {}, matches: {}, restored: {}, proposals: {}, suspected: {} };
 
 const asRecord = <T>(value: unknown): Record<string, T> =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, T>) : {};
@@ -177,6 +223,7 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
   const minWords = resolveThresholds().webWatchHeadlineMinWords;
   const repair = (events: MarketEvent[]) => events.map((event) => repairStoredEvent(event, minWords));
   const archived = asRecord<ArchivedCandidate>(raw?.archived);
+  const suspected = asRecord<SuspectedCandidate>(raw?.suspected);
   return {
     pending: Array.isArray(raw?.pending) ? repair(raw.pending) : [],
     accepted: Array.isArray(raw?.accepted) ? repair(raw.accepted) : [],
@@ -194,6 +241,9 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
     matches: asRecord<TriageMatch>(raw?.matches),
     restored: asRecord<RestoredCandidate>(raw?.restored),
     proposals: asRecord<TriageProposal>(raw?.proposals),
+    suspected: Object.fromEntries(
+      Object.entries(suspected).map(([id, entry]) => [id, entry?.event ? { ...entry, event: repairStoredEvent(entry.event, minWords) } : entry]),
+    ),
     ...(typeof raw?.lastScreenAt === "string" ? { lastScreenAt: raw.lastScreenAt } : {}),
   };
 }
@@ -256,6 +306,7 @@ function seenEvents(queue: ReviewQueue, pending: MarketEvent[] = queue.pending):
     ...pending.map((event) => ({ event, where: "pending" as const })),
     ...queue.accepted.map((event) => ({ event, where: "accepted" as const })),
     ...Object.values(queue.archived).map(({ event }) => ({ event, where: "archived" as const })),
+    ...Object.values(queue.suspected ?? {}).map(({ event }) => ({ event, where: "suspected" as const })),
   ];
 }
 
@@ -274,15 +325,17 @@ function prunePendingRecords<T>(records: Record<string, T>, pending: MarketEvent
 }
 
 /** Add fresh candidates through triage. Already-decided ids (accepted or
- *  dismissed) and already-archived ids never re-enter — a re-run must not
- *  resurrect an item a human or triage has already dealt with. */
+ *  dismissed, including confirmed rumor), already-archived ids, and ids
+ *  already waiting in the rumor tab never re-enter — a re-run must not
+ *  resurrect an item a human, triage, or the screen has already dealt with. */
 export function enqueue(
   queue: ReviewQueue,
   candidates: MarketEvent[],
   ctx: EnqueueContext,
   nowIso: string = new Date().toISOString(),
 ): ReviewQueue {
-  const known = new Set([...queue.pending.map((e) => e.id), ...queue.accepted.map((e) => e.id)]);
+  const suspectedIds = new Set(Object.keys(queue.suspected ?? {}));
+  const known = new Set([...queue.pending.map((e) => e.id), ...queue.accepted.map((e) => e.id), ...suspectedIds]);
   const fresh = candidates.filter((c) => !known.has(c.id) && !queue.decided[c.id] && !queue.archived[c.id]);
   if (!fresh.length) return queue;
   const judged = triageAll(fresh, { sources: ctx.sources, seen: seenEvents(queue) });
@@ -573,6 +626,8 @@ export interface VerdictResult {
   next: ReviewQueue;
   accepted: string[];
   rejected: string[];
+  /** Screen-flagged rumor/misleading-title items waiting for a person. */
+  quarantined: string[];
   residual: string[];
   skipped: Array<{ id: string; why: string }>;
 }
@@ -586,15 +641,18 @@ export const RESIDUAL_REVERTED = "penerimaan otomatisnya pernah dibatalkan revie
  * Apply screen verdicts to the pending items. Pure; the caller persists.
  *
  *   - Only ids still pending are touched; any other id is skipped.
- *   - `reject` dismisses the item with the verdict's reason and an
- *     `autoReject` record. Final: nothing puts it back.
+ *   - `reject` with a quarantine check (`rumor`, `misleading-title`) moves
+ *     the item to `suspected` for a person to confirm or dispute — never a
+ *     final dismiss. Every other `reject` dismisses finally with an
+ *     `autoReject` record.
  *   - `accept` accepts only a verified proposal `isAutoAcceptable` allows,
  *     newest first, under the daily cap. Without one, or over the cap, the
  *     item is left for a person (residual) with the reason why.
  *   - `residual` leaves the item pending, marked with the reason.
  *
- * An item a reviewer took back from an auto-accept (`noAuto`) is never
- * rejected here, and never accepted (the rule above already refuses it).
+ * An item a reviewer took back from an auto-accept or disputed from the
+ * rumor tab (`noAuto`) is never rejected or quarantined here, and never
+ * accepted (the rule above already refuses it).
  */
 export function applyVerdicts(
   queue: ReviewQueue,
@@ -626,12 +684,18 @@ export function applyVerdicts(
 
   const accepted: string[] = [];
   const rejected: string[] = [];
+  const quarantined: string[] = [];
   const residual: string[] = [];
   const leave = new Map<string, string>();
   let next = queue;
 
   for (const verdict of live.filter((v) => v.verdict === "reject")) {
     const id = verdict.candidateId;
+    if (isQuarantineCheck(verdict.check)) {
+      next = quarantine(next, id, verdict, nowIso);
+      quarantined.push(id);
+      continue;
+    }
     next = decide(next, id, { action: "dismiss", reason: verdict.reason }, nowIso);
     const event = pending.get(id);
     const url = event?.citations[0]?.url;
@@ -689,7 +753,147 @@ export function applyVerdicts(
     }
     next = { ...next, matches };
   }
-  return { next, accepted, rejected, residual, skipped };
+  return { next, accepted, rejected, quarantined, residual, skipped };
+}
+
+/**
+ * Move a pending item to the rumor tab, keeping what the screen saw so a
+ * dispute restores it exactly. No decision is recorded: the item is waiting,
+ * not dismissed.
+ */
+function quarantine(queue: ReviewQueue, id: string, verdict: ScreenVerdict, nowIso: string): ReviewQueue {
+  const event = queue.pending.find((e) => e.id === id);
+  if (!event) throw new ReviewError("Kandidat tidak ada di antrean (mungkin sudah diputuskan).");
+  if (!verdict.check || !isQuarantineCheck(verdict.check)) throw new ReviewError("Karantina hanya untuk temuan rumor.");
+  const match = queue.matches[id] ?? { symbols: [], matchedBy: [], at: nowIso };
+  const proposal = queue.proposals[id];
+  const pending = queue.pending.filter((e) => e.id !== id);
+  return {
+    ...queue,
+    pending,
+    matches: prunePendingRecords(queue.matches, pending),
+    proposals: prunePendingRecords(queue.proposals, pending),
+    suspected: {
+      ...queue.suspected,
+      [id]: {
+        event,
+        match,
+        ...(proposal ? { proposal } : {}),
+        check: verdict.check,
+        reason: verdict.reason.slice(0, 500),
+        ...(verdict.span ? { span: verdict.span.slice(0, 500) } : {}),
+        ...(typeof verdict.score === "number" ? { score: verdict.score } : {}),
+        at: nowIso,
+      },
+    },
+  };
+}
+
+/** Legacy rumor auto-rejects (files written before `suspected` existed). */
+export function legacySuspectedDecisions(queue: ReviewQueue): ReviewDecision[] {
+  return Object.values(queue.decided).filter((d) => d.autoReject && isQuarantineCheck(d.autoReject.check));
+}
+
+/** Minimal event rebuilt from a legacy auto-reject, which kept only the
+ *  title and address. Enough to list in the rumor tab and to dispute back to
+ *  review; the reviewer maps it by hand like any item without a proposal. */
+function legacySuspectedEvent(id: string, decision: ReviewDecision, nowIso: string): MarketEvent {
+  const title = decision.autoReject?.title ?? id;
+  const url = decision.autoReject?.url;
+  return {
+    id,
+    title: title.slice(0, 300),
+    summary: decision.reason.slice(0, 500),
+    body: null,
+    category: "company",
+    sourceType: "macro",
+    publishedAt: decision.decidedAt,
+    asOf: nowIso,
+    sector: "Market",
+    impactLinks: [],
+    citations: [
+      {
+        id: `web-${id}`,
+        provider: "sumber web",
+        endpoint: "web-watch",
+        field: "body",
+        asOf: nowIso,
+        label: "Sumber web",
+        ...(url ? { url, urlLabel: "Buka sumber asal" } : {}),
+        access: "direct",
+      },
+    ],
+  };
+}
+
+/**
+ * Dispute a suspected item ("Bukan rumor"): it moves back to pending with its
+ * match and proposal, marked so the screen never decides it alone again. The
+ * reviewer's reason rides on the residual mark, so the eventual accept or
+ * dismiss is labelled as calibration for the screen that flagged it.
+ */
+export function disputeSuspected(queue: ReviewQueue, candidateId: string, reason: string, nowIso: string): ReviewQueue {
+  const trimmed = reason.trim().slice(0, 500);
+  if (!trimmed) throw new ReviewError("Alasan bantahan wajib diisi.");
+  const existing = queue.suspected?.[candidateId];
+  const legacy = !existing ? queue.decided[candidateId] : undefined;
+  if (!existing && !(legacy?.autoReject && isQuarantineCheck(legacy.autoReject.check))) {
+    throw new ReviewError("Kandidat tidak ada di tab rumor (mungkin sudah diputuskan).");
+  }
+  const event = existing?.event ?? legacySuspectedEvent(candidateId, legacy as ReviewDecision, nowIso);
+  const baseMatch = existing?.match ?? { symbols: [], matchedBy: [], at: nowIso };
+  const proposal = existing?.proposal;
+  if (queue.pending.some((e) => e.id === candidateId)) throw new ReviewError("Kandidat sudah kembali di antrean.");
+  const match: TriageMatch = {
+    ...withoutResidual(baseMatch),
+    noAuto: true,
+    residual: { at: nowIso, reason: `Bukan rumor menurut reviewer: ${trimmed}`.slice(0, 500) },
+  };
+  const decided = { ...queue.decided };
+  if (legacy) delete decided[candidateId];
+  const suspected = { ...queue.suspected };
+  delete suspected[candidateId];
+  return {
+    ...queue,
+    pending: [event, ...queue.pending.filter((e) => e.id !== candidateId)],
+    decided,
+    suspected,
+    matches: { ...queue.matches, [candidateId]: match },
+    ...(proposal ? { proposals: { ...queue.proposals, [candidateId]: proposal } } : {}),
+  };
+}
+
+/**
+ * Confirm a suspected item is rumor: final dismiss with the reviewer's own
+ * reason. The screen evidence it confirmed is kept on the decision for audit,
+ * without counting as an automatic reject.
+ */
+export function dismissSuspected(queue: ReviewQueue, candidateId: string, reason: string, nowIso: string): ReviewQueue {
+  const trimmed = reason.trim().slice(0, 500);
+  if (!trimmed) throw new ReviewError("Alasan penolakan wajib diisi.");
+  const existing = queue.suspected?.[candidateId];
+  const legacy = !existing ? queue.decided[candidateId] : undefined;
+  if (!existing && !(legacy?.autoReject && isQuarantineCheck(legacy.autoReject.check))) {
+    throw new ReviewError("Kandidat tidak ada di tab rumor (mungkin sudah diputuskan).");
+  }
+  const check = existing?.check ?? legacy?.autoReject?.check ?? ("rumor" as ScreenCheck);
+  const screenAt = existing?.at ?? legacy?.autoReject?.at ?? nowIso;
+  const fromSuspect: ReviewDecision["fromSuspect"] = {
+    check,
+    ...(existing?.span ?? legacy?.autoReject?.span ? { span: (existing?.span ?? legacy?.autoReject?.span as string).slice(0, 500) } : {}),
+    ...(typeof (existing?.score ?? legacy?.autoReject?.score) === "number" ? { score: existing?.score ?? legacy?.autoReject?.score as number } : {}),
+    at: screenAt,
+  };
+  const suspected = { ...queue.suspected };
+  delete suspected[candidateId];
+  return {
+    ...queue,
+    suspected,
+    decided: {
+      ...queue.decided,
+      [candidateId]: { candidateId, status: "dismissed", decidedAt: nowIso, reason: trimmed, fromSuspect },
+    },
+  };
 }
 
 /**
@@ -793,14 +997,16 @@ interface OverlayCounts {
   autoAccepted: number;
   /** Pending items the last screen left for a person. */
   residual: number;
-  /** Items the screen dismissed alone; final. */
+  /** Items the screen dismissed alone (non-rumor checks); final. */
   autoRejected: number;
+  /** Items the screen flagged as rumor, waiting for a person. */
+  suspected: number;
   archivedByRule: Partial<Record<TriageRule, number>>;
   /** `ReviewQueue.lastScreenAt`; null before the screen's first applied run. */
   lastScreenAt: string | null;
 }
 
-const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, residual: 0, autoRejected: 0, archivedByRule: {}, lastScreenAt: null };
+const zeroCounts: OverlayCounts = { pending: 0, decided: 0, archived: 0, proposals: 0, autoAccepted: 0, residual: 0, autoRejected: 0, suspected: 0, archivedByRule: {}, lastScreenAt: null };
 
 let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { events: [], ...zeroCounts, expiresAt: 0 };
 
@@ -808,6 +1014,7 @@ let overlay: OverlayCounts & { events: MarketEvent[]; expiresAt: number } = { ev
 export function overlayCounts(queue: ReviewQueue): OverlayCounts {
   const archivedByRule: Partial<Record<TriageRule, number>> = {};
   for (const entry of Object.values(queue.archived)) archivedByRule[entry.rule] = (archivedByRule[entry.rule] ?? 0) + 1;
+  const legacySuspected = legacySuspectedDecisions(queue).length;
   return {
     pending: queue.pending.length,
     decided: Object.keys(queue.decided).length,
@@ -815,7 +1022,8 @@ export function overlayCounts(queue: ReviewQueue): OverlayCounts {
     proposals: Object.keys(queue.proposals).length,
     autoAccepted: Object.values(queue.decided).filter((d) => d.auto).length,
     residual: queue.pending.filter((event) => queue.matches[event.id]?.residual).length,
-    autoRejected: Object.values(queue.decided).filter((d) => d.autoReject).length,
+    autoRejected: Object.values(queue.decided).filter((d) => d.autoReject && !isQuarantineCheck(d.autoReject.check)).length,
+    suspected: Object.keys(queue.suspected ?? {}).length + legacySuspected,
     archivedByRule,
     lastScreenAt: queue.lastScreenAt ?? null,
   };
@@ -855,6 +1063,7 @@ export function getOverlayStats(): OverlayCounts & { accepted: number } {
     autoAccepted: overlay.autoAccepted,
     residual: overlay.residual,
     autoRejected: overlay.autoRejected,
+    suspected: overlay.suspected,
     archivedByRule: overlay.archivedByRule,
     lastScreenAt: overlay.lastScreenAt,
     accepted: overlay.events.length,

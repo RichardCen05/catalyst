@@ -114,8 +114,8 @@ describe("/api/internal/web-watch-decide", () => {
     const { POST } = await import("@/app/api/internal/web-watch-decide/route");
     const body = await (await POST(request("POST", { verdicts: VERDICTS }))).json();
     expect(body.applied).toBe(false);
-    expect(body.report.counts).toEqual({ accepted: 1, rejected: 1, residual: 1, skipped: 0 });
-    expect(body.report.rejected[0]).toMatchObject({ id: "web-b", title: "Berita web-b", why: "rumor: rumor: hanya sumber anonim" });
+    expect(body.report.counts).toEqual({ accepted: 1, rejected: 0, quarantined: 1, residual: 1, skipped: 0 });
+    expect(body.report.quarantined[0]).toMatchObject({ id: "web-b", title: "Berita web-b", why: "rumor: rumor: hanya sumber anonim" });
     expect(body.report.residual[0]).toMatchObject({ id: "web-c", why: "NLI ragu" });
     expect(gcs.gcsPutJson).not.toHaveBeenCalled();
   });
@@ -132,7 +132,8 @@ describe("/api/internal/web-watch-decide", () => {
     const queue = written as ReviewQueue;
     expect(queue.pending.map((e) => e.id)).toEqual(["web-c"]);
     expect(queue.decided["web-a"].auto).toBeDefined();
-    expect(queue.decided["web-b"]).toMatchObject({ status: "dismissed", autoReject: { check: "rumor", span: "kabarnya", score: 0.95 } });
+    expect(queue.decided["web-b"]).toBeUndefined();
+    expect(queue.suspected["web-b"]).toMatchObject({ check: "rumor", span: "kabarnya" });
     expect(queue.matches["web-c"].residual?.reason).toBe("NLI ragu");
     // The applied run is what Pantau and the assistant read as "the screen ran".
     expect(queue.lastScreenAt).toEqual(expect.any(String));
@@ -153,7 +154,7 @@ describe("/api/internal/web-watch-decide", () => {
     serve({});
     const { POST } = await import("@/app/api/internal/web-watch-decide/route");
     const body = await (await POST(request("POST", { verdicts: [] }))).json();
-    expect(body.report.counts).toEqual({ accepted: 0, rejected: 0, residual: 0, skipped: 0 });
+    expect(body.report.counts).toEqual({ accepted: 0, rejected: 0, quarantined: 0, residual: 0, skipped: 0 });
   });
 
   it("rejects an item whose closing figure contradicts the recordings, over a posted accept", async () => {
@@ -168,7 +169,7 @@ describe("/api/internal/web-watch-decide", () => {
     expect(dry.figures.counts.contradicted).toBe(1);
     expect(dry.figures.contradicted[0]).toMatchObject({ id: "web-a" });
     expect(dry.figures.contradicted[0].why[0]).toContain(wrong);
-    expect(dry.report.counts).toEqual({ accepted: 0, rejected: 2, residual: 1, skipped: 0 });
+    expect(dry.report.counts).toEqual({ accepted: 0, rejected: 1, quarantined: 1, residual: 1, skipped: 0 });
 
     const body = await (await POST(request("POST", { verdicts: VERDICTS, apply: true }))).json();
     expect(body.applied).toBe(true);

@@ -55,7 +55,7 @@ export type TriageResult =
   | { verdict: "archive"; rule: TriageRule; reason: string }
   | { verdict: "review"; symbols: SymbolCode[]; matchedBy: MatchEvidence[] };
 
-export type SeenWhere = "pending" | "accepted" | "archived";
+export type SeenWhere = "pending" | "accepted" | "archived" | "suspected";
 
 export interface TriageContext {
   sources: WatchedSource[];
@@ -404,6 +404,7 @@ const WHERE_LABEL: Record<SeenWhere, string> = {
   pending: "sudah ada di antrean",
   accepted: "sudah diterima",
   archived: "sudah diarsipkan",
+  suspected: "sudah ada di tab rumor",
 };
 
 /**

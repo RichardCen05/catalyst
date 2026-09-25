@@ -59,6 +59,23 @@ interface AutoRejectedRow {
   reason: string;
 }
 
+interface SuspectedRow {
+  id: string;
+  title: string;
+  summary: string;
+  body: string | null;
+  category: string;
+  publishedAt: string;
+  provider: string | null;
+  url: string | null;
+  check: ScreenCheck | null;
+  span: string | null;
+  score: number | null;
+  reason: string;
+  at: string;
+  legacy: boolean;
+}
+
 interface ResidualRow {
   id: string;
   reason: string;
@@ -91,6 +108,7 @@ interface QueueData {
   residual?: ResidualRow[];
   autoAccepted: AutoAcceptedRow[];
   autoRejected?: AutoRejectedRow[];
+  suspected?: SuspectedRow[];
   autoAccept: AutoAcceptStatus;
   decidedCount: number;
   /** When the screen last applied verdicts; null when it has never run. */
@@ -99,6 +117,16 @@ interface QueueData {
   bands: Record<ImpactDraft["band"], number>;
   unavailable?: boolean;
 }
+
+type PantauTab = "diterima" | "antrean" | "rumor";
+
+/** The three tabs of the Berita page, like Riset & Analisis. Labels stay
+ *  static so the chrome registry indexes them; counts render beside them. */
+const tabs: Array<{ value: PantauTab; label: string }> = [
+  { value: "diterima", label: "Diterima" },
+  { value: "antrean", label: "Antrean" },
+  { value: "rumor", label: "Terindikasi Rumor" },
+];
 
 const DIRECTIONS: ImpactDraft["direction"][] = ["Supported", "Adverse", "Mixed", "Unrelated"];
 const BANDS: ImpactDraft["band"][] = ["high", "medium", "low"];
@@ -632,7 +660,7 @@ function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcc
         </div>
       </div>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Penyaring membaca calon di antrean. Calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
+        Penyaring membaca calon di antrean. Calon yang terindikasi rumor atau judul menyesatkan masuk tab Terindikasi Rumor untuk Anda putuskan, bukan ditolak diam-diam. Calon tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan ditolak tanpa menunggu Anda, dan penolakan itu final. Usulan model diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan) serta disebut di teks dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi. Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.
       </p>
       <p className="mt-1 text-xs text-subtle-foreground">
         {lastScreenAt ? (
@@ -712,7 +740,7 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
         </section>
         <section aria-label="Ditolak otomatis" className="mt-6">
           <h3 className="text-sm font-semibold">Ditolak otomatis ({rejected.length})</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">Ditolak oleh penyaring, bukan oleh reviewer. Final: calon di sini tidak kembali ke antrean. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Final: calon di sini tidak kembali ke antrean. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya.</p>
           <ul className="mt-3 space-y-3">
             {rejected.map((item) => (
               <li key={item.id} className="border-b border-border pb-3 last:border-0">
@@ -739,12 +767,104 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
   );
 }
 
+function SuspectedCard({ item, onResolved, onDisputed }: { item: SuspectedRow; onResolved: () => void; onDisputed: () => void }) {
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState<"dispute" | "dismiss" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const tooShort = reason.trim().length < WEB_WATCH_REASON_MIN_CHARS;
+
+  const post = useCallback(
+    async (action: "dispute-rumor" | "dismiss-suspected") => {
+      setBusy(action === "dispute-rumor" ? "dispute" : "dismiss");
+      setError(null);
+      try {
+        const response = await fetch(apiUrl("/api/web-watch"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, candidateId: item.id, reason }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(fieldMessage(data) ?? data.error ?? "Gagal menyimpan");
+        if (action === "dispute-rumor") onDisputed();
+        else onResolved();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal menyimpan");
+      } finally {
+        setBusy(null);
+      }
+    },
+    [item.id, reason, onDisputed, onResolved],
+  );
+
+  return (
+    <Panel className="p-5">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className="rounded-full border border-border px-2 py-0.5">{item.category}</span>
+        {item.check ? <span className="rounded-full border border-border px-2 py-0.5">Terindikasi {checkLabel[item.check] ?? item.check}</span> : null}
+        {item.legacy ? <span className="rounded-full border border-border px-2 py-0.5">Arsip lama</span> : null}
+        <span>{item.provider ?? "sumber web"}</span>
+        <span aria-hidden="true">·</span>
+        <time dateTime={item.publishedAt}>{item.publishedAt.slice(0, 10)}</time>
+        {item.url ? (
+          <a href={item.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">
+            Buka sumber asal
+          </a>
+        ) : null}
+      </div>
+      <h3 className="mt-2 text-base font-semibold leading-snug">{item.title}</h3>
+      <p className="mt-1 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">
+        Penyaring: {item.reason}
+      </p>
+      {item.span ? <blockquote className="mt-1 border-l-2 border-border pl-2 text-xs leading-5 text-muted-foreground">{item.span}</blockquote> : null}
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.summary}</p>
+      {item.body ? (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Lihat isi terekstrak</summary>
+          <p className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs leading-5">{item.body.slice(0, 3000)}</p>
+        </details>
+      ) : item.legacy ? (
+        <p className="mt-2 text-xs text-muted-foreground">Isi lengkap tidak tersimpan untuk temuan lama ini — hanya judul dan alasan penyaring. Bantah untuk membawanya ke antrean, lalu petakan manual di sana.</p>
+      ) : null}
+
+      <div className="mt-4 border-t border-border pt-4">
+        <h4 className="text-sm font-semibold">Keputusan Anda</h4>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Lihat berita ini di media sosial dan ingin memeriksa ulang dengan Catalyst? Pilih Bukan rumor bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan. Pilih Tolak bila memang rumor.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <input
+            aria-label="Alasan keputusan rumor"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Alasan (wajib), mis. ada pernyataan resmi emiten"
+            aria-invalid={tooShort && reason.length > 0}
+            className={`h-10 min-w-52 flex-1 rounded-lg border bg-surface px-3 text-sm outline-none focus:border-primary ${tooShort && reason.length > 0 ? "border-red-500" : "border-border"}`}
+          />
+        </div>
+        {tooShort ? (
+          <p className="mt-2 text-xs text-muted-foreground">Alasan minimal {WEB_WATCH_REASON_MIN_CHARS} karakter.</p>
+        ) : null}
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Button disabled={busy !== null || tooShort} onClick={() => post("dispute-rumor")}>
+            {busy === "dispute" ? "Menyimpan…" : "Bukan rumor — kembali ke antrean"}
+          </Button>
+          <Button variant="ghost" disabled={busy !== null || tooShort} onClick={() => post("dismiss-suspected")}>
+            {busy === "dismiss" ? "Menyimpan…" : "Tolak"}
+          </Button>
+        </div>
+      </div>
+      {error ? <p role="alert" className="mt-2 text-sm text-red-500">{error}</p> : null}
+    </Panel>
+  );
+}
+
 export function WebWatchReview() {
   const [data, setData] = useState<QueueData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState("semua");
   const [symbol, setSymbol] = useState("semua");
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<PantauTab>("antrean");
 
   const load = useCallback(async () => {
     try {
@@ -803,11 +923,17 @@ export function WebWatchReview() {
     .map((id) => data?.pending.find((candidate) => candidate.id === id))
     .filter((candidate): candidate is MarketEvent => Boolean(candidate));
 
+  const suspected = data?.suspected ?? [];
+  const disputedToAntrean = useCallback(() => {
+    setTab("antrean");
+    load();
+  }, [load]);
+
   return (
     <div>
       <PageHeader
         title="Pantau"
-        description="Perubahan sejak pemeriksaan terakhir. Sumber resmi dan portal pasar diperiksa setiap hari bursa pukul 17.30 WIB."
+        description="Berita yang masuk engine. Lihat berita di media sosial dan ingin memeriksa ulang? Cari di tab Terindikasi Rumor atau Antrean, lalu putuskan."
         action={<Button variant="secondary" onClick={load}>Muat ulang</Button>}
       />
       {error ? (
@@ -817,6 +943,26 @@ export function WebWatchReview() {
       ) : (
         <div className="space-y-8">
           {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} lastScreenAt={data.lastScreenAt ?? null} onChanged={load} /> : null}
+
+          <nav aria-label="Bagian berita" className="flex min-w-0 gap-6 overflow-x-auto border-b border-border">
+            {tabs.map((item) => {
+              const count = item.value === "diterima" ? data.accepted.length : item.value === "antrean" ? visiblePending.length : suspected.length;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setTab(item.value)}
+                  aria-current={tab === item.value ? "page" : undefined}
+                  className={cn("relative -mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 border-transparent text-sm font-medium text-subtle-foreground transition-colors hover:text-foreground", tab === item.value && "border-foreground text-foreground")}
+                >
+                  {item.label}
+                  <span className="font-mono text-xs tabular-nums text-subtle-foreground">{count}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {tab === "diterima" ? (
           <section aria-label="Diterima engine">
             <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
             {data.accepted.length ? (
@@ -842,13 +988,15 @@ export function WebWatchReview() {
               <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
             )}
           </section>
+          ) : null}
 
+          {tab === "antrean" ? (
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
                 <h2 className="editorial text-xl">Antrean ({visiblePending.length})</h2>
                 <p className="text-xs text-muted-foreground">
-                  {residualById.size} perlu keputusan · {proposalCount} dengan usulan model · {data.archived.length} diarsipkan otomatis
+                  {residualById.size} perlu keputusan · {proposalCount} dengan usulan model · terima atau tolak dengan alasan
                 </p>
               </div>
               <BatchAccept candidates={batchable} proposals={data.proposals} onDone={load} />
@@ -875,7 +1023,7 @@ export function WebWatchReview() {
               <div className="space-y-8">
                 <section aria-label="Perlu keputusan">
                   <h3 className="mb-1 text-base font-semibold">Perlu keputusan ({needsDecision.length})</h3>
-                  <p className="mb-3 text-xs text-muted-foreground">Penyaring sudah membaca calon ini dan belum yakin. Keputusan Anda di sini dipakai untuk mengkalibrasi penyaring.</p>
+                  <p className="mb-3 text-xs text-muted-foreground">Penyaring sudah membaca calon ini dan belum yakin. Terima dan petakan ke emiten, atau tolak dengan alasan. Keputusan Anda di sini dipakai untuk mengkalibrasi penyaring.</p>
                   {needsDecision.length ? (
                     <div className="space-y-4">
                       <Collapsible
@@ -901,7 +1049,7 @@ export function WebWatchReview() {
                 {unscreened.length ? (
                   <section aria-label="Menunggu penyaringan">
                     <h3 className="mb-1 text-base font-semibold">Menunggu penyaringan ({unscreened.length})</h3>
-                    <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa memutuskannya sekarang.</p>
+                    <p className="mb-3 text-xs text-muted-foreground">Belum dibaca penyaring. Anda tetap bisa menerimanya ke engine atau menolaknya sekarang.</p>
                     <div className="space-y-4">
                       <Collapsible
                         items={unscreened}
@@ -925,6 +1073,30 @@ export function WebWatchReview() {
               <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong. Tidak ada perubahan baru yang menunggu tinjauan."}</Panel>
             )}
           </section>
+          ) : null}
+
+          {tab === "rumor" ? (
+          <section aria-label="Terindikasi rumor">
+            <div className="mb-3">
+              <h2 className="editorial text-xl">Terindikasi Rumor ({suspected.length})</h2>
+              <p className="text-xs text-muted-foreground">
+                Penyaring menandai calon ini sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor.
+              </p>
+            </div>
+            {suspected.length ? (
+              <div className="space-y-4">
+                <Collapsible
+                  items={suspected}
+                  render={(item) => (
+                    <SuspectedCard key={item.id} item={item} onResolved={load} onDisputed={disputedToAntrean} />
+                  )}
+                />
+              </div>
+            ) : (
+              <Panel className="p-6 text-sm text-muted-foreground">Tidak ada temuan yang ditandai rumor. Berita yang Anda lihat di media sosial tetapi tidak ada di sini kemungkinan belum masuk pantauan atau sudah diterima di tab Diterima.</Panel>
+            )}
+          </section>
+          ) : null}
 
           <AutoDecidedList items={data.autoAccepted ?? []} rejected={data.autoRejected ?? []} onReverted={load} />
           <ArchivedList items={data.archived} />

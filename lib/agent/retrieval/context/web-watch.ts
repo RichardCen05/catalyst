@@ -30,7 +30,7 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
   const auto = await isAutoDecideEnabled().catch(() => ({ enabled: false }));
 
   const body = [
-    `Halaman Pantau menampilkan sumber web yang diawasi, antrean review, dan peristiwa yang sudah diterima engine.`,
+    `Halaman Pantau menampilkan berita dalam tiga tab: Diterima, Antrean, dan Terindikasi Rumor, plus sumber web yang diawasi.`,
     `Sumber bawaan: ${SEED_SOURCES.length}, aktif ${enabled.length}.`,
     `Menurut jenis: ${[...byKind.entries()].map(([kind, count]) => `${kind} ${count}`).join(", ")}.`,
     `Menurut kategori peristiwa: ${[...byCategory.entries()].map(([category, count]) => `${category} ${count}`).join(", ")}.`,
@@ -49,8 +49,9 @@ export async function buildWebWatchBundle(): Promise<ContextBundle> {
         : ""
     }.`,
     `Calon yang lolos triase bisa membawa usulan pemetaan dari model (arah, band relevansi, jalur eksposur). Usulan hanya disimpan bila lolos pemeriksaan: emiten ada di registri dan cocok dengan triase, setiap angka ada di teks calon, dan tanpa bahasa saran transaksi. Calon dengan usulan saat ini: ${stats.proposals}.`,
+    `Tab Terindikasi Rumor menampung calon yang penyaring tandai sebagai rumor atau judul menyesatkan: ${stats.suspected}. Tidak ada yang dihapus otomatis dari tab ini: reviewer membantah dengan alasan bila beritanya layak ditelusuri sehingga ia kembali ke Antrean untuk dipetakan, atau menolak bila memang rumor. Berita yang dibaca di media sosial diperiksa ulang lewat tab ini dan Antrean.`,
     auto.enabled
-      ? `Sakelar keputusan otomatis menyala: pada langkah putus, usulan diterima tanpa reviewer hanya bila setiap emitennya punya arah menguatkan atau menekan dan disebut di teks calon dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi, paling banyak ${resolveThresholds().webWatchAutoAcceptDailyMax} dalam 24 jam. Selebihnya menunggu reviewer. Setiap penerimaan otomatis bisa dibatalkan di Pantau dan calon itu kembali ke antrean. Diterima otomatis sejauh ini: ${stats.autoAccepted}. Penyaring juga menolak tanpa reviewer calon yang jelas rumor, berjudul menyesatkan, tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan; penolakan itu final dan tercatat bersama pemeriksaan yang memutuskan serta kalimat yang dibacanya. Ditolak otomatis sejauh ini: ${stats.autoRejected}.`
+      ? `Sakelar keputusan otomatis menyala: pada langkah putus, usulan diterima tanpa reviewer hanya bila setiap emitennya punya arah menguatkan atau menekan dan disebut di teks calon dengan band tinggi atau sedang, atau dideklarasikan sumbernya dengan band tinggi, paling banyak ${resolveThresholds().webWatchAutoAcceptDailyMax} dalam 24 jam. Selebihnya menunggu reviewer. Setiap penerimaan otomatis bisa dibatalkan di Pantau dan calon itu kembali ke antrean. Diterima otomatis sejauh ini: ${stats.autoAccepted}. Penyaring juga menolak tanpa reviewer calon tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan; penolakan itu final dan tercatat bersama pemeriksaan yang memutuskan serta kalimat yang dibacanya. Ditolak otomatis sejauh ini: ${stats.autoRejected}.`
       : `Sakelar keputusan otomatis mati: tidak ada calon yang diterima atau ditolak tanpa reviewer. Ditolak otomatis sebelum sakelar dimatikan: ${stats.autoRejected}.`,
     `Peristiwa hasil review yang sudah diterima dan dipakai engine: ${accepted.length}.`,
     `Peristiwa yang diterima bisa membawa penanda dari penyaring (${EVENT_MARKERS.map((marker) => EVENT_MARKER_LABEL[marker]).join(", ")}); penanda itu tampil di rantai sebab akibat. Saat ini: ${EVENT_MARKERS.map((marker) => `${EVENT_MARKER_LABEL[marker]} ${accepted.filter((event) => event.markers?.includes(marker)).length}`).join(", ")}.`,

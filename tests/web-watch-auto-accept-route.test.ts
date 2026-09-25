@@ -61,7 +61,7 @@ describe("web-watch API auto-accept actions", () => {
     expect(gcs.gcsPutJson).not.toHaveBeenCalled();
   });
 
-  it("GET separates residual items and lists auto rejects without an action", async () => {
+  it("GET separates residual items, quarantined rumors, and final auto rejects", async () => {
     const citation = { id: "c", provider: "contoh.id", endpoint: "web-watch", field: "body", asOf: "t", label: "Contoh", url: "https://x/r", urlLabel: "Buka", access: "direct" };
     const pendingEvent = (id: string) => ({ id, title: `Judul ${id}`, summary: "s", category: "company", sourceType: "macro", publishedAt: "2026-09-24T00:00:00.000Z", asOf: "t", sector: "Market", impactLinks: [], citations: [citation] });
     vi.mocked(gcs.gcsGetJson).mockImplementation(async (_bucket: string, path: string) => {
@@ -71,8 +71,12 @@ describe("web-watch API auto-accept actions", () => {
           pending: [pendingEvent("r1"), pendingEvent("u1")],
           accepted: [],
           matches: { r1: { symbols: [], matchedBy: [], at: "t", residual: { at: "2026-09-24T15:00:00.000Z", reason: "NLI ragu: relevansi" } }, u1: { symbols: [], matchedBy: [], at: "t" } },
+          suspected: {
+            s1: { event: pendingEvent("s1"), match: { symbols: [], matchedBy: [], at: "t" }, check: "misleading-title", reason: "judul tidak sesuai isi", at: "2026-09-24T15:00:00.000Z" },
+          },
           decided: {
             x1: { candidateId: "x1", status: "dismissed", decidedAt: "2026-09-24T15:00:00.000Z", reason: "rumor", autoReject: { check: "rumor", span: "kabarnya", score: 0.98, at: "2026-09-24T15:00:00.000Z", title: "Judul x1", url: "https://x/1" } },
+            x2: { candidateId: "x2", status: "dismissed", decidedAt: "2026-09-24T15:00:00.000Z", reason: "tanpa isi", autoReject: { check: "substance", span: "baca", score: 0.98, at: "2026-09-24T15:00:00.000Z", title: "Judul x2", url: "https://x/2" } },
             h1: { candidateId: "h1", status: "dismissed", decidedAt: "2026-09-24T14:00:00.000Z", reason: "manual" },
           },
         },
@@ -82,8 +86,11 @@ describe("web-watch API auto-accept actions", () => {
     const { GET } = await import("@/app/api/web-watch/route");
     const body = await (await GET()).json();
     expect(body.residual).toEqual([{ id: "r1", reason: "NLI ragu: relevansi", at: "2026-09-24T15:00:00.000Z" }]);
+    // Legacy rumor auto-rejects migrate to the rumor tab; final rejects stay.
+    expect(body.suspected.map((e: { id: string }) => e.id).sort()).toEqual(["s1", "x1"]);
+    expect(body.suspected.find((e: { id: string }) => e.id === "x1")).toMatchObject({ title: "Judul x1", check: "rumor", legacy: true });
     expect(body.autoRejected).toEqual([
-      { id: "x1", title: "Judul x1", url: "https://x/1", decidedAt: "2026-09-24T15:00:00.000Z", check: "rumor", span: "kabarnya", score: 0.98, reason: "rumor" },
+      { id: "x2", title: "Judul x2", url: "https://x/2", decidedAt: "2026-09-24T15:00:00.000Z", check: "substance", span: "baca", score: 0.98, reason: "tanpa isi" },
     ]);
     expect(body.pending.map((e: { id: string }) => e.id)).toEqual(["r1", "u1"]);
   });
@@ -105,5 +112,53 @@ describe("web-watch API auto-accept actions", () => {
     expect(response.status).toBe(200);
     const saved = vi.mocked(gcs.gcsPutJson).mock.calls[0][2] as { decided: Record<string, { fromResidual?: boolean; status: string }> };
     expect(saved.decided.r1).toMatchObject({ status: "dismissed", fromResidual: true });
+  });
+
+  it("dispute-rumor moves a suspected item back to pending", async () => {
+    const citation = { id: "c", provider: "contoh.id", endpoint: "web-watch", field: "body", asOf: "t", label: "Contoh", url: "https://x/r", urlLabel: "Buka", access: "direct" };
+    const suspectedEvent = { id: "s1", title: "Judul", summary: "s", body: "Isi.", category: "company", sourceType: "macro", publishedAt: "t", asOf: "t", sector: "Market", impactLinks: [], citations: [citation] };
+    vi.mocked(gcs.gcsGetJson).mockResolvedValue({
+      data: {
+        pending: [],
+        accepted: [],
+        matches: {},
+        proposals: {},
+        suspected: { s1: { event: suspectedEvent, match: { symbols: [], matchedBy: [], at: "t" }, check: "rumor", reason: "rumor: anonim", at: "t" } },
+        decided: {},
+      },
+      generation: "1",
+    });
+    vi.mocked(gcs.gcsPutJson).mockResolvedValue({ generation: "2" });
+    const { POST } = await import("@/app/api/web-watch/route");
+    const response = await POST(post({ action: "dispute-rumor", candidateId: "s1", reason: "Ada pernyataan resmi emiten." }));
+    expect(response.status).toBe(200);
+    const saved = vi.mocked(gcs.gcsPutJson).mock.calls[0][2] as { pending: Array<{ id: string }>; suspected: Record<string, unknown>; matches: Record<string, { noAuto?: boolean }> };
+    expect(saved.pending.map((e) => e.id)).toEqual(["s1"]);
+    expect(saved.suspected).toEqual({});
+    expect(saved.matches.s1.noAuto).toBe(true);
+  });
+
+  it("dismiss-suspected confirms the rumor finally", async () => {
+    const citation = { id: "c", provider: "contoh.id", endpoint: "web-watch", field: "body", asOf: "t", label: "Contoh", url: "https://x/r", urlLabel: "Buka", access: "direct" };
+    const suspectedEvent = { id: "s1", title: "Judul", summary: "s", body: "Isi.", category: "company", sourceType: "macro", publishedAt: "t", asOf: "t", sector: "Market", impactLinks: [], citations: [citation] };
+    vi.mocked(gcs.gcsGetJson).mockResolvedValue({
+      data: {
+        pending: [],
+        accepted: [],
+        matches: {},
+        proposals: {},
+        suspected: { s1: { event: suspectedEvent, match: { symbols: [], matchedBy: [], at: "t" }, check: "rumor", reason: "rumor: anonim", at: "t" } },
+        decided: {},
+      },
+      generation: "1",
+    });
+    vi.mocked(gcs.gcsPutJson).mockResolvedValue({ generation: "2" });
+    const { POST } = await import("@/app/api/web-watch/route");
+    const response = await POST(post({ action: "dismiss-suspected", candidateId: "s1", reason: "Memang tidak ada sumber resmi." }));
+    expect(response.status).toBe(200);
+    const saved = vi.mocked(gcs.gcsPutJson).mock.calls[0][2] as { decided: Record<string, { status: string; reason: string; fromSuspect?: unknown; autoReject?: unknown }> };
+    expect(saved.decided.s1).toMatchObject({ status: "dismissed", reason: "Memang tidak ada sumber resmi." });
+    expect(saved.decided.s1.fromSuspect).toBeDefined();
+    expect(saved.decided.s1.autoReject).toBeUndefined();
   });
 });

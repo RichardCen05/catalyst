@@ -498,8 +498,12 @@ What changes when this branch ships:
 - The route runs the figure check against the recordings compiled into the serving revision, then
   applies the verdicts through the same generation-guarded write every queue change uses. The build
   never writes `queue.json`.
-- **Rejects are final.** A rejected item keeps its check, the span the check read and the score, and
-  it never returns to the queue. An accept can still be undone from Pantau, and residual items wait
+- **Rumor rejects quarantine, everything else final.** A `rumor` or `misleading-title`
+  verdict moves the item to the Terindikasi Rumor tab with its match and proposal, and a
+  reviewer either disputes it back to Antrean (`dispute-rumor`, human-only afterwards via
+  `noAuto`) or confirms it finally (`dismiss-suspected`). Other rejects (figure, substance,
+  relevance) keep their check, the span the check read and the score, and never return to
+  the queue. An accept can still be undone from Pantau, and residual items wait
   in Pantau under "Perlu keputusan".
 
 | What | Value (planned) |

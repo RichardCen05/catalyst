@@ -10,8 +10,9 @@
  *
  * Dry-run by default: `POST { verdicts }` reports what the verdicts would do,
  * with counts and sampled titles, and writes nothing. Only `{ apply: true }`
- * writes. Rejects are final, so the first run on real items stays a dry-run
- * until a person has read its report.
+ * writes. Non-rumor rejects are final, so the first run on real items stays a
+ * dry-run until a person has read its report. Rumor and misleading-title
+ * verdicts quarantine to the rumor tab instead of rejecting finally.
  *
  * The figure check (d) runs here, not in the screen: it compares an article's
  * closing figures with the recordings compiled into this service
@@ -71,7 +72,8 @@ const decideSchema = z.object({
 /**
  * The posted verdicts with the figure check laid over them: every pending item
  * is checked, and one whose figures contradict the recordings becomes a figure
- * reject, replacing whatever the screen posted for it.
+ * reject, replacing whatever the screen posted for it. Figure rejects are
+ * final; rumor verdicts quarantine to the rumor tab instead.
  */
 function withFigureCheck(queue: ReviewQueue, posted: ScreenVerdict[]) {
   const figures = new Map<string, FigureCheck>(queue.pending.map((event) => [event.id, checkFigures(event)]));
@@ -115,6 +117,7 @@ function summarize(queue: ReviewQueue, result: VerdictResult) {
     counts: {
       accepted: result.accepted.length,
       rejected: result.rejected.length,
+      quarantined: result.quarantined.length,
       residual: result.residual.length,
       skipped: result.skipped.length,
     },
@@ -122,6 +125,10 @@ function summarize(queue: ReviewQueue, result: VerdictResult) {
     rejected: sample(result.rejected, (id) => {
       const decision = result.next.decided[id];
       return decision ? `${decision.autoReject?.check ?? ""}: ${decision.reason}` : undefined;
+    }),
+    quarantined: sample(result.quarantined, (id) => {
+      const entry = result.next.suspected[id];
+      return entry ? `${entry.check}: ${entry.reason}` : undefined;
     }),
     residual: sample(result.residual, (id) => result.next.matches[id]?.residual?.reason),
     skipped: result.skipped.slice(0, SAMPLE_SIZE),

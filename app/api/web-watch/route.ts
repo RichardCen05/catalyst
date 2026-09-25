@@ -7,9 +7,13 @@ import {
   acceptProposals,
   autoAcceptedSince,
   decide,
+  dismissSuspected,
+  disputeSuspected,
   ensureOverlay,
   gcsQueueStore,
   isBatchAcceptable,
+  isQuarantineCheck,
+  legacySuspectedDecisions,
   listKnownSymbols,
   overlayCounts,
   revertAutoAccept,
@@ -30,8 +34,9 @@ export const dynamic = "force-dynamic";
  * with triage matches and verified proposals, which pending items the screen
  * left for a person (`residual`, with its reason), what triage archived,
  * accepted events, what the screen decided alone (`autoAccepted`, undoable;
- * `autoRejected`, final), the auto-decide switch, and the symbol universe
- * for mapping.
+ * `autoRejected`, final for non-rumor checks), the rumor tab (`suspected`,
+ * reviewable: new quarantines plus legacy rumor auto-rejects), the
+ * auto-decide switch, and the symbol universe for mapping.
  */
 export async function GET() {
   try {
@@ -54,7 +59,7 @@ export async function GET() {
         impacts: (decision.auto?.proposal.impacts ?? []).map(({ symbol, direction, band, path, rationale }) => ({ symbol, direction, band, path, rationale })),
       }));
     const autoRejected = Object.values(queue?.decided ?? {})
-      .filter((decision) => decision.autoReject)
+      .filter((decision) => decision.autoReject && !isQuarantineCheck(decision.autoReject.check))
       .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
       .map((decision) => ({
         id: decision.candidateId,
@@ -66,6 +71,42 @@ export async function GET() {
         score: decision.autoReject?.score ?? null,
         reason: decision.reason,
       }));
+    const suspected = [
+      ...Object.entries(queue?.suspected ?? {})
+        .map(([id, entry]) => ({
+          id,
+          title: entry.event.title,
+          summary: entry.event.summary,
+          body: entry.event.body ?? null,
+          category: entry.event.category,
+          publishedAt: entry.event.publishedAt,
+          provider: entry.event.citations[0]?.provider ?? null,
+          url: entry.event.citations[0]?.url ?? null,
+          check: entry.check,
+          span: entry.span ?? null,
+          score: typeof entry.score === "number" ? entry.score : null,
+          reason: entry.reason,
+          at: entry.at,
+          legacy: false,
+        })),
+      ...legacySuspectedDecisions(queue ?? { decided: {} } as ReviewQueue)
+        .map((decision) => ({
+          id: decision.candidateId,
+          title: decision.autoReject?.title ?? decision.candidateId,
+          summary: decision.reason,
+          body: null,
+          category: "company",
+          publishedAt: decision.decidedAt,
+          provider: null,
+          url: decision.autoReject?.url ?? null,
+          check: decision.autoReject?.check ?? null,
+          span: decision.autoReject?.span ?? null,
+          score: typeof decision.autoReject?.score === "number" ? decision.autoReject.score : null,
+          reason: decision.reason,
+          at: decision.autoReject?.at ?? decision.decidedAt,
+          legacy: true,
+        })),
+    ].sort((a, b) => b.at.localeCompare(a.at));
     const residual = (queue?.pending ?? []).flatMap((event) => {
       const mark = queue?.matches[event.id]?.residual;
       return mark ? [{ id: event.id, reason: mark.reason, at: mark.at }] : [];
@@ -106,6 +147,7 @@ export async function GET() {
       residual,
       autoAccepted,
       autoRejected,
+      suspected,
       autoAccept: {
         enabled: auto.enabled,
         source: auto.source,
@@ -129,12 +171,13 @@ export async function GET() {
 /**
  * POST — accept (with reviewer-mapped impacts, or a verified proposal the
  * reviewer took as-is), accept several high-band proposals at once, dismiss a
- * candidate, undo an auto-accept, or flip the auto-decide switch. Every one
- * of these is a person pressing a button; decisions made without a person
- * happen in the internal decide route (`applyVerdicts`), not here. Archived
- * and auto-rejected items are final: there is no action that brings them back.
- * Accepted events join the queue's `accepted` list and the engine overlay;
- * the engine itself is untouched.
+ * candidate, dispute a suspected rumor back to review, confirm a suspected
+ * rumor as dismissed, undo an auto-accept, or flip the auto-decide switch.
+ * Every one of these is a person pressing a button; decisions made without a
+ * person happen in the internal decide route (`applyVerdicts`), not here.
+ * Archived and finally auto-rejected items are final: there is no action
+ * that brings them back. Accepted events join the queue's `accepted` list
+ * and the engine overlay; the engine itself is untouched.
  *
  * Open to anyone who can reach the service: reviewing costs no Sectors credit
  * and never called the provider, so the bearer that used to sit here only
@@ -174,22 +217,27 @@ export async function POST(request: Request) {
     const next = await saveQueue(gcsQueueStore, (queue): ReviewQueue => {
       if (input.action === "accept-proposals") return withResidualLabel(queue, acceptProposals(queue, input.candidateIds, nowIso), input.candidateIds);
       if (input.action === "revert-auto") return revertAutoAccept(queue, input.candidateId);
+      if (input.action === "dispute-rumor") return disputeSuspected(queue, input.candidateId, input.reason, nowIso);
+      if (input.action === "dismiss-suspected") return dismissSuspected(queue, input.candidateId, input.reason, nowIso);
       return withResidualLabel(queue, decide(queue, input.candidateId, input, nowIso), [input.candidateId]);
     });
     // Push freshly accepted events straight into this instance's overlay so
     // the next analysis on the same instance sees them before the TTL lapses.
     setOverlayForTests(next.accepted, overlayCounts(next));
     const status =
-      input.action === "revert-auto"
+      input.action === "revert-auto" || input.action === "dispute-rumor"
         ? "restored"
         : input.action === "accept-proposals"
           ? "accepted"
-          : next.decided[input.candidateId].status;
+          : input.action === "dismiss-suspected"
+            ? "dismissed"
+            : next.decided[input.candidateId].status;
     return NextResponse.json({
       ok: true,
       status,
       pending: next.pending.length,
       accepted: next.accepted.length,
+      suspected: Object.keys(next.suspected ?? {}).length,
     });
   } catch (error) {
     if (error instanceof ReviewError) return NextResponse.json({ error: error.message }, { status: 422 });
