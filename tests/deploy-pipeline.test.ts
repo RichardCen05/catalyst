@@ -34,7 +34,6 @@ describe("cloudbuild-deploy.yaml", () => {
       "install",
       "gate",
       "pytest",
-      "e2e",
       "deploy",
       "sync-workers",
     ]);

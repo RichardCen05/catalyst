@@ -195,16 +195,19 @@ python3 scripts/build_market_data.py
 
 The deploy pipeline of §6 runs the gate itself, in Cloud Build, before it builds the image:
 `pnpm lint`, `pnpm typecheck`, `vitest` (without the gitignored `tests/zz-live.test.ts`), the NLI
-screen's `pytest` (stub model, no model files), Playwright against a dev server of the candidate
-(`playwright.ci.config.ts`, no LLM key, so answers take the deterministic path), then `pnpm build`
-inside the image. A red step fails the build and the serving revision is untouched.
+screen's `pytest` (stub model, no model files), then `pnpm build` inside the image. A red step fails
+the build and the serving revision is untouched.
 
-Left out on purpose: `tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model
-calls, not the candidate; the `zz-live-*` tests need a live key; the screen-payload and triage
-dry-run files are opt-in dump tools; and seven golden figure cases skip because their article text
-is fetched into a gitignored cache and never committed. The e2e step's image tag is `_PLAYWRIGHT`,
-which must equal the installed `@playwright/test`; the step stops with the right value when a
-lockfile update moves it.
+Playwright is not in the gate. The app's stores default to the production bucket
+(`GCS_CACHE_BUCKET || "katalis-recorded"`), and the build identity can write there, so an e2e run in
+Cloud Build writes its test profiles into production: the dry run of 25 September 2026 (build
+`08621ea5`, cancelled) left 35 profiles under `gs://katalis-recorded/catalyst/memory/`, created
+13:04–13:15 UTC. The same holds for `pnpm test:e2e` on a laptop with application-default
+credentials. It needs a bucket of its own before it can gate a release. Left out as well:
+`tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model calls; the `zz-live-*`
+tests need a live key; the screen-payload and triage dry-run files are opt-in dump tools; and seven
+golden figure cases skip because their article text is fetched into a gitignored cache and never
+committed.
 
 Running the gate locally first is still the faster way to find a failure:
 

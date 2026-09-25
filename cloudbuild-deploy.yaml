@@ -43,7 +43,6 @@ substitutions:
   _DRY_RUN: "false"
   _SNAPSHOT: gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
   _REFRESH_JOB: catalyst-data-refresh
-  _PLAYWRIGHT: "1.63.0"
 
 steps:
   - id: check-provider
@@ -148,20 +147,6 @@ steps:
         pip install --quiet --disable-pip-version-check --root-user-action=ignore \
           -r scripts/screen/requirements.txt pytest
         python3 -m pytest -q -p no:cacheprovider scripts/screen
-
-  # The image tag must match the installed @playwright/test, whose browsers it carries.
-  - id: e2e
-    name: mcr.microsoft.com/playwright:v${_PLAYWRIGHT}-noble
-    entrypoint: bash
-    env: [CI=1]
-    args:
-      - -c
-      - |
-        set -euo pipefail
-        INSTALLED=$$(node -p "require('@playwright/test/package.json').version")
-        [ "$$INSTALLED" = "${_PLAYWRIGHT}" ] || { echo "set _PLAYWRIGHT=$$INSTALLED (pnpm-lock has it)"; exit 1; }
-        corepack enable
-        pnpm exec playwright test --config=playwright.ci.config.ts
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
