@@ -1,7 +1,7 @@
 "use client";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/page-header";
 import { apiUrl } from "@/lib/api-base";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
@@ -98,6 +98,27 @@ const matchLabel: Record<MatchKind, string> = {
   region: "wilayah",
   weather: "cuaca",
 };
+
+/** How many rows a long list shows before a reviewer asks for the rest. Layout,
+ *  not a decision threshold: it hides nothing the engine reads. */
+const COLLAPSED_ROWS = 3;
+
+/** First rows of a long list plus a toggle for the remainder. */
+function Collapsible<T>({ items, render }: { items: T[]; render: (item: T) => ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const shown = open ? items : items.slice(0, COLLAPSED_ROWS);
+  const hidden = items.length - COLLAPSED_ROWS;
+  return (
+    <>
+      {shown.map(render)}
+      {hidden > 0 ? (
+        <Button variant="secondary" size="sm" aria-expanded={open} onClick={() => setOpen(!open)} className="w-full">
+          {open ? "Tampilkan lebih sedikit" : `Tampilkan ${hidden} lainnya`}
+        </Button>
+      ) : null}
+    </>
+  );
+}
 
 type ProposalImpact = TriageProposal["impacts"][number];
 const mapsSomething = (impact: ProposalImpact) => impact.direction !== "Unrelated";
@@ -736,6 +757,31 @@ export function WebWatchReview() {
       ) : (
         <div className="space-y-8">
           {data.autoAccept ? <AutoAcceptSwitch status={data.autoAccept} onChanged={load} /> : null}
+          <section aria-label="Diterima engine">
+            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
+            {data.accepted.length ? (
+              <div className="space-y-3">
+                <Collapsible
+                  items={data.accepted}
+                  render={(event) => (
+                    <Panel key={event.id} className="p-4">
+                      <h3 className="text-sm font-semibold leading-snug">{event.title}</h3>
+                      <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                        {event.impactLinks.map((link) => (
+                          <li key={link.symbol} className="font-mono">
+                            {link.symbol} · {link.direction} · {link.relevance} — {link.path}
+                          </li>
+                        ))}
+                      </ul>
+                    </Panel>
+                  )}
+                />
+              </div>
+            ) : (
+              <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
+            )}
+          </section>
+
           <section aria-label="Antrean review" data-tour="review-queue">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="mr-auto">
@@ -766,17 +812,20 @@ export function WebWatchReview() {
             </div>
             {visiblePending.length ? (
               <div className="space-y-4">
-                {visiblePending.map((candidate) => (
-                  <CandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    symbols={data.symbols}
-                    bands={data.bands}
-                    match={data.matches[candidate.id]}
-                    proposal={data.proposals[candidate.id]}
-                    onDecided={load}
-                  />
-                ))}
+                <Collapsible
+                  items={visiblePending}
+                  render={(candidate) => (
+                    <CandidateCard
+                      key={candidate.id}
+                      candidate={candidate}
+                      symbols={data.symbols}
+                      bands={data.bands}
+                      match={data.matches[candidate.id]}
+                      proposal={data.proposals[candidate.id]}
+                      onDecided={load}
+                    />
+                  )}
+                />
               </div>
             ) : (
               <Panel className="p-6 text-sm text-muted-foreground">{data.pending.length ? "Tidak ada yang cocok dengan saringan." : "Antrean kosong. Tidak ada perubahan baru yang menunggu tinjauan."}</Panel>
@@ -786,27 +835,6 @@ export function WebWatchReview() {
           <AutoAcceptedList items={data.autoAccepted ?? []} onReverted={load} />
           <ArchivedList items={data.archived} onRestored={load} />
 
-          <section aria-label="Diterima engine">
-            <h2 className="editorial mb-3 text-xl">Diterima ({data.accepted.length})</h2>
-            {data.accepted.length ? (
-              <div className="space-y-3">
-                {data.accepted.map((event) => (
-                  <Panel key={event.id} className="p-4">
-                    <h3 className="text-sm font-semibold leading-snug">{event.title}</h3>
-                    <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      {event.impactLinks.map((link) => (
-                        <li key={link.symbol} className="font-mono">
-                          {link.symbol} · {link.direction} · {link.relevance} — {link.path}
-                        </li>
-                      ))}
-                    </ul>
-                  </Panel>
-                ))}
-              </div>
-            ) : (
-              <Panel className="p-6 text-sm text-muted-foreground">Belum ada kandidat yang diterima.</Panel>
-            )}
-          </section>
 
           {/* Feed plumbing, not review material: which pages the crawler polls
               and whether any of them is failing. It sits closed under the queue
