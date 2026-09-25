@@ -201,7 +201,7 @@ export function TeachAgent({ symbol, className }: { symbol?: SymbolCode; classNa
 
         <p className="flex gap-2 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
           <IconGate aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>Catatan Anda menjadi hipotesis terbuka: ia muncul pada analisis saham ini, tetapi tidak mengubah angka, rumus, atau sumber sebelum diperiksa.</span>
+          <span>Catatan Anda langsung diterima dan diproses: ia muncul pada analisis saham ini sebagai konteks, tetapi tidak mengubah angka, rumus, atau sumber.</span>
         </p>
       </form>
     </Panel>

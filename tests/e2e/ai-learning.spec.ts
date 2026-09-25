@@ -41,8 +41,8 @@ test("AI Learning traces feedback, correction, and accepted case rule without st
   await expect(page.getByText("Tersimpan untuk ANTM")).toBeVisible();
   await page.goto("/ai-learning?filter=insight");
   await page.getByRole("button", { name: new RegExp(correction) }).click();
-  await expect(page.getByRole("article", { name: "Detail Konteks belum masuk" })).toContainText("Menunggu pemeriksaan");
-  await expect(page.getByText("Catatan pengguna tidak menjadi fakta pasar sampai sumber memverifikasinya.")).toBeVisible();
+  await expect(page.getByRole("article", { name: "Detail Konteks belum masuk" })).toContainText("Diterima");
+  await expect(page.getByText("Catatan pengguna dipakai sebagai konteks, tidak menjadi fakta pasar sampai sumber memverifikasinya.")).toBeVisible();
 
   const marker = `AturanMemory ${Date.now()}`;
   await page.goto("/cases/ANTM?tab=review");

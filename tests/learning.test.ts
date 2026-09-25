@@ -86,10 +86,10 @@ describe("AI Learning view model", () => {
       status: "active",
       effectLabel: expect.stringMatching(/urutan kasus/i),
     });
-    expect(snapshot.items.find((item) => item.id.startsWith("insight-"))?.status).toBe("pending");
+    expect(snapshot.items.find((item) => item.id.startsWith("insight-"))?.status).toBe("accepted");
     expect(snapshot.items.find((item) => item.id.startsWith("resolution-"))?.status).toBe("accepted");
     expect(snapshot.memories.some((item) => item.group === "rule" && item.status === "accepted")).toBe(true);
-    expect(snapshot.summary).toMatchObject({ inputCount: 3, pendingCount: 1, activeCount: 3 });
+    expect(snapshot.summary).toMatchObject({ inputCount: 3, pendingCount: 0, activeCount: 3 });
   });
 
   it("preserves partial legacy data without inventing a preference or a rule decision", () => {

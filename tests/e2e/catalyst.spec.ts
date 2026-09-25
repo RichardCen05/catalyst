@@ -475,7 +475,7 @@ test("Causal Impact compares competing explanations across every observable the 
   await expect(selected.getByText("Pembeda utama", { exact: true })).toBeVisible();
 });
 
-test("user correction becomes a reversible open hypothesis", async ({ page }) => {
+test("user correction is accepted on save and can be dismissed", async ({ page }) => {
   await finishSetup(page);
   await page.goto("/cases/ANTM?tab=review");
   const note = "Kontrak ekspor belum dibedakan antara denominasi USD dan IDR.";
@@ -486,8 +486,8 @@ test("user correction becomes a reversible open hypothesis", async ({ page }) =>
   await page.goto("/ai-learning?section=tinjauan");
   await expect(page.getByText(note)).toBeVisible();
   await expect(page.getByRole("link", { name: "Buka referensi pengguna" })).toHaveAttribute("href", "https://www.bi.go.id/");
-  await page.getByRole("button", { name: "Tandai sudah diperiksa" }).click();
-  await expect(page.getByRole("button", { name: "Kembalikan ke antrean" })).toBeVisible();
+  await page.getByRole("button", { name: "Abaikan" }).click();
+  await expect(page.getByRole("button", { name: "Pakai lagi" })).toBeVisible();
 });
 
 test("closing a case stores a reusable research resolution", async ({ page }) => {

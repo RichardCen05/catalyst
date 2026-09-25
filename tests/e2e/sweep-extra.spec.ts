@@ -22,7 +22,7 @@ const ROUTES: { url: string; heading: string | RegExp }[] = [
   { url: "/compare?symbols=ANTM%2CBBCA", heading: /Banding|Bandingkan/ },
   { url: "/copilot", heading: "Asisten" },
   { url: "/ai-learning", heading: "AI Learning" },
-  { url: "/ai-learning?section=tinjauan", heading: "Koreksi yang perlu diperiksa" },
+  { url: "/ai-learning?section=tinjauan", heading: "Koreksi yang diterima" },
   { url: "/ai-learning?section=pasar", heading: "Apa yang sudah ditagih" },
   { url: "/ai-learning?section=memori", heading: "Apa yang sedang disimpan" },
   { url: "/playbook", heading: /Playbook|Aturan riset/ },

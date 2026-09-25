@@ -52,7 +52,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:ai-learning:batas-ai-learning",
     heading: "Batas AI Learning",
     view: "ai-learning",
-    labels: ["Catalyst tidak melatih ulang model. Koreksi Anda tetap hipotesis sampai diperiksa.","Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback."],
+    labels: ["Catalyst tidak melatih ulang model. Koreksi Anda langsung diterima dan diproses sebagai konteks, bukan fakta pasar.","Pertanyaan ke Asisten hanya ada selama sesi dan tidak disimpan sebagai memori. Feedback mengubah urutan daftar di Riset &amp; Analisis; jawaban Asisten menyebut seluruh pantauan Anda dalam urutan pantauan itu sendiri, jadi tidak ada baris yang naik atau hilang karena feedback."],
     file: "app/ai-learning/learning-content.tsx",
   },
   {
@@ -96,8 +96,8 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     file: "components/prediction-panel.tsx",
   },
   {
-    id: "chrome:ai-learning:koreksi-yang-perlu-diperiksa",
-    heading: "Koreksi yang perlu diperiksa",
+    id: "chrome:ai-learning:koreksi-yang-diterima",
+    heading: "Koreksi yang diterima",
     view: "ai-learning",
     file: "app/ai-learning/learning-content.tsx",
   },
@@ -428,7 +428,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:copilot:batas-asisten",
     heading: "Batas asisten",
     view: "copilot",
-    labels: ["Tanpa bukti, asisten berhenti. Catatan Anda tetap menjadi hipotesis sampai diperiksa."],
+    labels: ["Tanpa bukti, asisten berhenti. Catatan Anda dipakai sebagai konteks, bukan fakta pasar."],
     file: "app/copilot/page.tsx",
   },
   {
