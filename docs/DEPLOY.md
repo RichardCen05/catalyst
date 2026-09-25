@@ -199,7 +199,8 @@ screen's `pytest` (stub model, no model files), the Playwright journeys in `test
 `pnpm build` inside the image. A red step fails the build and the serving revision is untouched.
 
 The Playwright step (`e2e`) builds the app, serves `.next/standalone`, and runs four workers in the
-`mcr.microsoft.com/playwright:v<_PLAYWRIGHT>-noble` image — about a minute for the suite. It never
+`mcr.microsoft.com/playwright:v<_PLAYWRIGHT>-noble` image — about three and a half minutes for the
+step, of which the 39 tests take about two and a half on `E2_HIGHCPU_8`. It never
 touches production state. The app's stores default to the production bucket
 (`GCS_CACHE_BUCKET || "katalis-recorded"`, and `GCS_MEMORY_BUCKET` the same) and the build identity
 can write there, so `playwright.config.ts` starts the server with both pointed at
@@ -211,6 +212,9 @@ redirect. This is why it was out of the gate before: the first attempt (build `0
 2026, cancelled) ran without that config and left 35 test profiles under
 `gs://katalis-recorded/catalyst/memory/`, created 13:04–13:15 UTC. `_PLAYWRIGHT` must match
 `@playwright/test` in the lockfile — the step stops with both versions named when it does not.
+The first gated run (dry run `a3209116`, commit `9ebd77c`) passed 39/39; the e2e bucket gained 35
+objects and `katalis-recorded` gained none from the step (two writes during the run carry timestamps
+from before the tests started, from live traffic).
 
 Left out on purpose: `tests/e2e/copilot-prod.spec.ts` checks the deployed service with live model
 calls (`pnpm exec playwright test -c playwright.prod.config.ts`); the `zz-live-*` tests need a live
