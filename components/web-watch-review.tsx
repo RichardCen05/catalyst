@@ -299,7 +299,6 @@ function CandidateCard({
                 >
                   {busy ? "Menyimpan…" : "Terima usulan"}
                 </Button>
-                <Button variant="secondary" disabled={busy} onClick={() => setShowAccept(true)}>Ubah dulu</Button>
               </>
             ) : (
               <Button
@@ -316,10 +315,16 @@ function CandidateCard({
                 Tolak: tidak terkait
               </Button>
             )}
+            {!showAccept ? (
+              <Button variant="secondary" disabled={busy} onClick={() => setShowAccept(true)}>Edit</Button>
+            ) : null}
           </div>
         </section>
       ) : null}
 
+      {/* With a proposal on the card, the manual form stays closed until the
+          reviewer asks to edit it; without one it is the only way to accept. */}
+      {!proposal || showAccept ? (
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Terima — petakan ke emiten</h4>
         {!showAccept ? (
@@ -421,6 +426,7 @@ function CandidateCard({
           </>
         )}
       </div>
+      ) : null}
 
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Tolak</h4>
