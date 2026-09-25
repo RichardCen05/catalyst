@@ -16,8 +16,8 @@ preceded the deployment; parts of it were never built, so do not follow it for d
 | Service | `catalyst-web`, region `us-central1` | `gcloud run services list` |
 | Public URL | https://catalyst-web-ibyebnreqa-uc.a.run.app | `gcloud run services list`, `curl` → 200 |
 | Alternate URL | https://catalyst-web-1019003607640.us-central1.run.app | `curl` → 200 (same service) |
-| Serving revision | `catalyst-web-00076-55v`, deployed 2026-09-25, 100% of traffic. Built from `12c9ca0` on `feat/alief/wire-ui` (source deploys carry no commit): the web-watch deep filter, phases 1–4 (`.claude/PRPs/prds/web-watch-deep-filter.prd.md`), plus the fixes from the production check of `00075-5dx`. Stored items get their page title in place of a filename title (`sp 2819226.aspx`) and ISO dates in place of RFC 822 dates; the repair runs when the queue loads and nothing is rewritten in the bucket. Extraction reads the article region, and document sources record a new baseline on the first sweep after the extractor change instead of reporting a change. Pantau states when the screen last applied verdicts (`lastScreenAt`), or that it has never run. `/favicon.ico` answers 200. The sweep no longer accepts anything by itself; only `/api/internal/web-watch-decide` writes automatic verdicts, and it has no caller until the screen job in §10b is created, so no item is auto-accepted or auto-rejected on this revision yet. The five auto-accepts made on `00073-c2g` stay in Pantau "Diterima otomatis" and can still be undone. Running the Gemini variant (§6b), `gemini-3.8-flash` / `gemini-3.5-flash-lite`, with `LLM_RATE_LIMIT_STRIKES=3`, on recordings pulled from the scheduled refresh (data as of 23 Sep). Verified live on this revision: `/api/health` ok, `/` and `/pantau` 200, `/favicon.ico` 200 `image/png`, `/api/internal/check-sources` and `/api/internal/web-watch-decide` 401 without the bearer, `contextSymbol: "XXXX"` answers 400, `GET /api/web-watch` returns no filename titles and no non-ISO dates across pending and accepted items, `lastScreenAt` null. Pantau shows the accepted list with Indonesian direction and band labels and says the screen has never run. One live `/api/chat` question answered 200 with no `llmFallbackNote`, and the revision log has no fallback, 403, 429 or error line | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud run services describe ... --format="value(status.traffic...)"`, `gcloud logging read ... "llm-fallback"` |
-| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:f7087e6925135…` | `gcloud run revisions describe` |
+| Serving revision | `catalyst-web-00077-5tc`, deployed 2026-09-25, 100% of traffic. Built from `7c5000d` on `feat/alief/wire-ui` (source deploys carry no commit): everything in `00076-55v`, plus `origin/main` merged in (`730b0e5`: Pantau shows the accepted list above the queue and collapses each long list to three rows; case outcome card; learning corrections accepted on save; steadier causal-chain edges), and two opt-in provider variables (`7c5000d`, see §2). Runs `openai-compatible` against `https://bandelbanget.xyz/v1` with `deepseek-v4-flash`, `LLM_SCHEMA_MODE=prompt`, `LLM_REASONING=off`, `LLM_REASONING_FIELD=thinking`, `LLM_RATE_LIMIT_STRIKES=3`, on recordings pulled from the scheduled refresh (data as of 23 Sep). Verified live on this revision: `/api/health` ok, `/`, `/pantau` and `/favicon.ico` 200, `/api/internal/check-sources` 401 without the bearer, `contextSymbol: "XXXX"` answers 400, six live `/api/chat` questions answered 200 with no `llmFallbackNote`, and the revision log has no error, fallback or rejection line | `gcloud run revisions list --service=catalyst-web --region=us-central1`, `gcloud logging read ... revision_name="catalyst-web-00077-5tc"` |
+| Image | `us-central1-docker.pkg.dev/ada-sectors-508410/cloud-run-source-deploy/catalyst-web@sha256:9d939d79f8737…` | `gcloud run revisions describe` |
 | Service account | `catalyst-run@ada-sectors-508410.iam.gserviceaccount.com` | `gcloud run services describe` |
 | Sizing | cpu 1, memory 512Mi, concurrency 80, max instances 3, port 8080, request timeout 300s | `gcloud run revisions describe` |
 | Access | unauthenticated — `roles/run.invoker` is granted to `allUsers` | `gcloud run services get-iam-policy catalyst-web --region=us-central1` |
@@ -33,20 +33,38 @@ Plain environment variables:
 
 - `AGENT_MODE=llm`
 - `LLM_PROVIDER=openai-compatible`
-- `LLM_BASE_URL=https://openrouter.ai/api/v1`
-- `LLM_MODEL=nex-agi/nex-n2.5-mini:free`
-- `LLM_RATE_LIMIT_STRIKES=3`
+- `LLM_BASE_URL=https://bandelbanget.xyz/v1`
+- `LLM_MODEL=deepseek-v4-flash`
+- `LLM_SCHEMA_MODE=prompt`
 - `LLM_REASONING=off`
+- `LLM_REASONING_FIELD=thinking`
+- `LLM_RATE_LIMIT_STRIKES=3`
 - `COPILOT_RETRIEVAL=on`
 - `GCS_CACHE_BUCKET=katalis-recorded`
+
+The bandelbanget.xyz gateway needs the two variables added in `7c5000d`. It accepts
+`response_format: json_schema` and drops it — `deepseek-v4-flash` answered in prose on 6 of 6
+probes, which would send every chat answer to the deterministic path — so `LLM_SCHEMA_MODE=prompt`
+puts the schema in the system instruction and asks for `json_object`. It also ignores
+`reasoning: {enabled: false}` (170–970 reasoning tokens a call) and honours
+`thinking: {type: "disabled"}` (none), so `LLM_REASONING_FIELD=thinking` sends `LLM_REASONING=off`
+in that shape. Both default to the old behaviour, so the OpenRouter and Gemini variants are
+unchanged.
+
+Measured 2026-09-25 through the real answer path and verifier (`tests/zz-live-burst.test.ts`,
+20 calls at concurrency 4): all 20 parsed, 4 passed the verifier and 16 were rejected for advisory
+language, p90 1.8s. Gemini 3.8 Flash passed 12 of 20 on the same harness. The harness evidence
+contains "beli bersih", which the advice gate refuses, so the numbers compare models, not
+production rates — but expect more deterministic answers than on Gemini. The key is the
+`LLM_API_KEY` secret, version 2 (created 2026-09-25).
 
 Secrets mounted from Secret Manager, all at version `latest`: `GOOGLE_API_KEY`, `LLM_API_KEY`,
 `INTERNAL_CRON_SECRET`, `SECTORS_API_KEY`, `OPERATOR_TOKEN` (`gcloud secrets list` shows exactly
 these five).
 
 The image on this revision contains `fc5a247` (`feat(llm): select the model provider by
-environment`), so the OpenRouter variables above are read and the effective provider is
-OpenRouter. Every earlier revision set the same variables on an image that predated that commit
+environment`) and `7c5000d`, so the variables above are read and the effective provider is the
+bandelbanget.xyz gateway. Before `catalyst-web-00054-gvr`, every revision set the same variables on an image that predated that commit
 and silently kept calling Gemini, which is why an env-only change is not a provider change:
 `LLM_PROVIDER` is read by code, so switching it requires an image that contains the code.
 Verified 2026-09-22 on `catalyst-web-00054-gvr`: two live `/api/chat` calls returned 200 with no
@@ -57,7 +75,7 @@ Verified 2026-09-22 on `catalyst-web-00054-gvr`: two live `/api/chat` calls retu
 working without them. `GOOGLE_API_KEY` stays mounted either way — costless while unused, and a
 rollback without it needs a new secret version plus a new revision.
 
-Measured before the switch, over 40-request bursts against the real answer path,
+Measured before the OpenRouter switch (2026-09-22), over 40-request bursts against the real answer path,
 `nex-agi/nex-n2.5-mini:free` produced a verifier-approved answer 26 times out of 40, at p90
 2.3s, with no 429 and no 5xx. The other ~35% fall to the deterministic path — mostly advisory
 phrasing and invented figures that `lib/agent/llm/verify.ts` catches. That rate is the known
@@ -88,8 +106,9 @@ cap in AI Studio first.
 
 ## 2b. Switching model provider
 
-The live revision runs `openai-compatible` against OpenRouter, on an image that reads the
-variable. This section describes how the selection works and how to move it.
+The live revision runs `openai-compatible` against the bandelbanget.xyz gateway, on an image
+that reads the variable. For a gateway that drops `json_schema` or reads `thinking` rather than
+`reasoning`, see `LLM_SCHEMA_MODE` and `LLM_REASONING_FIELD` in §2. This section describes how the selection works and how to move it.
 
 `LLM_PROVIDER` selects the provider in `lib/agent/llm/providers.ts`. Unset means `gemini`, so
 removing the variable is the rollback. The other value is `openai-compatible`:
@@ -207,7 +226,25 @@ python3 scripts/build_market_data.py      # the bundle's asOf should now match t
 Commit the refreshed `data/sectors/` and `lib/data/market.generated.ts` if you want the repository
 to catch up; the deploy does not need it.
 
-### 6a. With OpenRouter (current recommendation)
+### 6a0. With the bandelbanget.xyz gateway (live since 2026-09-25)
+
+```bash
+gcloud run deploy catalyst-web \
+  --source . \
+  --project=ada-sectors-508410 \
+  --region=us-central1 \
+  --service-account=catalyst-run@ada-sectors-508410.iam.gserviceaccount.com \
+  --allow-unauthenticated \
+  --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --max-instances=3 --timeout=300 \
+  --set-env-vars=AGENT_MODE=llm,LLM_PROVIDER=openai-compatible,LLM_BASE_URL=https://bandelbanget.xyz/v1,LLM_MODEL=deepseek-v4-flash,LLM_RATE_LIMIT_STRIKES=3,LLM_REASONING=off,LLM_REASONING_FIELD=thinking,LLM_SCHEMA_MODE=prompt,COPILOT_RETRIEVAL=on,GCS_CACHE_BUCKET=katalis-recorded \
+  --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest,INTERNAL_CRON_SECRET=INTERNAL_CRON_SECRET:latest,SECTORS_API_KEY=SECTORS_API_KEY:latest,OPERATOR_TOKEN=OPERATOR_TOKEN:latest,LLM_API_KEY=LLM_API_KEY:latest
+```
+
+Needs an image containing `7c5000d`; on an older image `LLM_SCHEMA_MODE` and
+`LLM_REASONING_FIELD` are read by nothing and every answer falls back. Rolling back to Gemini
+from this revision is §6b, or `gcloud run services update ... --remove-env-vars=LLM_PROVIDER`.
+
+### 6a. With OpenRouter
 
 ```bash
 gcloud run deploy catalyst-web \
