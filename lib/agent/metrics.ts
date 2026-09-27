@@ -8,8 +8,12 @@ export interface ConcentrationResult {
   floatAbsorbed: number;
 }
 
-const round = (value: number, decimals = 6) =>
-  Number(value.toFixed(decimals));
+const round = (value: number, decimals = 6) => {
+  const rounded = Number(value.toFixed(decimals));
+  // `toFixed` on a tiny negative returns "-0.000000", and Number() of that is
+  // -0: a share the recording barely moved now prints as a negative zero.
+  return Object.is(rounded, -0) ? 0 : rounded;
+};
 
 export function calculateConcentration(
   buyerValues: number[],

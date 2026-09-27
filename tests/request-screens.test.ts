@@ -96,12 +96,31 @@ describe("apa yang boleh dijawab", () => {
       expect(unrecordedTickers("apa hasil RUPS ADRO")).toEqual([]);
     });
 
+    it("mengenali nama emiten dari registrasi, bukan menuduhnya tidak terekam", () => {
+      // VALE adalah nama tercatat INCO. Empat huruf kapital di tengah
+      // kalimat biasa dibaca sebagai kode saham yang tidak ada, sehingga
+      // jawabannya menolak VALE sambil mendaftar INCO di kalimat yang sama.
+      expect(unrecordedTickers("kenapa VALE turun")).toEqual([]);
+      expect(unrecordedTickers("kenapa TIMAH naik pekan ini")).toEqual([]);
+      expect(unrecordedTickers("kenapa GARUDA masuk peta sebab akibat")).toEqual(["GARUDA"]);
+    });
+
     it("menyebut namanya lalu mengatakan rekaman tidak memuatnya", async () => {
       const answer = await ask("kenapa GARUDA masuk peta sebab akibat");
       expect(answer.intent).toBe("missing");
       expect(answer.text).toContain("GARUDA");
       expect(answer.text).toContain("tidak terekam");
       expect(answer.text).toContain(String(SYMBOL_CODES.length));
+    });
+
+    it("tidak menolak nama emiten yang kode tercatatnya ada", async () => {
+      // VALE = INCO. Jawaban lama menolaknya sebagai "tidak terekam" dan
+      // mendaftar INCO di kalimat yang sama; bila kasusnya memang belum ada,
+      // jawabannya menyebut emiten itu dengan namanya, bukan menyuruh
+      // pembaca menulis kode yang sudah mereka tulis.
+      const answer = await ask("kenapa VALE turun pekan ini");
+      expect(answer.text).not.toContain("tidak terekam");
+      expect(answer.text).not.toContain("Sebut kode emiten lebih dulu");
     });
   });
 

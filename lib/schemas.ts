@@ -176,10 +176,16 @@ export const memoryPatchFieldSchemas = {
   holdings: bySymbol(holdingSchema),
 } as const;
 
-/** Lookup keys for the evidence panel's plain-words summaries. One panel asks
- *  for every feed it shows in a single request; each pair is checked against
- *  the citation registry before anything is done with it, so the caps here
- *  only bound the parse. */
+/** Lookup keys for the evidence panel's plain-words summaries. Each pair is
+ *  checked against the citation registry before anything is done with it, so
+ *  the caps here only bound the parse.
+ *
+ *  Exported because the panel that sends these claims has to cut its own
+ *  request to this bound: a reader who opens "Sumber 61" on the Dashboard is
+ *  looking at more feeds than one body may carry, and a 400 the panel ignores
+ *  reads as an app that has no plain words for anything. */
+export const ENDPOINT_SUMMARY_CLAIMS_MAX = 24;
+
 export const endpointSummaryRequestSchema = z.object({
   claims: z.array(z.object({
     endpoint: z.string().trim().min(1).max(200),
@@ -188,7 +194,7 @@ export const endpointSummaryRequestSchema = z.object({
      *  (the filings feed is one address for the whole market). Checked
      *  against the recorded companies before it is used. */
     symbol: z.string().trim().min(2).max(6).optional(),
-  })).min(1).max(24),
+  })).min(1).max(ENDPOINT_SUMMARY_CLAIMS_MAX),
 });
 
 export const analyzeRequestSchema = z.object({

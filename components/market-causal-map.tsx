@@ -23,7 +23,7 @@ import { collapseSources, sourceGroupKey } from "@/lib/agent/market-graph";
 import { connectedIds } from "@/lib/agent/chain-layout";
 import { coverageInfo, events } from "@/lib/data/fixtures";
 import { uiLabel } from "@/lib/ui-labels";
-import { cn } from "@/lib/utils";
+import { cn, withStop } from "@/lib/utils";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { SourceText } from "@/components/source-text";
@@ -621,7 +621,7 @@ function NodeDetail({
         <div>
           <dt className="font-semibold">Bukti pendukung</dt>
           <dd className="mt-0.5 text-muted-foreground">
-            {selected.basis === "Aggregation point" ? selected.detail : `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}
+            {selected.basis === "Aggregation point" ? selected.detail : `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${withStop(selected.label)}`}
           </dd>
         </div>
         <div><dt className="font-semibold">Bukti penyangkal</dt><dd className="mt-0.5 text-muted-foreground">{selected.counterEvidence}</dd></div>

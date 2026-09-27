@@ -78,13 +78,16 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
   const nextId = useRef(0);
   const openNotes = insights.filter((item) => item.status === "pending").length;
   const insightPrompts = useMemo(() => buildInsightPrompts(insights, DEFAULT_THRESHOLDS.copilotInsightPrompts), [insights]);
-  const prompts = useMemo(() => buildQuickPrompts(profile), [profile]);
-  // One chip per distinct question. Each chip's text is its key, so a repeat
-  // is not merely redundant on screen — React cannot tell the two apart.
-  const quickPrompts = useMemo(() => [...new Set([...insightPrompts, ...prompts])], [insightPrompts, prompts]);
   // The route is the default, not an override: a case the reader picked or
   // an evidence button they pressed stays until they clear it.
   const activeContext = resolveContext(copilotContext, routeSymbol);
+  // The chips follow the case in front of the reader. Rebuilding on the
+  // resolved symbol alone is deliberate: the label may change with it without
+  // any question changing, and a new array identity would restart nothing.
+  const prompts = useMemo(() => buildQuickPrompts(profile, activeContext?.symbol), [profile, activeContext?.symbol]);
+  // One chip per distinct question. Each chip's text is its key, so a repeat
+  // is not merely redundant on screen — React cannot tell the two apart.
+  const quickPrompts = useMemo(() => [...new Set([...insightPrompts, ...prompts])], [insightPrompts, prompts]);
   const contextLabel = activeContext?.label ?? "Tanpa kasus";
   const bindTo = (symbol: SymbolCode) => setCopilotContext({ label: symbol, question: "", symbol });
   // The face answers with the panel. It thinks while the engine works, and

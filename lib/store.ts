@@ -48,6 +48,9 @@ interface CatalystState {
   setDepth: (depth: AnswerDepth) => void;
   setPillarOrder: (order: PillarKey[]) => void;
   completeOnboarding: () => void;
+  /** Close setup without the tour: the reader keeps the seeded watchlist and
+   *  can start the tour later from settings. */
+  skipOnboarding: () => void;
   startTour: () => void;
   finishTour: () => void;
   setCopilotOpen: (open: boolean) => void;
@@ -133,6 +136,7 @@ export const useCatalystStore = create<CatalystState>()(
       setDepth: (depth) => set((state) => ({ profile: { ...state.profile, config: { ...state.profile.config, depth } } })),
       setPillarOrder: (pillarOrder) => set((state) => ({ profile: { ...state.profile, config: { ...state.profile.config, pillarOrder } } })),
       completeOnboarding: () => set((state) => ({ profile: { ...state.profile, hasOnboarded: true }, tourOpen: true })),
+      skipOnboarding: () => set((state) => ({ profile: { ...state.profile, hasOnboarded: true } })),
       startTour: () => set({ tourOpen: true }),
       finishTour: () => set({ tourOpen: false }),
       setCopilotOpen: (copilotOpen) => set({ copilotOpen }),

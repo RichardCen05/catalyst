@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { checkSource, hintBuckets, keywordHits, type FetchImpl } from "@/lib/web-watch/check";
-import { EXTRACTOR_VERSION, FetchError, type Fetched } from "@/lib/web-watch/fetching";
+import { buildCandidate, checkSource, hintBuckets, keywordHits, type FetchImpl } from "@/lib/web-watch/check";
+import { EXTRACTOR_VERSION, FetchError, toText, type Fetched } from "@/lib/web-watch/fetching";
 import { addSource, claim, isLocked, listSources, memoryRegistryStore, release, saveRegistry } from "@/lib/web-watch/registry";
 import { isDue, newSourceState, type WatchedSource } from "@/lib/web-watch/types";
 import { watchAll } from "@/lib/web-watch/watch-all";
@@ -179,6 +179,41 @@ describe("checkSource — document", () => {
     await claim(store, "src-doc", 100);
     const result = await checkSource("src-doc", { store, nowMs: 101 });
     expect(result.status).toBe("busy");
+  });
+});
+
+describe("buildCandidate — headline and summary", () => {
+  const SENTENCE = "Bank sentral mempertahankan suku bunga acuan pada rapat dewan gubernur bulan ini.";
+  const FILLER = Array.from(
+    { length: 6 },
+    (_, n) => `Kalimat nomor ${n + 1} menjelaskan keadaan pasar modal Indonesia yang bergerak naik turun sepanjang pekan ini dan tetap dibaca investor.`,
+  ).join(" ");
+
+  const of = (html: string) =>
+    buildCandidate(newSourceState(docSource), toText(Buffer.from(html, "utf8")), "https://ex.id/a", null, null, "", "2026-09-24T10:00:00.000Z");
+
+  it("takes the headline from the first prose sentence, not the line above it", () => {
+    const built = of(`<html><body><nav>Ekonomi Hiburan</nav><p>Beranda</p><p>${SENTENCE}</p><p>${FILLER}</p></body></html>`);
+    expect(built.title).toBe(SENTENCE);
+    expect(built.titleSource).toBe("body");
+  });
+
+  it("writes the summary as whole sentences inside the cap, without the breadcrumb", () => {
+    const built = of(`<html><body><p>Beranda</p><p>${SENTENCE}</p><p>${FILLER}</p></body></html>`);
+    expect(built.summary.startsWith("Beranda")).toBe(false);
+    expect(built.summary.endsWith(".")).toBe(true);
+    expect(built.summary.length).toBeLessThanOrEqual(500);
+    // Stopped on a sentence boundary rather than mid-word, which is what the
+    // raw slice did once the fill ran past the cap.
+    expect(built.summary).toContain("investor.");
+    expect(built.summary).not.toContain("investor dan");
+  });
+
+  it("keeps the raw text for a page whose lines end no sentence", () => {
+    const built = of(`<html><body><ul><li>Baris satu</li><li>Baris dua</li></ul></body></html>`);
+    // No line ends like a sentence, so there is nothing to join and nothing
+    // is invented: the extracted text stands, newline and all.
+    expect(built.summary).toContain("Baris satu\nBaris dua");
   });
 });
 

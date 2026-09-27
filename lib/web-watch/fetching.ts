@@ -65,8 +65,9 @@ export interface SourceText {
  * `checkDocument` in `check.ts`).
  *
  * 2: comments dropped, quote-aware tags, content region measured in text.
+ * 3: site chrome dropped whole (nav, aside, footer, form, iframe).
  */
-export const EXTRACTOR_VERSION = 2;
+export const EXTRACTOR_VERSION = 3;
 
 export function sha256Hex(text: string): string {
   return createHash("sha256").update(text, "utf8").digest("hex");
@@ -181,11 +182,23 @@ export async function fetchUrl(url: string, options: FetchOptions = {}): Promise
 // Bytes to words
 // ---------------------------------------------------------------------------
 
-const DROP_BLOCKS = /<(script|style|noscript|template|svg)\b[\s\S]*?<\/\1\s*>/gi;
+/**
+ * Markup that carries no article prose: executable and decorative blocks,
+ * then the site's own chrome. A page without a `<main>` — and a page whose
+ * `<main>` is small enough to lose the one-fifth test — had its navigation
+ * menu, "Baca Juga" rail, footer and search form read as part of the article,
+ * and each of those lines is a line the matcher and the reviewer see.
+ *
+ * `<header>` is deliberately not here: it is where a CMS puts the article's
+ * own headline, and a masthead's menu sits inside a `<nav>`, which this drops.
+ * The pass runs before the region is chosen, so chrome cannot inflate the
+ * rest of the page enough to make a real `<main>` look like a widget either.
+ */
+const DROP_BLOCKS = /<(script|style|noscript|template|svg|nav|aside|footer|form|iframe)\b[\s\S]*?<\/\1\s*>/gi;
 /** Comments can hold whole commented-out tags (`<!-- <a>login</a> -->`); a
  *  tag pass alone leaves their text and the closing `-->` behind. */
 const COMMENTS = /<!--[\s\S]*?-->/g;
-const LINE_BREAKS = /<br\s*\/?>|<\/(p|div|tr|li|h[1-6]|table|section|article)\s*>/gi;
+const LINE_BREAKS = /<br\s*\/?>|<\/(p|div|tr|li|h[1-6]|table|section|article|header)\s*>/gi;
 /** Quote-aware: a Tailwind class such as `[&>ins]:px-2` puts a `>` inside an
  *  attribute value, and a bare `<[^>]+>` stopped there and left the rest of
  *  the attribute in the text. `LOOSE_TAGS` then clears anything malformed. */
@@ -225,9 +238,10 @@ function unescapeHtml(text: string): string {
 }
 
 export function htmlToText(markup: string): string {
-  // Scripts and comments go before the region is chosen: a page whose <head>
-  // carries 60 KB of tracker script made its real <main> look like a widget
-  // next to it, and the whole page, navigation included, was read instead.
+  // Scripts, comments and the site's own chrome go before the region is
+  // chosen: a page whose <head> carries 60 KB of tracker script made its real
+  // <main> look like a widget next to it, and the whole page, navigation
+  // included, was read instead.
   let text = contentRegion(markup.replace(COMMENTS, " ").replace(DROP_BLOCKS, " "));
   text = text.replace(LINE_BREAKS, "\n");
   text = text.replace(TAGS, " ").replace(LOOSE_TAGS, " ");

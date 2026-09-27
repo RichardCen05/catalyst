@@ -43,6 +43,18 @@ export function extractNumerals(...texts: string[]): string[] {
   return [...new Set(texts.flatMap((text) => [...(text.match(NUMBER_PATTERN) ?? []), ...rangeEnds(text)]))];
 }
 
+/**
+ * The sentences of a draft, in the order they were written.
+ *
+ * Split only where a full stop, question mark or exclamation mark is followed
+ * by whitespace: a decimal point never is ("2,5" holds, "2.5" holds), so a
+ * figure never counts as two sentences. Anything the reader would pause at
+ * does count, which is the unit the answer cap is written in.
+ */
+export function answerSentences(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+/).map((sentence) => sentence.trim()).filter(Boolean);
+}
+
 export function verifyDraft(draftText: string, evidenceNumbers: string[], _citations: Citation[]): VerificationResult {
   const allowed = new Set(evidenceNumbers.map(canonicalNumeral));
   const found = draftText.match(NUMBER_PATTERN) ?? [];
@@ -147,6 +159,17 @@ export function groundingViolation(draftText: string, evidenceText: string, evid
 
 export function verifyAnswer(draftText: string, evidenceNumbers: string[], question: string, evidenceText = ""): VerificationResult {
   const violations = [...verifyDraft(draftText, evidenceNumbers, []).violations];
+
+  // Rule 6 of the prompt used to be the only thing holding the length, and a
+  // prompt is a request: every other writer in this layer rejects a draft
+  // over its own cap (`reading-explain`, `metric-gloss`, `endpoint-summary`,
+  // `today-fact`), and chat answers alone shipped unbounded — 1024 tokens of
+  // allowance said nothing about sentences, and a 15-sentence draft was
+  // approved and rendered in full.
+  const count = answerSentences(draftText).length;
+  if (count > DEFAULT_THRESHOLDS.answerMaxSentences) {
+    violations.push(`draft has ${count} sentences and the answer cap is ${DEFAULT_THRESHOLDS.answerMaxSentences}`);
+  }
 
   const grounding = groundingViolation(draftText, evidenceText, evidenceNumbers);
   if (grounding) violations.push(grounding);

@@ -9,6 +9,17 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("id-ID").format(value);
 }
 
+/**
+ * A fixed-precision figure in id-ID.
+ *
+ * An index read out of a chart tooltip has to look like the id-ID figures in
+ * the table beside it; `toFixed` there printed `105.23 indeks` next to
+ * `5.200` — two separators on one screen.
+ */
+export function formatDecimal(value: number, digits = 2) {
+  return new Intl.NumberFormat("id-ID", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+}
+
 export function formatCurrency(value: number) {
   // id-ID separates the symbol with a non-breaking space, which reads as a
   // double gap once the number is set in a tabular mono face.
@@ -27,6 +38,32 @@ export function formatCurrency(value: number) {
 export function displayFigure(value: string): string {
   if (/\d,\d{3}/.test(value)) return value.replace(/^-/, "−");
   return value.replace(/^-/, "−").replace(/(\d)\.(\d)/g, "$1,$2");
+}
+
+/**
+ * A signed percentage in the display figure's own style.
+ *
+ * `−0,0%` claims a fall the recording did not have — the move simply rounded
+ * away — so a magnitude indistinguishable from zero prints unsigned. The minus
+ * is typographic because a reader reads this string; the verifier matches on
+ * the engine's ASCII figures (`displayFigure`).
+ */
+export function signedPercent(value: number, digits = 1): string {
+  const magnitude = formatDecimal(Math.abs(value), digits);
+  if (magnitude === formatDecimal(0, digits)) return `${magnitude}%`;
+  return `${value < 0 ? "\u2212" : "+"}${magnitude}%`;
+}
+
+/**
+ * A full stop, only where one is missing.
+ *
+ * A recorded headline is written by its source and may already be a sentence,
+ * so appending a stop to it prints `..`. Wherever copy is joined to copy, the
+ * join goes through here instead of typing its own punctuation.
+ */
+export function withStop(text: string): string {
+  const trimmed = text.trimEnd();
+  return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
 
 export function formatAsOf(value: string) {

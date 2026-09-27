@@ -129,7 +129,10 @@ export interface BrokerEvidence {
   freeFloatShares: number;
   sharesOutstanding: number;
   referencePrice: number;
-  /** Window the broker summary itself covers; it is wider than the daily price window. */
+  /** Window `netForeign` and `totalMarketValue` were summed over: the
+   *  foreign-flow rows clipped to the app window, not the broker-summary
+   *  recording's own span (that feed refreshes on a slower cadence, so its
+   *  dates disagree with the figure printed beside them). */
   windowStart?: string;
   windowEnd?: string;
   /** Monthly local/foreign ownership split from shareholders-composition, when recorded for this symbol. */
@@ -178,6 +181,11 @@ export interface AppliedPlaybookRule {
   kind: "materiality" | "exposure" | "assumption" | "source" | "falsifier" | "comparable";
   rule: string;
   effect: string;
+  /** The rule came from an approved result (`[Disetujui SYMBOL]` /
+   *  `[Hasil SYMBOL]`), not from the built-in playbook. The audit panel
+   *  shows these first: a reader who approved a rule came back to see it
+   *  work, and finding it below three threshold rows is finding nothing. */
+  approved?: boolean;
 }
 
 export interface ResearchPlan {
