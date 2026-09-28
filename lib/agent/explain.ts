@@ -1,5 +1,6 @@
 import { phraseMatches } from "@/lib/text/fuzzy";
 import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
+import { signedPercent } from "@/lib/utils";
 import type { AnalysisCase, Citation, MetricValue, PillarResult } from "@/lib/types";
 
 export { phraseMatches };
@@ -413,7 +414,10 @@ export function answerableFigures(analysis: AnalysisCase): AnswerableFigure[] {
       group: "Header kasus",
       metric: {
         label: "Perubahan harga harian",
-        value: `${analysis.company.changePct.toLocaleString("id-ID")}%`,
+        // One signed decimal, like every other percentage on screen: the
+        // default toLocaleString precision printed "0%" or "-0,04%" beside
+        // "−0,0%", and a rise carried no sign at all.
+        value: signedPercent(analysis.company.changePct),
         citations: analysis.company.citations,
       },
     },

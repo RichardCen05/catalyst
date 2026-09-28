@@ -1,5 +1,5 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS, missingList } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, companies, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, missingList, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
@@ -44,6 +44,7 @@ import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler, type HandlerId, type HandlerSignals } from "@/lib/agent/handlers";
 import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
 import { uiLabel } from "@/lib/ui-labels";
+import { withStop } from "@/lib/utils";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
 import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/retrieval/answer-cache";
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
@@ -62,8 +63,20 @@ import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
 import { attributionMaterial, causalPathMaterial, compareMaterial, falsifierMaterial, playbookMaterial, statusMaterial } from "@/lib/agent/case-answers";
 
-const percent = (value: number, digits = 1) =>
-  new Intl.NumberFormat("id-ID", { style: "percent", maximumFractionDigits: digits }).format(value);
+/**
+ * A percentage in the one shape the reader sees everywhere: id-ID, one
+ * decimal, and never a signed zero.
+ *
+ * Without a minimum the same value printed as `0%` here and `0,0,0%` there,
+ * and a fraction small enough to round away (`-0.0004`) printed `-0%` — a
+ * fall the recording never had. The sign stays ASCII because `displayFigure`
+ * swaps it for a true minus at the render edge.
+ */
+const percent = (value: number, digits = 1) => {
+  const formatter = new Intl.NumberFormat("id-ID", { style: "percent", minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const magnitude = formatter.format(Math.abs(value));
+  return magnitude === formatter.format(0) ? formatter.format(0) : `${value < 0 ? "-" : ""}${magnitude}`;
+};
 
 /** A fixed-precision figure in id-ID, so a ratio reads like the percentages
  *  beside it. The verifier strips both separators, so the matcher is unaffected. */
@@ -183,14 +196,18 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   if (!playbook) return [];
   const forSymbol = (value: string) => value.toUpperCase().includes(symbol);
   const rules: AppliedPlaybookRule[] = [];
-  const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string) => {
-    if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect });
+  const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string, approved = false) => {
+    if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect, ...(approved ? { approved: true } : {}) });
   };
-  playbook.materialityRules
-    .filter((rule) => (!rule.startsWith("[Hasil ") && !rule.startsWith("[Disetujui ")) || rule.startsWith(`[Hasil ${symbol}]`) || rule.startsWith(`[Disetujui ${symbol}]`))
-    .forEach((rule) => add("materiality", rule, rule.startsWith(`[Hasil ${symbol}]`) || rule.startsWith(`[Disetujui ${symbol}]`)
-    ? "Menggunakan kembali aturan yang disetujui dari hasil kasus ini."
-    : "Menentukan apakah pemicu layak membuka dan menaikkan prioritas kasus."));
+  const isOwn = (rule: string) => rule.startsWith(`[Hasil ${symbol}]`) || rule.startsWith(`[Disetujui ${symbol}]`);
+  // Approved first, for the same reason `addSymbolRule` below puts them
+  // first: `materialityRule` takes the first materiality entry and the audit
+  // panel takes the first rows, so a rule `setRuleProposalStatus` appends to
+  // the end of the list could never be seen or used — approving it changed
+  // the record and nothing on screen.
+  const materiality = playbook.materialityRules.filter((rule) => (!rule.startsWith("[Hasil ") && !rule.startsWith("[Disetujui ")) || isOwn(rule));
+  materiality.filter(isOwn).forEach((rule) => add("materiality", rule, "Menggunakan kembali aturan yang disetujui dari hasil kasus ini.", true));
+  materiality.filter((rule) => !isOwn(rule)).forEach((rule) => add("materiality", rule, "Menentukan apakah pemicu layak membuka dan menaikkan prioritas kasus."));
   // Aturan yang disetujui ([Disetujui SYMBOL]) harus menang atas bawaan:
   // .find() mengembalikan bawaan pertama sehingga aturan baru yang di-append
   // tidak pernah terpakai. Tambahkan yang disetujui dulu, lalu bawaan.
@@ -203,7 +220,7 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
     const approved = list.filter(
       (rule) => rule.startsWith(`[Disetujui ${symbol}]`) || rule.startsWith(`[Hasil ${symbol}]`),
     );
-    approved.forEach((rule) => add(kind, rule, approvedEffect));
+    approved.forEach((rule) => add(kind, rule, approvedEffect, true));
     const baseline = list.find((rule) => forSymbol(rule) && !approved.includes(rule));
     if (baseline) add(kind, baseline, effect);
   };
@@ -567,7 +584,9 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     {
       key: "catalyst", label: "Katalis", status: catalystDirection,
       summary: primaryEvent
-        ? `${primaryEvent.title}. Jalur utama: ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "Belum terverifikasi"}.`
+        // The headline is the source's own sentence and may already end in a
+        // full stop; appending one printed "…tensions.. Jalur utama:".
+        ? `${withStop(primaryEvent.title)} Jalur utama: ${primaryEvent.impactLinks.find((link) => link.symbol === symbol)?.path ?? "Belum terverifikasi"}.`
         : "Belum ada peristiwa dengan jalur dampak terverifikasi.",
       protocol: {
         claim: "Pemicu mendahului perubahan dan memiliki jalur eksposur emiten yang dapat diuji.",
@@ -693,7 +712,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         id: `${symbol}-threshold-concentration`,
         kind: "materiality",
         rule: `Ambang konsentrasi ${t.concentrationFloor} (bawaan ${_DEFAULTS.concentrationFloor})`,
-        effect: `Status konsentrasi ${concentrationPillar.status} (bawaan ${defStatus})`,
+        effect: `Status konsentrasi ${uiLabel(concentrationPillar.status)} (bawaan ${uiLabel(defStatus)})`,
       });
     }
     if ((t?.volumeZFloor !== undefined && t.volumeZFloor !== _DEFAULTS.volumeZFloor) ||
@@ -706,7 +725,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         id: `${symbol}-threshold-volume`,
         kind: "materiality",
         rule: `Ambang volume ${t?.volumeZFloor ?? _DEFAULTS.volumeZFloor}/${t?.volumeExtremeFloor ?? _DEFAULTS.volumeExtremeFloor} (bawaan ${_DEFAULTS.volumeZFloor}/${_DEFAULTS.volumeExtremeFloor})`,
-        effect: `Status volume ${volumePillar.status} (bawaan ${defVol.status})`,
+        effect: `Status volume ${uiLabel(volumePillar.status)} (bawaan ${uiLabel(defVol.status)})`,
       });
     }
     if (custom?.relevanceFloor !== undefined && custom.relevanceFloor !== _DEFAULTS.relevanceFloor) {
@@ -716,7 +735,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         id: `${symbol}-threshold-relevance`,
         kind: "materiality",
         rule: `Ambang relevansi ${custom.relevanceFloor} (bawaan ${_DEFAULTS.relevanceFloor})`,
-        effect: `Materialitas ${curMat} (bawaan ${defMat}); keyakinan graf sebab-akibat dihitung ulang terhadap ambang ini`,
+        effect: `Materialitas ${uiLabel(curMat)} (bawaan ${uiLabel(defMat)}); keyakinan graf sebab-akibat dihitung ulang terhadap ambang ini`,
       });
     }
     // Ambang momentum dan konflik arus dulu hardcode di metrics.ts, sehingga
@@ -733,7 +752,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
         id: `${symbol}-threshold-momentum`,
         kind: "materiality",
         rule: `Ambang momentum ${thresholds.momentumAlignedFloor}/${thresholds.momentumSectorFloor}/${thresholds.momentumIdiosyncraticFloor} (bawaan ${_DEFAULTS.momentumAlignedFloor}/${_DEFAULTS.momentumSectorFloor}/${_DEFAULTS.momentumIdiosyncraticFloor})`,
-        effect: `Status momentum ${momentumPillar.status} (bawaan ${defMomentum.status})`,
+        effect: `Status momentum ${uiLabel(momentumPillar.status)} (bawaan ${uiLabel(defMomentum.status)})`,
       });
     }
     if (t?.foreignContradictionShare !== undefined && t.foreignContradictionShare !== _DEFAULTS.foreignContradictionShare) {
@@ -1674,7 +1693,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     // A marker the screen set travels as its label, never as a sentence about
     // this event, so the rewrite can say "belum dikonfirmasi resmi" verified.
     const markerNote = selected.markers?.length ? ` Penanda: ${selected.markers.map((marker) => EVENT_MARKER_LABEL[marker]).join(", ")}.` : "";
-    const header = `Peristiwa: ${selected.title}.${markerNote}`;
+    const header = `Peristiwa: ${withStop(selected.title)}${markerNote}`;
     const text = scoped.length
       ? `${header} ${scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")}`
       : `${header} Peristiwa ini tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.`;
@@ -1749,9 +1768,18 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // Say what this assistant can answer. "Belum ada bukti yang cukup" alone
   // reads as a data gap when the real problem is that the question did not
   // name anything the recordings cover.
+  //
+  // A named emiten without a full case is a coverage gap, not a reader who
+  // failed to name anything: "sebut kode emiten lebih dulu", written after
+  // the reader typed Vale Indonesia, reads as the app never having heard of
+  // the company. The gap and the recording that is missing are named instead.
+  const named = primary ? companies.find((company) => company.symbol === primary) : undefined;
+  const coverage = primary ? coverageInfo[primary] : undefined;
   const menu = analysis
     ? ` Untuk ${analysis.company.symbol} saya bisa menjawab: kenapa emiten ini masuk daftar, arti dan asal setiap angka (mis. "apa itu HHI", "dari mana 27,5%"), dampak sebuah peristiwa, perbandingan dengan emiten lain berkasus lengkap, dan data apa yang belum ada.`
-    : ` Sebut kode emiten lebih dulu, lalu tanyakan alasan masuk daftar, arti sebuah angka, asal angkanya, dampak peristiwa, atau data yang belum ada.`;
+    : primary
+      ? ` ${primary}${named ? ` (${named.name})` : ""} belum punya kasus lengkap pada rekaman ${DATA_AS_OF_LABEL}, jadi alur sebab-akibat, atribusi, dan pembandingnya belum tersedia.${coverage?.missing.length ? ` Rekaman yang belum ada: ${coverage.missing.join(", ")}.` : ""} Yang bisa saya jawab: arti dan asal sebuah angka, ambang, dampak peristiwa, dan data yang belum terekam.`
+      : ` Sebut kode emiten lebih dulu, lalu tanyakan alasan masuk daftar, arti sebuah angka, asal angkanya, dampak peristiwa, atau data yang belum ada.`;
   return {
     text: `Pertanyaan itu belum bisa dipetakan ke bukti pada rekaman Catalyst ${DATA_AS_OF_LABEL}.${menu}`,
     refused: false, intent: "unknown", hypotheses: [], citations: analysis?.sources.slice(0, 3) ?? [],

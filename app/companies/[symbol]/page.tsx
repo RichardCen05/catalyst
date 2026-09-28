@@ -9,5 +9,5 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
   const { symbol } = await params;
   const company = companies.find((item) => item.symbol === symbol.toUpperCase());
   if (!company) notFound();
-  redirect(company.analyzed ? `/cases/${company.symbol}` : "/cases?view=picker");
+  redirect(company.analyzed ? `/cases/${company.symbol}` : `/impact?company=${company.symbol}`);
 }

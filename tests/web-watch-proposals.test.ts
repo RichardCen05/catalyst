@@ -106,6 +106,18 @@ describe("draftProposals", () => {
     expect(report.rejections[0].violations).toContain("advisory or transactional language");
   });
 
+  it("rejects a fluent mapping the candidate itself does not support", async () => {
+    const { report } = await draftProposals(queued(news(PTBA_BODY)), {
+      call: stub({
+        path: "Sentimen pasar global menggerakkan harga saham emiten di bursa",
+        rationale: "Pergerakan bursa regional memengaruhi minat investor asing terhadap aset berisiko pekan ini.",
+      }),
+      force: true,
+    });
+    expect(report).toMatchObject({ proposed: 0, rejected: 1 });
+    expect(report.rejections[0].violations.join(" ")).toMatch(/content terms with the evidence/);
+  });
+
   it("stops at a closed budget and leaves the candidate untried for the next sweep", async () => {
     const queue = queued(news(PTBA_BODY), news(`${PTBA_BODY} Lagi.`, "Berita lain soal Bukit Asam"));
     const call = stub(new LlmBudgetError("budget", "Daily model call budget reached (5/5)"));
@@ -155,18 +167,53 @@ describe("draftProposals", () => {
 
 describe("verifyExposureDraft", () => {
   it("rejects a symbol outside the triage match set, even a registry one", () => {
-    const check = verifyExposureDraft(good, "BBCA", ["PTBA"], ["54%"]);
+    const check = verifyExposureDraft(good, "BBCA", ["PTBA"], ["54%"], PTBA_BODY);
     expect(check.approved).toBe(false);
     expect(check.violations).toContain("BBCA is outside the triage match set");
   });
 
   it("rejects an unknown symbol and an Unverified direction", () => {
-    const check = verifyExposureDraft({ ...good, direction: "Unverified" }, "FAKE", ["PTBA"], ["54%"]);
+    const check = verifyExposureDraft({ ...good, direction: "Unverified" }, "FAKE", ["PTBA"], ["54%"], PTBA_BODY);
     expect(check.violations).toEqual(expect.arrayContaining(["FAKE is not a registry symbol", "direction Unverified cannot be proposed"]));
   });
 
   it("accepts a draft whose numerals all appear in the evidence, separators aside", () => {
-    expect(verifyExposureDraft({ ...good, path: "DMO 54,0% → harga jual domestik → margin PTBA" }, "PTBA", ["PTBA"], ["54.0%"]).approved).toBe(true);
+    expect(verifyExposureDraft({ ...good, path: "DMO 54,0% → harga jual domestik → margin PTBA" }, "PTBA", ["PTBA"], ["54.0%"], PTBA_BODY).approved).toBe(true);
+  });
+
+  it("rejects a rationale that shares nothing with the candidate it maps", () => {
+    const generic: ExposureAssessment = {
+      path: "Sentimen pasar global menggerakkan harga saham emiten sektor ini",
+      label: "Sentimen pasar",
+      direction: "Adverse",
+      relevanceBand: "high",
+      rationale: "Pergerakan bursa regional memengaruhi minat investor asing terhadap aset berisiko.",
+    };
+    const check = verifyExposureDraft(generic, "PTBA", ["PTBA"], [], PTBA_BODY);
+    expect(check.approved).toBe(false);
+    expect(check.violations.join(" ")).toMatch(/content terms with the evidence/);
+  });
+
+  it("rejects an English rationale, however fluent and figure-free", () => {
+    const check = verifyExposureDraft(
+      { ...good, rationale: "The obligation weighs on the average selling price of the company this year." },
+      "PTBA",
+      ["PTBA"],
+      ["54%"],
+      PTBA_BODY,
+    );
+    expect(check.violations).toContain("draft is written in English");
+  });
+
+  it("rejects a rationale too short to check", () => {
+    const check = verifyExposureDraft({ ...good, rationale: "Relevan." }, "PTBA", ["PTBA"], ["54%"], PTBA_BODY);
+    expect(check.violations).toContain(`rationale is shorter than ${resolveThresholds().webWatchRationaleMinWords} words`);
+    expect(check.approved).toBe(false);
+  });
+
+  it("still checks everything else when there is no text to ground against", () => {
+    const check = verifyExposureDraft({ ...good, rationale: "Relevan sekali untuk kasus emiten ini." }, "PTBA", ["PTBA"], ["54%"], "");
+    expect(check.approved).toBe(true);
   });
 });
 

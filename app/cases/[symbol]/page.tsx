@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { companies } from "@/lib/data/fixtures";
 import { CompanyDetailClient } from "@/app/companies/[symbol]/company-detail-client";
 
@@ -9,7 +9,8 @@ export function generateStaticParams() {
 
 export default async function ResearchCasePage({ params }: { params: Promise<{ symbol: string }> }) {
   const { symbol } = await params;
-  const company = companies.find((item) => item.symbol === symbol.toUpperCase() && item.analyzed);
+  const company = companies.find((item) => item.symbol === symbol.toUpperCase());
   if (!company) notFound();
+  if (!company.analyzed) redirect(`/impact?company=${company.symbol}`);
   return <Suspense fallback={<div className="min-h-64 rounded-lg border border-border bg-surface" role="status"><span className="sr-only">Memuat kasus</span></div>}><CompanyDetailClient symbol={company.symbol} /></Suspense>;
 }

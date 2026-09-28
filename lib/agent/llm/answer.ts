@@ -1,7 +1,7 @@
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
-import { detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
+import { answerSentences, detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
 
 export interface LlmAnswerDraft {
   text: string;
@@ -56,6 +56,14 @@ const ANSWER_SCHEMA = {
  *
  * The number rule stays absolute: the verifier rejects the draft over it, so
  * a model that invents a figure costs the reader the whole answer.
+ *
+ * Rule 6 answers the premise complaint. "Kenapa ANTM turun 15%?" was answered
+ * on its own terms — the model explained a drop the recordings do not hold,
+ * because nothing in this prompt told it the question could be wrong. The
+ * correction now comes first, so it survives the length cap below, and it is
+ * worded against quoting an unrecorded figure: the verifier would reject a
+ * draft that repeated the reader's number, which silently cost the whole
+ * answer. A correction written from the recorded figures alone passes.
  */
 const SYSTEM_INSTRUCTION = `Kamu Copilot riset saham Catalyst. Aturan:
 1. Jawab HANYA dari ringkasan bukti yang diberikan. Jangan pernah menuliskan angka yang tidak muncul persis di ringkasan itu.
@@ -63,7 +71,22 @@ const SYSTEM_INSTRUCTION = `Kamu Copilot riset saham Catalyst. Aturan:
 3. Jangan menyebut "evidence summary", "ringkasan bukti", "data yang diberikan", atau proses internal apa pun. Langsung jawab isinya.
 4. Setiap jawaban menyebut isi ringkasan: nilai, status, nama indikator, atau pemicunya. Bila ringkasan tidak menjawab langsung, sampaikan fakta terdekat dari ringkasan lalu sebut apa yang belum terekam. Jangan pernah mendeskripsikan ringkasan itu sendiri ("informasi yang tersedia memuat…").
 5. Jawab dalam bahasa pertanyaan: pertanyaan Inggris dijawab Inggris, pertanyaan Indonesia dijawab Indonesia. Istilah teknis, kode saham, dan angka tetap apa adanya.
-6. Maksimal 4 kalimat. Tanpa pembuka, tanpa penutup, tanpa daftar bernomor.`;
+6. Bila premis pertanyaan bertentangan dengan ringkasan — arah, angka, atau klaim yang tidak didukung rekaman — koreksi premis itu di kalimat pertama dengan angka dari ringkasan, baru jawab pertanyaannya. Angka yang tidak ada di ringkasan tidak boleh kamu tulis ulang; katakan bahwa angka itu tidak ada pada rekaman tanpa menyebutnya.
+7. Maksimal ${DEFAULT_THRESHOLDS.answerMaxSentences} kalimat. Tanpa pembuka, tanpa penutup, tanpa daftar bernomor.`;
+
+/**
+ * A draft cut to the length the reader was promised.
+ *
+ * Rejecting a long draft does not shorten the answer: the caller falls back to
+ * the deterministic material, which is longer than the draft was. The cap is
+ * therefore enforced by dropping the sentences past it — the model was told
+ * the correction comes first, so what is kept is the part that matters — and
+ * `verifyAnswer` then checks the text that will actually ship.
+ */
+export function boundedAnswer(text: string, max = DEFAULT_THRESHOLDS.answerMaxSentences): string {
+  const sentences = answerSentences(text);
+  return sentences.length > max ? sentences.slice(0, max).join(" ") : text;
+}
 
 export async function composeAnswerWithLlm(
   input: AnswerInput,
@@ -76,7 +99,8 @@ export async function composeAnswerWithLlm(
     schema: ANSWER_SCHEMA,
     maxOutputTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
   });
-  const verification = verifyAnswer(draft.text, input.evidenceNumbers, input.languageSource ?? input.question, input.evidenceSummary);
+  const text = boundedAnswer(draft.text);
+  const verification = verifyAnswer(text, input.evidenceNumbers, input.languageSource ?? input.question, input.evidenceSummary);
   if (!verification.approved) throw new Error(`Answer rejected by verifier: ${verification.violations.join("; ")}`);
-  return draft;
+  return { ...draft, text };
 }

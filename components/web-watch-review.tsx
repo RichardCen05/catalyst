@@ -345,12 +345,12 @@ function CandidateCard({
         <section aria-label="Usulan model" className="mt-4 rounded-lg border border-border bg-muted/40 p-3">
           <h4 className="text-sm font-semibold">Usulan model</h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Lolos pemeriksaan angka dan bahasa. Belum masuk analisis sampai Anda menerimanya.
+            Lolos pemeriksaan angka, bahasa, dan kaitannya dengan sumber. Belum masuk analisis sampai Anda menerimanya.
           </p>
           <ul className="mt-2 space-y-2 text-sm">
             {proposal.impacts.map((impact) => (
               <li key={impact.symbol}>
-                <span className="font-mono font-semibold">{impact.symbol}</span> · {directionLabel[impact.direction as ImpactDraft["direction"]] ?? impact.direction} · {bandLabel[impact.band]}
+                <span className="font-mono font-semibold">{impact.symbol}</span> · {directionLabel[impact.direction as ImpactDraft["direction"]] ?? impact.direction} · {bandLabel[impact.band] ?? impact.band}
                 <p className="text-xs leading-5 text-muted-foreground">{impact.path}</p>
                 <p className="text-xs leading-5 text-muted-foreground">{impact.rationale}</p>
               </li>

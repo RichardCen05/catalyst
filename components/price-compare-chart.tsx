@@ -79,7 +79,7 @@ export function PriceCompareChart({ series, ihsgFrom }: {
               <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="shortDate" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} minTickGap={34} />
               <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} domain={["auto", "auto"]} />
-              <Tooltip contentStyle={{ background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, fontFamily: "var(--font-mono)", fontSize: 12 }} formatter={(value, name) => [`${Number(value).toFixed(2)} indeks`, name]} labelFormatter={(value) => `Tanggal ${value}`} />
+              <Tooltip contentStyle={{ background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: 8, fontFamily: "var(--font-mono)", fontSize: 12 }} formatter={(value, name) => [`${indexFigure(value)} indeks`, name]} labelFormatter={(value) => `Tanggal ${value}`} />
               <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-mono)" }} />
               <Line type="monotone" dataKey="IHSG" stroke="var(--muted-foreground)" strokeWidth={1.5} strokeDasharray="5 4" dot={false} animationDuration={900} />
               {series.map((item, index) => <Line key={item.symbol} type="monotone" dataKey={item.symbol} stroke={SERIES_COLORS[index % SERIES_COLORS.length]} strokeWidth={index === 0 ? 2.25 : 1.5} dot={false} activeDot={{ r: 4 }} connectNulls animationDuration={900} />)}

@@ -24,6 +24,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { EventMarkers } from "@/components/event-markers";
 import { IconCompanies, IconDocument, IconGauge, IconGraph, IconPolicy, IconSource, IconWeather } from "@/components/ui/icons";
 import { uiLabel } from "@/lib/ui-labels";
+import { withStop } from "@/lib/utils";
 
 type ChainNodeData = { causal: CausalNode; dimmed: boolean; onSelect: (id: string) => void };
 type ChainFlowNode = Node<ChainNodeData, "chain">;
@@ -203,7 +204,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         <EventMarkers markers={selected.markers} className="mt-1 block" />
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{selected.detail}</p>
         <dl className="mt-3 grid gap-3 text-xs leading-5 md:grid-cols-2">
-          <div><dt className="font-semibold">Bukti pendukung</dt><dd className="mt-1 text-muted-foreground">{selected.supportingEvidence ?? `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${selected.label}.`}</dd></div>
+          <div><dt className="font-semibold">Bukti pendukung</dt><dd className="mt-1 text-muted-foreground">{selected.supportingEvidence ?? `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${withStop(selected.label)}`}</dd></div>
           <div><dt className="font-semibold">Bukti penyangkal</dt><dd className="mt-1 text-muted-foreground">{selected.counterEvidence}</dd></div>
         </dl>
         <div className="mt-4 flex flex-wrap gap-2">

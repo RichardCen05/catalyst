@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
 import { safeLanguage } from "@/lib/agent/gates";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 describe("detectLanguage", () => {
   it("names Indonesian and English from function words", () => {
@@ -50,6 +51,18 @@ describe("verifyAnswer", () => {
   it("allows an English answer to an English question", () => {
     const result = verifyAnswer("The concentration is high because the same brokers repeat.", [], "Why is ANTM listed today?");
     expect(result.approved).toBe(true);
+  });
+
+  it("approves an answer exactly at the sentence cap and rejects one past it", () => {
+    const words = ["pertama", "kedua", "ketiga", "keempat", "kelima"];
+    const at = words.slice(0, DEFAULT_THRESHOLDS.answerMaxSentences)
+      .map((word) => `Kalimat ${word} menyebut konsentrasi pada rekaman.`).join(" ");
+    expect(verifyAnswer(at, ["27,5%"], question).approved).toBe(true);
+
+    const past = `${at} Kalimat kelima masih ada di draf.`;
+    const result = verifyAnswer(past, ["27,5%"], question);
+    expect(result.approved).toBe(false);
+    expect(result.violations.join(" ")).toContain("sentences");
   });
 });
 
