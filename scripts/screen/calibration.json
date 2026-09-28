@@ -3,30 +3,36 @@
   "model": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
   "checks": {
     "rumor": {
-      "n": 69,
+      "n": 84,
       "positives": 7,
       "labeledBy": "claude-opus-5-5",
-      "T": 2.6904,
-      "ece_before": 0.1577,
-      "ece_after": 0.1834
+      "ece_before": 0.157,
+      "ece_after": 0.192,
+      "T_fit": 2.784
     },
     "title": {
-      "n": 57,
+      "n": 84,
       "positives": 2,
       "labeledBy": "claude-opus-5-5",
-      "T": 6.7543,
-      "ece_before": 0.2769,
-      "ece_after": 0.2816
+      "ece_before": 0.283,
+      "ece_after": 0.2985,
+      "T_fit": 7.8589
     },
     "substance": {
-      "n": 0,
-      "positives": 0,
-      "labeledBy": "claude-opus-5-5"
+      "n": 64,
+      "positives": 59,
+      "labeledBy": "claude-opus-5-5",
+      "ece_before": 0.112,
+      "ece_after": 0.1293,
+      "T_fit": 1.2567
     },
     "relevance": {
-      "n": 0,
-      "positives": 0,
-      "labeledBy": "claude-opus-5-5"
+      "n": 217,
+      "positives": 14,
+      "labeledBy": "claude-opus-5-5",
+      "ece_before": 0.2408,
+      "ece_after": 0.2846,
+      "T_fit": 20.0
     }
   }
 }

@@ -13,8 +13,17 @@ screen would act on at T = 1) and a binary label:
 - rumor: the golden `rumor` flag and the pending-label `rumor` flag, scored on
   the entailment class of the rumor hypothesis;
 - title: the `misleadingTitle` flag, scored on the contradiction class of the
-  title hypothesis.
-Checks without labels (official, substance, relevance) are written with n = 0.
+  title hypothesis;
+- substance: the pending-label `substantive` flag, scored on the entailment
+  class of the substance hypothesis;
+- relevance: one row per matched emiten of a pending item that carries a
+  `relevant` list, positive when the emiten is on it, scored on the
+  entailment class of that emiten's relevance hypothesis.
+`official` has no labels of its own; it shares the rumor temperature.
+
+A fitted temperature is written as `T` only when it lowers the check's
+expected calibration error; otherwise it is kept as `T_fit` and the screen
+treats the check as uncalibrated (T = 1, strict floor).
 
 The labels were written by Claude, not by a person (W17). `labeledBy` records
 that in every entry until a reviewer signs them off.
@@ -36,8 +45,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from screen import HERE, ItemScores, softmax  # noqa: E402
 
-CHECK_CLASS = {"rumor": "entailment", "title": "contradiction"}
-LABEL_FIELD = {"rumor": "rumor", "title": "misleadingTitle"}
+CHECK_CLASS = {"rumor": "entailment", "title": "contradiction", "substance": "entailment", "relevance": "entailment"}
+LABEL_FIELD = {"rumor": "rumor", "title": "misleadingTitle", "substance": "substantive", "relevance": "relevant"}
 ECE_BINS = 10
 T_GRID = np.exp(np.linspace(np.log(0.05), np.log(20.0), 400))
 
@@ -80,12 +89,20 @@ def labeled_rows(scores: dict[str, ItemScores], labels: dict[str, dict], check: 
     xs, ys = [], []
     for item_id, label in labels.items():
         s = scores.get(item_id)
-        score = getattr(s, check, None) if s else None
-        if score is None or not score.logits or LABEL_FIELD[check] not in label:
+        if s is None or LABEL_FIELD[check] not in label:
             continue
-        _, i = score.best(cls, 1.0)
-        xs.append(score.logits[i])
-        ys.append(1.0 if label[LABEL_FIELD[check]] else 0.0)
+        if check == "relevance":
+            # Each matched emiten is its own question with its own hypothesis.
+            relevant = set(label["relevant"])
+            pairs = [(score, symbol in relevant) for symbol, score in s.relevance.items()]
+        else:
+            pairs = [(getattr(s, check, None), bool(label[LABEL_FIELD[check]]))]
+        for score, y in pairs:
+            if score is None or not score.logits:
+                continue
+            _, i = score.best(cls, 1.0)
+            xs.append(score.logits[i])
+            ys.append(1.0 if y else 0.0)
     return np.array(xs, dtype=np.float64).reshape(-1, 3), np.array(ys, dtype=np.float64)
 
 
@@ -107,20 +124,22 @@ def load_labels(pending_path: str | None, golden_path: str | None) -> tuple[dict
 
 def calibrate(scores: dict[str, ItemScores], labels: dict[str, dict], labeled_by: str, class_index: dict[str, int]) -> dict:
     out: dict[str, dict] = {}
-    for check in ("rumor", "title"):
+    for check in ("rumor", "title", "substance", "relevance"):
         cls = class_index[CHECK_CLASS[check]]
         x, y = labeled_rows(scores, labels, check, cls)
         entry = {"n": int(len(y)), "positives": int(y.sum()), "labeledBy": labeled_by}
         if len(y) and 0 < y.sum() < len(y):
             t = fit_temperature(x, y, cls)
-            entry.update(
-                T=round(t, 4),
-                ece_before=round(ece(softmax(x)[:, cls], y), 4),
-                ece_after=round(ece(softmax(x, t)[:, cls], y), 4),
-            )
+            before, after = ece(softmax(x)[:, cls], y), ece(softmax(x, t)[:, cls], y)
+            entry.update(ece_before=round(before, 4), ece_after=round(after, 4))
+            # A temperature is adopted only when it makes the check better
+            # calibrated. The NLL fit always finds some T, and one that leaves
+            # the probabilities further from the label rate would let the
+            # screen act on the relaxed bar with worse evidence than the strict
+            # floor has. Rejected fits are kept as `T_fit` so the report shows
+            # them, and the screen reads the check as uncalibrated.
+            entry.update(T=round(t, 4)) if after < before else entry.update(T_fit=round(t, 4))
         out[check] = entry
-    for check in ("substance", "relevance"):
-        out[check] = {"n": 0, "positives": 0, "labeledBy": labeled_by}
     return out
 
 

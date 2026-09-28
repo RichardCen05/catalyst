@@ -147,10 +147,18 @@ test("Dashboard menggambar seluruh kasus sebagai satu rantai sebab akibat", asyn
   await expect(hub).toContainText(`${sharedBy(hubLabel!).length} emiten`);
   await expect(hub).toContainText(sharedBy(hubLabel!).join(" · "));
 
-  // Cards stay in their column: the layout is the argument, so nothing drags
-  // and there is no layout to put back.
-  await expect(hub).not.toHaveClass(/draggable/);
-  await expect(map.getByRole("button", { name: /Susun ulang/ })).toHaveCount(0);
+  // The layout seeds the board and a reader may pull a card clear of the
+  // others; "Susun Ulang Kartu" puts every card back where the layout wants it.
+  await expect(hub).toHaveClass(/draggable/);
+  const seeded = await hub.getAttribute("style");
+  const grip = await hub.boundingBox();
+  await page.mouse.move(grip!.x + grip!.width / 2, grip!.y + 8);
+  await page.mouse.down();
+  await page.mouse.move(grip!.x + grip!.width / 2 + 60, grip!.y + 68, { steps: 6 });
+  await page.mouse.up();
+  await expect(hub).not.toHaveAttribute("style", seeded!);
+  await map.getByRole("button", { name: "Susun Ulang Kartu" }).click();
+  await expect(hub).toHaveAttribute("style", seeded!);
 
   // The whole board is on screen at a zoom its headlines can be read at: no
   // scrolling to find out what else is on it, and no wall of grey slabs.

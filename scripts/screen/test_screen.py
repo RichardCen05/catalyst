@@ -184,6 +184,35 @@ def test_calibration_records_who_labeled():
     assert all(entry["labeledBy"] == "claude-opus-5-5" for entry in out.values())
 
 
+def test_calibration_adopts_a_temperature_only_when_it_lowers_ece():
+    # Rare positives and a few confident false positives, the shape of the
+    # relevance labels: the NLL fit flattens every probability, which moves
+    # the confident negatives further from their label rate than it moves the
+    # false positives towards theirs, so the ECE check refuses the fit.
+    rows = [(SURE_NO, False)] * 35 + [(SURE_YES, False)] * 3 + [(SURE_YES, True)] * 2
+    scores, labels = {}, {}
+    for k, (logits, y) in enumerate(rows):
+        hyp = {**item()["hypotheses"], "substance": f"H-{k}"}
+        scores[f"i{k}"] = screen.score_item(item(id=f"i{k}", hypotheses=hyp), stub({f"H-{k}": logits}))
+        labels[f"i{k}"] = {"substantive": y}
+    out = calibrate.calibrate(scores, labels, "claude-opus-5-5", LABELS)
+    entry = out["substance"]
+    assert entry["n"] == 40 and "T_fit" in entry and "T" not in entry
+    assert entry["ece_after"] >= entry["ece_before"]
+    assert not screen.Gate(THRESHOLDS, {"substance": {**entry, "n": 99}}).calibrated("substance")
+
+
+def test_relevance_labels_are_one_row_per_matched_emiten():
+    two = item(
+        id="r",
+        symbols=["AAAA", "BBBB"],
+        hypotheses={**item()["hypotheses"], "relevance": [{"symbol": "AAAA", "hypothesis": "H-REL-A"}, {"symbol": "BBBB", "hypothesis": "H-REL-B"}]},
+    )
+    scores = {"r": screen.score_item(two, stub({**CLEAN, "H-REL-B": SURE_NO}))}
+    out = calibrate.calibrate(scores, {"r": {"relevant": ["AAAA"]}}, "claude-opus-5-5", LABELS)
+    assert out["relevance"]["n"] == 2 and out["relevance"]["positives"] == 1
+
+
 def test_replay_gate_fails_on_an_accepted_dirty_item_and_a_rejected_clean_one():
     golden_labels = {"r1": {"rumor": True, "misleadingTitle": False, "title": "t"}, "c1": {"rumor": False, "misleadingTitle": False, "title": "t"}}
     golden_verdicts = [
