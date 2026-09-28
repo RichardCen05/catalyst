@@ -100,10 +100,11 @@ export function codeMatches(typed: string, target: string): boolean {
  * as "apa itu" — a word-order variant is not a different question, and no
  * alias list can hold every permutation.
  */
-function windowMatches(window: string[], target: string[]): boolean {
+function windowMatches(window: string[], target: string[], known?: (word: string) => boolean): boolean {
   const taken = new Set<number>();
   return target.every((word) => {
-    const index = window.findIndex((candidate, position) => !taken.has(position) && wordMatches(candidate, word));
+    const index = window.findIndex((candidate, position) => !taken.has(position)
+      && (candidate === word || (!known?.(candidate) && wordMatches(candidate, word))));
     if (index === -1) return false;
     taken.add(index);
     return true;
@@ -113,8 +114,12 @@ function windowMatches(window: string[], target: string[]): boolean {
 /**
  * True when `haystack` contains `phrase`, or something a typo or two away
  * from it. Case-insensitive; either argument may carry padding or casing.
+ *
+ * `known` names words that are words in their own right. A reader who typed
+ * one of them spelt it correctly, so it matches only itself: "sebaiknya" is
+ * two edits from "sebabnya" and means "should", not "the cause".
  */
-export function phraseMatches(haystack: string, phrase: string): boolean {
+export function phraseMatches(haystack: string, phrase: string, known?: (word: string) => boolean): boolean {
   const lower = haystack.toLowerCase();
   const needle = phrase.toLowerCase();
   if (lower.includes(needle)) return true;
@@ -124,7 +129,7 @@ export function phraseMatches(haystack: string, phrase: string): boolean {
   if (!typed.length) return false;
   const joined = target.join("");
   for (let start = 0; start + target.length <= typed.length; start += 1) {
-    if (windowMatches(typed.slice(start, start + target.length), target)) return true;
+    if (windowMatches(typed.slice(start, start + target.length), target, known)) return true;
   }
   // Then the same span with its spaces removed, one word wider and one word
   // narrower. Two things need this. A phrase whose typos land in more than
@@ -138,6 +143,7 @@ export function phraseMatches(haystack: string, phrase: string): boolean {
   for (let size = 1; size <= widest; size += 1) {
     for (let start = 0; start + size <= typed.length; start += 1) {
       const span = typed.slice(start, start + size).join("");
+      if (size === 1 && span !== joined && known?.(span)) continue;
       // One whole word against a squashed phrase forgives the missing space and
       // one slip, no more: "seberapa" is two edits from "sumberapa" and is a
       // word of its own, not "sumber apa" typed badly.

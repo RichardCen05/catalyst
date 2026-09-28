@@ -20,6 +20,17 @@ export function isoTimestamp(raw: string | null | undefined): string | null {
   return Number.isNaN(parsed) ? null : new Date(parsed).toISOString();
 }
 
+/** A calendar date written into an article URL (`/20260923…` or `/2026/09/23/`), as the
+ *  start of that day in Jakarta, or null when the address carries none. */
+export function dateFromUrl(url: string): string | null {
+  const match = url.match(/\/(20\d{2})\/?(\d{2})\/?(\d{2})(?=[/\-_.]|\d|$)/);
+  if (!match) return null;
+  const [, year, month, day] = match;
+  const check = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  const valid = check.getUTCMonth() === Number(month) - 1 && check.getUTCDate() === Number(day);
+  return valid ? `${year}-${month}-${day}T00:00:00+07:00` : null;
+}
+
 /**
  * An item stored before the headline rules could read the page: its title is
  * the address's filename (`sp 2819226.aspx`). The first line of its stored
@@ -35,11 +46,28 @@ function repairedTitle(event: MarketEvent & { titleSource?: string }, minWords: 
   return first.slice(0, 200);
 }
 
+/**
+ * An item written before the URL date was read carries the sweep's clock as
+ * its publication time: `publishedAt` equal to `asOf`, a day after the date
+ * its own address states. The address wins then, and only then — a feed date
+ * that differs from the crawl stamp is the source's own and stays.
+ */
+function crawlStampRepaired(event: MarketEvent): string | null {
+  if (event.publishedAt !== event.asOf) return null;
+  const fromUrl = dateFromUrl(event.citations[0]?.url ?? "");
+  if (!fromUrl) return null;
+  const stamped = Date.parse(event.publishedAt);
+  if (Number.isNaN(stamped)) return null;
+  // The crawl's calendar day in Jakarta, the zone the URL date is written in.
+  const crawlDay = new Date(stamped + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return fromUrl.slice(0, 10) < crawlDay ? fromUrl : null;
+}
+
 /** One stored event with the two fields above read the way new items are
  *  written. Returns the same object when neither needs repair, so a queue
  *  with nothing to fix compares equal to what was loaded. */
 export function repairStoredEvent<T extends MarketEvent>(event: T, minWords: number): T {
-  const publishedAt = isoTimestamp(event.publishedAt);
+  const publishedAt = crawlStampRepaired(event) ?? isoTimestamp(event.publishedAt);
   const title = repairedTitle(event, minWords);
   const dateChanged = publishedAt !== null && publishedAt !== event.publishedAt;
   if (!dateChanged && !title) return event;

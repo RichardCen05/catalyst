@@ -1,3 +1,4 @@
+import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import { uiLabel } from "@/lib/ui-labels";
 import type {
   AnalysisCase,
@@ -64,6 +65,25 @@ function dispositionLine(analysis: AnalysisCase): string {
 }
 
 /**
+ * "Berapa bagian karena sektor, berapa karena berita?" asks for the split, so
+ * it comes first: the move less what the index explains through beta, with
+ * the sector beside it, then what the remainder is not yet — a move the
+ * trigger has been shown to cause. Both lines are the case's own
+ * calculation and counter-evidence, read back.
+ */
+function splitLines(analysis: AnalysisCase, catalyst: PillarResult | undefined): string[] {
+  const calculation = pillar(analysis, "momentum")?.calculation;
+  if (!calculation) return [];
+  const residual = calculation.result.split(" · ")[0];
+  return [
+    `Uraian gerak: ${calculation.formula}; ${calculation.substitution} = ${calculation.result}.`,
+    catalyst
+      ? `Bagian di luar IHSG (${residual}) belum terbukti berasal dari pemicu: ${sentence(catalyst.protocol.challengingEvidence)}`
+      : `Bagian di luar IHSG (${residual}) belum punya peristiwa terhubung yang dapat diuji.`,
+  ];
+}
+
+/**
  * "Turun karena berita atau ikut sektor?"
  *
  * The case already holds both halves of the answer: the market layer says
@@ -79,6 +99,7 @@ export function attributionMaterial(analysis: AnalysisCase): CaseAnswerMaterial 
   const open = impactLabels(analysis, "Open");
   const lines = [
     statusLine(analysis),
+    ...splitLines(analysis, catalyst),
     `Pembanding pasar: ${sentence(analysis.materialChange.baseline)}`,
     ...market.map((item) => pillarLine(item, true)),
     ...(catalyst ? [pillarLine(catalyst, true)] : []),
@@ -105,15 +126,26 @@ export function statusMaterial(analysis: AnalysisCase): CaseAnswerMaterial {
   };
 }
 
-/** The reader's own rules, in the words they wrote them. */
-function playbookRules(playbook: InvestorResearchPlaybook | undefined): string[] {
+/**
+ * The reader's own rules, in the words they wrote them — the general ones and
+ * the ones about this case. A rule naming only other emiten ("BBRI: arus
+ * asing …") belongs to their cases; read back here it put five other issuers
+ * into an answer about PGAS.
+ */
+function playbookRules(playbook: InvestorResearchPlaybook | undefined, symbol: string): string[] {
   if (!playbook) return [];
+  const others = SYMBOL_CODES.filter((code) => code !== symbol);
+  const concerns = (rule: string) => {
+    const upper = rule.toUpperCase();
+    const names = (code: string) => new RegExp(`\\b${code}\\b`).test(upper);
+    return names(symbol) || !others.some(names);
+  };
   return [
     ...playbook.falsifiers.filter(Boolean).map((rule) => `Kondisi pembatal Anda: ${sentence(rule)}`),
     ...playbook.thesisAssumptions.filter(Boolean).map((rule) => `Asumsi tesis Anda: ${sentence(rule)}`),
     ...playbook.materialityRules.filter(Boolean).map((rule) => `Aturan materialitas Anda: ${sentence(rule)}`),
     ...playbook.knownExposures.filter(Boolean).map((rule) => `Eksposur yang Anda catat: ${sentence(rule)}`),
-  ];
+  ].filter(concerns);
 }
 
 /**
@@ -133,7 +165,7 @@ export function falsifierMaterial(analysis: AnalysisCase, playbook?: InvestorRes
     ...(open.length ? [`Belum diuji: ${open.join(", ")}.`] : []),
     `Pertanyaan yang belum terjawab: ${analysis.unresolvedQuestions.join(" ")}`,
     `Indikator yang dipantau: ${sentence(analysis.researchDisposition.monitorObservable)} ${sentence(analysis.researchDisposition.reopenWhen)}`,
-    ...playbookRules(playbook),
+    ...playbookRules(playbook, analysis.company.symbol),
   ];
   return {
     text: lines.join("\n"),
@@ -171,7 +203,7 @@ export function playbookMaterial(
     .map((key) => pillar(analysis, key))
     .filter((item): item is PillarResult => Boolean(item));
   const [firstPillar, ...rest] = ordered;
-  const rules = playbookRules(playbook);
+  const rules = playbookRules(playbook, analysis.company.symbol);
   const applied = analysis.appliedRules.map((rule) => `Aturan yang diterapkan pada kasus ini: ${sentence(rule.rule)} ${sentence(rule.effect)}`);
   const lines = [
     ...(rules.length

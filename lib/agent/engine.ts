@@ -55,7 +55,7 @@ import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
 import { resolveMetricGloss } from "@/lib/agent/llm/metric-gloss";
-import { findSymbolsRobust, matchEventForQuestion, normalizeQuery } from "@/lib/agent/query";
+import { findSymbolsRobust, isKnownWord, matchEventForQuestion, normalizeQuery } from "@/lib/agent/query";
 import { deriveMissingEvidence } from "@/lib/evidence-gaps";
 import { namesAThreshold, PILLAR_LABELS, DEFAULT_THRESHOLDS as _DEFAULTS, monthWindowLabel, OBSERVATION_WINDOWS, OUTCOME_RELEVANCE, RELEVANCE_BAND_SCORE, relevanceFloorFor as _relevanceFloorFor, resolveThresholds as _resolveThresholds, sessionWindowLabel } from "@/lib/agent/thresholds";
 import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } from "@/lib/agent/distribution";
@@ -1192,7 +1192,8 @@ const FALSIFIER_PHRASES = [
   "salah kalau", "salah jika", "melemahkan dugaan", "dibuka kembali", "buka kembali", "indikator apa",
   "harus saya pantau", "perlu dipantau", "harus dipantau", "yang dipantau", "dipantau apa",
   "invalidate", "disprove", "prove wrong", "proven wrong", "prove that wrong", "prove it wrong", "prove this wrong",
-  "falsif", "reopen", "what to monitor",
+  "falsif", "reopen", "what to monitor", "periksa berikutnya", "diperiksa berikutnya", "cek berikutnya",
+  "langkah berikutnya", "check next", "look at next", "next step",
   "which indicator", "what should i watch", "what would change",
 ];
 
@@ -1260,7 +1261,7 @@ async function causalNodeFor(question: string, symbols: SymbolCode[], profile: U
  */
 function mentions(question: string, phrases: string[]): boolean {
   const padded = ` ${question} `;
-  return phrases.some((phrase) => padded.includes(phrase) || phraseMatches(question, phrase));
+  return phrases.some((phrase) => padded.includes(phrase) || phraseMatches(question, phrase, isKnownWord));
 }
 
 function isProvenanceQuestion(question: string): boolean {

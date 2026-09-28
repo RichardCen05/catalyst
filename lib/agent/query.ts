@@ -207,6 +207,22 @@ function ordinaryWords(): Set<string> {
   return screenWords;
 }
 
+/**
+ * Words that are words, for the router's typo pass. The screen's own
+ * vocabulary and the stopwords are spelt the way a reader spells them, and so
+ * are the modal words a reader opens a request with: "sebaiknya" is two edits
+ * from "sebabnya", and "apa yang sebaiknya saya periksa" was answered as a
+ * question about what caused the move.
+ */
+const MODAL_WORDS = new Set(["sebaiknya", "seharusnya", "sebenarnya", "sebetulnya", "semestinya"]);
+export function isStopword(word: string): boolean {
+  return STOPWORDS.has(word);
+}
+
+export function isKnownWord(word: string): boolean {
+  return MODAL_WORDS.has(word) || STOPWORDS.has(word) || ordinaryWords().has(word);
+}
+
 /** Match symbols via code, full name, or common alias — whole-phrase on normalized text. */
 export function findSymbolsRobust(question: string, symbols: SymbolCode[]): SymbolCode[] {
   const normalized = ` ${normalizeQuery(question)} `;

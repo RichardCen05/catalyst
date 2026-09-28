@@ -35,7 +35,9 @@ import { strongModel } from "@/lib/agent/llm/models";
 import { detectLanguage, extractNumerals, groundingViolation, verifyDraft } from "@/lib/agent/llm/verify";
 import { agentMode } from "@/lib/agent/mode";
 import { RELEVANCE_BANDS, resolveThresholds, type ResolvedThresholds } from "@/lib/agent/thresholds";
-import { revenueSegments } from "@/lib/data/fixtures";
+import { citations, companies, revenueSegments } from "@/lib/data/fixtures";
+import { isStopword } from "@/lib/agent/query";
+import { words } from "@/lib/text/fuzzy";
 import { WEB_WATCH_PATH_MIN_CHARS } from "@/lib/schemas";
 import { isKnownSymbolCode, type ProposedImpact, type ReviewQueue, type TriageMatch, type TriageProposal } from "@/lib/web-watch/queue";
 import { matchText, type MatchKind } from "@/lib/web-watch/triage";
@@ -66,6 +68,53 @@ export function rankedSymbols(match: TriageMatch, max: number): SymbolCode[] {
   return [...best.entries()].sort((a, b) => a[1] - b[1]).map(([symbol]) => symbol).slice(0, max);
 }
 
+/** Headline verbs of a price or index move, by the direction they report. */
+const FALL_WORDS = ["anjlok", "turun", "melemah", "merosot", "jatuh", "terkoreksi", "ambles", "ambrol", "longsor", "zona merah"];
+const RISE_WORDS = ["naik", "menguat", "melonjak", "melesat", "meroket", "terbang", "zona hijau"];
+
+/** The market indexes the recordings carry, named the way their endpoint names them. */
+const INDEX_NAMES = [...new Set(Object.values(citations)
+  .map((citation) => (typeof citation === "function" ? undefined : citation.endpoint)?.match(/\/index-daily\/([^/]+)\//)?.[1]?.toLowerCase())
+  .filter((name): name is string => Boolean(name)))];
+
+function saysMove(text: string, vocabulary: string[]): boolean {
+  const padded = ` ${words(text).join(" ")} `;
+  return vocabulary.some((word) => padded.includes(` ${word} `));
+}
+
+/**
+ * The two ways a draft can be about some other article than the one it maps.
+ *
+ * A rationale that shares no word with the headline explains the body's
+ * background paragraph, not the news: "IHSG Parkir di Zona Hijau" reached
+ * BBCA on a BI-Rate sentence further down the page. And when the headline
+ * reports a move of the emiten itself or of the index, a draft cannot take
+ * the other side of it: "IHSG Anjlok" was proposed as supporting BBRI.
+ */
+function headlineViolations(draft: ExposureAssessment, symbol: string, headline: string): string[] {
+  const prose = words(`${draft.path ?? ""} ${draft.rationale ?? ""}`).join(" ");
+  const headlineWords = ` ${words(headline).join(" ")} `;
+  // The emiten's code and its registry name are one anchor: a headline naming
+  // "Bukit Asam" is addressed by a rationale about PTBA.
+  const name = companies.find((company) => company.symbol === symbol)?.name.toLowerCase() ?? "";
+  const nameWords = words(name).filter((word) => word.length >= 4);
+  const ownName = [symbol.toLowerCase(), ...nameWords];
+  const namesEmiten = ownName.some((word) => headlineWords.includes(` ${word} `));
+  const anchors = words(headline).filter((word) => word.length >= 4 && !isStopword(word) && !/^\d/.test(word));
+  const addressed = anchors.some((word) => prose.includes(word)) || (namesEmiten && ownName.some((word) => prose.includes(word)));
+  const violations: string[] = [];
+  if (anchors.length && !addressed) violations.push("rationale does not address the headline");
+  const subjects = [...ownName, ...INDEX_NAMES];
+  if (subjects.some((subject) => headlineWords.includes(` ${subject} `))) {
+    const fell = saysMove(headline, FALL_WORDS);
+    const rose = saysMove(headline, RISE_WORDS);
+    if ((fell && !rose && draft.direction === "Supported") || (rose && !fell && draft.direction === "Adverse")) {
+      violations.push(`direction ${draft.direction} contradicts the move the headline reports`);
+    }
+  }
+  return violations;
+}
+
 export interface DraftCheck {
   approved: boolean;
   violations: string[];
@@ -90,6 +139,7 @@ export function verifyExposureDraft(
   matchSet: SymbolCode[],
   allowedNumerals: string[],
   sourceText: string,
+  headline?: string,
 ): DraftCheck {
   const violations: string[] = [];
   if (!isKnownSymbolCode(symbol)) violations.push(`${symbol} is not a registry symbol`);
@@ -113,6 +163,7 @@ export function verifyExposureDraft(
   }
   const grounding = groundingViolation(prose, sourceText, allowedNumerals);
   if (grounding) violations.push(grounding);
+  if (headline) violations.push(...headlineViolations(draft, symbol, headline));
   try {
     assertSafeOutput(prose);
   } catch {
@@ -259,7 +310,7 @@ async function draftOne(
       console.warn(`[llm-fallback] triage ${symbol}/${event.id}: ${message}`);
       continue;
     }
-    const check = verifyExposureDraft(draft, symbol, match.symbols, allowed, matchText(event));
+    const check = verifyExposureDraft(draft, symbol, match.symbols, allowed, matchText(event), event.title);
     if (!check.approved) {
       console.warn(`[llm-fallback] triage ${symbol}/${event.id}: rejected — ${check.violations.join("; ").slice(0, 300)}`);
       report.rejections.push({ title: event.title, symbol, violations: check.violations });

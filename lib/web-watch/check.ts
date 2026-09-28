@@ -40,7 +40,9 @@ import { claim, release, type RegistryStore } from "@/lib/web-watch/registry";
 import { resolveThresholds } from "@/lib/agent/thresholds";
 import type { MarketEvent } from "@/lib/types";
 import { sentences } from "@/lib/web-watch/triage";
-import { isoTimestamp } from "@/lib/web-watch/stored-fields";
+import { dateFromUrl, isoTimestamp } from "@/lib/web-watch/stored-fields";
+
+export { dateFromUrl };
 import { isDue, type CheckResult, type TitleSource, type WatchedSourceState, type WebWatchCandidate } from "@/lib/web-watch/types";
 
 export type FetchImpl = (url: string, options?: FetchOptions) => Promise<Fetched>;
@@ -125,16 +127,6 @@ function summaryText(text: string, max: number): string {
   return (out || prose[0]).slice(0, max);
 }
 
-/** A calendar date written into an article URL (`/20260923…` or `/2026/09/23/`), as the
- *  start of that day in Jakarta, or null when the address carries none. */
-export function dateFromUrl(url: string): string | null {
-  const match = url.match(/\/(20\d{2})\/?(\d{2})\/?(\d{2})(?=[/\-_.]|\d|$)/);
-  if (!match) return null;
-  const [, year, month, day] = match;
-  const check = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-  const valid = check.getUTCMonth() === Number(month) - 1 && check.getUTCDate() === Number(day);
-  return valid ? `${year}-${month}-${day}T00:00:00+07:00` : null;
-}
 
 /** A change, packaged exactly like any other event input — but with no
  *  impact links. The mapping to symbols happens at review time, in the open,
