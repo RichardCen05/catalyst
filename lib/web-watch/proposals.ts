@@ -40,7 +40,10 @@ import { isStopword } from "@/lib/agent/query";
 import { words } from "@/lib/text/fuzzy";
 import { WEB_WATCH_PATH_MIN_CHARS } from "@/lib/schemas";
 import { isKnownSymbolCode, type ProposedImpact, type ReviewQueue, type TriageMatch, type TriageProposal } from "@/lib/web-watch/queue";
+import { bandForArticle } from "@/lib/web-watch/figure-band";
 import { matchText, type MatchKind } from "@/lib/web-watch/triage";
+
+export { bandForArticle };
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
 /** Directions a reviewer can accept. `Unverified` says the model could not
@@ -319,7 +322,7 @@ async function draftOne(
     impacts.push({
       symbol,
       direction: draft.direction,
-      band: draft.relevanceBand,
+      band: bandForArticle(draft.relevanceBand, matchText(event)),
       path: draft.path.trim().slice(0, 300),
       rationale: draft.rationale.trim().slice(0, 500),
     });

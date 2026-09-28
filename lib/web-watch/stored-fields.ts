@@ -1,3 +1,4 @@
+import { resolveThresholds } from "@/lib/agent/thresholds";
 import { titleFromUrl } from "@/lib/web-watch/fetching";
 import type { MarketEvent } from "@/lib/types";
 
@@ -63,17 +64,50 @@ function crawlStampRepaired(event: MarketEvent): string | null {
   return fromUrl.slice(0, 10) < crawlDay ? fromUrl : null;
 }
 
-/** One stored event with the two fields above read the way new items are
- *  written. Returns the same object when neither needs repair, so a queue
+/**
+ * Text with the page controls between its headline and its first sentence
+ * dropped, or null when there are none.
+ *
+ * The fetcher now drops them from the markup (dead links, `<nav>`), but an
+ * item stored before that still shows "Turn on more accessible mode… Skip
+ * Ribbon Commands… Karier… Edukasi" under its headline (QA P2-7). With no
+ * markup left, the shape is what remains: a run of at least `minRun` lines,
+ * each shorter than a sentence, before the first line that is one. A single
+ * short line is a dateline and stays; a text with no sentence at all is left
+ * as it is, since there is nothing to tell chrome from content by.
+ */
+function withoutLeadingChrome(text: string, sentenceWords: number, minRun: number): string | null {
+  const lines = text.split("\n");
+  const filled = (line: string) => line.trim().length > 0;
+  const words = (line: string) => line.trim().split(/\s+/).filter(Boolean).length;
+  const first = lines.findIndex(filled);
+  if (first < 0) return null;
+  const prose = lines.findIndex((line, index) => index > first && words(line) >= sentenceWords);
+  if (prose < 0) return null;
+  const run = lines.slice(first + 1, prose).filter(filled);
+  if (run.length < minRun) return null;
+  return [lines[first], ...lines.slice(prose)].join("\n\n").replace(/\n{3,}/g, "\n\n");
+}
+
+/** One stored event with the fields above read the way new items are
+ *  written. Returns the same object when nothing needs repair, so a queue
  *  with nothing to fix compares equal to what was loaded. */
 export function repairStoredEvent<T extends MarketEvent>(event: T, minWords: number): T {
   const publishedAt = crawlStampRepaired(event) ?? isoTimestamp(event.publishedAt);
   const title = repairedTitle(event, minWords);
   const dateChanged = publishedAt !== null && publishedAt !== event.publishedAt;
-  if (!dateChanged && !title) return event;
+  const t = resolveThresholds();
+  const body = event.body ? withoutLeadingChrome(event.body, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines) : null;
+  // A stored summary is the head of the page, often cut before any sentence:
+  // read from its own sentences when it has one, else from the repaired body.
+  const summary = withoutLeadingChrome(event.summary, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines)
+    ?? (body ? body.slice(0, Math.max(event.summary.length, 1)) : null);
+  if (!dateChanged && !title && !body && !summary) return event;
   return {
     ...event,
     ...(dateChanged ? { publishedAt } : {}),
     ...(title ? { title, titleSource: "body" } : {}),
+    ...(body ? { body } : {}),
+    ...(summary ? { summary } : {}),
   };
 }

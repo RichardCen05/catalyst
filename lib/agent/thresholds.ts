@@ -167,6 +167,13 @@ export const DEFAULT_THRESHOLDS = {
    *  pengganti nama berkas (`sp 2819526.aspx`). Judul lebih pendek dari
    *  kalimat: "Uang Beredar Tumbuh Positif pada Agustus 2026" tujuh kata. */
   webWatchHeadlineMinWords: 4,
+  /** Baris pendek beruntun (di bawah `webWatchProseSentenceMinWords` kata)
+   *  antara judul dan kalimat pertama yang dibaca sebagai kontrol halaman pada
+   *  item tersimpan ("Turn on more accessible mode", "Skip Ribbon Commands",
+   *  menu situs). Satu baris pendek adalah dateline ("Jakarta, 24 September
+   *  2026") dan tetap; tiga berturut-turut sudah menu. Halaman BI 25 Sep
+   *  memuat lebih dari dua puluh. */
+  webWatchChromeRunMinLines: 3,
   /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
    *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
    *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
@@ -374,6 +381,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchProseMinChars: "convention",
   webWatchProseSentenceMinWords: "convention",
   webWatchHeadlineMinWords: "convention",
+  webWatchChromeRunMinLines: "convention",
   webWatchAliasMaxDocShare: "guess",
   webWatchAliasMinCorpus: "convention",
   webWatchDuplicateSentenceShare: "guess",
@@ -530,6 +538,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchProseMinChars: DEFAULT_THRESHOLDS.webWatchProseMinChars,
     webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
     webWatchHeadlineMinWords: DEFAULT_THRESHOLDS.webWatchHeadlineMinWords,
+    webWatchChromeRunMinLines: DEFAULT_THRESHOLDS.webWatchChromeRunMinLines,
     webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
     webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
     webWatchDuplicateSentenceShare: DEFAULT_THRESHOLDS.webWatchDuplicateSentenceShare,

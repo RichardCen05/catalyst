@@ -154,6 +154,23 @@ export function proseChars(text: string, minWords: number): number {
  * about PT Timah. Sidebar headlines end without punctuation; article prose
  * does not.
  */
+/**
+ * A match's evidence as the card lists it: what the text itself touches, and
+ * the symbols only the source declared.
+ *
+ * A source declares every symbol any of its releases might reach — BI lists
+ * the banks and, for the rupiah, the exporters. Listed under "Cocok dengan"
+ * beside real text matches, a BI seminar read as matching ANTM and INCO
+ * (QA P2-7). A declared symbol the text also touches is a text match; one it
+ * does not is shown apart, as the source's declaration it is.
+ */
+export function splitMatchEvidence(match: { matchedBy: MatchEvidence[] }): { text: MatchEvidence[]; declaredOnly: SymbolCode[] } {
+  const text = match.matchedBy.filter((evidence) => evidence.by !== "source");
+  const touched = new Set(text.map((evidence) => evidence.symbol));
+  const declaredOnly = [...new Set(match.matchedBy.filter((evidence) => evidence.by === "source" && !touched.has(evidence.symbol)).map((evidence) => evidence.symbol as SymbolCode))];
+  return { text, declaredOnly };
+}
+
 export function matchText(event: MarketEvent): string {
   return [event.title, ...sentences(event.body || event.summary)].join("\n");
 }

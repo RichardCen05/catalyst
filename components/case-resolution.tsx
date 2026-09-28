@@ -6,6 +6,7 @@ import { Archive, Check, RotateCcw } from "lucide-react";
 import type { CaseResolution, ResearchCase, SymbolCode } from "@/lib/types";
 import { useCatalystStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import { shownDisposition } from "@/lib/case-disposition";
 import { dispositionLabel } from "@/lib/ui-labels";
 
 export function CaseResolutionPanel({ researchCase, symbol }: { researchCase: ResearchCase; symbol: SymbolCode }) {
@@ -50,7 +51,7 @@ export function CaseResolutionPanel({ researchCase, symbol }: { researchCase: Re
           {savedNow ? <p role="status" className="mb-4 inline-flex items-center gap-1.5 text-xs text-positive"><Check aria-hidden="true" className="size-3.5" />Hasil tersimpan. Usulan aturan menunggu persetujuan.</p> : null}
           <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2">
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Hasil</dt><dd className="mt-1 text-sm font-semibold capitalize">{stored.outcome === "supported" ? "Mendukung" : stored.outcome === "challenged" ? "Terbantahkan" : "Masih terbuka"}</dd></div>
-            <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Tindakan riset</dt><dd className="mt-1 text-sm font-semibold">{dispositionLabel(stored.disposition ?? researchCase.researchDisposition.kind)}</dd></div>
+            <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Tindakan riset</dt><dd className="mt-1 text-sm font-semibold">{dispositionLabel(shownDisposition(researchCase.researchDisposition.kind, stored))}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Hipotesis akhir</dt><dd className="mt-1 text-sm leading-6">{stored.finalHypothesis}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Bukti yang membatalkan</dt><dd className="mt-1 text-sm leading-6 text-muted-foreground">{stored.falsifiedBy || "Belum ada bukti pembatal yang dicatat."}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium text-muted-foreground">Asumsi yang keliru</dt><dd className="mt-1 text-sm leading-6 text-muted-foreground">{stored.wrongAssumption || "Belum ada asumsi keliru yang dicatat."}</dd></div>

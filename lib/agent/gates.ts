@@ -1,4 +1,5 @@
-import { DATA_AS_OF_LABEL } from "@/lib/data/fixtures";
+import { detectLanguage } from "@/lib/agent/language";
+import { DATA_AS_OF_LABEL, DATA_AS_OF_LABEL_EN } from "@/lib/data/fixtures";
 import type { Citation, PillarResult } from "@/lib/types";
 
 /**
@@ -86,13 +87,14 @@ const POSITION_PATTERN = /\bkapan\b[^.?!]*\b(?:masuk|keluar|ambil\s+posisi|tahan
  * route reports as the intent: a forecast is declined, an unrecorded field is
  * missing data, and those are not the same answer.
  */
-const REQUEST_SCREENS: Array<{ kind: "advice" | "forecast" | "absent"; pattern: RegExp; text: () => string }> = [
+const REQUEST_SCREENS: Array<{ kind: "advice" | "forecast" | "absent"; pattern: RegExp; text: () => string; en: () => string }> = [
   {
     kind: "advice",
     // Portfolio sizing is advice with a different noun. "berapa persen ke
     // energi" asks Catalyst to allocate, which it does not do.
     pattern: /\b(?:alokasi|dialokasikan|mengalokasikan|porsi\s+portofolio|bobot\s+portofolio|rekomendasi\s+(?:beli|jual|saham)|layak\s+(?:di)?koleksi)\b/i,
     text: () => "Catalyst tidak menyusun alokasi atau rekomendasi posisi. Saya dapat merangkum bukti Konsentrasi, Volume, Momentum, dan Katalis beserta data yang masih kosong.",
+    en: () => "Catalyst does not build allocations or position recommendations. I can summarise the Concentration, Volume, Momentum and Catalyst evidence and the data that is still missing.",
   },
   {
     kind: "forecast",
@@ -100,6 +102,7 @@ const REQUEST_SCREENS: Array<{ kind: "advice" | "forecast" | "absent"; pattern: 
     // ringkasan prediksi" asks about a panel that exists.
     pattern: /\b(?:target\s+harga|harga\s+target|(?:prediksi|proyeksi|perkiraan)\s+(?:harga|ihsg|indeks|saham|nilai)|ramalan|forecast)\b|\b(?:akan|bakal)\s+(?:naik|turun|menguat|melemah)\b|\bharga\b[^.?!]*\b(?:besok|minggu\s+depan|bulan\s+depan|tahun\s+depan)\b|\bkapan\b[^.?!]*\b(?:akan|berikutnya|selanjutnya|mendatang)\b/i,
     text: () => `Catalyst tidak memperkirakan harga atau peristiwa yang belum terjadi. Rekaman berhenti pada ${DATA_AS_OF_LABEL}; yang bisa saya bacakan adalah bukti sampai tanggal itu dan jalur dampak yang sedang diuji.`,
+    en: () => `Catalyst does not forecast prices or events that have not happened. The recordings stop at ${DATA_AS_OF_LABEL_EN}; what I can read out is the evidence up to that date and the impact paths under test.`,
   },
   {
     kind: "absent",
@@ -109,6 +112,7 @@ const REQUEST_SCREENS: Array<{ kind: "advice" | "forecast" | "absent"; pattern: 
     // number is the failure this screen exists to stop.
     pattern: /\b(?:intraday|intrahari|tick|candlestick|per\s+menit|per\s+jam|menit\s+ke)\b|\bjam\s*\d{1,2}(?:[.:]\d{2})?\b/i,
     text: () => `Rekaman Catalyst berhenti pada resolusi harian (${DATA_AS_OF_LABEL}). Data intrahari, per jam, dan per menit tidak direkam, jadi angka itu tidak ada untuk dibacakan.`,
+    en: () => `Catalyst's recordings stop at daily resolution (${DATA_AS_OF_LABEL_EN}). Intraday, hourly and per-minute data are not recorded, so that figure does not exist to read out.`,
   },
 ];
 
@@ -134,17 +138,26 @@ export interface LanguageVerdict {
   kind?: "advice" | "forecast" | "absent";
 }
 
+/**
+ * A refusal is written in the language of the question. "Should I buy PGAS
+ * now?" was refused correctly and in Indonesian (QA P2-5); only an English
+ * question gets the English text, and "unknown" keeps Indonesian, the app's
+ * own language.
+ */
 export function safeLanguage(input: string): LanguageVerdict {
   const screened = withoutDataTerms(input);
+  const english = detectLanguage(input) === "en";
   if (ADVICE_PATTERN.test(screened) || POSITION_PATTERN.test(screened)) {
     return {
       refused: true,
       kind: "advice",
-      text: "Catalyst tidak menilai tindakan transaksi. Saya dapat merangkum bukti Konsentrasi, Volume, Momentum, dan Katalis beserta data yang masih kosong.",
+      text: english
+        ? "Catalyst does not assess trading actions. I can summarise the Concentration, Volume, Momentum and Catalyst evidence and the data that is still missing."
+        : "Catalyst tidak menilai tindakan transaksi. Saya dapat merangkum bukti Konsentrasi, Volume, Momentum, dan Katalis beserta data yang masih kosong.",
     };
   }
   for (const screen of REQUEST_SCREENS) {
-    if (screen.pattern.test(screened)) return { refused: true, kind: screen.kind, text: screen.text() };
+    if (screen.pattern.test(screened)) return { refused: true, kind: screen.kind, text: english ? screen.en() : screen.text() };
   }
   return { refused: false, text: input };
 }

@@ -39,7 +39,24 @@ export const DATA_AS_OF = GENERATED_AS_OF;
 export const DATA_AS_OF_LABEL = new Intl.DateTimeFormat("id-ID", {
   day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta",
 }).format(new Date(GENERATED_AS_OF));
+/** The same date for an English answer: id-ID months ("Agu", "Okt", "Des")
+ *  read as typos in an English sentence. */
+export const DATA_AS_OF_LABEL_EN = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta",
+}).format(new Date(GENERATED_AS_OF));
 export const WINDOW_START = WINDOW_DATES[0];
+
+/**
+ * A commodity reading dated before the daily window is stale.
+ *
+ * A commodity event is a price level on a date, and the provider's monthly
+ * series can stop months before the daily recordings do (gold 2025-12-01
+ * beside sessions through Sep 2026). A level from before the window cannot
+ * explain a move inside it: the map labels it, and it never ranks as a cause.
+ */
+export function isStaleReading(event: Pick<MarketEvent, "sourceType" | "publishedAt">): boolean {
+  return event.sourceType === "commodity" && event.publishedAt.slice(0, 10) < WINDOW_START;
+}
 export const WINDOW_SESSIONS = WINDOW_DATES.length;
 
 const SECTORS_DAILY_DOCS = "https://docs.sectors.app/api-references/v2/indonesia/transaction/daily";

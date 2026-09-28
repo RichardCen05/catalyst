@@ -128,6 +128,17 @@ def idr(value):
     return f"Rp{value:,.0f}".replace(",", ".")
 
 
+def num_id(value, digits=2):
+    """A figure in the id-ID shape every other number on screen has: "." groups
+    thousands, "," marks the decimal, and a decimal part of zeros is dropped.
+    Titles written with Python's own format read "Rp145.14" and "USD4299.97"
+    beside "0,9%" (QA P3-1)."""
+    text = f"{value:,.{digits}f}".replace(",", "·").replace(".", ",").replace("·", ".")
+    if "," in text:
+        text = text.rstrip("0").rstrip(",")
+    return text
+
+
 def pct(value, digits=1):
     return f"{value * 100:.{digits}f}%".replace(".", ",")
 
@@ -444,7 +455,7 @@ def add_corporate_action_events(symbol, asof_date):
         if abs((date.fromisoformat(nearest["ex_date"]) - asof_date).days) <= 270:
             amount = nearest["dividend_amount"]
             emit(f"filing-corporate-action-dividend-{symbol.lower()}",
-                 f"{symbol} dividen tunai Rp{amount:,.2f} per saham".replace(",", "."),
+                 f"{symbol} dividen tunai Rp{num_id(amount)} per saham",
                  f"Ex-date {nearest['ex_date']}, pembayaran {nearest['payment_date']}. Jadwal distribusi tunai, bukan sinyal arah harga.",
                  jakarta(nearest["ex_date"] + "T09:00:00"),
                  DIMENSION_PATH["dividend"],
@@ -596,7 +607,7 @@ def add_commodity_event(name):
         return
     events[event_id] = {
         "id": event_id,
-        "title": f"Harga acuan {COMMODITY_NAME_ID.get(name, name)} {latest['date']}: USD{latest['price_usd_per_ton']}",
+        "title": f"Harga acuan {COMMODITY_NAME_ID.get(name, name)} {latest['date']}: USD{num_id(latest['price_usd_per_ton'])}",
         "summary": f"Harga referensi {COMMODITY_NAME_ID.get(name, name)} (price_usd_per_ton) bergerak {pct(change)} dari {previous['date']} ke {latest['date']}, rekaman Sectors mining-commodities.",
         "body": None,
         "category": "commodity",

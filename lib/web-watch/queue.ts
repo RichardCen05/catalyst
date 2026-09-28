@@ -52,10 +52,13 @@ import { GcsPreconditionFailed, gcsGetJson, gcsPutJson } from "@/lib/gcp/gcs";
 import { companies } from "@/lib/data/fixtures";
 import { bucket } from "@/lib/web-watch/registry";
 import { RELEVANCE_BAND_SCORE, resolveThresholds, type RelevanceBand } from "@/lib/agent/thresholds";
-import { sourceFor, TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
+import { bandForArticle } from "@/lib/web-watch/figure-band";
+import { matchText, sourceFor, splitMatchEvidence, TRIAGE_RULES, triageAll, type MatchEvidence, type SeenWhere, type TriageRule } from "@/lib/web-watch/triage";
 import { repairStoredEvent } from "@/lib/web-watch/stored-fields";
 import type { WatchedSource } from "@/lib/web-watch/types";
 import type { EventMarker, ImpactDirection, ImpactLink, MarketEvent, SymbolCode } from "@/lib/types";
+
+export { splitMatchEvidence };
 
 export const QUEUE_PATH = "catalyst/web-watch/queue.json";
 
@@ -231,8 +234,25 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
   const repair = (events: MarketEvent[]) => events.map((event) => repairStoredEvent(event, minWords));
   const archived = asRecord<ArchivedCandidate>(raw?.archived);
   const suspected = asRecord<SuspectedCandidate>(raw?.suspected);
+  const pending = Array.isArray(raw?.pending) ? repair(raw.pending) : [];
+  // A proposal drafted before the figure rule reads at the band that rule
+  // allows its article (`bandForArticle`), so a stored seminar proposal stops
+  // showing "Sedang" and cannot be auto-accepted on a band it never earned.
+  const pendingById = new Map(pending.map((event) => [event.id, event]));
+  const proposals = Object.fromEntries(
+    Object.entries(asRecord<TriageProposal>(raw?.proposals)).map(([id, proposal]) => {
+      const event = pendingById.get(id);
+      if (!event || !Array.isArray(proposal?.impacts)) return [id, proposal];
+      const text = matchText(event);
+      const impacts = proposal.impacts.map((impact) => {
+        const band = bandForArticle(impact.band, text);
+        return band === impact.band ? impact : { ...impact, band };
+      });
+      return [id, impacts.every((impact, index) => impact === proposal.impacts[index]) ? proposal : { ...proposal, impacts }];
+    }),
+  );
   return {
-    pending: Array.isArray(raw?.pending) ? repair(raw.pending) : [],
+    pending,
     accepted: Array.isArray(raw?.accepted) ? repair(raw.accepted) : [],
     // An auto-accept keeps the event as it was while pending, which is what
     // Pantau lists under "Diterima otomatis" and what a revert puts back.
@@ -247,7 +267,7 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
     ),
     matches: asRecord<TriageMatch>(raw?.matches),
     restored: asRecord<RestoredCandidate>(raw?.restored),
-    proposals: asRecord<TriageProposal>(raw?.proposals),
+    proposals,
     suspected: Object.fromEntries(
       Object.entries(suspected).map(([id, entry]) => [id, entry?.event ? { ...entry, event: repairStoredEvent(entry.event, minWords) } : entry]),
     ),

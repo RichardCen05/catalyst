@@ -1,5 +1,5 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, companies, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, missingList, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, companies, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, DATA_AS_OF_LABEL_EN, isStaleReading, missingList, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
 import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
@@ -42,7 +42,8 @@ import { cheapModel, strongModel } from "@/lib/agent/llm/models";
 import { agentMode } from "@/lib/agent/mode";
 import { cacheKeyFor, getCached, setCached } from "@/lib/agent/llm/cache";
 import { handlerScore, selectHandler, type HandlerId, type HandlerSignals } from "@/lib/agent/handlers";
-import { mechanismLabelFor } from "@/lib/agent/mechanism-label";
+import { mechanismLabelFor, TRADING_CHANNEL_CATEGORIES } from "@/lib/agent/mechanism-label";
+import { detectLanguage } from "@/lib/agent/language";
 import { uiLabel } from "@/lib/ui-labels";
 import { withStop } from "@/lib/utils";
 import { lruMemo } from "@/lib/agent/retrieval/memo";
@@ -200,8 +201,8 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   if (!playbook) return [];
   const forSymbol = (value: string) => value.toUpperCase().includes(symbol);
   const rules: AppliedPlaybookRule[] = [];
-  const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string, approved = false) => {
-    if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect, ...(approved ? { approved: true } : {}) });
+  const add = (kind: AppliedPlaybookRule["kind"], rule: string | undefined, effect: string, approved = false, evaluated = true) => {
+    if (rule) rules.push({ id: `${symbol}-${kind}-${rules.length + 1}`, kind, rule, effect, ...(approved ? { approved: true } : {}), ...(evaluated ? {} : { evaluated: false }) });
   };
   const isOwn = (rule: string) => rule.startsWith(`[Hasil ${symbol}]`) || rule.startsWith(`[Disetujui ${symbol}]`);
   // Approved first, for the same reason `addSymbolRule` below puts them
@@ -210,7 +211,12 @@ function compilePlaybook(symbol: SymbolCode, context?: AnalysisContext): Applied
   // the end of the list could never be seen or used — approving it changed
   // the record and nothing on screen.
   const materiality = playbook.materialityRules.filter((rule) => (!rule.startsWith("[Hasil ") && !rule.startsWith("[Disetujui ")) || isOwn(rule));
-  materiality.filter(isOwn).forEach((rule) => add("materiality", rule, "Menggunakan kembali aturan yang disetujui dari hasil kasus ini.", true));
+  // An approved materiality rule is the reader's own sentence, and nothing
+  // parses it: materiality stays the exposure's relevance against the floor.
+  // Saying "reused" here read as the rule having moved the level, while the
+  // case list kept the level it had before (QA P2-9).
+  const floor = relevanceFloorFor(playbook);
+  materiality.filter(isOwn).forEach((rule) => add("materiality", rule, `Dicatat dan dikutip pada kasus ini, belum dievaluasi otomatis: tingkat materialitas tetap dihitung dari relevansi eksposur terhadap ambang ${floor}.`, true, false));
   materiality.filter((rule) => !isOwn(rule)).forEach((rule) => add("materiality", rule, "Menentukan apakah pemicu layak membuka dan menaikkan prioritas kasus."));
   // Aturan yang disetujui ([Disetujui SYMBOL]) harus menang atas bawaan:
   // .find() mengembalikan bawaan pertama sehingga aturan baru yang di-append
@@ -813,7 +819,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       novelty: primaryEvent ? "New" : "Updated",
       materiality,
       uncertainty: contradictions.length || evidenceState !== "Corroborated" ? "High" : "Medium",
-      reason: primaryLink ? `Relevansi eksposur ${primaryLink.relevance}/100 (ambang ${relevanceFloor}); ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Data berubah, tetapi jalur pemicu belum lengkap.",
+      reason: `${primaryLink ? `Relevansi eksposur ${primaryLink.relevance}/100 (ambang ${relevanceFloor}); ${contradictions.length ? "kontradiksi sumber masih terbuka" : "belum ada kontradiksi lintas sumber"}.` : "Data berubah, tetapi jalur pemicu belum lengkap."}${appliedRules.some((rule) => rule.kind === "materiality" && rule.evaluated === false) ? " Aturan materialitas yang Anda setujui dicatat, belum dievaluasi otomatis." : ""}`,
       ruleTrace: appliedRules.filter((rule) => rule.kind === "materiality" || rule.kind === "exposure" || rule.kind === "falsifier"),
     },
     contradictions,
@@ -1785,6 +1791,21 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // the company. The gap and the recording that is missing are named instead.
   const named = primary ? companies.find((company) => company.symbol === primary) : undefined;
   const coverage = primary ? coverageInfo[primary] : undefined;
+  if (detectLanguage(request.question) === "en") {
+    // The same three answers for a reader who asked in English (QA P2-5): an
+    // Indonesian fallback to an English question reads as a broken language
+    // setting, not as a question the recordings cannot map.
+    const menuEn = analysis
+      ? ` For ${analysis.company.symbol} I can answer: why it is on the list, what each figure means and where it comes from, the impact of an event, a comparison with another fully covered emiten, and which data is still missing.`
+      : primary
+        ? ` ${primary}${named ? ` (${named.name})` : ""} has no full case in the recordings of ${DATA_AS_OF_LABEL_EN}, so its causal chain, attribution and comparison are not available.${coverage?.missing.length ? ` Recordings not yet available: ${coverage.missing.join(", ")}.` : ""} I can answer what a figure means and where it comes from, thresholds, event impact, and which data is not yet recorded.`
+        : " Name an emiten code first, then ask why it is on the list, what a figure means, where it comes from, the impact of an event, or which data is missing.";
+    return {
+      text: `That question could not be mapped to evidence in the Catalyst recordings of ${DATA_AS_OF_LABEL_EN}.${menuEn}`,
+      refused: false, intent: "unknown", hypotheses: [], citations: analysis?.sources.slice(0, 3) ?? [],
+      preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
+    };
+  }
   const menu = analysis
     ? ` Untuk ${analysis.company.symbol} saya bisa menjawab: kenapa emiten ini masuk daftar, arti dan asal setiap angka (mis. "apa itu HHI", "dari mana 27,5%"), dampak sebuah peristiwa, perbandingan dengan emiten lain berkasus lengkap, dan data apa yang belum ada.`
     : primary
@@ -2006,6 +2027,7 @@ async function buildCausalGraph(
       basis: "Reported input", confidence: confidenceFor(link.relevance), lag: lagFor(event),
       counterEvidence: `Nilai ini berasal dari rekaman ${DATA_AS_OF_LABEL}. Kejadian, waktu, dan cakupan produksi masih perlu diperiksa pada sumber langsung.`, citations: event.citations,
       ...(event.markers?.length ? { markers: event.markers } : {}),
+      ...(isStaleReading(event) ? { stale: true } : {}),
     });
     nodes.push({
       id: mechanismId, label: mechanismLabel, kind: "mechanism", detail: `${resolvedLink.path}. ${resolvedLink.rationale}${exposureAssumption(event)}`,
@@ -2130,13 +2152,20 @@ async function buildCausalGraph(
     targetObservables,
     // Hypotheses stay at three even when the graph shows more: three
     // competing claims fit in working memory, six do not.
-    competingHypotheses: visible.slice(0, 3).map(({ event, link }, index) => ({
+    // A stale reading stays on the map, labelled, but cannot compete as a
+    // cause of a move it predates.
+    competingHypotheses: visible.filter(({ event }) => !isStaleReading(event)).slice(0, 3).map(({ event, link }, index) => {
+      const tradingChannel = TRADING_CHANNEL_CATEGORIES.has(event.category);
+      const channel = mechanismLabelFor(undefined, link.path, event.category);
+      return {
       id: `${symbol}-competing-${event.id}`,
       rank: index + 1,
-      claim: targetImpact
-        ? `${event.title} menjelaskan perubahan ${targetObservableList.toLowerCase()} ${symbol}.`
-        : `${event.title} adalah jalur terhubung ke ${symbol}; indikator bisnisnya belum terekam untuk diuji.`,
-      targetObservables,
+      claim: tradingChannel
+        ? `${event.title} menjelaskan ${channel.toLowerCase()} pada saham ${symbol}; jalur ini berhenti di harga saham, tidak di kinerja usaha emiten.`
+        : targetImpact
+          ? `${event.title} menjelaskan perubahan ${targetObservableList.toLowerCase()} ${symbol}.`
+          : `${event.title} adalah jalur terhubung ke ${symbol}; indikator bisnisnya belum terekam untuk diuji.`,
+      targetObservables: tradingChannel ? [channel] : targetObservables,
       supportingEvidence: `${link.path}. Relevansi ${link.relevance}/100 dan waktu sumber tersedia.`,
       counterEvidence: index === 0
         ? "Jalur belum mengisolasi masukan lain yang muncul pada jendela yang sama."
@@ -2145,7 +2174,8 @@ async function buildCausalGraph(
       status: index === 0 ? "leading" : link.relevance >= graphFloor - 10 ? "plausible" : "challenged",
       confidence: confidenceFor(link.relevance),
       citations: uniqueCitations([...event.citations, ...link.citations]),
-    })),
+      };
+    }),
     hiddenRelationshipCount: linked.length - visible.length,
     asOf: analysis?.asOf ?? company.asOf,
     coverage: { analyzed: coverage.analyzed, missing: coverage.missing },

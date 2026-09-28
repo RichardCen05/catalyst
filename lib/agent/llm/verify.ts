@@ -1,4 +1,5 @@
 import { assertSafeOutput } from "@/lib/agent/gates";
+import { detectLanguage } from "@/lib/agent/language";
 import { untranslatedTerms } from "@/lib/agent/llm/language-leak";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type { Citation } from "@/lib/types";
@@ -68,30 +69,7 @@ export function verifyDraft(draftText: string, evidenceNumbers: string[], _citat
   return { approved: violations.length === 0, violations };
 }
 
-/**
- * Which language a sentence is in, decided by function words.
- *
- * The cheap model answers an Indonesian question in English often enough to
- * matter, and the numeral rule cannot see it: every figure is correct, the
- * sentence is simply in the wrong language for the reader who asked. Function
- * words are the cheapest reliable signal, because content words are shared
- * across both languages here — ANTM, HHI, broker, momentum — while grammar
- * words are not. Interrogatives count as function words: no English sentence
- * contains "kenapa", and no Indonesian one contains "why".
- */
-const ID_MARKERS = ["yang", "ini", "itu", "pada", "dari", "dengan", "karena", "untuk", "adalah", "tidak", "dan", "ke", "di",
-  "kenapa", "mengapa", "bagaimana", "apakah", "berapa", "kapan", "siapa", "apa"];
-const EN_MARKERS = ["the", "is", "are", "was", "because", "from", "with", "this", "that", "and", "to", "of", "not",
-  "why", "what", "how", "which", "when", "who"];
-
-export function detectLanguage(text: string): "id" | "en" | "unknown" {
-  const words = text.toLowerCase().replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);
-  const count = (markers: string[]) => words.filter((word) => markers.includes(word)).length;
-  const indonesian = count(ID_MARKERS);
-  const english = count(EN_MARKERS);
-  if (indonesian === english) return "unknown";
-  return indonesian > english ? "id" : "en";
-}
+export { detectLanguage };
 
 /**
  * Everything a composed chat answer has to satisfy.

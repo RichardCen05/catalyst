@@ -282,6 +282,9 @@ export function scoreEventOverlap(question: string, event: MarketEvent, symbols:
 
 export function matchEventForQuestion(question: string, events: MarketEvent[], symbols: SymbolCode[] = []): MarketEvent | undefined {
   const normalized = normalizeQuery(question);
+  const named = findSymbolsRobust(question, symbols);
+  const reachesNamed = (event: MarketEvent) =>
+    !named.length || event.impactLinks.some((link) => named.includes(link.symbol) && link.direction !== "Unrelated");
   const category = (CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => normalized.includes(term)))
     ?? CATEGORY_KEYWORDS.find(([terms]) => terms.some((term) => phraseMatches(normalized, term))))?.[1];
   if (category) {
@@ -291,17 +294,20 @@ export function matchEventForQuestion(question: string, events: MarketEvent[], s
     // a bank credit note that touches no PGAS path. When the question names
     // an emiten, the event has to reach that emiten; otherwise the category
     // proves nothing and token overlap decides.
-    const named = findSymbolsRobust(question, symbols);
-    const match = events.find((event) => event.category === category
-      && (!named.length || event.impactLinks.some((link) => named.includes(link.symbol) && link.direction !== "Unrelated")));
+    const match = events.find((event) => event.category === category && reachesNamed(event));
     if (match) return match;
   }
   // Token overlap is a weaker signal: require more than a third of the
   // question's content tokens to appear in the event. A single generic
   // shared word ("data", "hari") must never hijack the intent.
+  //
+  // The same rule as the category branch holds here. "berapa volume ADRO
+  // terbaru?" shares "volume" and "terbaru" with a BBCA headline, two of its
+  // two content words, and was answered with that headline — an event that
+  // never touches ADRO. A named emiten means the event has to reach it.
   let best: MarketEvent | undefined;
   let bestScore = 0;
-  for (const event of events) {
+  for (const event of events.filter(reachesNamed)) {
     const score = scoreEventOverlap(question, event, symbols);
     if (score > bestScore) {
       bestScore = score;

@@ -22,6 +22,7 @@ import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EventMarkers } from "@/components/event-markers";
+import { StaleReading } from "@/components/stale-reading";
 import { IconCompanies, IconDocument, IconGauge, IconGraph, IconPolicy, IconSource, IconWeather } from "@/components/ui/icons";
 import { uiLabel } from "@/lib/ui-labels";
 import { withStop } from "@/lib/utils";
@@ -202,6 +203,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
         <h3 className="mt-2 font-semibold">{uiLabel(selected.basis)}</h3>
         <p className="mt-1 text-sm font-medium">{selected.label}</p>
         <EventMarkers markers={selected.markers} className="mt-1 block" />
+        <StaleReading stale={selected.stale} className="mt-1 block" />
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{selected.detail}</p>
         <dl className="mt-3 grid gap-3 text-xs leading-5 md:grid-cols-2">
           <div><dt className="font-semibold">Bukti pendukung</dt><dd className="mt-1 text-muted-foreground">{selected.supportingEvidence ?? `Relevansi ${selected.relevance ?? "—"}/100 pada jalur ${withStop(selected.label)}`}</dd></div>

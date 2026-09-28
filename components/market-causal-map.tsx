@@ -24,6 +24,7 @@ import { connectedIds } from "@/lib/agent/chain-layout";
 import { coverageInfo, events } from "@/lib/data/fixtures";
 import { uiLabel } from "@/lib/ui-labels";
 import { cn, withStop } from "@/lib/utils";
+import { StaleReading } from "@/components/stale-reading";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
 import { SourceText } from "@/components/source-text";
@@ -145,6 +146,7 @@ function MarketNode({ data }: NodeProps<Node<MapNodeData, "market">>) {
         <span className="mt-1 line-clamp-2 block text-[12px] font-semibold leading-[1.3]">{node.kind === "mechanism" ? node.label.charAt(0).toUpperCase() + node.label.slice(1) : node.label}</span>
         <span className="mt-auto flex items-center gap-1.5 font-mono text-[9px] text-muted-foreground">
           <span className="truncate">{node.symbols.join(" · ")}</span>
+          {node.stale ? <span className="shrink-0 text-attention-foreground">basi</span> : null}
           {node.relevance ? <span className="ml-auto shrink-0">{node.relevance}</span> : null}
         </span>
       </button>
@@ -604,6 +606,7 @@ function NodeDetail({
         })() : selected.label}
       </h3>
       <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{uiLabel(selected.basis)}</p>
+      <StaleReading stale={selected.stale} className="mt-2 block" />
       <p className="mt-2 whitespace-pre-line text-xs leading-5 text-muted-foreground">{selected.detail}</p>
 
       {group ? (

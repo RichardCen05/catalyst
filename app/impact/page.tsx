@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events, primarySymbol } from "@/lib/data/fixtures";
 import { getSharedShocks } from "@/lib/agent/lag-validate";
+import { shownDisposition } from "@/lib/case-disposition";
+import { defaultImpactSymbol } from "@/lib/impact-symbol";
 import { useCatalystStore } from "@/lib/store";
 import type { CausalGraph, ResearchCase, SymbolCode } from "@/lib/types";
 import { dispositionLabel } from "@/lib/ui-labels";
@@ -27,9 +29,8 @@ function ImpactWorkspace() {
   // option label says which ones stop short of a business outcome.
   const available = companies.filter((company) => profile.watchlist.includes(company.symbol));
   const requested = (searchParams.get("company") ?? searchParams.get("case"))?.toUpperCase() as SymbolCode | undefined;
-  // Default follows the registry — first analyzed case — never a typed ticker.
-  const fallback = primarySymbol;
-  const symbol = available.some((company) => company.symbol === requested) ? requested! : available[0]?.symbol ?? fallback!;
+  // Default follows the registry — first watchlist emiten with a case — never a typed ticker.
+  const symbol = defaultImpactSymbol(profile.watchlist, requested);
   const [analysis, setAnalysis] = useState<ResearchCase | null | undefined>(undefined);
   const [graph, setGraph] = useState<CausalGraph | null | undefined>(undefined);
   // Relevance floor for the chain: lower shows more of the graph (up to the
@@ -132,9 +133,9 @@ function ImpactWorkspace() {
         <CausalChain graph={graph} />
 
         {analysis ? <details className="group overflow-hidden rounded-lg border border-border bg-background">
-          <summary data-tour-action={symbol === primarySymbol ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span>Lihat tindakan riset</span><span className="ml-auto text-sm font-medium text-muted-foreground">{dispositionLabel(analysis.researchDisposition.kind)}</span><IconArrowRight aria-hidden="true" className="size-4 text-subtle-foreground transition-transform group-open:rotate-90" /></summary>
+          <summary data-tour-action={symbol === primarySymbol ? "show-next-action" : undefined} className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"><span>Lihat tindakan riset</span><span className="ml-auto text-sm font-medium text-muted-foreground">{dispositionLabel(shownDisposition(analysis.researchDisposition.kind, resolution))}</span><IconArrowRight aria-hidden="true" className="size-4 text-subtle-foreground transition-transform group-open:rotate-90" /></summary>
           <div className="grid gap-4 border-t border-border p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:p-5">
-            <div><p className="text-xs text-muted-foreground font-medium">Tindakan untuk {symbol}</p><h2 className="editorial mt-1 text-xl">{dispositionLabel(analysis.researchDisposition.kind)}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{analysis.researchDisposition.reason}</p></div>
+            <div><p className="text-xs text-muted-foreground font-medium">Tindakan untuk {symbol}</p><h2 className="editorial mt-1 text-xl">{dispositionLabel(shownDisposition(analysis.researchDisposition.kind, resolution))}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{analysis.researchDisposition.reason}</p></div>
             <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2"><div className="bg-surface p-3"><dt className="text-xs font-medium">Pantau</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.monitorObservable}</dd></div><div className="bg-surface p-3"><dt className="text-xs font-medium">Buka kembali jika</dt><dd className="mt-1 text-xs leading-5 text-muted-foreground">{analysis.researchDisposition.reopenWhen}</dd></div></dl>
             <div className="flex flex-col gap-3 border-t border-border pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-muted-foreground">Ini tindakan riset, bukan saran transaksi.</p><Link href={`/cases/${symbol}?tab=review#case-resolution`} className="inline-flex min-h-10 items-center gap-2 self-start rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-muted">Catat hasil kasus<IconArrowRight aria-hidden="true" className="size-4" /></Link></div>
           </div>

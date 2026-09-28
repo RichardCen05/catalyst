@@ -15,7 +15,7 @@ import { Panel } from "@/components/ui/panel";
 import { cn, formatWib } from "@/lib/utils";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 import type { ScreenCheck, TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
-import { TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
+import { splitMatchEvidence, TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
 
 /** The fields this page reads. `/api/web-watch` also returns poll counters and
  *  a status enum, which the crawler's own ops route reports; a reviewer does
@@ -329,15 +329,21 @@ function CandidateCard({
         </details>
       ) : null}
 
-      {match?.matchedBy.length ? (
+      {match && splitMatchEvidence(match).text.length ? (
         <p className="mt-2 text-xs text-muted-foreground">
           Cocok dengan:{" "}
-          {match.matchedBy.slice(0, 6).map((evidence, index) => (
+          {splitMatchEvidence(match).text.slice(0, 6).map((evidence, index) => (
             <span key={`${evidence.symbol}-${evidence.by}-${index}`}>
               {index ? " · " : ""}
               <span className="font-mono">{evidence.symbol}</span> ({matchLabel[evidence.by]}: {evidence.term})
             </span>
           ))}
+        </p>
+      ) : null}
+      {match && splitMatchEvidence(match).declaredOnly.length ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Dideklarasikan sumber, tidak disebut teks:{" "}
+          <span className="font-mono">{splitMatchEvidence(match).declaredOnly.join(" · ")}</span>
         </p>
       ) : null}
 

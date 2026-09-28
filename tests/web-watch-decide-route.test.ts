@@ -21,7 +21,9 @@ function event(id: string, publishedAt = NOW): MarketEvent {
     id,
     title: `Berita ${id}`,
     summary: "Ringkasan.",
-    body: "Isi berita.",
+    // States a figure: a figureless article is proposed at the lowest band
+    // (`bandForArticle`) and could never be auto-accepted.
+    body: "Harga naik 5%.",
     category: "company",
     sourceType: "macro",
     publishedAt,
@@ -97,7 +99,7 @@ describe("/api/internal/web-watch-decide", () => {
     const { GET } = await import("@/app/api/internal/web-watch-decide/route");
     const body = await (await GET(request("GET"))).json();
     expect(body.items).toHaveLength(3);
-    expect(body.items[0]).toMatchObject({ id: "web-a", title: "Berita web-a", body: "Isi berita.", symbols: [A], hasProposal: true, noAuto: false });
+    expect(body.items[0]).toMatchObject({ id: "web-a", title: "Berita web-a", body: "Harga naik 5%.", symbols: [A], hasProposal: true, noAuto: false });
     expect(body.items[1].hasProposal).toBe(false);
   });
 

@@ -6481,22 +6481,22 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Consumer": -0.006594,
-  "Infrastructure": -0.025137,
-  "Basic Materials": 0.014238,
-  "Energy": 0.000438,
   "Technology": -0.019399,
-  "Financials": -0.003447
+  "Financials": -0.003447,
+  "Basic Materials": 0.014238,
+  "Infrastructure": -0.025137,
+  "Consumer": -0.006594,
+  "Energy": 0.000438
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Food & Staples Retailing": 0.0,
-  "Software & IT Services": -0.019399,
-  "Food & Beverage": -0.009853,
-  "Basic Materials": 0.014238,
   "Transportation Infrastructure": -0.018051,
   "Banks": -0.003447,
+  "Food & Beverage": -0.009853,
+  "Food & Staples Retailing": 0.0,
   "Telecommunication": -0.025634,
+  "Basic Materials": 0.014238,
+  "Software & IT Services": -0.019399,
   "Oil, Gas & Coal": 0.000438
 };
 
@@ -8239,7 +8239,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "filing-corporate-action-dividend-bbca",
-    "title": "BBCA dividen tunai Rp25.00 per saham",
+    "title": "BBCA dividen tunai Rp25 per saham",
     "summary": "Ex-date 2026-08-31, pembayaran 2026-09-16. Jadwal distribusi tunai, bukan sinyal arah harga.",
     "body": null,
     "category": "company",
@@ -8551,7 +8551,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "filing-corporate-action-dividend-tlkm",
-    "title": "TLKM dividen tunai Rp223.17 per saham",
+    "title": "TLKM dividen tunai Rp223,17 per saham",
     "summary": "Ex-date 2026-06-18, pembayaran 2026-07-10. Jadwal distribusi tunai, bukan sinyal arah harga.",
     "body": null,
     "category": "company",
@@ -8620,7 +8620,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "filing-corporate-action-dividend-bbri",
-    "title": "BBRI dividen tunai Rp209.00 per saham",
+    "title": "BBRI dividen tunai Rp209 per saham",
     "summary": "Ex-date 2026-04-21, pembayaran 2026-05-08. Jadwal distribusi tunai, bukan sinyal arah harga.",
     "body": null,
     "category": "company",
@@ -8758,7 +8758,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "filing-corporate-action-dividend-adro",
-    "title": "ADRO dividen tunai Rp145.14 per saham",
+    "title": "ADRO dividen tunai Rp145,14 per saham",
     "summary": "Ex-date 2025-12-30, pembayaran 2026-01-15. Jadwal distribusi tunai, bukan sinyal arah harga.",
     "body": null,
     "category": "company",
@@ -8781,7 +8781,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "commodity-coal-2025-12-15",
-    "title": "Harga acuan batu bara 2025-12-15: USD100.81",
+    "title": "Harga acuan batu bara 2025-12-15: USD100,81",
     "summary": "Harga referensi batu bara (price_usd_per_ton) bergerak 2,6% dari 2025-12-01 ke 2025-12-15, rekaman Sectors mining-commodities.",
     "body": null,
     "category": "commodity",
@@ -8811,7 +8811,7 @@ export const rawEvents: RawEvent[] = [
   },
   {
     "id": "commodity-gold-2025-12-01",
-    "title": "Harga acuan emas 2025-12-01: USD4299.97",
+    "title": "Harga acuan emas 2025-12-01: USD4.299,97",
     "summary": "Harga referensi emas (price_usd_per_ton) bergerak 5,3% dari 2025-11-01 ke 2025-12-01, rekaman Sectors mining-commodities.",
     "body": null,
     "category": "commodity",

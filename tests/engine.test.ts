@@ -1,3 +1,4 @@
+import { TRADING_CHANNEL_CATEGORIES } from "@/lib/agent/mechanism-label";
 import { describe, expect, it } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, coverageInfo, demoProfiles, events } from "@/lib/data/fixtures";
@@ -94,8 +95,11 @@ describe("Catalyst agent engine", async () => {
     expect(graph?.targetObservables.length).toBeGreaterThan(1);
     expect(graph?.competingHypotheses.length).toBeGreaterThanOrEqual(3);
     expect(graph?.competingHypotheses.map((item) => item.rank)).toEqual([1, 2, 3]);
+    // A flows or attention hypothesis is tested on the share's own pressure,
+    // not on the issuer's indicators (QA P2-4); every other one on all of them.
+    const trading = (id: string) => TRADING_CHANNEL_CATEGORIES.has(events.find((event) => id.endsWith(`-competing-${event.id}`))?.category ?? "company");
     expect(graph?.competingHypotheses.every((item) =>
-      item.targetObservables.join("|") === graph.targetObservables.join("|")
+      (trading(item.id) ? item.targetObservables.length === 1 : item.targetObservables.join("|") === graph.targetObservables.join("|"))
       && item.supportingEvidence
       && item.counterEvidence
       && item.discriminator,

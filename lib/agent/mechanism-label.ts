@@ -21,6 +21,17 @@ const CATEGORY_MECHANISM_LABEL: Record<MarketEvent["category"], string> = {
   sentiment: "Liputan ke perhatian ritel",
 };
 
+/**
+ * Categories that reach a share through its orders, not through the issuer.
+ *
+ * Foreign net flow and news attention move buying and selling pressure on
+ * the exchange; neither changes a margin, a volume sold or a balance sheet.
+ * A hypothesis from one of these explains the share's pressure and stops
+ * there — "arus asing neto … menjelaskan perubahan margin operasi" was the
+ * claim QA P2-4 found, and it is a claim no recording can support.
+ */
+export const TRADING_CHANNEL_CATEGORIES: ReadonlySet<MarketEvent["category"]> = new Set(["flows", "sentiment"]);
+
 /** Title for a mechanism card, in falling order of specificity: the label the
  *  model wrote, the middle leg of an arrow-shaped exposure path, then the
  *  category default. An LLM path is a sentence and carries no arrow, which is

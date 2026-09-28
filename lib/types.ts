@@ -187,6 +187,12 @@ export interface AppliedPlaybookRule {
    *  shows these first: a reader who approved a rule came back to see it
    *  work, and finding it below three threshold rows is finding nothing. */
   approved?: boolean;
+  /** False when the rule is recorded and quoted but nothing computes from it.
+   *  An approved materiality rule is a sentence the reader wrote ("rilis laba
+   *  tanpa lonjakan volume = materialitas sedang"); materiality is still the
+   *  relevance of the exposure against the floor, and the case says so rather
+   *  than implying the rule moved it. */
+  evaluated?: boolean;
 }
 
 export interface ResearchPlan {
@@ -538,6 +544,8 @@ export interface CausalNode {
   citations: Citation[];
   /** Carried from a source event the web-watch screen marked. */
   markers?: EventMarker[];
+  /** A commodity reading dated before the recorded window (`isStaleReading`). */
+  stale?: boolean;
 }
 
 export interface CausalEdge {

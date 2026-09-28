@@ -16,6 +16,7 @@ import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { SymbolCombobox } from "@/components/ui/symbol-combobox";
 import { cn, displayFigure, formatCurrency, withStop } from "@/lib/utils";
+import { shownDisposition } from "@/lib/case-disposition";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
 import { COVERAGE_ORDER, coverageRows, type CoverageStatus, type MovementCheck } from "@/lib/agent/coverage";
@@ -146,7 +147,7 @@ function ResearchCasesContent() {
               <span className="min-w-0"><span className="block text-sm font-medium">{analysis.trigger.title}</span><span className="mt-1 line-clamp-2 block text-xs text-subtle-foreground">{analysis.materialChange.baseline}</span></span>
               <span className="flex flex-wrap gap-1.5"><span className={cn("inline-flex h-6 items-center rounded-lg border px-2 text-xs font-medium", analysis.priority.materiality === "High" ? "border-foreground" : "border-border text-muted-foreground")}>{materiality}</span>{status === "closed" ? <span className="inline-flex h-6 items-center rounded-lg border border-border px-2 text-xs font-medium text-muted-foreground">Selesai</span> : null}</span>
               <span><StatusBadge status={analysis.evidenceState} /></span>
-              <span className="text-sm font-medium">{dispositionLabel(analysis.researchDisposition.kind)}</span>
+              <span className="text-sm font-medium">{dispositionLabel(shownDisposition(analysis.researchDisposition.kind, caseResolutions[analysis.company.symbol]))}</span>
               <span className="flex items-center gap-2 lg:flex-col lg:items-end lg:gap-0.5"><span className="font-mono text-sm font-medium tabular-nums">{formatCurrency(analysis.company.price)}</span><PriceChange value={analysis.company.changePct} className="text-xs" /></span>
               <IconArrowRight aria-hidden="true" className="hidden size-4 self-center text-subtle-foreground lg:block" />
             </Link></li>;
