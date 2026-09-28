@@ -1,5 +1,5 @@
 // Wired: fixtures fallback + live Sectors when key present.
-import { analysisFixtures, citations, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS } from "@/lib/data/fixtures";
+import { analysisFixtures, citations, coverageInfo, DATA_AS_OF, DATA_AS_OF_LABEL, revenueSegments, WINDOW_SESSIONS, missingList } from "@/lib/data/fixtures";
 import { budgetNoteFor, LlmBudgetError } from "@/lib/agent/llm/budget";
 import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
@@ -49,6 +49,7 @@ import { answerCacheKey, readAnswerCache, writeAnswerCache } from "@/lib/agent/r
 import { retrieveContext, type RetrievedContext } from "@/lib/agent/retrieval/bundle";
 import { resolveFollowUp, type FollowUp } from "@/lib/agent/retrieval/follow-up";
 import { unrecordedTickers } from "@/lib/agent/unknown-symbols";
+import { validateLag } from "@/lib/agent/lag-validate";
 import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import type { HistoryTurn } from "@/lib/agent/retrieval/types";
 import { VIEW_IDS, type ViewId } from "@/lib/agent/retrieval/types";
@@ -441,6 +442,10 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     });
   const primaryEvent = relatedEvents[0];
   const catalystDirection = primaryEvent ? eventDirection(primaryEvent, symbol) : "Unverified";
+  // The same timing read the causal map shows, taken on the case's own trigger, so the case
+  // cannot call its evidence aligned while the map says the spike came first.
+  const timing = primaryEvent ? validateLag(primaryEvent, series) : null;
+  const timingAgainst = Boolean(timing && timing.deltaSessions < 0);
 
   /**
    * Citations are per figure, not per card.
@@ -634,7 +639,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
 
   enforceCitations(pillars);
   const ordered = profile.config.pillarOrder.map((key) => pillars.find((pillar) => pillar.key === key)!);
-  const evidenceState: EvidenceState = conflict
+  const evidenceState: EvidenceState = conflict || timingAgainst
     ? "Mixed Evidence"
     : volume.status === "Insufficient Data" || catalystDirection === "Unverified"
       ? "Insufficient Evidence"
@@ -651,6 +656,8 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
   let sources = uniqueCitations(pillars.flatMap((pillar) => pillar.citations));
 
   const contradictions = pillars.flatMap((pillar) => pillar.conflict ? [pillar.conflict] : []);
+  const timingLine = timing && timingAgainst ? `Uji waktu: ${timing.note} Puncak volume ${timing.spikeDate}, peristiwa ${timing.eventDate}.` : null;
+  if (timingLine) contradictions.push(timingLine);
   if (divergent) {
     contradictions.push(
       `Harga naik ${percent(stockReturn)} dalam 3 hari sementara aliran institusi neto negatif melampaui ambang. Apakah penguatan didukung partisipasi yang terekam atau tertahan oleh pelepasan yang belum dijelaskan?`,
@@ -788,6 +795,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
     },
     contradictions,
     counterEvidence: [
+      ...(timingLine ? [timingLine] : []),
       ...ordered.map((pillar) => `${pillar.label}: ${pillar.protocol.challengingEvidence}`),
       ...(unexplainedDrop ? ["Penurunan tanpa peristiwa terhubung melemahkan narasi yang terlalu yakin; gerak belum punya jalur yang dapat diuji."] : []),
     ],
@@ -847,6 +855,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       })),
     },
     priceSeries: series,
+    timing,
     financialContext: fixture.financialContext,
     asOf: company.asOf,
   };
@@ -1163,7 +1172,8 @@ const FALSIFIER_PHRASES = [
   "membatalkan", "pembatal", "batalkan", "menggugurkan", "penyangkal", "kapan salah", "terbukti salah",
   "salah kalau", "salah jika", "melemahkan dugaan", "dibuka kembali", "buka kembali", "indikator apa",
   "harus saya pantau", "perlu dipantau", "harus dipantau", "yang dipantau", "dipantau apa",
-  "invalidate", "disprove", "prove wrong", "proven wrong", "falsif", "reopen", "what to monitor",
+  "invalidate", "disprove", "prove wrong", "proven wrong", "prove that wrong", "prove it wrong", "prove this wrong",
+  "falsif", "reopen", "what to monitor",
   "which indicator", "what should i watch", "what would change",
 ];
 
@@ -1438,6 +1448,31 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // that found nothing answers with the menu rather than guessing: naming the
   // wrong issuer confidently is worse than saying which one is meant.
   const followUp = resolveFollowUp(request.question, safeHistory(request.history));
+
+  // "Bandingkan keduanya" names no pair. The chip and a previous turn that put exactly two
+  // emiten on screen may supply one; otherwise ask, one side at a time, instead of letting
+  // retrieval answer a comparison nobody specified.
+  let compareSymbols = symbols;
+  if (mentions(question, COMPARE_PHRASES) && symbols.length < 2 && !attributionAsked && !namedFigure) {
+    const known = new Set<string>(SYMBOL_CODES);
+    const recent = [...safeHistory(request.history)].reverse()
+      .find((turn) => turn.role === "assistant" && turn.symbols?.length)?.symbols
+      ?.filter((symbol): symbol is SymbolCode => known.has(symbol)) ?? [];
+    const pair = [...new Set([...symbols, ...(request.contextSymbol ? [request.contextSymbol] : []), ...(recent.length === 2 ? recent : [])])];
+    if (pair.length >= 2) compareSymbols = pair.slice(0, 2);
+    else {
+      const cased = request.profile.watchlist.filter((symbol) => coverageInfo[symbol]?.analyzed && symbol !== pair[0]);
+      return {
+        text: pair.length
+          ? `${pair[0]} mau dibandingkan dengan emiten mana?`
+          : `Emiten mana yang ingin dibandingkan? Pilih yang pertama, lalu pasangannya.`,
+        refused: false, intent: "clarify", hypotheses: [], citations: [],
+        clarification: { question: pair.length ? `${request.question} ${pair[0]}` : request.question, choices: cased },
+        preferenceNote: personalizedNote(), relatedSymbols: pair,
+      };
+    }
+  }
+
   const retrieved = followUp.anaphoric && !followUp.resolved
     ? null
     : await retrievalFor(request, followUp);
@@ -1486,11 +1521,13 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // ("berita"), but what it asks for is the cause, which only the case holds.
   const caseReady = Boolean(analysis);
   const winner = selectHandler([
-    candidate("compare", { symbolNamedInQuestion: symbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: symbols.length >= 2 && mentions(question, COMPARE_PHRASES) }, symbols.length >= 2),
+    candidate("compare", { symbolNamedInQuestion: compareSymbols.length >= 2, figureNamedInQuestion: false, exactPhrase: mentions(question, COMPARE_PHRASES), fuzzyPhrase: false, evidenceReady: compareSymbols.length >= 2 && mentions(question, COMPARE_PHRASES) }, compareSymbols.length >= 2),
     candidate("causal-path", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(pathHit), exactPhrase: pathAsked, fuzzyPhrase: false, evidenceReady: Boolean(pathHit) }, Boolean(pathHit)),
     candidate("playbook", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: playbookAsked, fuzzyPhrase: false, evidenceReady: caseReady && playbookAsked }, playbookAsked),
     candidate("falsifier", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: falsifierAsked, fuzzyPhrase: false, evidenceReady: caseReady && falsifierAsked }, falsifierAsked),
-    candidate("attribution", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: attributionAsked, fuzzyPhrase: false, evidenceReady: caseReady && attributionAsked }, attributionAsked),
+    // "explained by the sector" names a figure and an explain word, but the figure is one
+    // term of the split being asked for, so it counts toward attribution too.
+    candidate("attribution", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: attributionAsked && Boolean(namedFigure), exactPhrase: attributionAsked, fuzzyPhrase: false, evidenceReady: caseReady && attributionAsked }, attributionAsked),
     candidate("case-status", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: statusAsked, fuzzyPhrase: false, evidenceReady: caseReady && statusAsked }, statusAsked),
     candidate("provenance", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }, isProvenanceQuestion(question)),
     candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }, figureNamed),
@@ -1501,20 +1538,20 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     { id: "retrieved", retrieval: true, score: handlerScore({ symbolNamedInQuestion: false, figureNamedInQuestion: false, exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(retrieved), retrievalScore: retrieved?.score ?? 0 }) },
   ]) ?? { id: "unknown" as const, score: 0 };
 
-  if (winner.id === "compare" && mentions(question, COMPARE_PHRASES) && symbols.length >= 2) {
-    const first = await buildAnalysis(symbols[0], request.profile);
-    const second = await buildAnalysis(symbols[1], request.profile);
+  if (winner.id === "compare" && mentions(question, COMPARE_PHRASES) && compareSymbols.length >= 2) {
+    const first = await buildAnalysis(compareSymbols[0], request.profile);
+    const second = await buildAnalysis(compareSymbols[1], request.profile);
     // Only six symbols carry a full case. A comparison against one of the
     // other twelve used to fall through to the why-listed branch, which
     // answered about a single symbol and never said the other side was
     // missing — the reader saw an answer to a comparison they did not get.
     if (!first || !second) {
-      const missing = [!first ? symbols[0] : null, !second ? symbols[1] : null].filter(Boolean).join(" dan ");
-      const covered = coverageInfo[!first ? symbols[0] : symbols[1]]?.missing ?? [];
+      const missing = [!first ? compareSymbols[0] : null, !second ? compareSymbols[1] : null].filter(Boolean).join(" dan ");
+      const covered = coverageInfo[!first ? compareSymbols[0] : compareSymbols[1]]?.missing ?? [];
       return {
         text: `Perbandingan belum bisa dijalankan: ${missing} belum punya kasus lengkap pada rekaman ${DATA_AS_OF_LABEL}${covered.length ? ` (${covered.join(", ")} belum ada)` : ""}. Emiten dengan kasus lengkap: ${Object.values(coverageInfo).filter((item) => item.analyzed).map((item) => item.symbol).join(", ")}.`,
         refused: false, intent: "compare", hypotheses: openInsightTraces, citations: (first ?? second)?.sources.slice(0, 4) ?? [],
-        preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
+        preferenceNote: personalizedNote(), relatedSymbols: compareSymbols.slice(0, 2),
       };
     }
     if (first && second) {
@@ -1526,7 +1563,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       return {
         ...(await rewriteWithLlm(request.question, material.text, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
-        citations: material.citations, preferenceNote: personalizedNote(), relatedSymbols: symbols.slice(0, 2),
+        citations: material.citations, preferenceNote: personalizedNote(), relatedSymbols: compareSymbols.slice(0, 2),
       };
     }
   }
@@ -1645,9 +1682,18 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   }
 
   if (winner.id === "missing") {
+    // A partial emiten has no case, but its coverage row says exactly which recordings are
+    // absent — the same list the coverage table on screen shows.
+    const partial = !analysis && primary ? coverageInfo[primary] : undefined;
+    const partialCitations = partial ? marketDataProvider.listCompanies().find((company) => company.symbol === primary)?.citations ?? [] : [];
+    const material = analysis
+      ? missingText(analysis)
+      : partial
+        ? `Data yang belum ada untuk ${primary}: ${missingList(partial.missing)}. Tanpa rekaman itu ${primary} belum punya kasus riset lengkap pada rekaman ${DATA_AS_OF_LABEL}.`
+        : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.";
     return {
-      ...(await rewriteWithLlm(request.question, analysis ? missingText(analysis) : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.", visibleFiguresFor(analysis))),
-      refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? [], preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
+      ...(await rewriteWithLlm(request.question, material, visibleFiguresFor(analysis))),
+      refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? partialCitations.slice(0, 3), preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
 
@@ -1892,7 +1938,7 @@ async function buildCausalGraph(
   // Without a recorded business observable the chain must not name one.
   const targetObservables = targetImpacts.length
     ? targetImpacts.map((item) => item.label)
-    : [`Indikator bisnis belum terekam (${coverage.missing.join(", ") || "rekaman belum lengkap"})`];
+    : [`Indikator bisnis belum terekam (${missingList(coverage.missing) || "rekaman belum lengkap"})`];
   const targetObservableList = targetObservables.join(" dan ");
   // The company card says what it is once. What reaches it and what it cannot
   // show are written after the edges exist, from the edges themselves.
@@ -2036,7 +2082,7 @@ async function buildCausalGraph(
     hub.counterEvidence = [
       pulling.length > 1 ? "Jalur tidak searah, jadi arah bersihnya tidak dapat dibaca dari peta ini." : "",
       "Titik ini hanya mempertemukan jalur; tidak membuktikan masukan mana yang menggerakkan harga.",
-      analysis ? "" : `Data ${coverage.missing.join(", ")} belum terekam, jadi dampak ke kinerja bisnis belum dapat diuji.`,
+      analysis ? "" : `Data ${missingList(coverage.missing)} belum terekam, jadi dampak ke kinerja bisnis belum dapat diuji.`,
     ].filter(Boolean).join(" ");
   }
 

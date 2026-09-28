@@ -25,7 +25,7 @@ const viewTabs: Array<{ value: DashboardView; label: string; Icon: typeof IconGr
 ];
 
 export default function DashboardPage() {
-  const { profile, playbook, insights, caseStatuses, caseResolutions } = useCatalystStore();
+  const { profile, playbook, insights, caseStatuses, caseResolutions, tourOpen } = useCatalystStore();
   const [minRelevance, setMinRelevance] = useState<number>(DEFAULT_THRESHOLDS.chainRelevanceFloor);
   const [view, setView] = useState<DashboardView>("node");
   const [selected, setSelected] = useState<SymbolCode[]>([]);
@@ -94,8 +94,9 @@ export default function DashboardPage() {
   );
 
   const openCases = openSymbols.filter((symbol) => companies.some((company) => company.symbol === symbol && company.analyzed));
-  // The guided tour's first step opens the registry's primary case from here, so it leads when open.
-  const firstCase = openCases.includes(primarySymbol) ? primarySymbol : openCases[0];
+  // The guided tour's first step opens the registry's primary case from here, so it leads when
+  // open — and during the tour even when the reader closed it or left it off the watchlist.
+  const firstCase = tourOpen || openCases.includes(primarySymbol) ? primarySymbol : openCases[0];
   const header = (
     <>
       <PageHeader

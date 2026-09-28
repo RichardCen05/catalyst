@@ -1,4 +1,4 @@
-import { companies, coverageInfo } from "@/lib/data/fixtures";
+import { companies, coverageInfo, missingList } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
 
@@ -17,7 +17,7 @@ export async function buildPantauBundle(context: RequestContext): Promise<Contex
     `Daftar pantauan memuat ${rows.length} dari ${companies.length} emiten terekam.`,
     ...rows.map((company) => {
       const coverage = coverageInfo[company.symbol];
-      const gaps = coverage?.missing.length ? ` Belum ada: ${coverage.missing.join(", ")}.` : "";
+      const gaps = coverage?.missing.length ? ` Belum ada: ${missingList(coverage.missing)}.` : "";
       return `- ${company.symbol} (${company.name}), sektor ${company.sector}. Kasus lengkap: ${coverage?.analyzed ? "ya" : "belum"}.${gaps}`;
     }),
   ].join("\n");

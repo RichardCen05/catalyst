@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, events, primarySymbol } from "@/lib/data/fixtures";
-import { getSharedShocks, validateLag } from "@/lib/agent/lag-validate";
+import { getSharedShocks } from "@/lib/agent/lag-validate";
 import { useCatalystStore } from "@/lib/store";
 import type { CausalGraph, ResearchCase, SymbolCode } from "@/lib/types";
 import { dispositionLabel } from "@/lib/ui-labels";
@@ -124,10 +124,8 @@ function ImpactWorkspace() {
 
       {!graph ? <Panel className="p-8 text-center"><IconBranch aria-hidden="true" className="mx-auto size-6 text-muted-foreground" /><h2 className="mt-3 font-semibold">Data belum cukup</h2><p className="mt-1 text-sm text-muted-foreground">Belum ada jalur sebab akibat yang dapat diuji untuk emiten ini.</p></Panel> : <div className="space-y-4">
         {sharedShocks.length > 1 ? <section aria-label="Guncangan bersama" className="rounded-lg border border-border bg-surface px-4 py-3"><p className="text-xs text-muted-foreground font-medium">Guncangan bersama pantauan</p><ul className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">{sharedShocks.slice(0, 4).map((event) => <li key={event.id}><strong className="text-foreground">{event.title}</strong> — {event.impactLinks.filter((link) => profile.watchlist.includes(link.symbol)).map((link) => link.symbol).join(" · ")}</li>)}</ul></section> : null}
-        {analysis && graph.nodes.find((node) => node.kind === "source") ? (() => {
-          const firstSource = graph.nodes.find((node) => node.kind === "source")!;
-          const event = events.find((item) => `source-${item.id}` === firstSource.id);
-          const check = event ? validateLag(event, analysis.priceSeries) : null;
+        {analysis?.timing ? (() => {
+          const check = analysis.timing;
           return check ? <p className="rounded-lg border border-border bg-surface px-4 py-3 text-xs leading-5 text-muted-foreground"><span className="text-xs text-muted-foreground font-medium">Uji waktu · </span>{check.note} Puncak volume {check.spikeDate}.</p> : null;
         })() : null}
         <CompetingHypotheses graph={graph} />

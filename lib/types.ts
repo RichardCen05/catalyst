@@ -4,6 +4,7 @@
  * company-report recording exists for it.
  */
 import type { SymbolCode } from "@/lib/data/symbols.generated";
+import type { LagValidation } from "@/lib/agent/lag-validate";
 export type { SymbolCode };
 
 export type Sector =
@@ -302,6 +303,8 @@ export interface ResearchCase {
     windows: MetricValue[];
   };
   priceSeries: PricePoint[];
+  /** Volume spike against the case's primary trigger; the causal map shows this same read. */
+  timing: LagValidation | null;
   financialContext: FinancialInput[];
   asOf: string;
 }

@@ -47,7 +47,7 @@ describe("momentum tidak pernah memakai beta atau imbal hasil sektor bawaan", ()
   it("cakupan menyebut beta dan imbal hasil sektor sebagai rekaman yang bisa hilang", () => {
     for (const coverage of Object.values(coverageInfo)) {
       if (!coverage.analyzed) continue;
-      expect(coverage.missing).not.toContain("beta + imbal hasil sektor");
+      expect(coverage.missing).not.toContain("beta (dengan imbal hasil sektor)");
     }
   });
 });

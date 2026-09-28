@@ -108,6 +108,7 @@ function GuidedTourContent() {
   /** A step with no heading or lead is a single meta line: centre it against the
    *  badge so the header row does not leave the dead space a two-line block fills. */
   const compact = !current.title && !current.body;
+  const onStepPage = pathname === current.href.split("?")[0];
 
   const advance = useCallback(() => {
     if (step === steps.length - 1) setComplete(true);
@@ -257,7 +258,11 @@ function GuidedTourContent() {
         <div className="mt-3 flex items-center gap-3 border-t border-border pt-3">
           <div role="img" className="grid w-24 shrink-0 gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label={`Langkah ${step + 1} dari ${steps.length}`}>{steps.map((item, index) => <span key={item.id} className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
           <Button variant="ghost" size="sm" className="pointer-events-auto ml-auto" onClick={finishTour}>Lewati tur</Button>
-          {!targetRect ? <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button> : current.actionSelector ? <p className="hidden text-xs text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
+          {!targetRect ? (onStepPage
+            // Already on the step's page and its highlight is not there: reopening the page
+            // cannot make it appear, so moving on is the only way out short of skipping.
+            ? <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>
+            : <Button variant="secondary" size="sm" className="pointer-events-auto" onClick={() => router.push(current.href)}><LocateFixed aria-hidden="true" className="size-4" />Buka langkah</Button>) : current.actionSelector ? <p className="hidden text-xs text-muted-foreground lg:block">Pilih sorotan untuk lanjut</p> : <Button size="sm" className="pointer-events-auto" onClick={advance}>Lanjut<ArrowRight aria-hidden="true" className="size-4" /></Button>}
         </div>
       </section>
     </div>

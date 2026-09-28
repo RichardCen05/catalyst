@@ -1,4 +1,4 @@
-import { companies, coverageInfo } from "@/lib/data/fixtures";
+import { companies, coverageInfo, missingList } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import type { ContextBundle, RequestContext } from "@/lib/agent/retrieval/types";
 import type { AnalysisCase, Citation } from "@/lib/types";
@@ -49,7 +49,7 @@ export async function buildActiveCasesBundle(context: RequestContext): Promise<C
     ].join(" ")),
     ...incomplete.map(({ symbol }) => {
       const missing = coverageInfo[symbol]?.missing ?? [];
-      return `- ${symbol} dipantau tetapi belum punya kasus lengkap${missing.length ? `: ${missing.join(", ")} belum ada` : ""}.`;
+      return `- ${symbol} dipantau tetapi belum punya kasus lengkap${missing.length ? `: ${missingList(missing)} belum ada` : ""}.`;
     }),
   ].join("\n");
 

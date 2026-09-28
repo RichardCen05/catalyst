@@ -1,5 +1,6 @@
 import { codeMatches, phraseMatches, words } from "@/lib/text/fuzzy";
 import { companies } from "@/lib/data/fixtures";
+import { CHROME_BLOCKS, CHROME_NAV } from "@/lib/data/chrome.generated";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 
@@ -188,6 +189,24 @@ export function normalizeQuery(value: string): string {
     .trim();
 }
 
+/**
+ * Words the app itself prints on screen. A reader typing one of them wrote a
+ * word, not a misspelt issuer name: "bukti" is one transposition from "bukit"
+ * (PTBA) and "bukan" one edit from "buka" (BUKA), and the typo pass used to
+ * bind whole conversations to those issuers.
+ */
+let screenWords: Set<string> | null = null;
+function ordinaryWords(): Set<string> {
+  if (screenWords) return screenWords;
+  const text = [
+    ...CHROME_BLOCKS.flatMap((block) => [block.heading, block.eyebrow, block.description, ...(block.actions ?? []), ...(block.labels ?? [])]),
+    ...CHROME_NAV.map((item) => item.label),
+  ].filter(Boolean).join(" ");
+  const aliases = singleTokenAliases();
+  screenWords = new Set(words(normalizeQuery(text)).filter((word) => !aliases.has(word)));
+  return screenWords;
+}
+
 /** Match symbols via code, full name, or common alias — whole-phrase on normalized text. */
 export function findSymbolsRobust(question: string, symbols: SymbolCode[]): SymbolCode[] {
   const normalized = ` ${normalizeQuery(question)} `;
@@ -203,7 +222,8 @@ export function findSymbolsRobust(question: string, symbols: SymbolCode[]): Symb
   // "aneka tamban" and "bukalapk" are the same question as the spelling the
   // list happens to hold; a reader who mistypes a ticker got told the whole
   // question could not be mapped to any evidence.
-  const typed = words(normalized).filter((word) => word.length >= 4);
+  const ordinary = ordinaryWords();
+  const typed = words(normalized).filter((word) => word.length >= 4 && !ordinary.has(word));
   for (const symbol of symbols) {
     const aliases = SYMBOL_ALIASES[symbol] ?? [symbol.toLowerCase()];
     if (aliases.some((alias) => (alias.includes(" ") ? phraseMatches(normalized, alias) : typed.some((word) => codeMatches(word, alias))))) {

@@ -98,6 +98,17 @@ function headlineFor(text: SourceText, fetchedUrl: string, title: string | null,
   return { headline: (text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl, titleSource: "body" as TitleSource, derived };
 }
 
+/** A calendar date written into an article URL (`/20260923…` or `/2026/09/23/`), as the
+ *  start of that day in Jakarta, or null when the address carries none. */
+export function dateFromUrl(url: string): string | null {
+  const match = url.match(/\/(20\d{2})\/?(\d{2})\/?(\d{2})(?=[/\-_.]|\d|$)/);
+  if (!match) return null;
+  const [, year, month, day] = match;
+  const check = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  const valid = check.getUTCMonth() === Number(month) - 1 && check.getUTCDate() === Number(day);
+  return valid ? `${year}-${month}-${day}T00:00:00+07:00` : null;
+}
+
 /** A change, packaged exactly like any other event input — but with no
  *  impact links. The mapping to symbols happens at review time, in the open,
  *  not inside the fetcher. The id hashes the text, never the headline, so a
@@ -125,7 +136,9 @@ export function buildCandidate(
     category: state.category,
     sourceType: state.sourceType,
     // Feeds write RFC 822; everything that reads this field expects ISO.
-    publishedAt: isoTimestamp(publishedAt) ?? nowIso,
+    // Without a feed date, a date in the article's own address beats the crawl time,
+    // which stamped a 23 Sep article as published at the next morning's sweep.
+    publishedAt: isoTimestamp(publishedAt) ?? dateFromUrl(fetchedUrl) ?? nowIso,
     asOf: nowIso,
     sector: "Market",
     impactLinks: [],

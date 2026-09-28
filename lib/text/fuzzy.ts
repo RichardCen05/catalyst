@@ -137,7 +137,14 @@ export function phraseMatches(haystack: string, phrase: string): boolean {
   const widest = Math.min(typed.length, target.length + 1);
   for (let size = 1; size <= widest; size += 1) {
     for (let start = 0; start + size <= typed.length; start += 1) {
-      if (wordMatches(typed.slice(start, start + size).join(""), joined)) return true;
+      const span = typed.slice(start, start + size).join("");
+      // One whole word against a squashed phrase forgives the missing space and
+      // one slip, no more: "seberapa" is two edits from "sumberapa" and is a
+      // word of its own, not "sumber apa" typed badly.
+      if (size === 1 && target.length > 1) {
+        const tolerance = Math.min(1, wordTolerance(span, joined));
+        if (span === joined || (tolerance > 0 && editDistanceWithin(span, joined, tolerance) <= tolerance)) return true;
+      } else if (wordMatches(span, joined)) return true;
     }
   }
   return false;

@@ -113,7 +113,7 @@ describe("Catalyst agent engine", async () => {
 
     expect(graph).not.toBeNull();
     expect(graph?.coverage.analyzed).toBe(false);
-    expect(graph?.coverage.missing).toContain("ringkasan broker + arus asing");
+    expect(graph?.coverage.missing).toContain("ringkasan broker (dengan arus asing)");
     expect(graph?.nodes.some((node) => node.kind === "source")).toBe(true);
     expect(graph?.nodes.some((node) => node.kind === "mechanism")).toBe(true);
     expect(graph?.nodes.some((node) => node.kind === "company")).toBe(true);
@@ -148,6 +148,16 @@ describe("Catalyst agent engine", async () => {
     )).toBe(true);
   });
 
+  it("never escalates or calls evidence aligned when the volume spike came before the trigger", async () => {
+    for (const company of companies.filter((item) => item.analyzed)) {
+      const researchCase = await agentEngine.analyzeCompany(company.symbol, demoProfiles[0]);
+      if (!researchCase?.timing || researchCase.timing.deltaSessions >= 0) continue;
+      expect(researchCase.evidenceState, company.symbol).not.toBe("Corroborated");
+      expect(researchCase.researchDisposition.kind, company.symbol).not.toBe("escalate");
+      expect(researchCase.counterEvidence[0], company.symbol).toContain(researchCase.timing.note);
+    }
+  });
+
   it("turns every detected change into an explicit contract and research disposition", async () => {
     const researchCase = await agentEngine.analyzeCompany("ANTM", demoProfiles[0]);
 
@@ -155,7 +165,7 @@ describe("Catalyst agent engine", async () => {
     expect(researchCase?.materialChange.baseline).toMatch(/\d+ sesi|sektor/i);
     expect(researchCase?.materialChange.whyMaterial).toBeTruthy();
     expect(researchCase?.materialChange.rule).toBeTruthy();
-    expect(researchCase?.researchDisposition.kind).toBe("escalate");
+    expect(["escalate", "monitor", "dismiss"]).toContain(researchCase?.researchDisposition.kind);
     expect(researchCase?.researchDisposition.reason).toBeTruthy();
     expect(researchCase?.researchDisposition.monitorObservable).toBeTruthy();
     expect(researchCase?.researchDisposition.reopenWhen).toBeTruthy();

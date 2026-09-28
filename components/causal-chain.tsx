@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { missingList } from "@/lib/data/fixtures";
 import {
   Background,
   BaseEdge,
@@ -173,7 +174,7 @@ export function CausalChain({ graph }: { graph: CausalGraph }) {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-4 py-3 text-xs text-muted-foreground"><span className="font-medium text-foreground">Pilih titik atau garis untuk memeriksa</span><span>Sumber</span><span aria-hidden="true">→</span><span>Mekanisme</span><span aria-hidden="true">→</span><span>Emiten</span>{graph.coverage.analyzed ? <><span aria-hidden="true">→</span><span>Dampak bisnis</span></> : null}</div>
       {graph.coverage.analyzed ? null : (
         <p className="border-b border-border bg-attention/10 px-4 py-2 text-xs leading-5 text-muted-foreground">
-          Data {graph.coverage.missing.join(", ")} untuk {graph.targetSymbol} belum terekam. Peta menunjukkan sumber dan mekanisme sampai emiten; dampak ke kinerja bisnis belum dapat diuji.
+          Data {missingList(graph.coverage.missing)} untuk {graph.targetSymbol} belum terekam. Peta menunjukkan sumber dan mekanisme sampai emiten; dampak ke kinerja bisnis belum dapat diuji.
         </p>
       )}
       {graph.hiddenRelationshipCount > 0 ? (
