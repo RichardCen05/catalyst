@@ -95,8 +95,12 @@ describe("F3 an English answer carries no Indonesian label", () => {
   it("finds the Indonesian labels an English draft kept", () => {
     const leaky = "Check operating margin next (margin operasi, margin kotor), then arus kas operasi and konsentrasi and arus asing; the catalyst is Berlawanan.";
     const terms = untranslatedTerms(leaky, "en");
-    for (const term of ["operasi", "kotor", "arus", "konsentrasi", "berlawanan"]) expect(terms).toContain(term);
+    for (const term of ["margin operasi", "margin kotor", "kas operasi", "arus asing", "konsentrasi", "berlawanan"]) expect(terms).toContain(term);
     expect(untranslatedTerms("Check the gross margin and operating cash flow next; the catalyst is adverse.", "en")).toEqual([]);
+    // Words English writes the same way, and index names, are not leaks: the
+    // first version rejected every faithful English answer over "per unit"
+    // and "IHSG" (28 Sep, production).
+    expect(untranslatedTerms("Check cost per unit and broker concentration; the residual after beta against the IHSG is -3,2%.", "en")).toEqual([]);
     // An Indonesian answer is written in these words on purpose.
     expect(untranslatedTerms("Periksa margin kotor dan arus kas operasi.", "id")).toEqual([]);
   });
