@@ -80,11 +80,16 @@ function hostOf(url: string): string {
  *  it, then the first prose sentence of the body; with neither, the filename
  *  stays and says so. */
 function headlineFor(text: SourceText, fetchedUrl: string, title: string | null, titleIsUrl: boolean) {
+  /** The page's own first prose sentence — what a headline derived from the
+   *  body is in every branch below. A line that ends without punctuation is a
+   *  breadcrumb, a menu item or a filename, and it is what the raw first line
+   *  used to hand over. */
+  const firstProse = () => sentences(text.text, resolveThresholds().webWatchProseSentenceMinWords)[0];
   if (title && titleIsUrl && text.pageTitle && text.pageTitle !== title) {
     return { headline: text.pageTitle.slice(0, 200), titleSource: "body" as TitleSource, derived: null };
   }
   if (title && titleIsUrl) {
-    const [first] = sentences(text.text, resolveThresholds().webWatchProseSentenceMinWords);
+    const first = firstProse();
     if (first) return { headline: first.slice(0, 200), titleSource: "body" as TitleSource, derived: null };
     return { headline: title.slice(0, 200) || fetchedUrl, titleSource: "url" as TitleSource, derived: null };
   }
@@ -95,7 +100,29 @@ function headlineFor(text: SourceText, fetchedUrl: string, title: string | null,
   // nothing changes.
   const derived = summarizeJsonPayload(text.text);
   if (derived) return { headline: derived.title.slice(0, 200) || fetchedUrl, titleSource: "json" as TitleSource, derived };
-  return { headline: (text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl, titleSource: "body" as TitleSource, derived };
+  return { headline: (firstProse() ?? text.text.split("\n")[0] ?? fetchedUrl).slice(0, 200) || fetchedUrl, titleSource: "body" as TitleSource, derived };
+}
+
+/**
+ * The first sentences of a page, whole ones, for `MarketEvent.summary`.
+ *
+ * The summary is the first thing a reviewer reads under a headline, and a raw
+ * slice of the extracted text began inside whatever the extraction had left at
+ * the top — a breadcrumb, a category line — and stopped in the middle of a
+ * word. A page with no prose (a JSON payload, a table of figures, text whose
+ * sentences never reach the sentence minimum) has nothing to join, so the raw
+ * text is what it gets, exactly as before.
+ */
+function summaryText(text: string, max: number): string {
+  const prose = sentences(text, resolveThresholds().webWatchProseSentenceMinWords);
+  if (!prose.length) return text.slice(0, max);
+  let out = "";
+  for (const sentence of prose) {
+    const next = out ? `${out} ${sentence}` : sentence;
+    if (next.length > max) break;
+    out = next;
+  }
+  return (out || prose[0]).slice(0, max);
 }
 
 /** A change, packaged exactly like any other event input — but with no
@@ -120,7 +147,9 @@ export function buildCandidate(
     titleSource,
     // The raw text stays in `body` either way — the citation and the audit
     // trail must not lose it.
-    summary: (derived?.summary ?? text.text).slice(0, 500),
+    // A derived summary is already written as one; a page's own text is read
+    // as prose, so the card does not start mid-menu or mid-word.
+    summary: derived ? derived.summary.slice(0, 500) : summaryText(text.text, 500),
     body: text.text.slice(0, BODY_CAP),
     category: state.category,
     sourceType: state.sourceType,

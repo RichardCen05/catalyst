@@ -4389,7 +4389,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 8410767653.749999,
     "sharesOutstanding": 24030764725.0,
     "referencePrice": 3280,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23"
   },
   "BBCA": {
@@ -4562,7 +4562,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 54482123342.79,
     "sharesOutstanding": 122042299500.0,
     "referencePrice": 6300,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23",
     "ownershipSeries": [
       {
@@ -4777,7 +4777,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 70160299258.0812,
     "sharesOutstanding": 150043411587.0,
     "referencePrice": 3190,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23",
     "ownershipSeries": [
       {
@@ -4992,7 +4992,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 921811314567.204,
     "sharesOutstanding": 1140573267220.0,
     "referencePrice": 50,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23"
   },
   "PGAS": {
@@ -5165,7 +5165,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 10431363391.82076,
     "sharesOutstanding": 24241508196.0,
     "referencePrice": 1440,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23"
   },
   "TLKM": {
@@ -5338,7 +5338,7 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
     "freeFloatShares": 41259413213.9,
     "sharesOutstanding": 99062216600.0,
     "referencePrice": 2440,
-    "windowStart": "2026-08-01",
+    "windowStart": "2026-08-03",
     "windowEnd": "2026-09-23",
     "ownershipSeries": [
       {

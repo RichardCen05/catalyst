@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digestFor } from "@/lib/data/recording-digest";
 import { citations } from "@/lib/data/fixtures";
-import { brokerEvidence, priceSeries } from "@/lib/data/market.generated";
+import { brokerEvidence, priceSeries, rawEvents } from "@/lib/data/market.generated";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 /**
@@ -33,6 +33,28 @@ describe("ringkasan isi rekaman", () => {
     // The bound travels with the measurements, so whoever writes the sentence
     // cannot quietly drop it.
     expect(digest?.context.some((entry) => entry.label === "Batas arti rekaman")).toBe(true);
+  });
+
+  it("jendela ringkasan arus asing adalah jendela baris yang dijumlahkan", () => {
+    // One rupiah figure, one window. The flows event writes the window of the
+    // foreign-flow rows it summed; the card's scope has to quote that same
+    // window, because the broker-summary recording runs on a slower cadence
+    // and its dates disagree with the figure printed beside them.
+    const flows = rawEvents.filter((event) => /^flows-foreign-net-/.test(event.id));
+    expect(flows.length).toBeGreaterThan(0);
+    const label = (iso: string) =>
+      new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date(iso));
+    for (const event of flows) {
+      const [link] = event.impactLinks;
+      const stated = /pada jendela (\d{4}-\d{2}-\d{2})–(\d{4}-\d{2}-\d{2})/.exec(event.title);
+      expect(stated, event.id).not.toBeNull();
+      const evidence = brokerEvidence[link.symbol];
+      expect(evidence, link.symbol).toBeDefined();
+      expect(evidence.windowStart, `${link.symbol} windowStart`).toBe(stated?.[1]);
+      expect(evidence.windowEnd, `${link.symbol} windowEnd`).toBe(stated?.[2]);
+      expect(digestFor(citations.foreign(link.symbol))?.scope, link.symbol)
+        .toBe(`Jendela ${label(evidence.windowStart)} – ${label(evidence.windowEnd)}`);
+    }
   });
 
   it("ringkasan broker memakai porsi pembeli terbesar terhadap kelompok yang dibaca", () => {

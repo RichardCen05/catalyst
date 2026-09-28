@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
+import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 describe("composeAnswerWithLlm", () => {
   it("accepts a draft whose numbers all trace back", async () => {
@@ -25,6 +26,34 @@ describe("composeAnswerWithLlm", () => {
       evidenceSummary: "Jalur sengketa kontrak → kewajiban kompensasi → arus kas operasi.", evidenceNumbers: [],
     }, call);
     expect(call.mock.calls[0][0].contents).toMatch(/Tulis jawaban dalam bahasa Indonesia\.$/m);
+  });
+
+  it("cuts a verbose draft at the sentence cap rather than shipping or dropping it", async () => {
+    const call = vi.fn().mockResolvedValue({
+      text: "ANTM naik 4,2% pada rekaman ini. Kalimat kedua menambahkan detail. Kalimat ketiga mengulang. Kalimat keempat mengulang lagi. Kalimat kelima yang tidak diminta pembaca. Kalimat keenam juga tidak.",
+    });
+    const result = await composeAnswerWithLlm({
+      question: "Kenapa ANTM naik?",
+      evidenceSummary: "Return 3 hari 4,2% pada rekaman ini.",
+      evidenceNumbers: ["4,2%"],
+    }, call);
+    expect(result.text).toContain("Kalimat keempat");
+    expect(result.text).not.toContain("Kalimat kelima");
+    expect(result.text.split(/(?<=[.!?])\s+/)).toHaveLength(DEFAULT_THRESHOLDS.answerMaxSentences);
+  });
+
+  it("asks for a premise the recordings contradict to be corrected first, within the shared cap", async () => {
+    const call = vi.fn().mockResolvedValue({ text: "Rekaman tidak menunjukkan penurunan itu; yang terekam naik 4,2%." });
+    await composeAnswerWithLlm({
+      question: "Kenapa ANTM turun 15% pekan ini?",
+      evidenceSummary: "Return 3 hari 4,2% pada rekaman ini.",
+      evidenceNumbers: ["4,2%"],
+    }, call);
+    const { systemInstruction } = call.mock.calls[0][0] as { systemInstruction: string };
+    expect(systemInstruction).toMatch(/premis/i);
+    expect(systemInstruction).toContain("kalimat pertama");
+    // The cap in the prompt and the cap the verifier enforces cannot drift.
+    expect(systemInstruction).toContain(`Maksimal ${DEFAULT_THRESHOLDS.answerMaxSentences} kalimat`);
   });
 });
 

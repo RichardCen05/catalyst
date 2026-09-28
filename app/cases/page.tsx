@@ -15,7 +15,7 @@ import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { SymbolCombobox } from "@/components/ui/symbol-combobox";
-import { cn, displayFigure, formatCurrency } from "@/lib/utils";
+import { cn, displayFigure, formatCurrency, withStop } from "@/lib/utils";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
 import { COVERAGE_ORDER, coverageRows, type CoverageStatus, type MovementCheck } from "@/lib/agent/coverage";
@@ -155,7 +155,7 @@ function ResearchCasesContent() {
       </div>
         <p className="mt-3 text-xs text-subtle-foreground">Urutan mengikuti materialitas dan penilaian bukti Anda. Setiap kasus diperiksa dalam tiga langkah: 1 Pasar, 2 Bisnis, 3 Keputusan.</p>
         <p className="mt-2 text-sm text-muted-foreground">{orderedCases.length} dari {companies.length} emiten punya kasus aktif. <Link href="/cases?view=coverage" className="font-medium text-foreground underline underline-offset-4 hover:no-underline">Lihat semua emiten</Link> untuk emiten yang tidak masuk daftar ini dan hasil uji ambangnya.</p>
-        {firstOpen ? <NextStep title={`Mulai dari ${firstOpen.company.symbol}`} description={`${firstOpen.trigger.title}. Buka langkah 1 Pasar untuk memeriksa apakah pasar ikut bergerak.`} href={`/cases/${firstOpen.company.symbol}?tab=market`} action={`Buka ${firstOpen.company.symbol}`} secondary={{ href: "/cases?view=picker", label: "Bandingkan emiten" }} /> : <NextStep title="Semua kasus sudah ditutup" description="Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning." href="/ai-learning?section=tinjauan" action="Buka tinjauan dan usulan" />}
+        {firstOpen ? <NextStep title={`Mulai dari ${firstOpen.company.symbol}`} description={`${withStop(firstOpen.trigger.title)} Buka langkah 1 Pasar untuk memeriksa apakah pasar ikut bergerak.`} href={`/cases/${firstOpen.company.symbol}?tab=market`} action={`Buka ${firstOpen.company.symbol}`} secondary={{ href: "/cases?view=picker", label: "Bandingkan emiten" }} /> : <NextStep title="Semua kasus sudah ditutup" description="Pelajaran dari kasus yang ditutup menunggu keputusan Anda di AI Learning." href="/ai-learning?section=tinjauan" action="Buka tinjauan dan usulan" />}
       </div> : null}
 
       {activeView === "coverage" ? <div>

@@ -5,6 +5,8 @@ import { apiUrl } from "@/lib/api-base";
 import { Blobatar } from "@blobatar/react";
 import { useGaze } from "@blobatar/react/gaze";
 import { ASSISTANT_NAME, buildQuickPrompts } from "@/lib/agent/assistant";
+import { resolveContext } from "@/lib/agent/route-context";
+import { useCopilotSession } from "@/lib/copilot-session";
 import { useCatalystStore } from "@/lib/store";
 
 /** Typing cadence. Fast enough to finish a prompt before a reader looks away,
@@ -35,8 +37,13 @@ function fit(line: string): string {
  *  a line of its own. */
 export function CopilotLauncher({ triggerRef }: { triggerRef: RefObject<HTMLButtonElement | null> }) {
   const profile = useCatalystStore((state) => state.profile);
+  const copilotContext = useCatalystStore((state) => state.copilotContext);
   const setCopilotOpen = useCatalystStore((state) => state.setCopilotOpen);
-  const prompts = buildQuickPrompts(profile);
+  const routeSymbol = useCopilotSession((state) => state.routeSymbol);
+  // The launcher types the chips the panel offers, about the case in front of
+  // the reader — the same resolution the panel makes, so the invitation and
+  // the chips never name different emitens.
+  const prompts = buildQuickPrompts(profile, resolveContext(copilotContext, routeSymbol)?.symbol);
   const [typed, setTyped] = useState("");
   // Today's facts arrive after the first prompts are already typing. They are
   // optional by design: deterministic mode, a spent budget and a draft the

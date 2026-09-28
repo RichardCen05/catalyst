@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Citation } from "@/lib/types";
+import { batchClaims, claimKey, type EndpointSummaryClaim } from "@/lib/endpoint-summaries";
 import { locate } from "@/lib/agent/citations";
 import { glossField } from "@/lib/agent/explain";
 import { digestFor } from "@/lib/data/recording-digest";
@@ -33,18 +34,21 @@ function eventForCitation(citation: Citation) {
  * It belongs above the fold; the address and the raw column names stay
  * untouched underneath, because they are the audit trail.
  *
- * Every feed in the panel is asked for in one request when the panel opens,
- * and the answers are kept for the session: the same recording backs several
- * figures, and opening the panel twice should not cost twice.
+ * Every feed in the panel is asked for when the panel opens, cut to the
+ * bound one request may carry (`ENDPOINT_SUMMARY_CLAIMS_MAX`), and the
+ * answers are kept for the session: the same recording backs several
+ * figures, and opening the panel twice should not cost twice. A panel that
+ * shows more feeds than one body holds sends several requests, because a
+ * request over the bound is answered with 400 and the panel then shows no
+ * plain words at all.
  *
  * A missing answer (deterministic mode, spent budget, a draft the verifier
  * threw out) renders nothing at all. An invented description of a recording
  * would be worse than the terse card this replaces.
  */
-type Claim = { endpoint: string; field: string; symbol?: string };
+type Claim = EndpointSummaryClaim;
 type Reading = { summary: string | null; takeaway: string | null; why: string | null };
 
-const claimKey = (claim: Claim) => `${claim.endpoint}\u0000${claim.field}`;
 
 const resolved = new Map<string, Reading>();
 
@@ -52,12 +56,13 @@ async function fetchSummaries(claims: Claim[]): Promise<Map<string, Reading>> {
   const missing = claims.filter((claim) => !resolved.has(claimKey(claim)));
   if (missing.length) {
     try {
-      const response = await fetch("/api/endpoint-summary", {
+      const responses = await Promise.all(batchClaims(missing).map((batch) => fetch("/api/endpoint-summary", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ claims: missing }),
-      });
-      if (response.ok) {
+        body: JSON.stringify({ claims: batch }),
+      })));
+      for (const response of responses) {
+        if (!response.ok) continue;
         const payload: { summaries?: ({ endpoint: string; field: string } & Reading)[] } = await response.json();
         for (const item of payload.summaries ?? []) {
           if (item.summary || item.takeaway || item.why) {

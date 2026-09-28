@@ -7,7 +7,7 @@ import {
 } from "@/lib/data/market.generated";
 import { endpointTemplate } from "@/lib/data/endpoint-registry";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, signedPercent } from "@/lib/utils";
 import type { Citation } from "@/lib/types";
 
 /**
@@ -114,7 +114,7 @@ function dailyDigest(symbol: string): RecordingDigest | undefined {
       // ones before it, so the baseline named here is that comparison set.
       ...(ratio ? [{ label: "Volume hari terakhir dibanding median pembanding", value: `${decimal(ratio, 2)}×` }] : []),
       { label: "Sesi pembanding", value: `${comparison.length} sesi` },
-      ...(move === undefined ? [] : [{ label: "Perubahan harga sepanjang jendela", value: `${move >= 0 ? "+" : "−"}${decimal(Math.abs(move))}%` }]),
+      ...(move === undefined ? [] : [{ label: "Perubahan harga sepanjang jendela", value: signedPercent(move) }]),
       { label: "Batas arti rekaman", value: "ramai atau sepinya perdagangan tidak menyebut siapa yang bertransaksi atau sebabnya" },
     ],
   };
@@ -134,7 +134,7 @@ function ihsgDigest(): RecordingDigest | undefined {
       { label: "IHSG awal jendela", value: formatNumber(series[0].ihsg) },
     ],
     context: [
-      ...(move === undefined ? [] : [{ label: "Perubahan IHSG sepanjang jendela", value: `${move >= 0 ? "+" : "−"}${decimal(Math.abs(move))}%` }]),
+      ...(move === undefined ? [] : [{ label: "Perubahan IHSG sepanjang jendela", value: signedPercent(move) }]),
       { label: "Peran rekaman", value: "pembanding pasar; gerak emiten dinilai setelah gerak pasar dikeluarkan" },
     ],
   };
@@ -222,7 +222,7 @@ function financialDigest(symbol: string): RecordingDigest | undefined {
     context: [
       ...(change === undefined ? [] : [{
         label: `Perubahan ${revenue.label} dari kuartal sebelumnya`,
-        value: `${change >= 0 ? "+" : "−"}${decimal(Math.abs(change))}%`,
+        value: signedPercent(change),
       }]),
       { label: "Frekuensi terbit", value: "kuartalan, jauh lebih jarang daripada gerak harga harian" },
       { label: "Batas arti rekaman", value: "tidak menjelaskan gerak harga pada sesi tertentu" },

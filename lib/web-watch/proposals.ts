@@ -11,6 +11,12 @@
  *   - the symbol is in the registry and in triage's match set for this item;
  *   - every numeral in the path and rationale appears in what the model was
  *     given — the candidate's own text or the segment shares in the prompt;
+ *   - the path and rationale are in Indonesian whenever they have grammar to
+ *     be in anything, and say something about that same text: a sentence
+ *     sharing no content term with it and quoting none of its figures is a
+ *     mapping of some other article, however fluently written;
+ *   - the rationale is long enough to be checked, in words from
+ *     `DEFAULT_THRESHOLDS.webWatchRationaleMinWords`;
  *   - no advisory or transactional language (`assertSafeOutput`);
  *   - direction and band are known values, and the path is long enough for
  *     the accept form to take it as-is.
@@ -26,7 +32,7 @@ import { LlmBudgetError } from "@/lib/agent/llm/budget";
 import type { generateStructured } from "@/lib/agent/llm/client";
 import { assessExposureWithLlm, segmentLine, type ExposureAssessment } from "@/lib/agent/llm/exposure";
 import { strongModel } from "@/lib/agent/llm/models";
-import { extractNumerals, verifyDraft } from "@/lib/agent/llm/verify";
+import { detectLanguage, extractNumerals, groundingViolation, verifyDraft } from "@/lib/agent/llm/verify";
 import { agentMode } from "@/lib/agent/mode";
 import { RELEVANCE_BANDS, resolveThresholds, type ResolvedThresholds } from "@/lib/agent/thresholds";
 import { revenueSegments } from "@/lib/data/fixtures";
@@ -65,12 +71,25 @@ export interface DraftCheck {
   violations: string[];
 }
 
-/** Every check a draft must pass before it is stored as a proposal. */
+/** Every check a draft must pass before it is stored as a proposal.
+ *
+ * `sourceText` is the candidate's own title and prose — the material the
+ * prompt was built from, and required, so no caller can check a draft without
+ * the one argument that can tell a mapping of this article from a mapping of
+ * any other. The numeral gate alone is satisfied by a draft quoting a single
+ * figure, and the language gate by a fluent sentence; grounding and the
+ * rationale minimum are what make the two together say something about the
+ * source — which matters because a proposal still reaches a reviewer
+ * pre-filled, and a high-band one can be accepted without a look. An empty
+ * string is accepted as "no text to ground against", never as a reason to
+ * skip the rest of the checks.
+ */
 export function verifyExposureDraft(
   draft: ExposureAssessment,
   symbol: string,
   matchSet: SymbolCode[],
   allowedNumerals: string[],
+  sourceText: string,
 ): DraftCheck {
   const violations: string[] = [];
   if (!isKnownSymbolCode(symbol)) violations.push(`${symbol} is not a registry symbol`);
@@ -80,6 +99,20 @@ export function verifyExposureDraft(
   if (typeof draft.path !== "string" || draft.path.trim().length < WEB_WATCH_PATH_MIN_CHARS) violations.push("path too short");
   const prose = `${draft.path ?? ""}\n${draft.rationale ?? ""}`;
   violations.push(...verifyDraft(prose, allowedNumerals, []).violations);
+  const minWords = resolveThresholds().webWatchRationaleMinWords;
+  const rationale = (draft.rationale ?? "").replace(/\s+/g, " ").trim();
+  if (rationale.split(" ").length < minWords) violations.push(`rationale is shorter than ${minWords} words`);
+  // The card and the prompt examples are Indonesian; a fluent English
+  // rationale passes every other rule here and is simply unreadable on the
+  // screen it lands on. Checked field by field — a path is a fragment whose
+  // few Indonesian words would otherwise outvote an English sentence after
+  // them. "unknown" is allowed: a path of tickers and terms has no grammar to
+  // detect.
+  if ([draft.path ?? "", draft.rationale ?? ""].some((field) => detectLanguage(field) === "en")) {
+    violations.push("draft is written in English");
+  }
+  const grounding = groundingViolation(prose, sourceText, allowedNumerals);
+  if (grounding) violations.push(grounding);
   try {
     assertSafeOutput(prose);
   } catch {
@@ -226,7 +259,7 @@ async function draftOne(
       console.warn(`[llm-fallback] triage ${symbol}/${event.id}: ${message}`);
       continue;
     }
-    const check = verifyExposureDraft(draft, symbol, match.symbols, allowed);
+    const check = verifyExposureDraft(draft, symbol, match.symbols, allowed, matchText(event));
     if (!check.approved) {
       console.warn(`[llm-fallback] triage ${symbol}/${event.id}: rejected — ${check.violations.join("; ").slice(0, 300)}`);
       report.rejections.push({ title: event.title, symbol, violations: check.violations });

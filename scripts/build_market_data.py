@@ -782,8 +782,15 @@ for symbol in CASES:
         "freeFloatShares": shares_outstanding * free_float.get(symbol, 1.0),
         "sharesOutstanding": shares_outstanding,
         "referencePrice": reference,
-        "windowStart": top["start"],
-        "windowEnd": top["end"],
+        # Jendela angka di atasnya: baris foreign-flow yang dijumlahkan, yang
+        # dipotong ke jendela aplikasi — bukan rentang rekaman broker-summary.
+        # Dua feed ini diperbarui pada kadens berbeda (broker tiap tiga hari),
+        # sehingga memakai jendela broker memberi satu angka rupiah dua tanggal
+        # di kartu yang sama: events memakai {DATES[0]}–{flow_end}, sementara
+        # "Cakupan rekaman" kartu foreign-flow ikut tanggal broker. Jendela ini
+        # kini berasal dari sumber numeratonya sendiri.
+        "windowStart": DATES[0],
+        "windowEnd": max((r["date"] for r in window_flow), default=DATES[-1]),
     }
     ownership_series = foreign_ownership_series(symbol)
     if ownership_series:

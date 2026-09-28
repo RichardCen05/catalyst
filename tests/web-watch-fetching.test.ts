@@ -46,6 +46,26 @@ describe("htmlToText — portal markup", () => {
     expect(text).not.toContain("-->");
   });
 
+  it("drops navigation, rail, footer and form whole when the page has no content region", () => {
+    const html =
+      `<html><body><nav>Ekonomi Politik Hiburan</nav>` +
+      `<aside><a href="/1">Baca Juga: saham rally pekan ini</a></aside>` +
+      `<footer>Hak cipta 2026</footer><form>Cari berita<input name="q"/></form>` +
+      `<p>${LONG}</p></body></html>`;
+    const text = htmlToText(html);
+    expect(text).toContain("kata kata");
+    expect(text).not.toContain("Ekonomi Politik");
+    expect(text).not.toContain("Baca Juga");
+    expect(text).not.toContain("Hak cipta");
+    expect(text).not.toContain("Cari berita");
+  });
+
+  it("keeps a <header>, where a CMS puts the article's own headline", () => {
+    const text = htmlToText(`<html><body><header><h1>ICP Agustus naik</h1></header><p>${LONG}</p></body></html>`);
+    expect(text).toContain("ICP Agustus naik");
+    expect(text).toContain("kata kata");
+  });
+
   it("does not stop a tag at a > inside a quoted attribute", () => {
     const html = `<html><body><main><div class="h-[30px] [&>ins]:rounded-sm [&>ins]:px-2">Isi</div><p>${LONG}</p></main></body></html>`;
     const text = htmlToText(html);

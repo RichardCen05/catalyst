@@ -111,7 +111,7 @@ export default function PlaybookPage() {
                     <input type="number" min={0} step={50} value={holding?.avgCost ?? ""} placeholder="0" onChange={(event) => { const avgCost = Number(event.target.value); if (holding && avgCost >= 0) setHolding(symbol, { shares: holding.shares, avgCost }); }} className="mt-1 h-9 w-full rounded-lg border border-border bg-surface px-2 font-mono text-xs outline-none focus:border-primary" aria-label={`Harga rata-rata ${symbol}`} />
                   </label>
                 </div>
-                {holding ? (exposure === null || pnl === null ? <p className="mt-2 font-mono text-xs text-attention-foreground">Harga penutupan {symbol} tidak ada pada rekaman — eksposur dan laba/rugi tidak dihitung.</p> : <p className="mt-2 font-mono text-xs text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl >= 0 ? "+" : ""}Rp{(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p>) : null}
+                {holding ? (exposure === null || pnl === null ? <p className="mt-2 font-mono text-xs text-attention-foreground">Harga penutupan {symbol} tidak ada pada rekaman — eksposur dan laba/rugi tidak dihitung.</p> : <p className="mt-2 font-mono text-xs text-muted-foreground">Eksposur Rp{(exposure / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt · {pnl > 0 ? "+" : pnl < 0 ? "−" : ""}Rp{Math.abs(pnl / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })}jt</p>) : null}
               </div>
             );
           })}

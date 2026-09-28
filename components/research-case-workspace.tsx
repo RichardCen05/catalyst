@@ -6,7 +6,7 @@ import { useCatalystStore } from "@/lib/store";
 import { NextStep } from "@/components/next-step";
 import type { PillarKey, ResearchCase, SymbolCode } from "@/lib/types";
 import { AnalysisReview } from "@/components/analysis-review";
-import { CaseMemoActions } from "@/components/case-verdict";
+import { CaseAuditDetails, CaseMemoActions, CaseMonitorQueue } from "@/components/case-verdict";
 import { CaseResolutionPanel } from "@/components/case-resolution";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
@@ -123,6 +123,12 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
             </div>
             <CaseResolutionPanel researchCase={analysis} symbol={symbol} />
           </div>
+          {/* The audit trail and the monitor queue describe the decision made
+              above them, so they live with it. They were unmounted when the
+              summary tab was removed: approving a rule or closing a case then
+              changed the record and nothing a reader could see. */}
+          <CaseAuditDetails researchCase={analysis} symbol={symbol} />
+          <CaseMonitorQueue researchCase={analysis} />
           <details className="group mt-6 rounded-lg border border-border">
             <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">Koreksi analisis ini<span aria-hidden="true" className="ml-auto transition-transform group-open:rotate-180">▾</span></summary>
             <div className="border-t border-border p-4"><AnalysisReview symbol={symbol} /></div>

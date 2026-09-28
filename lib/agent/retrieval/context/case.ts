@@ -1,4 +1,4 @@
-import { DATA_AS_OF_LABEL, demoProfiles } from "@/lib/data/fixtures";
+import { DATA_AS_OF_LABEL, companies, demoProfiles } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { uiLabel } from "@/lib/ui-labels";
 import type { ContextBundle } from "@/lib/agent/retrieval/types";
@@ -20,7 +20,12 @@ export async function buildCaseBundle(symbol: SymbolCode): Promise<ContextBundle
   const { agentEngine } = await import("@/lib/agent/engine");
   const analysis = await agentEngine.analyzeCompany(symbol, demoProfiles[0]);
   if (!analysis) {
-    const body = `${symbol} belum punya kasus lengkap pada rekaman ini.`;
+    // The name still matters: without it the material for INCO never says
+    // Vale Indonesia anywhere, so a reader who asked about the company by
+    // name is answered material that does not contain it.
+    const company = companies.find((entry) => entry.symbol === symbol);
+    const named = company ? `${symbol} (${company.name}), sektor ${company.sector}` : symbol;
+    const body = `${named} belum punya kasus lengkap pada rekaman ini.`;
     return { id: `case:${symbol}`, kind: "case", title: symbol, body, figures: [], citations: [], symbols: [symbol] };
   }
   const body = [

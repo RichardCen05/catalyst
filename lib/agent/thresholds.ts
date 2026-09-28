@@ -131,6 +131,14 @@ export const DEFAULT_THRESHOLDS = {
    *  lebih (tidak ada saat ini) mengoper maxOutputTokens eksplisit alih-alih
    *  menaikkan ini. */
   answerMaxTokens: 1024,
+  /** Kalimat maksimum satu jawaban chat — aturan 6 prompt di
+   *  `lib/agent/llm/answer.ts`, kini dijaga juga oleh verifier. Batas token
+   *  di atas tidak pernah bisa mengeceknya: 1024 token jauh melebihi empat
+   *  kalimat, jadi aturan itu hanya hidup di prompt dan draf model berapa
+   *  panjang pun lolos begitu saja. Verifier memotong draf di batas ini
+   *  sebelum diperiksa, sehingga kalimat kelima tidak pernah sampai ke
+   *  pembaca. Keputusan tentang panjang baca, bukan penjaga kapasitas. */
+  answerMaxSentences: 4,
   /** Batas entri memo analisis per instance, supaya Map tingkat modul pada
    *  instance Cloud Run berumur panjang tidak tumbuh tanpa henti. */
   retrievalMemoMaxEntries: 64,
@@ -215,6 +223,11 @@ export const DEFAULT_THRESHOLDS = {
   webWatchDraftTimeBudgetMs: 60000,
   /** Karakter teks kandidat (judul dan kalimat utuh) yang masuk prompt draf. */
   webWatchDraftContextChars: 2000,
+  /** Kata minimum alasan model pada usulan pemetaan. Pemeriksaan angka dan
+   *  bahasa tidak menyentuh panjang: alasan satu kata lolos keduanya, lalu
+   *  tampil di kartu Pantau sebagai "mengapa" yang tidak bisa diperiksa
+   *  siapa pun — dan pita tinggi bisa diterima otomatis membawanya. */
+  webWatchRationaleMinWords: 6,
   /** Keputusan terakhir per sumber (diarsipkan, ditolak, diterima) yang
    *  dibaca untuk saran kesehatan sumber. Di bawah jumlah ini tidak ada saran. */
   webWatchSourceHealthWindow: 20,
@@ -333,6 +346,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   retrievalChromeSubstantiveWeight: "guess",
   retrievalSubjectCaseBoost: "guess",
   answerGroundedMinTerms: "guess",
+  answerMaxSentences: "guess",
   // Sisanya menjaga ukuran, bukan menilai bukti: berapa entri dimuat, berapa
   // karakter masuk prompt, berapa giliran diingat, berapa entri disimpan.
   retrievalTopK: "convention",
@@ -371,6 +385,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchDraftSymbolsMax: "convention",
   webWatchDraftTimeBudgetMs: "convention",
   webWatchDraftContextChars: "convention",
+  webWatchRationaleMinWords: "convention",
   webWatchSourceHealthWindow: "convention",
   webWatchSourceNoiseShare: "guess",
   webWatchAutoAcceptDailyMax: "guess",
@@ -502,6 +517,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     copilotQuestionMinChars: DEFAULT_THRESHOLDS.copilotQuestionMinChars,
     copilotInsightPrompts: DEFAULT_THRESHOLDS.copilotInsightPrompts,
     answerMaxTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
+    answerMaxSentences: DEFAULT_THRESHOLDS.answerMaxSentences,
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,
     caseFocusCount: DEFAULT_THRESHOLDS.caseFocusCount,
     comparatorMinObservations: DEFAULT_THRESHOLDS.comparatorMinObservations,
@@ -524,6 +540,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchDraftSymbolsMax: DEFAULT_THRESHOLDS.webWatchDraftSymbolsMax,
     webWatchDraftTimeBudgetMs: DEFAULT_THRESHOLDS.webWatchDraftTimeBudgetMs,
     webWatchDraftContextChars: DEFAULT_THRESHOLDS.webWatchDraftContextChars,
+    webWatchRationaleMinWords: DEFAULT_THRESHOLDS.webWatchRationaleMinWords,
     webWatchSourceHealthWindow: DEFAULT_THRESHOLDS.webWatchSourceHealthWindow,
     webWatchSourceNoiseShare: DEFAULT_THRESHOLDS.webWatchSourceNoiseShare,
     webWatchAutoAcceptDailyMax: DEFAULT_THRESHOLDS.webWatchAutoAcceptDailyMax,
