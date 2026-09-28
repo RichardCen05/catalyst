@@ -603,13 +603,18 @@ What changes when this branch ships:
 - The route runs the figure check against the recordings compiled into the serving revision, then
   applies the verdicts through the same generation-guarded write every queue change uses. The build
   never writes `queue.json`.
-- **Rumor rejects quarantine, everything else final.** A `rumor` or `misleading-title`
-  verdict moves the item to the Terindikasi Rumor tab with its match and proposal, and a
-  reviewer either disputes it back to Antrean (`dispute-rumor`, human-only afterwards via
-  `noAuto`) or confirms it finally (`dismiss-suspected`). Other rejects (figure, substance,
-  relevance) keep their check, the span the check read and the score, and never return to
-  the queue. An accept can still be undone from Pantau, and residual items wait
-  in Pantau under "Perlu keputusan".
+- **Rumor rejects quarantine; other rejects need a calibrated check.** A `rumor` or
+  `misleading-title` verdict moves the item to the Terindikasi Rumor tab with its match and
+  proposal, and a reviewer either disputes it back to Antrean (`dispute-rumor`, human-only
+  afterwards via `noAuto`) or confirms it finally (`dismiss-suspected`). A substance or
+  relevance "no" rejects only when that check is calibrated (`T` with n ≥ 50); until then the
+  item is residual, with the would-be reason prefixed "cek belum terkalibrasi" (since 28 Sep,
+  after a household gas-network release was rejected as irrelevant to PGAS). A reject keeps
+  its check, the span, the score and — since 28 Sep — the pending item itself; the screen never
+  undoes it, but a reviewer can (`restore-reject` with a reason, "Kembalikan ke antrean" under
+  Diputuskan otomatis), which puts the item back human-only. A reject written before 28 Sep
+  comes back with its title and address only. An accept can still be undone from Pantau, and
+  residual items wait in Pantau under "Perlu keputusan".
 
 | What | Value |
 |---|---|

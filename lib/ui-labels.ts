@@ -94,6 +94,12 @@ const labels: Record<string, string> = {
   "Oil & Gas Storage & Distribution": "Penyimpanan dan distribusi gas",
 };
 
+/** Both sides of the label table, for the check that an English answer did
+ *  not keep an Indonesian label (`lib/agent/llm/language-leak.ts`). */
+export function labelVocabulary(): { indonesian: string[]; english: string[] } {
+  return { indonesian: Object.values(labels), english: Object.keys(labels) };
+}
+
 export function uiLabel(value: string | undefined) {
   if (!value) return "";
   return labels[value] ?? value;

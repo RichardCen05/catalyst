@@ -14,7 +14,7 @@ import { titleFromUrl } from "@/lib/web-watch/fetching";
 import { DEFAULT_SOURCE_LANG, renderHypotheses, type RenderedHypotheses } from "@/lib/web-watch/hypotheses";
 import type { ReviewQueue } from "@/lib/web-watch/queue";
 import { SEED_SOURCES } from "@/lib/web-watch/seeds";
-import { sourceFor } from "@/lib/web-watch/triage";
+import { sentences, sourceFor } from "@/lib/web-watch/triage";
 import type { SourceLang, TitleSource, WatchedSource, WebWatchCandidate } from "@/lib/web-watch/types";
 import { proseWindows, type ProseWindow } from "@/lib/web-watch/windows";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
@@ -57,17 +57,42 @@ export function langOf(candidateId: string, sources: WatchedSource[]): SourceLan
   return SEED_SOURCES.find((seed) => seed.id === source?.id)?.lang ?? DEFAULT_SOURCE_LANG;
 }
 
-export function screenWindows(body: string, t: ResolvedThresholds = resolveThresholds()): ProseWindow[] {
+export function screenWindows(body: string, t: ResolvedThresholds = resolveThresholds(), skip?: ReadonlySet<string>): ProseWindow[] {
   return proseWindows(body, {
     maxWindows: t.webWatchNliMaxWindows,
     minWords: t.webWatchProseSentenceMinWords,
     maxChars: t.webWatchNliWindowChars,
+    ...(skip?.size ? { skip } : {}),
   });
+}
+
+/**
+ * Sentences each source repeats across its pending items. A site's own text
+ * — a menu description, an accessibility link, a closing line on every
+ * release — ends like a sentence and passes the prose test, so on bi.go.id it
+ * filled every item's first window and the screen judged the menu. The same
+ * sentence in several different items from one source is the site talking,
+ * not the news.
+ */
+export function sourceBoilerplate(
+  items: Array<{ sourceId: string | null; body: string }>,
+  t: ResolvedThresholds = resolveThresholds(),
+): Map<string, Set<string>> {
+  const seen = new Map<string, Map<string, number>>();
+  for (const { sourceId, body } of items) {
+    if (!sourceId) continue;
+    const counts = seen.get(sourceId) ?? new Map<string, number>();
+    for (const sentence of new Set(sentences(body, t.webWatchProseSentenceMinWords))) counts.set(sentence, (counts.get(sentence) ?? 0) + 1);
+    seen.set(sourceId, counts);
+  }
+  return new Map(
+    [...seen].map(([sourceId, counts]) => [sourceId, new Set([...counts].filter(([, n]) => n >= t.webWatchBoilerplateMinItems).map(([sentence]) => sentence))]),
+  );
 }
 
 export function screenItem(
   event: MarketEvent,
-  input: { symbols: SymbolCode[]; lang: SourceLang; sourceId?: string | null; matchedBy?: unknown[]; hasProposal?: boolean; noAuto?: boolean },
+  input: { symbols: SymbolCode[]; lang: SourceLang; sourceId?: string | null; matchedBy?: unknown[]; hasProposal?: boolean; noAuto?: boolean; skip?: ReadonlySet<string> },
   t: ResolvedThresholds = resolveThresholds(),
 ): ScreenItem {
   const titleSource = titleSourceOf(event);
@@ -84,7 +109,7 @@ export function screenItem(
     matchedBy: input.matchedBy ?? [],
     hasProposal: input.hasProposal ?? false,
     noAuto: input.noAuto ?? false,
-    windows: screenWindows(body, t),
+    windows: screenWindows(body, t, input.skip),
     hypotheses: renderHypotheses({ title: event.title, titleIsUrl: titleSource === "url", symbols: input.symbols, lang: input.lang }),
   };
 }
@@ -99,14 +124,18 @@ export function screenThresholds(t: ResolvedThresholds = resolveThresholds()): S
 }
 
 export function screenPayload(queue: ReviewQueue, sources: WatchedSource[], t: ResolvedThresholds = resolveThresholds()): ScreenPayload {
+  const sourceIds = new Map(queue.pending.map((event) => [event.id, sourceFor(event.id, sources)?.id ?? null]));
+  const boilerplate = sourceBoilerplate(queue.pending.map((event) => ({ sourceId: sourceIds.get(event.id) ?? null, body: event.body ?? "" })), t);
   const items = queue.pending.map((event) => {
     const match = queue.matches[event.id];
+    const sourceId = sourceIds.get(event.id) ?? null;
     return screenItem(
       event,
       {
         symbols: match?.symbols ?? [],
         lang: langOf(event.id, sources),
-        sourceId: sourceFor(event.id, sources)?.id ?? null,
+        sourceId,
+        ...(sourceId && boilerplate.get(sourceId)?.size ? { skip: boilerplate.get(sourceId) } : {}),
         matchedBy: match?.matchedBy ?? [],
         hasProposal: Boolean(queue.proposals[event.id]),
         noAuto: Boolean(match?.noAuto),

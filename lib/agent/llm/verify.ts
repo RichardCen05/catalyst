@@ -1,4 +1,5 @@
 import { assertSafeOutput } from "@/lib/agent/gates";
+import { untranslatedTerms } from "@/lib/agent/llm/language-leak";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import type { Citation } from "@/lib/types";
 
@@ -22,7 +23,7 @@ const NUMBER_PATTERN = /-?\d[\d.,]*%?/g;
  * not a different comma. A trailing percent sign is kept, so `6,2%` is never
  * accepted on the strength of a bare `6.2` in the evidence.
  */
-function canonicalNumeral(numeral: string): string {
+export function canonicalNumeral(numeral: string): string {
   const percent = numeral.endsWith("%");
   const digits = numeral.replace(/%$/, "").replace(/[.,]/g, "");
   return percent ? `${digits}%` : digits;
@@ -185,6 +186,10 @@ export function verifyAnswer(draftText: string, evidenceNumbers: string[], quest
   if (asked !== "unknown" && answered !== "unknown" && asked !== answered) {
     violations.push(`draft language ${answered} does not match question language ${asked}`);
   }
+  // Function words decide the language; they cannot see an Indonesian label
+  // kept inside an English sentence ("check margin operasi next").
+  const kept = untranslatedTerms(draftText, asked);
+  if (kept.length) violations.push(`draft keeps Indonesian terms in an English answer: ${kept.join(", ")}`);
 
   return { approved: violations.length === 0, violations };
 }

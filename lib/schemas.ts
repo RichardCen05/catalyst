@@ -263,6 +263,11 @@ export const webWatchReviewSchema = z.discriminatedUnion("action", [
     reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
   }),
   z.object({
+    action: z.literal("restore-reject"),
+    candidateId: z.string().min(1).max(120),
+    reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),
+  }),
+  z.object({
     action: z.literal("dismiss-suspected"),
     candidateId: z.string().min(1).max(120),
     reason: z.string().trim().min(WEB_WATCH_REASON_MIN_CHARS).max(500),

@@ -111,9 +111,25 @@ def test_item_without_prose_windows_waits_for_a_person():
     assert v["verdict"] == "residual"
 
 
+CALIBRATED = {"substance": {"T": 1.0, "n": 50}, "relevance": {"T": 1.0, "n": 50}}
+
+
 def test_body_the_model_reads_as_empty_is_not_substantive():
-    v = decide(item(), {**CLEAN, "H-SUB": SURE_NO})
+    v = decide(item(), {**CLEAN, "H-SUB": SURE_NO}, CALIBRATED)
     assert v["verdict"] == "reject" and v["check"] == "substance"
+
+
+def test_uncalibrated_substance_and_relevance_never_reject_for_good():
+    # A substance or relevance reject is final: it never reaches a person.
+    # Until the check is calibrated on labels, the model's no is only a
+    # suspicion, so the item waits for a person and carries the would-be
+    # reason. The ESDM gas-network release was lost this way.
+    v = decide(item(), {**CLEAN, "H-SUB": SURE_NO})
+    assert v["verdict"] == "residual"
+    assert "tidak substantif" in v["reason"]
+    v = decide(item(), {**CLEAN, "H-REL-A": SURE_NO})
+    assert v["verdict"] == "residual"
+    assert "tidak relevan" in v["reason"]
 
 
 def test_relevance_rejects_only_when_every_symbol_is_irrelevant():
@@ -122,7 +138,7 @@ def test_relevance_rejects_only_when_every_symbol_is_irrelevant():
         hypotheses={**item()["hypotheses"], "relevance": [{"symbol": "AAAA", "hypothesis": "H-REL-A"}, {"symbol": "BBBB", "hypothesis": "H-REL-B"}]},
     )
     assert decide(two, {**CLEAN, "H-REL-A": SURE_NO, "H-REL-B": SURE_YES})["verdict"] == "accept"
-    v = decide(two, {**CLEAN, "H-REL-A": SURE_NO, "H-REL-B": SURE_NO})
+    v = decide(two, {**CLEAN, "H-REL-A": SURE_NO, "H-REL-B": SURE_NO}, CALIBRATED)
     assert v["verdict"] == "reject" and v["check"] == "relevance"
 
 

@@ -1,7 +1,7 @@
 import { generateStructured } from "@/lib/agent/llm/client";
 import { strongModel } from "@/lib/agent/llm/models";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
-import { answerSentences, detectLanguage, verifyAnswer } from "@/lib/agent/llm/verify";
+import { answerSentences, canonicalNumeral, detectLanguage, extractNumerals, verifyAnswer } from "@/lib/agent/llm/verify";
 
 export interface LlmAnswerDraft {
   text: string;
@@ -15,6 +15,10 @@ export interface AnswerInput {
    *  node's English headline made "Jelaskan jalur PGAS Loses …" read as an
    *  English question, and the Indonesian draft was rejected for it. */
   languageSource?: string;
+  /** Figures the answer has to quote. An attribution answer rewritten
+   *  without its beta term told the reader what was left after the market
+   *  and not how much the market explained. */
+  mustQuote?: string[];
 }
 
 /**
@@ -27,7 +31,9 @@ export interface AnswerInput {
  * material, is the one it follows.
  */
 function languageLine(language: ReturnType<typeof detectLanguage>): string {
-  if (language === "en") return "\nWrite the answer in English. Keep tickers, figures and quoted labels exactly as they appear.";
+  // "Keep quoted labels" used to follow here, and the model kept them:
+  // "check margin operasi and arus kas operasi", "the catalyst is Berlawanan".
+  if (language === "en") return "\nWrite the answer in English. Translate every Indonesian word, label and indicator name into English; keep only tickers and figures exactly as they appear.";
   if (language === "id") return "\nTulis jawaban dalam bahasa Indonesia.";
   return "";
 }
@@ -88,19 +94,47 @@ export function boundedAnswer(text: string, max = DEFAULT_THRESHOLDS.answerMaxSe
   return sentences.length > max ? sentences.slice(0, max).join(" ") : text;
 }
 
+/** The verifier's findings plus any required figure the draft left out. */
+function answerViolations(text: string, input: AnswerInput): string[] {
+  const violations = verifyAnswer(text, input.evidenceNumbers, input.languageSource ?? input.question, input.evidenceSummary).violations;
+  // Sign-free: the material writes "−0,7%" with a minus sign the numeral
+  // pattern does not read, and "residual −0,7%" and "residual of 0,7% below"
+  // quote the same figure.
+  const unsigned = (figure: string) => canonicalNumeral(figure.replace(/^[-−]/, ""));
+  const quoted = new Set(extractNumerals(text).map(unsigned));
+  const missing = (input.mustQuote ?? []).filter((figure) => !quoted.has(unsigned(figure)));
+  return missing.length ? [...violations, `draft omits required figures: ${missing.join(", ")}`] : violations;
+}
+
+/**
+ * One draft, and one retry that is told what was wrong with it.
+ *
+ * A rejected draft used to end the attempt, and the caller rendered the
+ * Indonesian material instead — so an English reader whose answer kept one
+ * Indonesian label got an answer entirely in Indonesian. The verifier's
+ * findings are specific enough to fix ("keeps Indonesian terms: berlawanan",
+ * "omits required figures: 1,07"), and a second draft that addresses them
+ * costs less than the fallback does the reader.
+ */
 export async function composeAnswerWithLlm(
   input: AnswerInput,
   call: typeof generateStructured = generateStructured,
 ): Promise<LlmAnswerDraft> {
-  const draft = await call<LlmAnswerDraft>({
-    model: strongModel(),
-    systemInstruction: SYSTEM_INSTRUCTION,
-    contents: `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}${languageLine(detectLanguage(input.languageSource ?? input.question))}`,
-    schema: ANSWER_SCHEMA,
-    maxOutputTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
-  });
-  const text = boundedAnswer(draft.text);
-  const verification = verifyAnswer(text, input.evidenceNumbers, input.languageSource ?? input.question, input.evidenceSummary);
-  if (!verification.approved) throw new Error(`Answer rejected by verifier: ${verification.violations.join("; ")}`);
-  return { ...draft, text };
+  const required = input.mustQuote?.length ? `\nAngka wajib disebut: ${input.mustQuote.join(", ")}.` : "";
+  const base = `Pertanyaan: ${input.question}\nEvidence summary: ${input.evidenceSummary}${required}${languageLine(detectLanguage(input.languageSource ?? input.question))}`;
+  let violations: string[] = [];
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const contents = attempt === 0 ? base : `${base}\nDraf sebelumnya ditolak: ${violations.join("; ")}. Tulis ulang dan perbaiki itu.`;
+    const draft = await call<LlmAnswerDraft>({
+      model: strongModel(),
+      systemInstruction: SYSTEM_INSTRUCTION,
+      contents,
+      schema: ANSWER_SCHEMA,
+      maxOutputTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
+    });
+    const text = boundedAnswer(draft.text);
+    violations = answerViolations(text, input);
+    if (!violations.length) return { ...draft, text };
+  }
+  throw new Error(`Answer rejected by verifier: ${violations.join("; ")}`);
 }

@@ -89,6 +89,10 @@ const compact = (value: number) =>
 /** Window label derived from the recorded session count — never a literal. */
 export const windowLabel = () => `${WINDOW_SESSIONS} hari bursa`;
 const windowBaselineCount = () => Math.max(WINDOW_SESSIONS - 1, 1);
+/** What the latest session is compared with: the sessions before it, not the
+ *  whole recording. Naming the recording here ("pembanding 37 hari bursa")
+ *  sat beside "median 36 sesi" and read as two different baselines. */
+const baselineLabel = () => `${windowBaselineCount()} sesi sebelum hari terbaru`;
 
 /** Materiality floor comes from the user's playbook, defaulting to the recorded baseline. */
 export { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
@@ -124,7 +128,7 @@ function createTrace(symbol: SymbolCode, pillars: PillarResult[], relatedEvents:
     },
     {
       id: `${symbol}-h2`,
-      hypothesis: `Aktivitas pasar menyimpang dari pembanding ${windowLabel()}.`,
+      hypothesis: `Aktivitas pasar menyimpang dari pembanding ${baselineLabel()}.`,
       query: "Volume harian dan median/MAD",
       verification: volume.summary,
       outcome: volume.status === "Insufficient Data" ? "open" : volume.status === "Normal" ? "challenged" : "supported",
@@ -536,7 +540,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       key: "volume", label: "Volume", status: volume.status,
       summary: volume.robustZ === null
         ? "Likuiditas atau pembanding tidak cukup untuk mengelompokkan anomali."
-        : `Volume terakhir memiliki skor z tahan pencilan ${decimal(volume.robustZ, 2)} terhadap pembanding ${windowLabel()}.`,
+        : `Volume terakhir memiliki skor z tahan pencilan ${decimal(volume.robustZ, 2)} terhadap pembanding ${baselineLabel()}.`,
       protocol: {
         claim: "Aktivitas setelah pemicu menyimpang dari pembanding volume yang kuat terhadap pencilan.",
         supportingEvidence: volume.robustZ === null ? "Belum ada sinyal yang lolos batas." : `Skor z tahan pencilan ${decimal(volume.robustZ, 2)} dengan status ${volume.status === "Normal" ? "normal" : volume.status === "Elevated" ? "meningkat" : "ekstrem"}.`,
@@ -547,7 +551,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
       metrics: [
         { label: "Skor z tahan pencilan", value: volume.robustZ === null ? "Belum tersedia" : decimal(volume.robustZ, 2), citations: dailyCitations },
         { label: "Volume terbaru", value: compact(currentPoint.volume), citations: dailyCitations },
-        { label: "Pembanding", value: windowLabel(), citations: dailyCitations },
+        { label: "Pembanding", value: baselineLabel(), citations: dailyCitations },
       ], citations: dailyCitations,
       calculation: {
         name: "Anomali volume tahan pencilan",
@@ -971,6 +975,7 @@ async function rewriteWithLlm(
   deterministicText: string,
   visibleFigures: string[] = [],
   languageSource?: string,
+  mustQuote?: string[],
 ): Promise<Composed> {
   if (agentMode() !== "llm") return { text: deterministicText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   try {
@@ -984,7 +989,7 @@ async function rewriteWithLlm(
     // guarantee that matters — no number the recordings never produced.
     const evidenceNumbers = extractNumerals(deterministicText, ...visibleFigures);
     const draft = await Promise.race([
-      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers, ...(languageSource ? { languageSource } : {}) }),
+      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers, ...(languageSource ? { languageSource } : {}), ...(mustQuote?.length ? { mustQuote } : {}) }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
     return { text: draft.text, generator: "llm" };
@@ -1609,7 +1614,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
         : winner.id === "falsifier" ? falsifierMaterial(analysis, request.playbook)
           : playbookMaterial(ruled, request.profile, request.playbook);
     return {
-      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(ruled))),
+      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(ruled), undefined, material.mustQuote)),
       refused: false, intent: winner.id, hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: material.citations,
       preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };

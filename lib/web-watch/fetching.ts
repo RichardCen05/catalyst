@@ -193,8 +193,23 @@ export async function fetchUrl(url: string, options: FetchOptions = {}): Promise
  * own headline, and a masthead's menu sits inside a `<nav>`, which this drops.
  * The pass runs before the region is chosen, so chrome cannot inflate the
  * rest of the page enough to make a real `<main>` look like a widget either.
+ *
+ * `<form>` is not here either. An ASP.NET/SharePoint site (bi.go.id) wraps the
+ * whole page in one `<form>`, and dropping it left nothing but the title. A
+ * search box or a newsletter sign-up is still a form and still chrome, so a
+ * form goes only when it is small next to the page (`dropSmallForms`).
+ *
+ * Links that go nowhere (`href="#"`, `href="javascript:…"`) are page
+ * controls — "Turn on more accessible mode", "Skip Ribbon Commands" — and
+ * their text is dropped with them.
  */
-const DROP_BLOCKS = /<(script|style|noscript|template|svg|nav|aside|footer|form|iframe)\b[\s\S]*?<\/\1\s*>/gi;
+const DROP_BLOCKS = /<(script|style|noscript|template|svg|nav|aside|footer|iframe)\b[\s\S]*?<\/\1\s*>/gi;
+const DEAD_LINKS = /<a\b[^>]*\bhref\s*=\s*["'](?:#|javascript:)[^"']*["'][^>]*>[\s\S]*?<\/a\s*>/gi;
+/** A form with no form inside it, so nested forms are judged innermost first. */
+const INNER_FORM = /<form\b[^>]*>((?:(?!<form\b)[\s\S])*?)<\/form\s*>/i;
+/** A region under this share of the page's visible text is a widget, not
+ *  the page: one-fifth, the same bar `contentRegion` holds `<main>` to. */
+const WIDGET_SHARE_DIVISOR = 5;
 /** Comments can hold whole commented-out tags (`<!-- <a>login</a> -->`); a
  *  tag pass alone leaves their text and the closing `-->` behind. */
 const COMMENTS = /<!--[\s\S]*?-->/g;
@@ -215,6 +230,21 @@ function visibleLength(markup: string): number {
   return markup.replace(TAGS, " ").replace(LOOSE_TAGS, " ").replace(/\s+/g, " ").trim().length;
 }
 
+/**
+ * Drop each form that is small next to the page, keep (unwrap) the rest.
+ * Innermost first, so a search form inside a page-wide form goes while the
+ * page-wide one stays.
+ */
+export function dropSmallForms(markup: string): string {
+  const page = visibleLength(markup);
+  let text = markup;
+  for (let match = INNER_FORM.exec(text); match; match = INNER_FORM.exec(text)) {
+    const small = visibleLength(match[1]) * WIDGET_SHARE_DIVISOR < page;
+    text = text.slice(0, match.index) + (small ? " " : match[1]) + text.slice(match.index + match[0].length);
+  }
+  return text;
+}
+
 export function contentRegion(markup: string): string {
   const matches: string[] = [];
   MAIN_REGION.lastIndex = 0;
@@ -225,7 +255,7 @@ export function contentRegion(markup: string): string {
   // A "content region" under a fifth of the page is a widget, not the page.
   // Measured in visible text, not markup: a portal's navigation is mostly
   // class attributes, and counting them made a full article look small.
-  return visibleLength(best) * 5 >= visibleLength(markup) ? best : markup;
+  return visibleLength(best) * WIDGET_SHARE_DIVISOR >= visibleLength(markup) ? best : markup;
 }
 
 function unescapeHtml(text: string): string {
@@ -242,7 +272,7 @@ export function htmlToText(markup: string): string {
   // chosen: a page whose <head> carries 60 KB of tracker script made its real
   // <main> look like a widget next to it, and the whole page, navigation
   // included, was read instead.
-  let text = contentRegion(markup.replace(COMMENTS, " ").replace(DROP_BLOCKS, " "));
+  let text = contentRegion(dropSmallForms(markup.replace(COMMENTS, " ").replace(DROP_BLOCKS, " ").replace(DEAD_LINKS, " ")));
   text = text.replace(LINE_BREAKS, "\n");
   text = text.replace(TAGS, " ").replace(LOOSE_TAGS, " ");
   text = unescapeHtml(text);

@@ -615,7 +615,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:diputuskan-otomatis",
     heading: "Diputuskan otomatis",
     view: "pantau",
-    labels: ["Diputuskan otomatis (","Diterima otomatis (","Diterima oleh penyaring, bukan oleh peninjau. Batalkan untuk mengeluarkannya dari analisis dan mengembalikannya ke antrean; item itu tidak akan diputuskan otomatis lagi.","Ditolak otomatis (","Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Final: calon di sini tidak kembali ke antrean. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya."],
+    labels: ["Diputuskan otomatis (","Diterima otomatis (","Diterima oleh penyaring, bukan oleh peninjau. Batalkan untuk mengeluarkannya dari analisis dan mengembalikannya ke antrean; item itu tidak akan diputuskan otomatis lagi.","Ditolak otomatis (","Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Penyaring tidak membatalkannya sendiri; bila penolakan keliru, tulis alasannya lalu kembalikan ke antrean, dan item itu tidak akan diputuskan otomatis lagi. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya."],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -644,7 +644,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:ditolak-otomatis",
     heading: "Ditolak otomatis",
     view: "pantau",
-    labels: ["Ditolak otomatis (","Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Final: calon di sini tidak kembali ke antrean. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya."],
+    labels: ["Ditolak otomatis (","Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Penyaring tidak membatalkannya sendiri; bila penolakan keliru, tulis alasannya lalu kembalikan ke antrean, dan item itu tidak akan diputuskan otomatis lagi. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya."],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -686,7 +686,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:putuskan-otomatis",
     heading: "Putuskan otomatis",
     view: "pantau",
-    labels: ["Putuskan otomatis","dari batas","keputusan otomatis dalam 24 jam terakhir","Penyaring membaca setiap calon di antrean, lalu:","Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.","Tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan: ditolak langsung, dan penolakan itu final.","Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.","Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
+    labels: ["Putuskan otomatis","dari batas","keputusan otomatis dalam 24 jam terakhir","Penyaring membaca setiap calon di antrean, lalu:","Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.","Bertentangan dengan angka rekaman: ditolak langsung. Tanpa isi konkret atau tidak relevan: ditolak langsung hanya bila pemeriksaannya sudah terkalibrasi pada label peninjau; sebelum itu menunggu keputusan Anda. Penolakan yang keliru bisa Anda kembalikan ke antrean.","Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.","Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
     file: "components/web-watch-review.tsx",
   },
   {

@@ -276,8 +276,10 @@ def verdict_for(item: dict, scores: ItemScores, gate: Gate, labels: dict[str, in
     - title: contradicted (>= bar) with a body that is confidently not
       substantive -> reject; with a substantive body -> accept path with the
       `misleadingTitle` marker. Skipped for a headline cut from the address.
-    - substance: P(substantive) <= 1 - bar -> reject.
-    - relevance: every matched emiten confidently not relevant -> reject.
+    - substance: P(substantive) <= 1 - bar -> reject once the check is
+      calibrated; before that, residual with the would-be reason.
+    - relevance: every matched emiten confidently not relevant -> reject,
+      under the same calibration condition.
     - accept when every check is confidently clean; otherwise residual.
     """
     ent, con = labels["entailment"], labels["contradiction"]
@@ -320,12 +322,23 @@ def verdict_for(item: dict, scores: ItemScores, gate: Gate, labels: dict[str, in
             p_title,
             _span(scores.title, i_title),
         )
+    # A substance or relevance reject is final: no person ever sees the item
+    # again. Until the check is calibrated on labels, the model's "no" is a
+    # suspicion, not a decision (2026-09-28: a household gas-network release
+    # was rejected as irrelevant to PGAS), so the item waits for a person with
+    # the would-be reason on it.
     if not_substantive:
-        return reject("substance", f"tidak substantif: tidak ada peristiwa atau angka konkret (p={1 - p_sub:.2f})", 1 - p_sub, _span(scores.substance, i_sub))
+        why = f"tidak substantif: tidak ada peristiwa atau angka konkret (p={1 - p_sub:.2f})"
+        if not gate.calibrated("substance"):
+            return {"candidateId": item_id, "verdict": "residual", "reason": f"penyaring NLI, cek belum terkalibrasi: {why}"}
+        return reject("substance", why, 1 - p_sub, _span(scores.substance, i_sub))
     if all_irrelevant:
         worst = max(p for p, _ in rel.values())
         symbol, (_, i) = next(iter(rel.items()))
-        return reject("relevance", f"tidak relevan untuk semua emiten cocok (p={1 - worst:.2f})", 1 - worst, _span(scores.relevance[symbol], i))
+        why = f"tidak relevan untuk semua emiten cocok (p={1 - worst:.2f})"
+        if not gate.calibrated("relevance"):
+            return {"candidateId": item_id, "verdict": "residual", "reason": f"penyaring NLI, cek belum terkalibrasi: {why}"}
+        return reject("relevance", why, 1 - worst, _span(scores.relevance[symbol], i))
 
     markers = ["misleadingTitle"] if title_hit else []
     unsure = [

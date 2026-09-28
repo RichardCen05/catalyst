@@ -72,6 +72,13 @@ export function formatAsOf(value: string) {
   }).format(new Date(value));
 }
 
+/** A stored UTC instant as a Jakarta reader reads it, zone named. A bare
+ *  "08:10" sliced from the ISO string read as morning in Jakarta while it was
+ *  15:10 there. */
+export function formatWib(value: string) {
+  return `${formatAsOf(value)} WIB`;
+}
+
 /**
  * RFC 4180 rows. Quoting is unconditional so a value that later grows a comma,
  * a quote, or a newline cannot silently split a column in the reader's

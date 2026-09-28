@@ -250,6 +250,11 @@ export const DEFAULT_THRESHOLDS = {
    *  batas ini menjaga waktu Cloud Build (mesin bawaan, 5 cek × jendela × 50
    *  kandidat) bila satu halaman sangat panjang. */
   webWatchNliMaxWindows: 6,
+  /** Kandidat dari sumber yang sama yang memuat kalimat yang persis sama
+   *  sebelum kalimat itu dianggap bagian situs, bukan berita, dan tidak
+   *  dibaca penyaring. 2026-09-28 setiap siaran BI dinilai dari deskripsi
+   *  menu situsnya ("Informasi seputar organisasi…"). */
+  webWatchBoilerplateMinItems: 2,
   /** Selisih relatif harga penutupan (artikel lawan rekaman) yang masih
    *  dianggap sama. Rekaman IHSG dibulatkan ke bilangan bulat dan judul
    *  membulatkan angka; 0,5% tidak pernah tersandung pembulatan, tetapi
@@ -393,6 +398,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   // angka menentukan apa yang ditolak, jadi `guess` sampai ada label.
   webWatchNliWindowChars: "convention",
   webWatchNliMaxWindows: "convention",
+  webWatchBoilerplateMinItems: "convention",
   webWatchPriceToleranceShare: "guess",
   webWatchPctTolerancePp: "guess",
   webWatchVolumeToleranceShare: "guess",
@@ -546,6 +552,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchAutoAcceptDailyMax: DEFAULT_THRESHOLDS.webWatchAutoAcceptDailyMax,
     webWatchNliWindowChars: DEFAULT_THRESHOLDS.webWatchNliWindowChars,
     webWatchNliMaxWindows: DEFAULT_THRESHOLDS.webWatchNliMaxWindows,
+    webWatchBoilerplateMinItems: DEFAULT_THRESHOLDS.webWatchBoilerplateMinItems,
     webWatchPriceToleranceShare: DEFAULT_THRESHOLDS.webWatchPriceToleranceShare,
     webWatchPctTolerancePp: DEFAULT_THRESHOLDS.webWatchPctTolerancePp,
     webWatchVolumeToleranceShare: DEFAULT_THRESHOLDS.webWatchVolumeToleranceShare,

@@ -30,7 +30,8 @@
  * rumor (`suspected`, reviewable in the Terindikasi Rumor tab), accept it
  * (only a verified proposal the auto-accept rules allow, capped per day and
  * undoable), or leave it for a person as residual. Reject verdicts for other
- * checks (misleading figures, no substance, irrelevant) stay final. A
+ * checks (misleading figures, no substance, irrelevant) dismiss the item, and
+ * only a person can take one back (`restoreAutoReject`). A
  * reviewer maps each item a person decides to symbols with a direction, a
  * relevance *band*, and a written exposure path — the band is chosen in the
  * open, never computed by the fetcher. Dismissed candidates stay in `decided`
@@ -81,8 +82,8 @@ export interface ReviewDecision {
    *  on. Holds what the item looked like while pending, so a reviewer can put
    *  it back exactly (`revertAutoAccept`). */
   auto?: AutoAcceptRecord;
-  /** Dismissed with no person involved, by a screen verdict. Final: there is
-   *  no path back to pending. Never set for quarantine checks (`rumor`,
+  /** Dismissed with no person involved, by a screen verdict. The screen never
+   *  undoes it; a reviewer can (`restoreAutoReject`). Never set for quarantine checks (`rumor`,
    *  `misleading-title`): those go to `suspected`, not here. */
   autoReject?: AutoRejectRecord;
   /** A person confirmed a suspected item as rumor and dismissed it. Carries
@@ -118,6 +119,12 @@ export interface AutoRejectRecord {
    *  what was rejected from these. */
   title?: string;
   url?: string;
+  /** The pending item as the screen read it, so a reviewer can put a wrong
+   *  reject back exactly (`restoreAutoReject`). Absent on rejects written
+   *  before 2026-09-28; those come back with their title and address only. */
+  event?: MarketEvent;
+  match?: TriageMatch;
+  proposal?: TriageProposal;
 }
 
 export interface AutoAcceptRecord {
@@ -643,8 +650,8 @@ export const RESIDUAL_REVERTED = "penerimaan otomatisnya pernah dibatalkan revie
  *   - Only ids still pending are touched; any other id is skipped.
  *   - `reject` with a quarantine check (`rumor`, `misleading-title`) moves
  *     the item to `suspected` for a person to confirm or dispute — never a
- *     final dismiss. Every other `reject` dismisses finally with an
- *     `autoReject` record.
+ *     final dismiss. Every other `reject` dismisses with an `autoReject`
+ *     record that keeps the pending item, so a reviewer can restore it.
  *   - `accept` accepts only a verified proposal `isAutoAcceptable` allows,
  *     newest first, under the daily cap. Without one, or over the cap, the
  *     item is left for a person (residual) with the reason why.
@@ -696,12 +703,17 @@ export function applyVerdicts(
       quarantined.push(id);
       continue;
     }
+    const match = next.matches[id];
+    const proposal = next.proposals[id];
     next = decide(next, id, { action: "dismiss", reason: verdict.reason }, nowIso);
     const event = pending.get(id);
     const url = event?.citations[0]?.url;
     const autoReject: AutoRejectRecord = {
       ...(event?.title ? { title: event.title.slice(0, 300) } : {}),
       ...(url ? { url } : {}),
+      ...(event ? { event } : {}),
+      ...(match ? { match } : {}),
+      ...(proposal ? { proposal } : {}),
       ...(verdict.check ? { check: verdict.check } : {}),
       ...(verdict.span ? { span: verdict.span.slice(0, 500) } : {}),
       ...(typeof verdict.score === "number" ? { score: verdict.score } : {}),
@@ -925,6 +937,40 @@ export function revertAutoAccept(queue: ReviewQueue, candidateId: string): Revie
     // marks the item again (an accept on a `noAuto` item stays residual).
     matches: { ...queue.matches, [candidateId]: { ...withoutResidual(match), noAuto: true } },
     proposals: { ...queue.proposals, [candidateId]: proposal },
+  };
+}
+
+/**
+ * Take back a final auto-reject ("Kembalikan ke antrean"): the item returns to
+ * pending as the screen read it, marked so the screen never decides it alone
+ * again, with the reviewer's reason on the residual mark so the decision they
+ * make next labels the screen's mistake. A reject written before the record
+ * kept its event comes back with its title and address, like a legacy rumor.
+ * Only screen rejects come back; a person's own dismiss stays theirs.
+ */
+export function restoreAutoReject(queue: ReviewQueue, candidateId: string, reason: string, nowIso: string): ReviewQueue {
+  const trimmed = reason.trim().slice(0, 500);
+  if (!trimmed) throw new ReviewError("Alasan pengembalian wajib diisi.");
+  const decision = queue.decided[candidateId];
+  const record = decision?.autoReject;
+  if (!decision || !record || isQuarantineCheck(record.check)) {
+    throw new ReviewError("Hanya penolakan otomatis penyaring yang bisa dikembalikan di sini.");
+  }
+  if (queue.pending.some((e) => e.id === candidateId)) throw new ReviewError("Kandidat sudah kembali di antrean.");
+  const event = record.event ?? legacySuspectedEvent(candidateId, decision, nowIso);
+  const match: TriageMatch = {
+    ...withoutResidual(record.match ?? { symbols: [], matchedBy: [], at: nowIso }),
+    noAuto: true,
+    residual: { at: nowIso, reason: `Dikembalikan reviewer dari tolak otomatis: ${trimmed}`.slice(0, 500) },
+  };
+  const { [candidateId]: _removed, ...decided } = queue.decided;
+  void _removed;
+  return {
+    ...queue,
+    pending: [event, ...queue.pending],
+    decided,
+    matches: { ...queue.matches, [candidateId]: match },
+    ...(record.proposal ? { proposals: { ...queue.proposals, [candidateId]: record.proposal } } : {}),
   };
 }
 

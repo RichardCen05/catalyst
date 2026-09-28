@@ -16,6 +16,7 @@ import {
   legacySuspectedDecisions,
   listKnownSymbols,
   overlayCounts,
+  restoreAutoReject,
   revertAutoAccept,
   ReviewError,
   saveQueue,
@@ -34,7 +35,7 @@ export const dynamic = "force-dynamic";
  * with triage matches and verified proposals, which pending items the screen
  * left for a person (`residual`, with its reason), what triage archived,
  * accepted events, what the screen decided alone (`autoAccepted`, undoable;
- * `autoRejected`, final for non-rumor checks), the rumor tab (`suspected`,
+ * `autoRejected`, non-rumor checks a reviewer can take back), the rumor tab (`suspected`,
  * reviewable: new quarantines plus legacy rumor auto-rejects), the
  * auto-decide switch, and the symbol universe for mapping.
  */
@@ -172,11 +173,12 @@ export async function GET() {
  * POST — accept (with reviewer-mapped impacts, or a verified proposal the
  * reviewer took as-is), accept several high-band proposals at once, dismiss a
  * candidate, dispute a suspected rumor back to review, confirm a suspected
- * rumor as dismissed, undo an auto-accept, or flip the auto-decide switch.
+ * rumor as dismissed, undo an auto-accept, take back a screen's final
+ * reject, or flip the auto-decide switch.
  * Every one of these is a person pressing a button; decisions made without a
  * person happen in the internal decide route (`applyVerdicts`), not here.
- * Archived and finally auto-rejected items are final: there is no action
- * that brings them back. Accepted events join the queue's `accepted` list
+ * Archived items are final: there is no action that brings them back. A
+ * screen reject comes back only through `restore-reject`, with a reason. Accepted events join the queue's `accepted` list
  * and the engine overlay; the engine itself is untouched.
  *
  * Open to anyone who can reach the service: reviewing costs no Sectors credit
@@ -219,13 +221,14 @@ export async function POST(request: Request) {
       if (input.action === "revert-auto") return revertAutoAccept(queue, input.candidateId);
       if (input.action === "dispute-rumor") return disputeSuspected(queue, input.candidateId, input.reason, nowIso);
       if (input.action === "dismiss-suspected") return dismissSuspected(queue, input.candidateId, input.reason, nowIso);
+      if (input.action === "restore-reject") return restoreAutoReject(queue, input.candidateId, input.reason, nowIso);
       return withResidualLabel(queue, decide(queue, input.candidateId, input, nowIso), [input.candidateId]);
     });
     // Push freshly accepted events straight into this instance's overlay so
     // the next analysis on the same instance sees them before the TTL lapses.
     setOverlayForTests(next.accepted, overlayCounts(next));
     const status =
-      input.action === "revert-auto" || input.action === "dispute-rumor"
+      input.action === "revert-auto" || input.action === "dispute-rumor" || input.action === "restore-reject"
         ? "restored"
         : input.action === "accept-proposals"
           ? "accepted"

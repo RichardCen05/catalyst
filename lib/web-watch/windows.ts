@@ -24,6 +24,8 @@ export interface ProseWindowOptions {
   maxWindows: number;
   minWords: number;
   maxChars: number;
+  /** Sentences not to read: the site's own text, repeated on every page. */
+  skip?: ReadonlySet<string>;
 }
 
 /**
@@ -38,6 +40,7 @@ export function proseWindows(body: string, opts: ProseWindowOptions): ProseWindo
   if (opts.maxWindows <= 0 || opts.maxChars <= 0) return windows;
   let current: ProseWindow | null = null;
   for (const sentence of sentenceSpans(body, opts.minWords)) {
+    if (opts.skip?.has(sentence.text)) continue;
     if (current && current.text.length + 1 + sentence.text.length <= opts.maxChars) {
       current.text = `${current.text} ${sentence.text}`;
       continue;

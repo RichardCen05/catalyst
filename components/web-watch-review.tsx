@@ -12,7 +12,7 @@ import { EventMarkers } from "@/components/event-markers";
 import { NextStep } from "@/components/next-step";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
-import { cn } from "@/lib/utils";
+import { cn, formatWib } from "@/lib/utils";
 import type { MarketEvent, SymbolCode } from "@/lib/types";
 import type { ScreenCheck, TriageMatch, TriageProposal } from "@/lib/web-watch/queue";
 import { TRIAGE_RULE_LABEL, type MatchKind, type TriageRule } from "@/lib/web-watch/triage";
@@ -663,7 +663,7 @@ function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcc
         <p>Penyaring membaca setiap calon di antrean, lalu:</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5">
           <li>Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.</li>
-          <li>Tanpa isi konkret, bertentangan dengan angka rekaman, atau tidak relevan: ditolak langsung, dan penolakan itu final.</li>
+          <li>Bertentangan dengan angka rekaman: ditolak langsung. Tanpa isi konkret atau tidak relevan: ditolak langsung hanya bila pemeriksaannya sudah terkalibrasi pada label peninjau; sebelum itu menunggu keputusan Anda. Penolakan yang keliru bisa Anda kembalikan ke antrean.</li>
           <li>Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.</li>
           <li>Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.</li>
         </ul>
@@ -671,7 +671,7 @@ function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcc
       <p className="mt-1 text-xs text-subtle-foreground">
         {lastScreenAt ? (
           <>
-            Penyaringan terakhir: <time dateTime={lastScreenAt}>{lastScreenAt.slice(0, 16).replace("T", " ")}</time>
+            Penyaringan terakhir: <time dateTime={lastScreenAt}>{formatWib(lastScreenAt)}</time>
           </>
         ) : (
           "Penyaring belum pernah berjalan. Semua calon menunggu keputusan Anda."
@@ -720,7 +720,7 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
               <div className="min-w-0">
                 <p className="text-sm font-medium leading-snug">{item.title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {item.provider ?? "sumber web"} · <time dateTime={item.decidedAt}>{item.decidedAt.slice(0, 16).replace("T", " ")}</time>
+                  {item.provider ?? "sumber web"} · <time dateTime={item.decidedAt}>{formatWib(item.decidedAt)}</time>
                   {item.url ? (
                     <>
                       {" · "}
@@ -746,14 +746,14 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
         </section>
         <section aria-label="Ditolak otomatis" className="mt-6">
           <h3 className="text-sm font-semibold">Ditolak otomatis ({rejected.length})</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Final: calon di sini tidak kembali ke antrean. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Ditolak oleh penyaring selain rumor — tanpa isi konkret, angka bertentangan dengan rekaman, atau tidak relevan. Penyaring tidak membatalkannya sendiri; bila penolakan keliru, tulis alasannya lalu kembalikan ke antrean, dan item itu tidak akan diputuskan otomatis lagi. Temuan rumor tidak ada di sini, melainkan di tab Terindikasi Rumor. Pemeriksaan yang memutuskan dan kalimat yang dibacanya ditampilkan apa adanya.</p>
           <ul className="mt-3 space-y-3">
             {rejected.map((item) => (
               <li key={item.id} className="border-b border-border pb-3 last:border-0">
                 <p className="text-sm font-medium leading-snug">{item.title ?? item.id}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {item.check ? <span className="rounded-full border border-border px-2 py-0.5">{checkLabel[item.check] ?? item.check}</span> : null}{" "}
-                  <time dateTime={item.decidedAt}>{item.decidedAt.slice(0, 16).replace("T", " ")}</time>
+                  <time dateTime={item.decidedAt}>{formatWib(item.decidedAt)}</time>
                   {item.url ? (
                     <>
                       {" · "}
@@ -763,6 +763,7 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
                 </p>
                 {item.span ? <blockquote className="mt-1 border-l-2 border-border pl-2 text-xs leading-5 text-muted-foreground">{item.span}</blockquote> : null}
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.reason}</p>
+                <RestoreRejected id={item.id} onRestored={onReverted} />
               </li>
             ))}
           </ul>
@@ -770,6 +771,47 @@ function AutoDecidedList({ items, rejected, onReverted }: { items: AutoAcceptedR
         </section>
       </div>
     </details>
+  );
+}
+
+function RestoreRejected({ id, onRestored }: { id: string; onRestored: () => void }) {
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const tooShort = reason.trim().length < WEB_WATCH_REASON_MIN_CHARS;
+  const restore = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(apiUrl("/api/web-watch"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restore-reject", candidateId: id, reason }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(fieldMessage(body) ?? body.error ?? "Gagal mengembalikan");
+      onRestored();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal mengembalikan");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      <input
+        aria-label="Alasan mengembalikan ke antrean"
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+        placeholder="Alasan (wajib), mis. beritanya menyangkut emiten yang dipantau"
+        aria-invalid={tooShort && reason.length > 0}
+        className={`h-9 min-w-52 flex-1 rounded-lg border bg-surface px-3 text-xs outline-none focus:border-primary ${tooShort && reason.length > 0 ? "border-red-500" : "border-border"}`}
+      />
+      <Button variant="secondary" size="sm" disabled={busy || tooShort} onClick={restore} className="shrink-0">
+        {busy ? "Mengembalikan…" : "Kembalikan ke antrean"}
+      </Button>
+      {error ? <p role="alert" className="w-full text-xs text-red-500">{error}</p> : null}
+    </div>
   );
 }
 
@@ -1130,7 +1172,7 @@ export function WebWatchReview() {
                     <p className="mt-2 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">Gagal: {source.lastError}</p>
                   ) : null}
                   {source.lastCheckedAt ? (
-                    <p className="mt-1 text-xs text-muted-foreground">Terakhir dicek {source.lastCheckedAt.slice(0, 16).replace("T", " ")}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Terakhir dicek {formatWib(source.lastCheckedAt)}</p>
                   ) : null}
                   {source.health?.suggestDisable ? (
                     <p className="mt-2 rounded-lg bg-muted p-2 text-xs leading-5 text-foreground">

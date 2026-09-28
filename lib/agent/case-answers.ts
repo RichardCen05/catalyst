@@ -29,6 +29,8 @@ import type {
 export interface CaseAnswerMaterial {
   text: string;
   citations: Citation[];
+  /** Figures a rewritten answer has to keep. */
+  mustQuote?: string[];
 }
 
 function sentence(value: string): string {
@@ -111,7 +113,22 @@ export function attributionMaterial(analysis: AnalysisCase): CaseAnswerMaterial 
   return {
     text: lines.join("\n"),
     citations: uniqueCitations([...market, ...(catalyst ? [catalyst] : [])].flatMap((item) => item.citations)),
+    mustQuote: splitFigures(analysis),
   };
+}
+
+/**
+ * The beta and the residual of the split, as the calculation prints them.
+ * A rewrite that kept only "residual di luar IHSG 2,3%" dropped how much of
+ * the move the market explains, which is the half of the answer the question
+ * asked for.
+ */
+function splitFigures(analysis: AnalysisCase): string[] {
+  const calculation = pillar(analysis, "momentum")?.calculation;
+  if (!calculation) return [];
+  const beta = calculation.substitution.split(" − ")[1]?.split(" × ")[0];
+  const residual = calculation.result.split(" · ")[0];
+  return [beta, residual].filter((figure): figure is string => Boolean(figure));
 }
 
 /** "Kenapa statusnya bukti bercampur?" — the two layers, each with its pillars. */
