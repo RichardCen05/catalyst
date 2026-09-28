@@ -6,32 +6,32 @@
       "n": 84,
       "positives": 7,
       "labeledBy": "claude-opus-5-5",
-      "ece_before": 0.157,
-      "ece_after": 0.192,
-      "T_fit": 2.784
+      "ece_before": 0.1301,
+      "ece_after": 0.1721,
+      "T_fit": 2.3182
     },
     "title": {
       "n": 84,
       "positives": 2,
       "labeledBy": "claude-opus-5-5",
-      "ece_before": 0.283,
-      "ece_after": 0.2985,
-      "T_fit": 7.8589
+      "ece_before": 0.3551,
+      "ece_after": 0.3111,
+      "T_fit": 20.0
     },
     "substance": {
       "n": 64,
       "positives": 59,
       "labeledBy": "claude-opus-5-5",
-      "ece_before": 0.112,
-      "ece_after": 0.1293,
-      "T_fit": 1.2567
+      "ece_before": 0.081,
+      "ece_after": 0.0904,
+      "T_fit": 1.1165
     },
     "relevance": {
       "n": 217,
       "positives": 14,
       "labeledBy": "claude-opus-5-5",
-      "ece_before": 0.2408,
-      "ece_after": 0.2846,
+      "ece_before": 0.2587,
+      "ece_after": 0.283,
       "T_fit": 20.0
     }
   }

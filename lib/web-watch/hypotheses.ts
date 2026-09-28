@@ -38,7 +38,16 @@ export const HYPOTHESES: Record<ScreenCheck, Record<SourceLang, string>> = {
   // articles, rumor or not; the short form left 10 of the 13 non-rumor ones
   // under 0.5 (replay, 2026-09-25 — a small set, see the phase-3 report).
   rumor: { id: "Ini adalah rumor.", en: "This is a rumor." },
-  official: { id: "Ini adalah pernyataan resmi.", en: "This is an official statement." },
+  // Names the response, not the genre. "Ini adalah pernyataan resmi." was
+  // entailed at ≥ 0.83 by 4 of 6 golden rumor articles that crossed the rumor
+  // bar, so no rumor was ever quarantined, and at 0.015 by a company's own
+  // quoted denial (BBCA, 28 Sep), which was. This form scored 0.01 on two of
+  // those rumors and ≥ 0.97 on all four clean articles that answer a rumor
+  // (FP32 replay, 2026-09-28 — ten articles, a small set).
+  official: {
+    id: "Perusahaan telah mengonfirmasi atau membantah kabar ini secara resmi.",
+    en: "The company has officially confirmed or denied this news.",
+  },
   title: { id: "{title}", en: "{title}" },
   substance: {
     id: "Teks ini melaporkan peristiwa atau angka yang konkret.",

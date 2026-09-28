@@ -13,9 +13,13 @@ What the runner does NOT decide:
 - Thresholds come from the same payload (`lib/agent/thresholds.ts`).
 - Accepts still need a verified proposal; the route enforces that.
 
-Model: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7, ONNX int8
-(`onnx/model_quantized.onnx`), run with onnxruntime on CPU, tokenized with
-`tokenizers`. No torch.
+Model: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7, ONNX FP32
+(`onnx/model.onnx`), run with onnxruntime on CPU, tokenized with `tokenizers`.
+No torch. Not the int8 `model_quantized.onnx`: its u8s8 kernels saturate on
+x86 CPUs with AVX2 and no VNNI, which is what Cloud Build's default machine
+has, and every probability there came out between 0.1 and 0.3 while the same
+file on an ARM laptop scored 0.98 and 0.005. `self_check` refuses to run on a
+model that cannot tell an obvious pair apart.
 
 Usage:
     python screen.py --service-url URL [--apply] [--calibration calibration.json]
@@ -41,8 +45,9 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 DEFAULT_MODEL_DIR = HERE / ".model"
 MODEL_REPO = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
+MODEL_FILE = "model.onnx"
 MODEL_FILES = {
-    "model_quantized.onnx": "onnx/model_quantized.onnx",
+    MODEL_FILE: "onnx/model.onnx",
     "tokenizer.json": "tokenizer.json",
     "config.json": "config.json",
 }
@@ -88,7 +93,7 @@ class OnnxNli:
         self.tokenizer.enable_padding(pad_id=self.tokenizer.token_to_id("[PAD]") or 0, pad_token="[PAD]")
         options = ort.SessionOptions()
         options.intra_op_num_threads = os.cpu_count() or 1
-        self.session = ort.InferenceSession(str(model_dir / "model_quantized.onnx"), options, providers=["CPUExecutionProvider"])
+        self.session = ort.InferenceSession(str(model_dir / MODEL_FILE), options, providers=["CPUExecutionProvider"])
         self.inputs = {i.name for i in self.session.get_inputs()}
 
     def __call__(self, pairs: Sequence[tuple[str, str]]) -> np.ndarray:
@@ -114,6 +119,25 @@ def ensure_model(model_dir: Path) -> Path:
     if missing:
         raise SystemExit(f"model files missing in {model_dir}: {', '.join(missing)} (fetch {MODEL_REPO})")
     return model_dir
+
+
+# Pairs any working NLI model decides, in the two languages the sources use.
+# They carry no figure a reader sees and decide nothing about an item: they
+# only prove the model on this machine reads text at all.
+SELF_CHECK = (
+    ("Harga saham perusahaan itu naik lima persen hari ini.", "Harga saham perusahaan itu naik.", "entailment"),
+    ("Harga saham perusahaan itu naik lima persen hari ini.", "Harga saham perusahaan itu turun.", "contradiction"),
+    ("The company's shares rose five percent today.", "The company's shares rose.", "entailment"),
+    ("The company's shares rose five percent today.", "The company's shares fell.", "contradiction"),
+)
+
+
+def self_check(scorer: Scorer, labels: dict[str, int], bar: float) -> list[str]:
+    """The pairs the model fails to decide at `bar`. A failing model must not
+    screen anything: its verdicts would all be residual, or worse, and no
+    report would say why."""
+    probs = softmax(scorer([(p, h) for p, h, _ in SELF_CHECK]))
+    return [f"{h!r} → {want} p={probs[i, labels[want]]:.2f}" for i, (_, h, want) in enumerate(SELF_CHECK) if probs[i, labels[want]] < bar]
 
 
 # ---------------------------------------------------------------------------
@@ -354,6 +378,22 @@ def post_verdicts(service_url: str, secret: str, verdicts: list[dict], apply: bo
     return response.json()
 
 
+def load_scores(path: str | None) -> tuple[dict[str, ItemScores], dict | None]:
+    """A score cache written by an earlier run, and the label order it used.
+    A cache written for another model file is ignored: its logits are not this
+    model's (the int8 file's were garbage on x86, see the module docstring)."""
+    if not path or not Path(path).exists():
+        return {}, None
+    raw = json.loads(Path(path).read_text())
+    if raw.get("model") != MODEL_REPO or raw.get("file") != MODEL_FILE:
+        return {}, None
+    return {k: ItemScores.from_json(v) for k, v in raw["items"].items()}, raw.get("labels")
+
+
+def save_scores(path: str, scored: dict[str, ItemScores], labels: dict[str, int]) -> None:
+    Path(path).write_text(json.dumps({"model": MODEL_REPO, "file": MODEL_FILE, "labels": labels, "items": {k: v.to_json() for k, v in scored.items()}}))
+
+
 def run(payload: dict, scorer: Scorer, calibration: dict, labels: dict[str, int], cache: dict[str, ItemScores] | None = None) -> tuple[list[dict], dict[str, ItemScores]]:
     gate = Gate(payload["thresholds"], calibration)
     scored: dict[str, ItemScores] = {}
@@ -373,6 +413,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--apply", action="store_true", help="write the verdicts (default: dry-run)")
     parser.add_argument("--calibration", default=str(HERE / "calibration.json"))
     parser.add_argument("--model-dir", default=str(DEFAULT_MODEL_DIR))
+    parser.add_argument("--scores", help="score cache: items whose text and hypotheses are unchanged are not scored again; rewritten with the pending items only")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if not args.service_url and not args.payload_file:
@@ -393,9 +434,17 @@ def main(argv: Iterable[str] | None = None) -> int:
         return 0
 
     model = OnnxNli(ensure_model(Path(args.model_dir)))
-    verdicts, _ = run(payload, model, load_calibration(args.calibration), model.labels)
+    failed = self_check(model, model.labels, float(payload["thresholds"]["decideMinConfidence"]))
+    if failed:
+        print("model self-check failed; nothing screened: " + "; ".join(failed), file=sys.stderr)
+        return 3
+    cache, _ = load_scores(args.scores)
+    verdicts, scored = run(payload, model, load_calibration(args.calibration), model.labels, cache)
+    if args.scores:
+        save_scores(args.scores, scored, model.labels)
     counts = {v: sum(1 for x in verdicts if x["verdict"] == v) for v in ("accept", "reject", "residual")}
-    print(json.dumps({"counts": counts}, ensure_ascii=False))
+    reused = sum(1 for i in items if i["id"] in cache and cache[i["id"]].fingerprint == fingerprint(i))
+    print(json.dumps({"counts": counts, "scored": len(items) - reused, "reused": reused}, ensure_ascii=False))
 
     if not args.service_url:
         print(json.dumps(verdicts, ensure_ascii=False, indent=2))

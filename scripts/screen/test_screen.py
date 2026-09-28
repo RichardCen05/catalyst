@@ -251,3 +251,38 @@ def test_cached_scores_are_reused_only_for_the_same_text():
     changed = item(hypotheses={**item()["hypotheses"], "rumor": "H-RUMOR-2"})
     verdicts, _ = screen.run({"items": [changed], "thresholds": THRESHOLDS}, stub(CLEAN), {}, LABELS, {"web-x": cached})
     assert verdicts[0]["verdict"] == "accept"  # hypothesis changed: rescored
+
+
+def test_self_check_refuses_a_model_that_cannot_tell_obvious_pairs_apart():
+    # What the int8 model did on Cloud Build's AVX2 CPU: every pair near-uniform.
+    uniform = lambda pairs: np.zeros((len(pairs), 3))
+    assert len(screen.self_check(uniform, LABELS, 0.9)) == len(screen.SELF_CHECK)
+    want = {"entailment": SURE_YES, "contradiction": SURE_CONTRA}
+    reads = lambda pairs: np.array([want[next(w for p, h, w in screen.SELF_CHECK if h == hyp)] for _, hyp in pairs])
+    assert screen.self_check(reads, LABELS, 0.9) == []
+
+
+def test_calibration_refuses_a_temperature_on_the_grid_edge():
+    # The model says yes to everything and nearly everything is no: the NLL
+    # fit runs to the top of the grid, and flattening lowers the ECE, but the
+    # check would then be unsure of every item.
+    rows = [(SURE_YES, False)] * 38 + [(SURE_YES, True)] * 2
+    scores, labels = {}, {}
+    for k, (logits, y) in enumerate(rows):
+        hyp = {**item()["hypotheses"], "substance": f"H-{k}"}
+        scores[f"i{k}"] = screen.score_item(item(id=f"i{k}", hypotheses=hyp), stub({f"H-{k}": logits}))
+        labels[f"i{k}"] = {"substantive": y}
+    entry = calibrate.calibrate(scores, labels, "claude-opus-5-5", LABELS)["substance"]
+    assert entry["ece_after"] < entry["ece_before"]
+    assert entry["T_fit"] == pytest.approx(calibrate.T_GRID[-1], rel=1e-3) and "T" not in entry
+
+
+def test_score_cache_is_ignored_when_written_for_another_model_file(tmp_path):
+    scores = {"web-x": screen.score_item(item(), stub(CLEAN))}
+    path = tmp_path / "scores.json"
+    screen.save_scores(str(path), scores, LABELS)
+    cache, labels = screen.load_scores(str(path))
+    assert list(cache) == ["web-x"] and labels == LABELS
+    raw = json.loads(path.read_text())
+    path.write_text(json.dumps({**raw, "file": "model_quantized.onnx"}))
+    assert screen.load_scores(str(path)) == ({}, None)

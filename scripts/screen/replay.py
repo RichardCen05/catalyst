@@ -35,14 +35,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from screen import DEFAULT_MODEL_DIR, MODEL_REPO, ItemScores, OnnxNli, ensure_model, fingerprint, load_calibration, run  # noqa: E402
-
-
-def load_scores(path: str | None) -> tuple[dict[str, ItemScores], dict | None]:
-    if not path or not Path(path).exists():
-        return {}, None
-    raw = json.loads(Path(path).read_text())
-    return {k: ItemScores.from_json(v) for k, v in raw["items"].items()}, raw.get("labels")
+from screen import DEFAULT_MODEL_DIR, OnnxNli, ensure_model, fingerprint, load_calibration, load_scores, run, save_scores  # noqa: E402
 
 
 def gate(queue_verdicts: list[dict], golden_verdicts: list[dict], pending_labels: dict, golden_labels: dict, payload_items: dict) -> dict:
@@ -113,8 +106,7 @@ def main(argv=None) -> int:
     queue_verdicts, queue_scores = run(queue_payload, model, calibration, labels, cache)
     golden_verdicts, golden_scores = run(golden_payload, model, calibration, labels, cache)
     if args.scores and model:
-        items = {**cache, **queue_scores, **golden_scores}
-        Path(args.scores).write_text(json.dumps({"model": MODEL_REPO, "labels": labels, "items": {k: v.to_json() for k, v in items.items()}}))
+        save_scores(args.scores, {**cache, **queue_scores, **golden_scores}, labels)
 
     counts = {k: sum(1 for v in queue_verdicts if v["verdict"] == k) for k in ("accept", "reject", "residual")}
     total = max(1, len(queue_verdicts))

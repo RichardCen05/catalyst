@@ -610,8 +610,9 @@ What changes when this branch ships:
 | Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
 | Build identity | `1019003607640-compute@developer.gserviceaccount.com` (same as §10) |
 | Source | `gs://ada-sectors-508410_cloudbuild/catalyst/screen-source.tgz` |
-| Model cache | `gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7`. The first run fills it from Hugging Face. |
-| Runtime | About 15 minutes for 50 pending items on the default machine; `timeout: 3600s`. Do not add `machineType`. |
+| Model cache | `gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7`, holding the FP32 `model.onnx`. The first run fills it from Hugging Face. Never the int8 `model_quantized.onnx`: on Cloud Build's x86 CPU (AVX2, no VNNI) it scores every pair near-uniform, which is why the first dry-run left all 65 items residual. `screen.py` refuses to screen when its self-check pairs fail. |
+| Score cache | `gs://katalis-recorded/catalyst/web-watch/screen-scores.json`: logits per pending item, keyed by the item's text and hypotheses and by the model file. A night scores only new or changed items; a change to `lib/web-watch/hypotheses.ts` or the model rescores everything. |
+| Runtime | About 34 seconds per item scored on the default machine (65 items, 37 minutes, probe build `daed4cff`, 28 Sep); cached items cost nothing. `timeout: 7200s` covers a full rescore of about 190 items. Do not add `machineType`. |
 | Kill switch | The Pantau toggle "Putuskan otomatis", or `WEB_WATCH_AUTO_DECIDE=false` on the service (this pins it). With either one off, the route answers `{ applied: false, disabled: true }` and writes nothing. |
 
 Run these in order:
@@ -688,8 +689,24 @@ gcloud run services update catalyst-web --region=us-central1 --update-env-vars=W
 Calibration. `scripts/screen/calibration.json` was fitted on labels that Claude wrote and that no
 person has reviewed yet (`labeledBy` says so). Every decision a person makes on a residual item is
 stored with `fromResidual: true` in `queue.json`: these are the labels to review and refit from.
-After a refit, re-run the offline replay and its hard gate (`scripts/screen/replay.py`), then upload
-a new snapshot (step 3). A change to `cloudbuild-screen.yaml` needs the job body replaced as well
+A fitted temperature is written as `T`, and used, only when it lowers the check's expected
+calibration error and lies inside the search grid; otherwise it is kept as `T_fit` and the check
+stays on the strict floor. On the 28 Sep fit (FP32 scores) every check was refused: rumor and
+substance because the fit raised the error, title and relevance because the fit ran to the grid's
+T = 20, which only flattens every probability toward the base rate. The screen therefore runs on
+the strict floor everywhere until better labels or a better hypothesis make a fit pay. Scores from
+one model file never calibrate another: after the int8 → FP32 switch the file was refit. To refit: dump the live
+payload (`GET` the decide route with the bearer), then
+
+```bash
+python3 scripts/screen/replay.py --payload queue-payload.json --golden-payload golden-payload.json \
+  --labels tests/fixtures/web-watch-pending-labels.json --golden tests/fixtures/web-watch-golden.json \
+  --calibration scripts/screen/calibration.json --scores scores.json          # scores every item once
+python3 scripts/screen/calibrate.py --scores scores.json \
+  --labels tests/fixtures/web-watch-pending-labels.json --golden tests/fixtures/web-watch-golden.json
+```
+
+re-run the replay against the new file and its hard gate, then upload a new snapshot (step 3). A change to `cloudbuild-screen.yaml` needs the job body replaced as well
 (step 6, with or without `--sub _APPLY=--apply`, whichever the job runs now).
 
 ## 11. Rotate a secret

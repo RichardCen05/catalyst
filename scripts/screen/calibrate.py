@@ -22,8 +22,11 @@ screen would act on at T = 1) and a binary label:
 `official` has no labels of its own; it shares the rumor temperature.
 
 A fitted temperature is written as `T` only when it lowers the check's
-expected calibration error; otherwise it is kept as `T_fit` and the screen
-treats the check as uncalibrated (T = 1, strict floor).
+expected calibration error and lies inside the search grid; otherwise it is
+kept as `T_fit` and the screen treats the check as uncalibrated (T = 1, strict
+floor). A fit on the grid's edge did not converge: at the top edge the model
+is only being flattened toward the base rate, which lowers the error of a
+check with few positives while making every item unsure.
 
 The labels were written by Claude, not by a person (W17). `labeledBy` records
 that in every entry until a reviewer signs them off.
@@ -138,7 +141,9 @@ def calibrate(scores: dict[str, ItemScores], labels: dict[str, dict], labeled_by
             # screen act on the relaxed bar with worse evidence than the strict
             # floor has. Rejected fits are kept as `T_fit` so the report shows
             # them, and the screen reads the check as uncalibrated.
-            entry.update(T=round(t, 4)) if after < before else entry.update(T_fit=round(t, 4))
+            # A fit on the grid's edge did not converge (see the docstring).
+            inside = not np.isclose(t, T_GRID[[0, -1]], rtol=1e-3).any()
+            entry.update(T=round(t, 4)) if after < before and inside else entry.update(T_fit=round(t, 4))
         out[check] = entry
     return out
 

@@ -13,10 +13,13 @@
 #
 # Why Cloud Build, not a Cloud Run Job. None exists in this project, and
 # Scheduler → Cloud Build is the pattern the refresh already uses (W10). The
-# default machine keeps a run inside the free build minutes. The offline replay
-# over 50 pending items (about 1,350 window × hypothesis pairs) took 29 CPU
-# minutes, so expect about 15 minutes on the default two vCPUs; the timeout
-# leaves room for a fuller queue. Do not add `machineType`.
+# default machine keeps a run inside the free build minutes. The model is the
+# FP32 ONNX file (screen.py says why not int8): on the default two vCPUs it
+# scores about 34 seconds per item, 37 minutes for the 65 items pending on
+# 28 Sep. Scores are kept in _SCORE_CACHE between runs, keyed by each item's
+# text and hypotheses, so a night scores only what arrived or changed; a full
+# rescore happens only after the hypotheses or the model change. The timeout
+# covers a full rescore of about 190 items. Do not add `machineType`.
 #
 # Why it never writes the queue. The decide route is the only writer of
 # catalyst/web-watch/queue.json (W11). It applies the verdicts through the same
@@ -41,12 +44,13 @@
 # Access this build needs (granted by a person, see docs/DEPLOY.md):
 # - roles/secretmanager.secretAccessor on INTERNAL_CRON_SECRET for the build
 #   identity;
-# - object read and create on _MODEL_CACHE.
+# - object read and create on _MODEL_CACHE and _SCORE_CACHE.
 
 substitutions:
   _SERVICE_URL: https://catalyst-web-ibyebnreqa-uc.a.run.app
   _MODEL_CACHE: gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7
   _MODEL_REPO: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
+  _SCORE_CACHE: gs://katalis-recorded/catalyst/web-watch/screen-scores.json
   _APPLY: ""
 
 steps:
@@ -59,17 +63,18 @@ steps:
         set -euo pipefail
         mkdir -p /workspace/scripts/screen/.model
         cd /workspace/scripts/screen/.model
-        if gcloud storage cp "${_MODEL_CACHE}/*" . 2>/dev/null && [ -s model_quantized.onnx ]; then
+        if gcloud storage cp "${_MODEL_CACHE}/model.onnx" "${_MODEL_CACHE}/tokenizer.json" "${_MODEL_CACHE}/config.json" . 2>/dev/null && [ -s model.onnx ]; then
           echo "model: from cache"
         else
           echo "model: cache empty, fetching ${_MODEL_REPO}"
           base="https://huggingface.co/${_MODEL_REPO}/resolve/main"
-          curl -fsSL -o model_quantized.onnx "$$base/onnx/model_quantized.onnx"
+          curl -fsSL -o model.onnx "$$base/onnx/model.onnx"
           curl -fsSL -o tokenizer.json "$$base/tokenizer.json"
           curl -fsSL -o config.json "$$base/config.json"
-          gcloud storage cp model_quantized.onnx tokenizer.json config.json "${_MODEL_CACHE}/"
+          gcloud storage cp model.onnx tokenizer.json config.json "${_MODEL_CACHE}/"
         fi
         ls -l
+        gcloud storage cp "${_SCORE_CACHE}" ../.scores.json 2>/dev/null && echo "scores: from cache" || echo "scores: no cache, scoring every item"
 
   - id: screen
     name: python:3.12-slim
@@ -84,7 +89,13 @@ steps:
           --service-url "${_SERVICE_URL}" \
           --calibration scripts/screen/calibration.json \
           --model-dir scripts/screen/.model \
+          --scores scripts/screen/.scores.json \
           ${_APPLY}
+
+  - id: keep-scores
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args: ["-c", "gcloud storage cp scripts/screen/.scores.json '${_SCORE_CACHE}'"]
 
 availableSecrets:
   secretManager:
@@ -93,4 +104,4 @@ availableSecrets:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-timeout: 3600s
+timeout: 7200s
