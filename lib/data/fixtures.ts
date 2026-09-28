@@ -278,6 +278,16 @@ export interface SymbolCoverage {
   missing: string[];
 }
 
+/**
+ * The missing recordings as one Indonesian enumeration: "A", "A dan B", "A, B, dan C".
+ * A bare comma join followed by "belum ada" read as "only the last item is missing".
+ */
+export function missingList(missing: string[]): string {
+  if (missing.length <= 1) return missing.join("");
+  if (missing.length === 2) return `${missing[0]} dan ${missing[1]}`;
+  return `${missing.slice(0, -1).join(", ")}, dan ${missing[missing.length - 1]}`;
+}
+
 /** Per-symbol recording availability — drives the honest snapshot/full-case split in the picker. */
 export const coverageInfo: Record<string, SymbolCoverage> = Object.fromEntries(
   rawCompanies.map((company) => {
@@ -289,10 +299,10 @@ export const coverageInfo: Record<string, SymbolCoverage> = Object.fromEntries(
     const linkedEvents = (eventIdsBySymbol[symbol] ?? []).length;
     const missing: string[] = [];
     if (!hasPriceSeries) missing.push("harga harian");
-    if (!hasBroker) missing.push("ringkasan broker + arus asing");
+    if (!hasBroker) missing.push("ringkasan broker (dengan arus asing)");
     if (!financialRowsCount) missing.push("keuangan kuartalan");
     if (!linkedEvents) missing.push("peristiwa terhubung");
-    if (!hasMomentumInputs) missing.push("beta + imbal hasil sektor");
+    if (!hasMomentumInputs) missing.push("beta (dengan imbal hasil sektor)");
     return [symbol, { symbol, analyzed: hasPriceSeries && hasBroker && hasMomentumInputs, hasPriceSeries, hasBroker, financialRows: financialRowsCount, linkedEvents, missing }];
   }),
 );

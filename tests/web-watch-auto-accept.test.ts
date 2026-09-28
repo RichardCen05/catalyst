@@ -525,3 +525,13 @@ describe("revertAutoAccept and the residual list", () => {
     expect(human.decided[item.id].fromResidual).toBeUndefined();
   });
 });
+
+describe("tanggal terbit dari alamat artikel", () => {
+  it("membaca tanggal di URL dan menolak tanggal yang tidak ada", async () => {
+    const { dateFromUrl } = await import("@/lib/web-watch/check");
+    expect(dateFromUrl("https://www.cnbcindonesia.com/market/20260923170412-17-1/ihsg")).toBe("2026-09-23T00:00:00+07:00");
+    expect(dateFromUrl("https://example.com/2026/09/01/judul")).toBe("2026-09-01T00:00:00+07:00");
+    expect(dateFromUrl("https://example.com/20260231-berita")).toBeNull();
+    expect(dateFromUrl("https://example.com/berita-tanpa-tanggal")).toBeNull();
+  });
+});

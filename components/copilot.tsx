@@ -6,7 +6,7 @@ import { useCatalystStore } from "@/lib/store";
 import { useCopilotSession } from "@/lib/copilot-session";
 import { resolveContext } from "@/lib/agent/route-context";
 import { apiUrl } from "@/lib/api-base";
-import { coverageInfo, DATA_AS_OF } from "@/lib/data/fixtures";
+import { coverageInfo, DATA_AS_OF, missingList } from "@/lib/data/fixtures";
 import { ASSISTANT_NAME, buildInsightPrompts, buildQuickPrompts } from "@/lib/agent/assistant";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 import { VIEW_IDS } from "@/lib/agent/retrieval/types";
@@ -212,7 +212,7 @@ export function Copilot({ dismissible = false, workspace = false }: { dismissibl
           <button type="button" role="option" aria-selected={!activeContext?.symbol} onClick={() => { setCopilotContext({ label: "Tanpa kasus", question: "" }); setPickerOpen(false); }} className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-sm font-medium">Tanpa kasus</span><span className="mt-0.5 block text-xs leading-[1.35] text-muted-foreground">Hanya menjawab pertanyaan yang menyebut emitennya sendiri.</span></button>
           {profile.watchlist.map((symbol) => {
             const coverage = coverageInfo[symbol];
-            return <button key={symbol} type="button" role="option" aria-selected={activeContext?.symbol === symbol} onClick={() => { bindTo(symbol); setPickerOpen(false); }} className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-sm font-medium">{symbol}</span><span className="mt-0.5 block text-xs leading-[1.35] text-muted-foreground">{coverage?.analyzed ? "Kasus lengkap" : `Belum ada kasus lengkap — ${coverage?.missing.length ? `${coverage.missing.join(", ")} belum ada` : "rekaman belum lengkap"}`}</span></button>;
+            return <button key={symbol} type="button" role="option" aria-selected={activeContext?.symbol === symbol} onClick={() => { bindTo(symbol); setPickerOpen(false); }} className="w-full cursor-pointer rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="block text-sm font-medium">{symbol}</span><span className="mt-0.5 block text-xs leading-[1.35] text-muted-foreground">{coverage?.analyzed ? "Kasus lengkap" : `Belum ada kasus lengkap — ${coverage?.missing.length ? `${missingList(coverage.missing)} belum ada` : "rekaman belum lengkap"}`}</span></button>;
           })}
         </div> : null}
       </div>

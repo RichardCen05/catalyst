@@ -1,4 +1,4 @@
-import { companies, coverageInfo, priceSeries } from "@/lib/data/fixtures";
+import { companies, coverageInfo, priceSeries, missingList } from "@/lib/data/fixtures";
 import { extractNumerals } from "@/lib/agent/llm/verify";
 import { checkMovement } from "@/lib/agent/coverage";
 import { resolveThresholds } from "@/lib/agent/thresholds";
@@ -29,7 +29,7 @@ export async function buildCasesBundle(context?: RequestContext): Promise<Contex
     `${analysed.length} dari ${companies.length} emiten terekam punya kasus riset lengkap: ${analysed.map((company) => company.symbol).join(", ")}.`,
     ...rest.map((company) => {
       const missing = coverageInfo[company.symbol]?.missing ?? [];
-      return `- ${company.symbol} belum lengkap${missing.length ? `: ${missing.join(", ")} belum ada` : ""}.`;
+      return `- ${company.symbol} belum lengkap${missing.length ? `: ${missingList(missing)} belum ada` : ""}.`;
     }),
     `Uji ambang sesi terakhir (ambang volume z ${decimal.format(thresholds.volumeZFloor)}, ambang penurunan satu sesi ${percentOf(-Math.abs(thresholds.contagionDropFloor))}):`,
     ...companies.map((company) => {

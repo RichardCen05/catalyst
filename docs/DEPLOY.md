@@ -572,12 +572,19 @@ python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY; add 
 python3 scripts/build_market_data.py
 ```
 
-## 10b. Nightly web-watch screen (to run — not created yet)
+## 10b. Nightly web-watch screen (dry-run — not applying yet)
 
-**Status on 25 Sep 2026: nothing in this section exists in the live project.** The code is on
-`feat/alief/wire-ui`, uncommitted, and not deployed. Revision `catalyst-web-00073-c2g` still
-auto-accepts inside the 17:30 sweep (§1). The commands below are what a person runs, in order, once
-the branch is committed and deployed. Update this section to "live" only after they have run.
+**Status on 26 Sep 2026: steps 1–4 below have run; the job is a dry-run and writes nothing.** The
+decide route is live on `catalyst-web-00084-484` (401 without the bearer). The build identity holds
+`secretAccessor` on `INTERNAL_CRON_SECRET`, `screen-source.tgz` holds `scripts/screen` from
+`9ebd77c`, and `catalyst-web-watch-screen` exists with `_APPLY` empty; its first run was build
+`330aa522`: of 65 pending items, 0 accept, 0 reject, 0 rumor, 65 residual ("penyaring NLI ragu" on
+all four checks); figure check 4 consistent, 61 uncheckable, 0 contradicted. Everything is residual
+because `substance` and `relevance` have no labels in `calibration.json` (below
+`webWatchCalibrationMinLabels`, so the strict floor applies) and `rumor`/`title` carry high
+temperatures. Until a person has read the dry-run reports (step 5) and switched the job to apply
+(step 6), Pantau still says the screen has never run, because no verdict has been written. Update
+this section to "live" only after step 6.
 
 What changes when this branch ships:
 

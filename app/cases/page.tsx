@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
-import { companies, DATA_AS_OF_LABEL } from "@/lib/data/fixtures";
+import { companies, DATA_AS_OF_LABEL, missingList } from "@/lib/data/fixtures";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -178,7 +178,7 @@ function ResearchCasesContent() {
                     const company = companies.find((item) => item.symbol === row.symbol)!;
                     return <li key={row.symbol} className="grid gap-3 px-4 py-4 lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,1fr)_110px_170px] lg:items-start lg:gap-4">
                       <span className="flex min-w-0 items-center gap-2"><TickerAvatar symbol={row.symbol} size="sm" /><span className="min-w-0"><strong className="block text-base font-semibold">{row.symbol}</strong><span className="block truncate text-xs text-subtle-foreground">{company.name}</span></span></span>
-                      <span className="text-xs text-muted-foreground">{row.missing.length ? `Belum ada: ${row.missing.join(", ")}` : "Lengkap"}</span>
+                      <span className="text-xs text-muted-foreground">{row.missing.length ? `Belum ada: ${missingList(row.missing)}` : "Lengkap"}</span>
                       <MovementCell movement={row.movement} thresholds={thresholds} />
                       <span className="flex items-center gap-2 lg:flex-col lg:items-end lg:gap-0.5"><span className="font-mono text-sm font-medium tabular-nums">{formatCurrency(company.price)}</span><PriceChange value={company.changePct} className="text-xs" /></span>
                       <span className="lg:text-right">

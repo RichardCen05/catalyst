@@ -111,6 +111,20 @@ describe("kotak pencarian memaafkan typo yang sama", () => {
     expect(findSymbolsRobust("kenapa antmm naik", symbols)).not.toContain("AMRT");
   });
 
+  it("kata biasa yang tampil di layar bukan salah ketik nama emiten", () => {
+    expect(findSymbolsRobust("Kalau begitu, bukti apa yang akan membatalkan hipotesis itu?", symbols)).toEqual([]);
+    expect(findSymbolsRobust("Apa bukti pembatalnya?", symbols)).toEqual([]);
+    expect(findSymbolsRobust("kenapa bukan naik", symbols)).toEqual([]);
+    expect(findSymbolsRobust("coba baca ulang", symbols)).toEqual([]);
+    expect(findSymbolsRobust("berita bukit asam", symbols)).toContain("PTBA");
+  });
+
+  it("satu kata utuh tidak dibaca sebagai frasa dua kata yang berjarak dua huruf", () => {
+    expect(phraseMatches("seberapa besar kenaikannya", "sumber apa")).toBe(false);
+    expect(phraseMatches("pesertaefektif berapa", "peserta efektif")).toBe(true);
+    expect(phraseMatches("sumbr dta kasus ini", "sumber data")).toBe(true);
+  });
+
   it("filter daftar menerima awalan dan salah ketik", () => {
     expect(fuzzyIncludes("ANTM Aneka Tambang Basic Materials", "ant")).toBe(true);
     expect(fuzzyIncludes("ANTM Aneka Tambang Basic Materials", "tambag")).toBe(true);

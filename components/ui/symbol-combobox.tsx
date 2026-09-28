@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { companies, coverageInfo } from "@/lib/data/fixtures";
+import { companies, coverageInfo, missingList } from "@/lib/data/fixtures";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
 import type { SymbolCode } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export function SymbolCombobox({
           ? "Sudah ada di kolom lain"
           : company.analyzed
             ? undefined
-            : `Rekaman belum lengkap${missing.length ? `: ${missing.join(", ")}` : ""}`;
+            : `Rekaman belum lengkap${missing.length ? `: ${missingList(missing)}` : ""}`;
         return { symbol: company.symbol, name: company.name, changePct: company.changePct, reason };
       });
     return [...all.filter((option) => !option.reason), ...all.filter((option) => option.reason)];
