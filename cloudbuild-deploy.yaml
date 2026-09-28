@@ -30,6 +30,10 @@
 # body stops the release before anything changes); both replace the live ones only after
 # the deploy succeeds, with the previous ones kept beside them as .prev-<UTC stamp>.
 #
+# The nightly web-watch screen (cloudbuild-screen.yaml) moves the same way: its tarball
+# (scripts/screen only) and its body, rendered from the YAML's defaults, which apply, so a
+# release cannot leave the screen on old code or turn it back into a dry-run.
+#
 # _DRY_RUN=true runs every step and changes nothing: no deploy, no upload, no job update.
 
 substitutions:
@@ -43,6 +47,8 @@ substitutions:
   _DRY_RUN: "false"
   _SNAPSHOT: gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz
   _REFRESH_JOB: catalyst-data-refresh
+  _SCREEN_SNAPSHOT: gs://ada-sectors-508410_cloudbuild/catalyst/screen-source.tgz
+  _SCREEN_JOB: catalyst-web-watch-screen
   _PLAYWRIGHT: 1.63.0
   _E2E_BUCKET: ada-sectors-508410-catalyst-e2e
 
@@ -91,7 +97,8 @@ steps:
       - -c
       - |
         set -euo pipefail
-        tar -czf /tmp/snapshot.tgz --exclude=./_snapshot.tgz --exclude=./_refresh-body.json -C /workspace .
+        tar -czf /tmp/snapshot.tgz --exclude=./_snapshot.tgz --exclude=./_refresh-body.json \
+          --exclude=./_screen-source.tgz --exclude=./_screen-body.json -C /workspace .
         mv /tmp/snapshot.tgz /workspace/_snapshot.tgz
         ls -l /workspace/_snapshot.tgz
 
@@ -111,6 +118,19 @@ steps:
         script = " ".join(deploy["args"])
         assert "--set-env-vars" not in script and "--set-secrets" not in script, "refresh would pin a provider"
         print("refresh body:", len(body["steps"]), "steps, source", body["source"]["storageSource"]["object"])
+        PY
+        SCREEN_SNAPSHOT="${_SCREEN_SNAPSHOT}"
+        tar -czf _screen-source.tgz --exclude=__pycache__ --exclude=.pytest_cache --exclude=.model \
+          --exclude=.scores.json -C /workspace scripts/screen
+        python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \
+          --snapshot-object "$${SCREEN_SNAPSHOT#gs://*/}" > _screen-body.json
+        python3 - <<'PY'
+        import json
+        body = json.load(open("_screen-body.json"))
+        screen = " ".join(next(step for step in body["steps"] if step["id"] == "screen")["args"])
+        assert "--apply" in screen, "screen body would run as a dry-run"
+        assert "$${" not in json.dumps(body["steps"]), "screen body has an unresolved substitution"
+        print("screen body:", len(body["steps"]), "steps, source", body["source"]["storageSource"]["object"])
         PY
 
   - id: install
@@ -226,22 +246,28 @@ steps:
         set -euo pipefail
         [ "${_DRY_RUN}" = true ] && { echo "dry run: skip worker sync"; exit 0; }
         STAMP=$$(date -u +%Y%m%dT%H%MZ)
-        SNAPSHOT="${_SNAPSHOT}"
-        BACKUP_DIR=$$(dirname "$$SNAPSHOT")
-        if gcloud storage ls "$$SNAPSHOT" > /dev/null 2>&1; then
-          gcloud storage cp "$$SNAPSHOT" "$${SNAPSHOT%.tgz}.prev-$$STAMP.tgz"
-        fi
-        # The API returns the body as URL-safe base64, which `base64 -d` rejects.
-        gcloud scheduler jobs describe "${_REFRESH_JOB}" --location="${_REGION}" \
-          --format='value(httpTarget.body)' \
-          | python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.urlsafe_b64decode(sys.stdin.read().strip()))' \
-          > /workspace/_refresh-body.prev.json
-        python3 -m json.tool /workspace/_refresh-body.prev.json > /dev/null
-        gcloud storage cp /workspace/_refresh-body.prev.json "$$BACKUP_DIR/refresh-body.prev-$$STAMP.json"
-        gcloud storage cp /workspace/_snapshot.tgz "${_SNAPSHOT}"
-        gcloud scheduler jobs update http "${_REFRESH_JOB}" --location="${_REGION}" \
-          --message-body-from-file=/workspace/_refresh-body.json
-        echo "worker synced: ${_SNAPSHOT}, ${_REFRESH_JOB}; backups at $$STAMP"
+        # job, live tarball, this build's tarball, rendered body, backup name
+        sync() {
+          local job=$$1 live=$$2 built=$$3 body=$$4 name=$$5
+          local backups
+          backups=$$(dirname "$$live")
+          if gcloud storage ls "$$live" > /dev/null 2>&1; then
+            gcloud storage cp "$$live" "$${live%.tgz}.prev-$$STAMP.tgz"
+          fi
+          # The API returns the body as URL-safe base64, which `base64 -d` rejects.
+          gcloud scheduler jobs describe "$$job" --location="${_REGION}" \
+            --format='value(httpTarget.body)' \
+            | python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.urlsafe_b64decode(sys.stdin.read().strip()))' \
+            > "/workspace/_$$name-body.prev.json"
+          python3 -m json.tool "/workspace/_$$name-body.prev.json" > /dev/null
+          gcloud storage cp "/workspace/_$$name-body.prev.json" "$$backups/$$name-body.prev-$$STAMP.json"
+          gcloud storage cp "$$built" "$$live"
+          gcloud scheduler jobs update http "$$job" --location="${_REGION}" \
+            --message-body-from-file="$$body"
+          echo "worker synced: $$live, $$job; backups at $$STAMP"
+        }
+        sync "${_REFRESH_JOB}" "${_SNAPSHOT}" /workspace/_snapshot.tgz /workspace/_refresh-body.json refresh
+        sync "${_SCREEN_JOB}" "${_SCREEN_SNAPSHOT}" /workspace/_screen-source.tgz /workspace/_screen-body.json screen
 
 options:
   machineType: E2_HIGHCPU_8

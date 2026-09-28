@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 const root = join(__dirname, "..");
 const deploy = readFileSync(join(root, "cloudbuild-deploy.yaml"), "utf8");
 const refresh = readFileSync(join(root, "cloudbuild-refresh.yaml"), "utf8");
+const screen = readFileSync(join(root, "cloudbuild-screen.yaml"), "utf8");
 const bodyScript = readFileSync(join(root, "scripts/refresh_job_body.py"), "utf8");
 const playwrightConfig = readFileSync(join(root, "playwright.config.ts"), "utf8");
 
@@ -61,6 +62,18 @@ describe("cloudbuild-deploy.yaml", () => {
     expect(deploy).toMatch(new RegExp(`_SNAPSHOT: gs://ada-sectors-508410_cloudbuild/${object}\\n`));
   });
 
+  it("moves the nightly screen onto what it deployed, in apply mode", () => {
+    const render = step(deploy, "render-worker-body");
+    expect(render).toContain("--config cloudbuild-screen.yaml");
+    expect(render).toMatch(/-C \/workspace scripts\/screen\n/);
+    expect(render).toContain('assert "--apply" in screen');
+    expect(deploy).toMatch(/^ {2}_SCREEN_JOB: catalyst-web-watch-screen$/m);
+    expect(deploy).toMatch(/^ {2}_SCREEN_SNAPSHOT: gs:\/\/ada-sectors-508410_cloudbuild\/\S+\.tgz$/m);
+    const sync = step(deploy, "sync-workers");
+    expect(sync).toContain('sync "${_REFRESH_JOB}" "${_SNAPSHOT}"');
+    expect(sync).toContain('sync "${_SCREEN_JOB}" "${_SCREEN_SNAPSHOT}" /workspace/_screen-source.tgz /workspace/_screen-body.json');
+  });
+
   it("runs the browser journeys on the test bucket, never the production one", () => {
     const script = step(deploy, "e2e");
     const bucket = deploy.match(/^ {2}_E2E_BUCKET: (\S+)$/m)?.[1] ?? "";
@@ -84,6 +97,15 @@ describe("cloudbuild-refresh.yaml", () => {
     const script = step(refresh, "deploy");
     expect(script).not.toContain("--set-env-vars");
     expect(script).not.toContain("--set-secrets");
+  });
+});
+
+describe("cloudbuild-screen.yaml", () => {
+  // Every release re-renders the scheduler body from this file's defaults. An empty
+  // default turned the live screen back into a dry-run without anyone deciding it.
+  it("applies by default, because production applies", () => {
+    expect(screen).toMatch(/^ {2}_APPLY: --apply$/m);
+    expect(step(screen, "screen")).toMatch(/\$\{_APPLY\}\n/);
   });
 });
 

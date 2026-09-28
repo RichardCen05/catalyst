@@ -283,7 +283,12 @@ redeployed the previous day's code. After a green deploy, the `sync-workers` ste
 - uploads this build's workspace (taken after the recordings pull, before `node_modules`) as the new
   `refresh-source.tgz`;
 - replaces the `catalyst-data-refresh` body with `scripts/refresh_job_body.py`'s output, which is
-  rendered and checked before the deploy, so a broken body stops the release before anything changes.
+  rendered and checked before the deploy, so a broken body stops the release before anything changes;
+- does the same for the nightly web-watch screen (§10b): `screen-source.tgz` (only `scripts/screen`)
+  and the `catalyst-web-watch-screen` body, with `screen-source.prev-<UTC stamp>.tgz` and
+  `screen-body.prev-<UTC stamp>.json` kept beside them. The body is rendered from
+  `cloudbuild-screen.yaml`'s defaults, and the render fails unless the screen step carries `--apply`,
+  so a release can neither leave the screen on old code nor turn it back into a dry-run.
 
 If the sync fails, the app is deployed and the worker still runs its previous source: the build is
 red, and re-running the release repairs it. To put the worker back by hand:
@@ -574,8 +579,10 @@ python3 scripts/build_market_data.py
 
 ## 10b. Nightly web-watch screen (live — applying)
 
-**Status on 28 Sep 2026: live, applying.** `catalyst-web-watch-screen` runs with
-`--sub _APPLY=--apply` from `screen-source.tgz` at `ab85c11`, against `catalyst-web-00086-9m8`.
+**Status on 28 Sep 2026: live, applying.** `catalyst-web-watch-screen` runs with `--apply` (the
+default of `_APPLY` in `cloudbuild-screen.yaml` since then) from `screen-source.tgz`; every release
+re-syncs both (§6, `sync-workers`), so an edit to `cloudbuild-screen.yaml` or `scripts/screen/`
+reaches the job by deploying, not by hand.
 The first run on 26 Sep (build `330aa522`) left all 65 pending items residual; the cause was the
 int8 model file, which scores near-uniform on Cloud Build's CPU (see the Model cache row). The FP32
 dry-run (build `c1ec6312`) matched the offline replay exactly: 1 accept, 6 relevance rejects,
@@ -615,7 +622,13 @@ What changes when this branch ships:
 | Runtime | About 34 seconds per item scored on the default machine (65 items, 37 minutes, probe build `daed4cff`, 28 Sep); cached items cost nothing. `timeout: 7200s` covers a full rescore of about 190 items. Do not add `machineType`. |
 | Kill switch | The Pantau toggle "Putuskan otomatis", or `WEB_WATCH_AUTO_DECIDE=false` on the service (this pins it). With either one off, the route answers `{ applied: false, disabled: true }` and writes nothing. |
 
-Run these in order:
+Changing the screen after setup: edit `cloudbuild-screen.yaml` or `scripts/screen/`, commit, and
+deploy (§5–§6). The release's `sync-workers` step uploads the new tarball and replaces the job's
+body in apply mode; nothing below needs to be run again. For a one-off dry-run, render the body with
+`--sub _APPLY=` (step 4), run the job once, and deploy again or re-render without `--sub` to go back to
+applying.
+
+The first setup, done 26–28 Sep 2026, ran these in order:
 
 1. **Deploy the branch** (§5 gate, then §6). Ask which model and provider first. Then check that the
    route exists and that it refuses a request without the bearer:
@@ -646,12 +659,12 @@ Run these in order:
    gcloud storage cp /tmp/screen-source.tgz gs://ada-sectors-508410_cloudbuild/catalyst/screen-source.tgz
    ```
 
-4. **Create the job as a dry-run.** `_APPLY` is empty in the YAML, so the route reports what the
+4. **Create the job as a dry-run.** `--sub _APPLY=` empties the flag, so the route reports what the
    verdicts would do and writes nothing:
 
    ```bash
    python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \
-     --snapshot-object catalyst/screen-source.tgz > /tmp/screen-body.json
+     --snapshot-object catalyst/screen-source.tgz --sub _APPLY= > /tmp/screen-body.json
    gcloud scheduler jobs create http catalyst-web-watch-screen --location=us-central1 \
      --schedule="30 22 * * 1-5" --time-zone=Asia/Jakarta \
      --uri=https://cloudbuild.googleapis.com/v1/projects/ada-sectors-508410/locations/us-central1/builds \
@@ -670,11 +683,11 @@ Run these in order:
    gcloud builds log <BUILD_ID> --region=us-central1 | tail -80
    ```
 
-6. **Switch to apply, only after a person has read that report:**
+6. **Switch to apply, only after a person has read that report.** `--apply` is the YAML's default:
 
    ```bash
    python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \
-     --snapshot-object catalyst/screen-source.tgz --sub _APPLY=--apply > /tmp/screen-body.json
+     --snapshot-object catalyst/screen-source.tgz > /tmp/screen-body.json
    gcloud scheduler jobs update http catalyst-web-watch-screen --location=us-central1 \
      --message-body-from-file=/tmp/screen-body.json
    ```
@@ -706,8 +719,8 @@ python3 scripts/screen/calibrate.py --scores scores.json \
   --labels tests/fixtures/web-watch-pending-labels.json --golden tests/fixtures/web-watch-golden.json
 ```
 
-re-run the replay against the new file and its hard gate, then upload a new snapshot (step 3). A change to `cloudbuild-screen.yaml` needs the job body replaced as well
-(step 6, with or without `--sub _APPLY=--apply`, whichever the job runs now).
+re-run the replay against the new file and its hard gate, commit, and deploy: the release ships the
+new `calibration.json` to the job.
 
 ## 11. Rotate a secret
 

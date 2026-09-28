@@ -28,9 +28,13 @@
 # off. This build therefore needs no GCS write access to the queue; it reads the
 # model cache and calls the service with the INTERNAL_CRON_SECRET bearer.
 #
-# Why _APPLY starts empty. Rejects are final. The first runs are dry-runs: the
-# route reports what the verdicts would do and writes nothing. Set
-# _APPLY=--apply only after a person has read those reports (docs/DEPLOY.md).
+# Why _APPLY defaults to --apply. The screen has applied on production since
+# 28 Sep 2026, after a person read the dry-run reports (docs/DEPLOY.md §10b).
+# Every release re-renders the scheduler job's body from this file
+# (cloudbuild-deploy.yaml, sync-workers), so the default is what production
+# runs: an empty default would quietly turn the nightly screen back into a
+# dry-run on the next deploy. For a dry-run, render the body by hand with
+# `--sub _APPLY=` and run it once; the next release puts apply back.
 #
 # Source. Like the refresh, the scheduled run builds from a snapshot tarball,
 # not from the repository: scripts/screen/ (screen.py, requirements.txt,
@@ -51,7 +55,7 @@ substitutions:
   _MODEL_CACHE: gs://katalis-recorded/catalyst/web-watch/models/mdeberta-v3-base-xnli-multilingual-nli-2mil7
   _MODEL_REPO: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
   _SCORE_CACHE: gs://katalis-recorded/catalyst/web-watch/screen-scores.json
-  _APPLY: ""
+  _APPLY: --apply
 
 steps:
   - id: model

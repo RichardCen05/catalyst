@@ -17,7 +17,7 @@ The nightly web-watch screen (cloudbuild-screen.yaml) is posted the same way,
 from its own snapshot, with any substitution overridden on the command line:
 
     python3 scripts/refresh_job_body.py --config cloudbuild-screen.yaml \\
-      --snapshot-object catalyst/screen-source.tgz [--sub _APPLY=--apply]
+      --snapshot-object catalyst/screen-source.tgz [--sub _APPLY=]   # empty = dry-run
 """
 import argparse
 import json
