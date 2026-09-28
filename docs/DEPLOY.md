@@ -572,19 +572,19 @@ python3 scripts/refresh_sectors.py --execute       # needs SECTORS_API_KEY; add 
 python3 scripts/build_market_data.py
 ```
 
-## 10b. Nightly web-watch screen (dry-run — not applying yet)
+## 10b. Nightly web-watch screen (live — applying)
 
-**Status on 26 Sep 2026: steps 1–4 below have run; the job is a dry-run and writes nothing.** The
-decide route is live on `catalyst-web-00084-484` (401 without the bearer). The build identity holds
-`secretAccessor` on `INTERNAL_CRON_SECRET`, `screen-source.tgz` holds `scripts/screen` from
-`9ebd77c`, and `catalyst-web-watch-screen` exists with `_APPLY` empty; its first run was build
-`330aa522`: of 65 pending items, 0 accept, 0 reject, 0 rumor, 65 residual ("penyaring NLI ragu" on
-all four checks); figure check 4 consistent, 61 uncheckable, 0 contradicted. Everything is residual
-because `substance` and `relevance` have no labels in `calibration.json` (below
-`webWatchCalibrationMinLabels`, so the strict floor applies) and `rumor`/`title` carry high
-temperatures. Until a person has read the dry-run reports (step 5) and switched the job to apply
-(step 6), Pantau still says the screen has never run, because no verdict has been written. Update
-this section to "live" only after step 6.
+**Status on 28 Sep 2026: live, applying.** `catalyst-web-watch-screen` runs with
+`--sub _APPLY=--apply` from `screen-source.tgz` at `ab85c11`, against `catalyst-web-00086-9m8`.
+The first run on 26 Sep (build `330aa522`) left all 65 pending items residual; the cause was the
+int8 model file, which scores near-uniform on Cloud Build's CPU (see the Model cache row). The FP32
+dry-run (build `c1ec6312`) matched the offline replay exactly: 1 accept, 6 relevance rejects,
+58 residual, every verdict agreeing with the labels. The route held the accept back as residual
+("belum ada usulan terverifikasi"). A person read the six rejects, and the first applied run
+(build `cd5d2f19`, 08:10 UTC, all 65 scores reused from the cache) wrote them: Pantau shows
+"Penyaringan terakhir", Antrean 59, all under "Perlu keputusan", Terindikasi Rumor 0. The queue on
+that day held no rumor article, so the empty rumor tab is expected; the golden replay quarantines
+two of its six rumor articles and no clean one.
 
 What changes when this branch ships:
 
@@ -604,7 +604,7 @@ What changes when this branch ships:
   the queue. An accept can still be undone from Pantau, and residual items wait
   in Pantau under "Perlu keputusan".
 
-| What | Value (planned) |
+| What | Value |
 |---|---|
 | Scheduler job | `catalyst-web-watch-screen`, `30 22 * * 1-5` Asia/Jakarta, region `us-central1`. It runs after the last refresh try (21:30), so the figure check reads that evening's recordings. |
 | Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
