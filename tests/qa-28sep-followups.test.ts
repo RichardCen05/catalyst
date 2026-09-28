@@ -5,7 +5,7 @@ import { agentEngine } from "@/lib/agent/engine";
 import { attributionMaterial } from "@/lib/agent/case-answers";
 import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
 import { untranslatedTerms } from "@/lib/agent/llm/language-leak";
-import { verifyAnswer } from "@/lib/agent/llm/verify";
+import { verifyAnswer, verifyDraft } from "@/lib/agent/llm/verify";
 import { resolveThresholds } from "@/lib/agent/thresholds";
 import { demoProfiles } from "@/lib/data/fixtures";
 import { formatWib } from "@/lib/utils";
@@ -228,5 +228,14 @@ describe("F9 a rumor the screen flags lands in the Terindikasi Rumor tab", () =>
     expect(body.suspected.map((row: { id: string }) => row.id)).toEqual(["r1"]);
     expect(body.pending).toEqual([]);
     expect(body.autoRejected).toEqual([]);
+  });
+});
+
+describe("F10 a fall written as its size is not a fabricated figure", () => {
+  it("\"fell 4.0%\" quotes the recorded -4,0%; a sign the recordings never had is still rejected", () => {
+    // Production, 28 Sep: "Why did PGAS fall?" was answered "PGAS fell 4.0%"
+    // twice and fell back to the Indonesian material both times.
+    expect(verifyDraft("PGAS fell 4.0% over three days.", ["-4,0%"], []).approved).toBe(true);
+    expect(verifyDraft("ANTM fell -0.9% over three days.", ["0,9%"], []).approved).toBe(false);
   });
 });

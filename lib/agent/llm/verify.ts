@@ -57,7 +57,10 @@ export function answerSentences(text: string): string[] {
 }
 
 export function verifyDraft(draftText: string, evidenceNumbers: string[], _citations: Citation[]): VerificationResult {
-  const allowed = new Set(evidenceNumbers.map(canonicalNumeral));
+  // A recorded "-4,0%" may be written as its size: "PGAS fell 4.0%" carries
+  // the direction in the verb and invents no digit. The other way round — a
+  // minus the recordings never had — still fails.
+  const allowed = new Set(evidenceNumbers.flatMap((numeral) => [canonicalNumeral(numeral), canonicalNumeral(numeral.replace(/^[-−]/, ""))]));
   const found = draftText.match(NUMBER_PATTERN) ?? [];
   const violations = found
     .filter((numeral) => !allowed.has(canonicalNumeral(numeral)))
