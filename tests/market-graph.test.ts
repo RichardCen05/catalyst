@@ -91,23 +91,39 @@ describe("buildMarketGraph", () => {
     // land, so this finds it rather than naming it: naming one meant the test
     // failed the moment a refresh brought in a lower-ranked headline, which
     // says nothing about whether the bound still behaves.
-    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: 60 });
-    const onBoard = new Set(graph.nodes.filter((node) => node.kind === "source").map((node) => node.id));
-
-    const dropped: string[] = [];
-    for (const symbol of watchlist) {
-      const chain = await agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance: 60 });
-      const carried = new Set(
-        (chain?.nodes ?? []).filter((node) => node.kind === "source").map((node) => node.id),
-      );
-      const linked = events
-        .filter((event) => event.impactLinks.some((link) => link.symbol === symbol && link.relevance >= 60))
-        .map((event) => `source-${event.id}`);
-      dropped.push(...linked.filter((id) => !carried.has(id)));
+    //
+    // Whether an issuer exceeds the bound at a given floor is also the day's
+    // data: after the 25 Sep 2026 refresh no watchlist issuer had more than
+    // the bound at 60. So the floor is found too — the highest recorded
+    // relevance at which some chain drops a recording.
+    const dropsAt = async (floor: number) => {
+      const dropped: string[] = [];
+      for (const symbol of watchlist) {
+        const chain = await agentEngine.buildCausalGraph(symbol, profile, { scope: "market", minRelevance: floor });
+        const carried = new Set(
+          (chain?.nodes ?? []).filter((node) => node.kind === "source").map((node) => node.id),
+        );
+        const linked = events
+          .filter((event) => event.impactLinks.some((link) => link.symbol === symbol && link.relevance >= floor))
+          .map((event) => `source-${event.id}`);
+        dropped.push(...linked.filter((id) => !carried.has(id)));
+      }
+      return dropped;
+    };
+    const floors = [...new Set(events.flatMap((event) => event.impactLinks.map((link) => link.relevance)))]
+      .filter((floor) => floor <= 60)
+      .sort((a, b) => b - a);
+    let floor = floors[0];
+    let dropped: string[] = [];
+    for (floor of floors) {
+      dropped = await dropsAt(floor);
+      if (dropped.length) break;
     }
 
     // The bound is only observable while some issuer actually exceeds it.
     expect(dropped.length).toBeGreaterThan(0);
+    const graph = await buildMarketGraph(watchlist, profile, { minRelevance: floor });
+    const onBoard = new Set(graph.nodes.filter((node) => node.kind === "source").map((node) => node.id));
     for (const id of dropped) expect(onBoard.has(id)).toBe(true);
   });
 

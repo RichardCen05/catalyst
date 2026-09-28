@@ -1,4 +1,5 @@
 import { phraseMatches } from "@/lib/text/fuzzy";
+import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
 import { RELEVANCE_BAND_SCORE } from "@/lib/agent/thresholds";
 import { signedPercent } from "@/lib/utils";
 import type { AnalysisCase, Citation, MetricValue, PillarResult } from "@/lib/types";
@@ -448,12 +449,19 @@ export function matchFigure(
 }
 
 /** The same search, reporting how the figure was reached. */
+const TICKER_WORD = new RegExp(`\\b(?:${SYMBOL_CODES.join("|")})\\b`, "gi");
+
 export function matchFigureWithStrength(
   figures: AnswerableFigure[],
   question: string,
   extractNumerals: (...texts: string[]) => string[],
 ): FigureMatch | undefined {
-  const lower = question.toLowerCase();
+  // A ticker inside a label is the reader saying whose figure, not a word of
+  // the label. "berapa volume ANTM terbaru" names Volume terbaru exactly as
+  // much as "berapa volume terbaru ANTM" does; read with the ticker in place
+  // it matched only the Volume group, which does not anchor, and a refresh
+  // that raised the case card's retrieval score answered with the whole case.
+  const lower = question.toLowerCase().replace(TICKER_WORD, " ").replace(/\s+/g, " ");
   // A label the reader typed in full outranks a number inside it. "Imbal hasil
   // 3 hari" carries a "3", and matching numbers first answered that question
   // with whichever figure happened to contain a 3.
@@ -461,6 +469,16 @@ export function matchFigureWithStrength(
     .filter(({ metric }) => lower.includes(metric.label.toLowerCase()))
     .sort((first, second) => second.metric.label.length - first.metric.label.length);
   if (labelFirst.length) return { figure: labelFirst[0], named: true };
+  // The same label with the spaces moved. Where a label puts its spaces is
+  // this app's choice, so "imbalhasil 3 hari" names Imbal hasil 3 hari as
+  // surely as the spaced form; it is not a typo and must anchor like one
+  // that is typed letter for letter. Only a label of two or more words has a
+  // space to move, which keeps a short label from matching inside a word.
+  const squash = (text: string) => text.replace(/\s+/g, "");
+  const squashed = figures
+    .filter(({ metric }) => /\s/.test(metric.label.trim()) && squash(lower).includes(squash(metric.label.toLowerCase())))
+    .sort((first, second) => second.metric.label.length - first.metric.label.length);
+  if (squashed.length) return { figure: squashed[0], named: true };
   // A quoted figure has to look like a figure. A lone digit is almost always
   // part of a phrase ("3 hari", "28 hari"), not a value pasted from the page.
   const asked = extractNumerals(question).map(canonicalFigure).filter((figure) => figure.replace("%", "").length > 1);

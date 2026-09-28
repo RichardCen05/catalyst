@@ -1,4 +1,5 @@
 import { SYMBOL_CODES } from "@/lib/data/symbols.generated";
+import { primaryTestsInFocusOrder } from "@/lib/agent/dimensions";
 import { uiLabel } from "@/lib/ui-labels";
 import type {
   AnalysisCase,
@@ -55,7 +56,10 @@ function uniqueCitations(citations: Citation[]): Citation[] {
 }
 
 function impactLabels(analysis: AnalysisCase, status: AnalysisCase["businessImpact"][number]["status"]): string[] {
-  return analysis.businessImpact.filter((item) => item.status === status).map((item) => item.label.toLowerCase());
+  const rows = status === "Primary test"
+    ? primaryTestsInFocusOrder(analysis.businessImpact, analysis.researchPlan.focuses)
+    : analysis.businessImpact.filter((item) => item.status === status);
+  return rows.map((item) => item.label.toLowerCase());
 }
 
 function statusLine(analysis: AnalysisCase): string {
@@ -174,7 +178,7 @@ function playbookRules(playbook: InvestorResearchPlaybook | undefined, symbol: s
  * last, quoted, because they are theirs and not the recordings'.
  */
 export function falsifierMaterial(analysis: AnalysisCase, playbook?: InvestorResearchPlaybook): CaseAnswerMaterial {
-  const primary = analysis.businessImpact.filter((item) => item.status === "Primary test");
+  const primary = primaryTestsInFocusOrder(analysis.businessImpact, analysis.researchPlan.focuses);
   const open = impactLabels(analysis, "Open");
   const lines = [
     `Bukti penyangkal ${analysis.company.symbol}: ${analysis.counterEvidence.map(sentence).join(" ")}`,

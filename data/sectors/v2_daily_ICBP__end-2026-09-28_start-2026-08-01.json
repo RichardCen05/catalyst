@@ -1,0 +1,382 @@
+[
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-03",
+    "close": 7200,
+    "open": 7125,
+    "high": 7200,
+    "low": 7000,
+    "volume": 6342500,
+    "market_cap": 83965737600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-04",
+    "close": 7175,
+    "open": 7200,
+    "high": 7250,
+    "low": 7150,
+    "volume": 3618500,
+    "market_cap": 83674189900000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-05",
+    "close": 7300,
+    "open": 7225,
+    "high": 7400,
+    "low": 7225,
+    "volume": 5071600,
+    "market_cap": 85131928400000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-06",
+    "close": 7450,
+    "open": 7300,
+    "high": 7525,
+    "low": 7300,
+    "volume": 6652200,
+    "market_cap": 86881214600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-07",
+    "close": 7750,
+    "open": 7475,
+    "high": 7750,
+    "low": 7450,
+    "volume": 10181700,
+    "market_cap": 90379787000000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-10",
+    "close": 7600,
+    "open": 7775,
+    "high": 7800,
+    "low": 7525,
+    "volume": 6810700,
+    "market_cap": 88630500800000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-11",
+    "close": 7575,
+    "open": 7600,
+    "high": 7625,
+    "low": 7500,
+    "volume": 2946500,
+    "market_cap": 88338953100000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-12",
+    "close": 7550,
+    "open": 7525,
+    "high": 7575,
+    "low": 7475,
+    "volume": 2882200,
+    "market_cap": 88047405400000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-13",
+    "close": 7550,
+    "open": 7550,
+    "high": 7650,
+    "low": 7450,
+    "volume": 3348500,
+    "market_cap": 88047405400000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-14",
+    "close": 7600,
+    "open": 7625,
+    "high": 7650,
+    "low": 7575,
+    "volume": 3782100,
+    "market_cap": 88630500800000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-18",
+    "close": 7625,
+    "open": 7600,
+    "high": 7700,
+    "low": 7550,
+    "volume": 3579400,
+    "market_cap": 88922048500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-19",
+    "close": 7675,
+    "open": 7650,
+    "high": 7750,
+    "low": 7625,
+    "volume": 2160100,
+    "market_cap": 89505143900000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-20",
+    "close": 7700,
+    "open": 7700,
+    "high": 7725,
+    "low": 7625,
+    "volume": 3523100,
+    "market_cap": 89796691600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-21",
+    "close": 7625,
+    "open": 7675,
+    "high": 7700,
+    "low": 7600,
+    "volume": 2480400,
+    "market_cap": 88922048500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-24",
+    "close": 7750,
+    "open": 7650,
+    "high": 7750,
+    "low": 7600,
+    "volume": 3562400,
+    "market_cap": 90379787000000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-26",
+    "close": 7850,
+    "open": 7750,
+    "high": 7925,
+    "low": 7675,
+    "volume": 10588000,
+    "market_cap": 91545977800000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-27",
+    "close": 7950,
+    "open": 7825,
+    "high": 8000,
+    "low": 7775,
+    "volume": 7535100,
+    "market_cap": 92712168600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-28",
+    "close": 7950,
+    "open": 7950,
+    "high": 7975,
+    "low": 7900,
+    "volume": 3700600,
+    "market_cap": 92712168600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-08-31",
+    "close": 7600,
+    "open": 7950,
+    "high": 7950,
+    "low": 7300,
+    "volume": 11298400,
+    "market_cap": 88630500800000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-01",
+    "close": 7375,
+    "open": 7650,
+    "high": 7675,
+    "low": 7375,
+    "volume": 8792900,
+    "market_cap": 86006571500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-02",
+    "close": 7375,
+    "open": 7375,
+    "high": 7450,
+    "low": 7250,
+    "volume": 7088900,
+    "market_cap": 86006571500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-03",
+    "close": 7375,
+    "open": 7325,
+    "high": 7400,
+    "low": 7250,
+    "volume": 5230500,
+    "market_cap": 86006571500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-04",
+    "close": 7275,
+    "open": 7375,
+    "high": 7400,
+    "low": 7250,
+    "volume": 6086500,
+    "market_cap": 84840380700000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-07",
+    "close": 7250,
+    "open": 7675,
+    "high": 7675,
+    "low": 7250,
+    "volume": 6982400,
+    "market_cap": 84548833000000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-08",
+    "close": 7200,
+    "open": 7275,
+    "high": 7325,
+    "low": 7175,
+    "volume": 10089400,
+    "market_cap": 83965737600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-09",
+    "close": 7200,
+    "open": 7225,
+    "high": 7250,
+    "low": 7125,
+    "volume": 7180200,
+    "market_cap": 83965737600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-10",
+    "close": 7175,
+    "open": 7225,
+    "high": 7250,
+    "low": 7175,
+    "volume": 3613500,
+    "market_cap": 83674189900000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-11",
+    "close": 7125,
+    "open": 7175,
+    "high": 7175,
+    "low": 7100,
+    "volume": 2205300,
+    "market_cap": 83091094500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-14",
+    "close": 7125,
+    "open": 7125,
+    "high": 7150,
+    "low": 7025,
+    "volume": 3026600,
+    "market_cap": 83091094500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-15",
+    "close": 6900,
+    "open": 7150,
+    "high": 7150,
+    "low": 6850,
+    "volume": 10118100,
+    "market_cap": 80467165200000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-16",
+    "close": 7025,
+    "open": 6900,
+    "high": 7025,
+    "low": 6800,
+    "volume": 3961900,
+    "market_cap": 81924903700000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-17",
+    "close": 6950,
+    "open": 7000,
+    "high": 7025,
+    "low": 6900,
+    "volume": 2555300,
+    "market_cap": 81050260600000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-18",
+    "close": 6900,
+    "open": 6950,
+    "high": 6975,
+    "low": 6825,
+    "volume": 7167000,
+    "market_cap": 80467165200000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-21",
+    "close": 6800,
+    "open": 6925,
+    "high": 6925,
+    "low": 6775,
+    "volume": 3673700,
+    "market_cap": 79300974400000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-22",
+    "close": 6650,
+    "open": 6825,
+    "high": 6875,
+    "low": 6650,
+    "volume": 5892900,
+    "market_cap": 77551688200000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-23",
+    "close": 6875,
+    "open": 6675,
+    "high": 6975,
+    "low": 6675,
+    "volume": 5701800,
+    "market_cap": 80175617500000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-24",
+    "close": 6975,
+    "open": 6900,
+    "high": 6975,
+    "low": 6800,
+    "volume": 4221800,
+    "market_cap": 81341808300000
+  },
+  {
+    "symbol": "ICBP.JK",
+    "date": "2026-09-25",
+    "close": 6650,
+    "open": 6975,
+    "high": 6975,
+    "low": 6650,
+    "volume": 4281100,
+    "market_cap": 77551688200000
+  }
+]

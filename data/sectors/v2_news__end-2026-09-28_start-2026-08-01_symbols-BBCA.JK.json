@@ -1,0 +1,714 @@
+{
+  "results": [
+    {
+      "title": "Mirae Asset says faster credit growth versus slower deposit growth tightens Indonesian bank liquidity",
+      "body": "The article reports that national bank credit grew 13.3% year‑on‑year in August 2026 while deposits (DPK) rose only 7.7% year‑on‑year, indicating tightening liquidity. Total credit reached IDR 9,019 trillion and DPK IDR 9,733 trillion, with the CASA ratio at 64.6% and headline LDR at 92.7%, which would rise to about 97.2% after removing SAL liquidity of IDR 451 trillion. Mirae Asset Sekuritas remains selective, maintaining a positive outlook on PT Bank Central Asia Tbk (BBCA) and PT Bank Syariah Indonesia Tbk (BRIS) but cautioning larger state‑owned banks as tighter funding may pressure margins and asset quality. On 25 September 2026 the stocks of PT Bank Central Asia Tbk (BBCA), PT Bank Rakyat Indonesia Tbk (BBRI) and PT Bank Mandiri Tbk (BMRI) rose modestly, while PT Bank Negara Indonesia Tbk (BBNI) and PT Bank Syariah Indonesia Tbk (BRIS) fell, reflecting market reaction to the liquidity environment.",
+      "source": "https://keuangan.kontan.co.id/news/kredit-tumbuh-133-dpk-hanya-77-mirae-sebut-likuiditas-bank-makin-ketat",
+      "thumbnail": "https://foto.kontan.co.id/SNR4VJtKGW9EVeofiLopmUM-M5s=/smart/2024/08/21/679920958t.jpg",
+      "timestamp": "2026-09-28T05:55:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Credit",
+        "Capital & Funding",
+        "Financial Metrics",
+        "Risk & Compliance",
+        "Neutral"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BBRI.JK",
+        "BMRI.JK",
+        "BBNI.JK",
+        "BRIS.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT Bank Central Asia Tbk (BBCA) records net foreign buying of IDR 103.17 bn after weeks of net selling",
+      "body": "PT Bank Central Asia Tbk (BBCA) experienced a dramatic reversal in foreign investor flow, posting a net foreign buy of IDR 103.17 bn on 25 Sept 2026 after a prior net sell of IDR 2.59 tn during 9‑23 Sept and a monthly net sell of IDR 1.52 tn for September. UOB Kay Hian Sekuritas kept a buy rating with a target price of IDR 8,150 (≈30% upside), citing solid funding, capital and liquidity, while BBCA reported August 2026 net profit of IDR 4.92 tn (+13.1% YoY), cumulative profit of IDR 40.17 tn (+2.85%), forecasts profit of IDR 60 tn in 2026 and IDR 65 tn in 2027 with dividend yields of 5.7% and 6.1% respectively, and denied social‑media rumors of an acquisition.",
+      "source": "https://investor.id/market/455728/perubahan-dramatis-bbca",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/03/1773268069-872x526.webp",
+      "timestamp": "2026-09-28T05:52:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Analyst Ratings",
+        "Ownership",
+        "Dividend Announcement",
+        "Financial Metrics",
+        "Capital & Funding",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 2,
+        "ownership": 1,
+        "technical": 1,
+        "valuation": 2,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Foreign investors net sold Rp 4.39 trillion this week, with banks leading the top‑selling stocks",
+      "body": "Foreign investors recorded a net sell of Rp 4.39 trillion across the market during the week ending 26/9/2026, contributing to the IHSG’s 3.09% decline to 6,241.89 points. The ten most net‑sold stocks were PT Bank Mandiri Tbk (BMRI) Rp 1.1 trillion, PT Bank Rakyat Indonesia Tbk (BBRI) Rp 676.34 billion, PT Bank Central Asia Tbk (BBCA) Rp 597.42 billion, PT Telkom Indonesia Tbk (TLKM) Rp 478.55 billion, PT Amman Mineral Internasional Tbk (AMMN) Rp 213.79 billion, PT Alamtri Resources Indonesia Tbk (ADRO) Rp 159.15 billion, PT Bank Negara Indonesia Tbk (BBNI) Rp 125.58 billion, PT Bayan Resources Tbk (BYAN) Rp 96.45 billion, PT Barito Pacific Tbk (BRPT) Rp 74.93 billion and PT Indosat Tbk (ISAT) Rp 72.91 billion.",
+      "source": "https://investasi.kontan.co.id/news/asing-net-sell-rp-439-triliun-cek-saham-yang-banyak-dijual-asing-sepekan-ini",
+      "thumbnail": "https://foto.kontan.co.id/zt9Y6Pj0XV6SoZ93eJ4ihynhZE8=/smart/2026/09/15/128947954t.jpg",
+      "timestamp": "2026-09-26T22:30:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "telecommunication",
+        "basic-materials",
+        "oil-gas-coal"
+      ],
+      "tags": [
+        "Bearish",
+        "Foreign Investment",
+        "Market Sentiment"
+      ],
+      "symbols": [
+        "BMRI.JK",
+        "BBRI.JK",
+        "BBCA.JK",
+        "TLKM.JK",
+        "AMMN.JK",
+        "ADRO.JK",
+        "BBNI.JK",
+        "BYAN.JK",
+        "BRPT.JK",
+        "ISAT.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Bank Central Asia (PT Bank Central Asia Tbk (BBCA)) stock again draws investor focus",
+      "body": "PT Bank Central Asia Tbk (BBCA) saw a foreign net buy of Rp 103.17 billion on 25 September 2026, lifting the share price 0.40% to Rp 6,250 with a volume of 89.45 million shares. UOB Kay Hian Sekuritas maintained a buy rating, setting a target price of Rp 8,150 (≈30% upside) and citing solid funding, capital and liquidity, while reporting August 2026 net profit of Rp 4.92 trillion (+13.1% YoY) and forecasting 2026‑2027 profits of Rp 60 trillion and Rp 65 trillion with dividend yields of 5.7% and 6.1%. The bank also refuted social‑media rumors of an acquisition by Andi Syamsuddin Arsyad (Haji Isam), confirming no corporate action plans.",
+      "source": "https://investor.id/market/455612/saham-bank-central-asia-bbca-kembali-disorot",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/02/1770911213-776x557.webp",
+      "timestamp": "2026-09-26T11:41:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Analyst Ratings",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 2,
+        "ownership": 0,
+        "technical": 1,
+        "valuation": 2,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Popular news roundup highlights PT Pioneerindo Gourmet International Tbk (PTSP) CFC revenue growth, PT Pukul Rata Kanan tender for PT Guna Timur Raya Tbk (TRUK), PT Energi Mega Persada Tbk (ENRG) rights issue and PT Bank Central Asia Tbk (BBCA) strong August performance",
+      "body": "The article presents the most popular financial news items of the week, covering performance and corporate actions of several Indonesian listed companies. PT Pioneerindo Gourmet International Tbk (PTSP) reported net revenue of Rp 385.83 billion for the first half of 2026, up from Rp 368.81 billion a year earlier, with CFC franchise sales reaching Rp 361 billion versus Rp 343.08 billion previously. PT Pukul Rata Kanan announced a voluntary tender offer for 65,250,000 shares (15 %) of PT Guna Timur Raya Tbk (TRUK) at Rp 740 per share, potentially valuing the transaction at up to Rp 48,285 billion, well below TRUK’s market price of Rp 2,580 per share on 25 September 2026. PT Energi Mega Persada Tbk (ENRG) launched a rights issue of 13,282,271,875 new B‑series shares at Rp 310 each, and PT Bank Central Asia Tbk (BBCA) saw its net interest margin rise to 5.7 % in August 2026, supporting a buy recommendation with a target upside of about 30 %. The piece also notes the growing relevance of the JOMO mindset versus FOMO in investment decisions.",
+      "source": "https://investor.id/market/455580/berita-populer-ratusan-gerai-cfc-disorot-hingga-gabriel-ray-berburu-kendali-truk",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2023/11/1700093420-877x534.webp",
+      "timestamp": "2026-09-26T06:00:00",
+      "sector": "consumer-cyclicals",
+      "sub_sector": [
+        "consumer-services",
+        "logistics-deliveries",
+        "oil-gas-coal",
+        "banks"
+      ],
+      "tags": [
+        "Annual Report",
+        "Ownership",
+        "Capital & Funding",
+        "Analyst Ratings",
+        "Financial Metrics"
+      ],
+      "symbols": [
+        "PTSP.JK",
+        "TRUK.JK",
+        "ENRG.JK",
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 2,
+        "technical": 0,
+        "valuation": 1,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "BBCA and AMRT lead foreign net buying as IHSG falls on Friday (25/6/2026)",
+      "body": "The article reports that PT Bank Central Asia Tbk (BBCA) and PT Sumber Alfaria Trijaya Tbk (AMRT) were the top stocks bought by foreign investors on a day when the Jakarta Composite Index (IHSG) declined. IHSG closed down 0.9% at 6,241.89 points, a 56‑point drop, marking a 3.09% weekly correction, while foreign investors recorded a net sell of Rp 559.07 billion on the day and Rp 4.39 trillion over the week. The ten stocks with the largest foreign net purchases were PT Bank Central Asia Tbk (BBCA) Rp 99.03 billion, PT Sumber Alfaria Trijaya Tbk (AMRT) Rp 25.73 billion, PT Intermedia Capital Tbk (MDIA) Rp 13.94 billion, PT Karya Pacific Energy Tbk (IATA) Rp 12.87 billion, PT Merdeka Gold Resources Tbk (EMAS) Rp 11.39 billion, PT Bukit Asam Tbk (PTBA) Rp 10.03 billion, PT Bakrie & Brohters Tbk (BNBR) Rp 8.02 billion, PT Adaro Andalan Indonesia Tbk (AADI) Rp 8.02 billion, PT Alamtri Resources Indonesia Tbk (ADRO) Rp 7.55 billion, and PT Wahana Interfood Nusantara Tbk (COCO) Rp 6.72 billion. These net buying figures show that foreign demand concentrated on these companies despite the broader market’s selling pressure.",
+      "source": "https://investasi.kontan.co.id/news/bbca-amrt-teratas-cek-saham-yang-banyak-diburu-asing-saat-ihsg-turun-jumat-259",
+      "thumbnail": "https://foto.kontan.co.id/4ZnWvZF-StjsYsSfy-G58j10gbo=/smart/2026/09/15/888696368t.jpg",
+      "timestamp": "2026-09-26T05:50:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "food-staples-retailing"
+      ],
+      "tags": [
+        "Bullish",
+        "Foreign Investment",
+        "Market Sentiment"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "AMRT.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 1,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Foreign investors recorded a net sell of Rp1.16 trillion in PT Bank Central Asia Tbk (BBCA) over the past month",
+      "body": "Foreign investors net sold Rp1.16 trillion of PT Bank Central Asia Tbk (BBCA) between 25 August and 24 September 2026. During the same period they also posted net sells in PT Bank Mandiri (Persero) Tbk (BMRI) while net buying Rp480.43 billion of PT Bank Rakyat Indonesia (Persero) Tbk (BBRI). On 24 September 2026 foreign investors sold about Rp1.49 trillion overall and the Jakarta Composite Index (IHSG) closed down 1.20% at 6,298.61. Bank Indonesia kept the BI‑Rate at 5.75% with the Deposit Facility at 4.75% and the Lending Facility at 6.50%.",
+      "source": "https://www.idnfinancials.com/id/news/69433/investor-asing-sebulan-terakhir-net-sell-bbca-rp-1-16-triliun",
+      "thumbnail": "https://photo2.idnfinancials.com/fly/idn/test/arif/BBRI-BBCA-BMRI-10062026.jpg",
+      "timestamp": "2026-09-25T16:00:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Ownership",
+        "Bearish"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BMRI.JK",
+        "BBRI.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 2,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "BBCA dividend outlook improves as profit surges",
+      "body": "The article discusses the dividend outlook for PT Bank Central Asia Tbk (BBCA) following a sharp rise in earnings in August 2026. UOB Kay Hian Sekuritas reports that BBCA’s net interest margin increased to 5.7% in August from 5.3% in the first half of the year, while the corporate loan yield rose to 7.4% from 6.7‑6.8% in April, and the bank maintains its NIM guidance of 5.4‑5.6%. The bank’s loan‑to‑deposit ratio stands at 81% supported by a CASA ratio of 85.5%, giving it room to be selective in credit extension and potentially raise dividends.",
+      "source": "https://investor.id/market/455514/dividen-bbca-setelah-laba-melesat-",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2026/09/1789553956-1672x941.webp",
+      "timestamp": "2026-09-25T15:40:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Dividend Announcement",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 2,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 1,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT Bank Central Asia Tbk (BCA) (BBCA) raises second interim dividend 25% to Rp25 per share",
+      "body": "PT Bank Central Asia Tbk (BCA) (BBCA) will distribute its second interim dividend of Rp25 per share on 16 September 2026, a 25% increase from the first interim dividend of Rp20 per share. The payout represents a cash allocation of Rp3.07 trillion. BCA posted net profit of Rp29.5 trillion in the first half of 2026, with credit growth of 8% YoY to Rp1,036 trillion and CASA rising 10.2% YoY to Rp1,082 trillion, supporting the higher dividend. Mirae Asset Sekuritas analyst Nafan Aji Gusta said the increase reflects BCA’s solid capital, adequate liquidity, strong asset quality and its unique policy of three interim dividends in 2026, indicating financial flexibility and potential to attract income‑oriented investors.",
+      "source": "https://keuangan.kontan.co.id/news/dividen-interim-kedua-naik-25-analis-soroti-ketahanan-likuiditas-bbca",
+      "thumbnail": "https://foto.kontan.co.id/RdVBsW52Rl12Cq5HW5g4CW9SPWs=/smart/2026/09/25/920701067t.jpg",
+      "timestamp": "2026-09-25T08:57:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Dividend Announcement",
+        "Financial Metrics",
+        "Analyst Ratings",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "UOB Kay Hian recommends buy on PT Bank Central Asia Tbk (BBCA) and hold on PT Bank Rakyat Indonesia Tbk (BBRI), PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI) amid tighter funding conditions",
+      "body": "UOB Kay Hian’s research notes that Indonesian banks are tightening funding strategies as liquidity remains constrained, and the broker maintains a buy rating on PT Bank Central Asia Tbk (BBCA) while assigning hold to PT Bank Rakyat Indonesia Tbk (BBRI), PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI). BBCA’s credit portfolio expanded 10.5% year‑on‑year to August 2026 with CASA growth of 10.8% YoY and a loan‑to‑deposit ratio of 81%, while BMRI’s credit grew 17.6% YoY, CASA rose 8.2% YoY and LDR reached 94.4% (potentially 101% excluding government SAL funds). BMRI relies heavily on non‑DPK funding, holding Rp 341 trillion in repo, interbank loans and securities (about 21% of its credit), compared with BBCA’s Rp 28 trillion (3% of credit), and Tier 1 capital ratios fell to 20.4% for BBRI (down 199 bps), 16.4% for BMRI (down 180 bps) and 15.5% for BBNI (down 270 bps) in the first half of 2026. The analyst notes that dividend payout ratios may be trimmed for BBRI and kept around 65% for BBNI in 2026, and that the banking sector remains cheap but UOB Kay Hian will monitor funding strength and capital adequacy before adjusting its stance.",
+      "source": "https://keuangan.kontan.co.id/news/perbankan-atur-strategi-pendanaan-ini-rekomendasi-uob-kay-hian",
+      "thumbnail": "https://foto.kontan.co.id/Ji_hR4vMWDUAJzQxcIxTzHM0-UQ=/smart/2024/08/21/1142106020t.jpg",
+      "timestamp": "2026-09-24T20:35:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Analyst Ratings",
+        "Capital & Funding",
+        "Credit",
+        "Dividend Announcement",
+        "Financial Metrics",
+        "Bearish"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BBRI.JK",
+        "BMRI.JK",
+        "BBNI.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "BRI Danareksa Sekuritas recommends buy for major Indonesian banks amid retail credit pressure",
+      "body": "BRI Danareksa Sekuritas (BRIDS) maintains buy recommendations for PT Bank Central Asia Tbk (BBCA) (target price Rp 8,600), PT Bank BTPN Syariah Tbk (BTPS) (Rp 1,400), PT Bank CIMB Niaga Tbk (BNGA) (Rp 2,100), PT Bank Mandiri Tbk (BMRI) (Rp 6,200), PT Bank Negara Indonesia (Persero) Tbk (BBNI) (Rp 4,800), PT Bank Syariah Indonesia Tbk (BRIS) (Rp 3,100), PT Bank Tabungan Negara Tbk (BBTN) (Rp 1,500) and PT Bank Rakyat Indonesia Tbk (BBRI) (not rated). The sector trades at roughly 1.5× price-to-book, about two standard deviations below its five-year average, while national credit expanded 13.65% yoy in August 2026, with investment credit growing 25.11% yoy, consumer credit growing 5.07% yoy, and consumer-related NPLs rising to 2.4-2.5% (KPR 3.3%, apartment 4.3%, vehicle 2.6%).",
+      "source": "https://keuangan.kontan.co.id/news/kredit-ritel-masih-tertekan-begini-rekomendasi-bri-danareksa-untuk-sektor-perbankan",
+      "thumbnail": "https://foto.kontan.co.id/zYYJoNJFE0cRpOCk6DYJc4tcGZw=/smart/2020/04/07/2045787839t.jpg",
+      "timestamp": "2026-09-24T20:28:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Analyst Ratings",
+        "Credit",
+        "Financial Metrics",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BTPS.JK",
+        "BNGA.JK",
+        "BMRI.JK",
+        "BBNI.JK",
+        "BRIS.JK",
+        "BBTN.JK",
+        "BBRI.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 2,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Seven Indonesian banks report the highest net profits for the first half of 2026.",
+      "body": "PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) posted a net profit of Rp31.18 trillion, up 17.5% YoY; PT Bank Mandiri (Persero) Tbk (BMRI) earned Rp30.41 trillion, up 24.4% YoY; PT Bank Central Asia Tbk (BBCA) recorded Rp29.54 trillion, up 1.8% YoY; PT Bank Negara Indonesia (Persero) Tbk posted Rp10.80 trillion, up 6.33% YoY; Bank Syariah Indonesia (BSI) reported Rp4.15 trillion, up 11.08% YoY; CIMB Niaga posted Rp3.43 trillion, down 2.2% YoY; and OCBC Indonesia posted Rp2.73 trillion, up 6.39% YoY. Credit disbursements expanded across the banks, with BRI reaching Rp1,580.42 trillion (UMKM 75.1% of the portfolio), Mandiri expanding to Rp1,592 trillion, BCA’s CASA reaching Rp1,082 trillion (84.3% of DPK) and credit of Rp1,036 trillion, BNI’s credit rising to Rp968.53 trillion, and CIMB Niaga’s credit growing 12.13% to Rp193.19 trillion, while BNI’s NPL stood at 1.9% and Mandiri’s at 0.98%. The strong earnings occurred in a macro environment of 5.3% GDP growth and 3.34% inflation. CIMB Niaga’s profit decline reflected pressure on interest margins despite a 25% rise in non‑interest income and an 87.22% jump in other income, whereas OCBC Indonesia’s results were supported by integration with the OCBC Group and growth in intermediation and cheap funding.",
+      "source": "https://finansial.bisnis.com/read/20260924/90/2006605/7-bank-dengan-laba-terbesar-di-indonesia-semester-i2026",
+      "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/24/2006605/19072021-hil-bisnis-21-bri-7_1724940649.jpg?w=368&h=208",
+      "timestamp": "2026-09-24T16:21:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Financial Metrics",
+        "Credit",
+        "Capital & Funding",
+        "Inflation",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBRI.JK",
+        "BMRI.JK",
+        "BBCA.JK",
+        "BBNI.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Choosing Stocks with the Highest Interim Dividends for 2026 – Full List",
+      "body": "The article presents a list of Indonesian issuers that have announced interim dividends for the first half of 2026, highlighting those with the most generous payouts. PT Bank Central Asia Tbk (BBCA) will distribute an interim dividend of Rp3.07 triliun, representing 10% of its semester‑I net profit of Rp29.5 triliun, and analysts set a target price of Rp8,075. PT Chandra Daya Investasi Tbk (CDIA) announced an interim payout ratio of 58%, while Emiten Prajogo Pangestu disclosed a dividend of US$10 juta (approximately Rp1.42 per saham). Other issuers noted for attractive interim yields include BMRI, CMRY, BSSR (with a payout around 95%) and BPII (with a payout about 82% despite a 53% YoY profit decline). Analysts caution that high interim payouts may strain cash flow for capital‑intensive firms, recommending investors consider sustainability of earnings and cash generation alongside dividend yields.",
+      "source": "https://market.bisnis.com/read/20260924/189/2006882/pilah-pilih-saham-dengan-dividen-interim-paling-royal-2026-ini-daftarnya",
+      "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/24/2006882/07072026-BI-HIL-21-IHSG-38_1783426943.jpg?w=368&h=208",
+      "timestamp": "2026-09-24T14:48:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "utilities"
+      ],
+      "tags": [
+        "Dividend Announcement",
+        "Analyst Ratings",
+        "Financial Metrics",
+        "Neutral"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "CDIA.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Bank Indonesia Holds BI Rate at 5.75% and Panin Sekuritas Lists PT Bank Rakyat Indonesia (Persero) Tbk (BBRI), PT Bank Central Asia Tbk (BBCA), PT Bank Mandiri (Persero) Tbk (BMRI), and PT Bank Negara Indonesia (Persero) Tbk (BBNI) as Top Buy Picks.",
+      "body": "On 23 September 2026 the Rapat Dewan Gubernur Bank Indonesia kept the BI Rate at 5.75% with the deposit facility at 4.75% and the lending facility at 6.5%. The spread between the BI Rate and the U.S. Fed rate narrowed to 1.75% from 2% and August bank credit growth rose 13.65% year‑on‑year, supporting a positive outlook for interest‑rate‑sensitive stocks. Panin Sekuritas highlighted PT Bank Rakyat Indonesia (Persero) Tbk (BBRI), PT Bank Central Asia Tbk (BBCA), PT Bank Mandiri (Persero) Tbk (BMRI) and PT Bank Negara Indonesia (Persero) Tbk (BBNI) as its top buy recommendations, assigning 12‑month target prices of Rp3,856, Rp8,157, Rp5,221 and Rp4,384 respectively. Analyst consensus shows strong buying interest, with 23 analysts recommending BBRI, 35 for BBCA, 29 for BMRI and 24 for BBNI, reflecting expectations of continued credit expansion and a stable rupiah.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122576/daftar-saham-pilihan-pasar-usai-bi-rate-ditahan-5-75",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2023/07/image-20230719061214.jpg",
+      "timestamp": "2026-09-24T12:54:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Central Bank",
+        "Analyst Ratings",
+        "Interest Rate",
+        "Credit",
+        "Market Sentiment",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBRI.JK",
+        "BBCA.JK",
+        "BMRI.JK",
+        "BBNI.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 1,
+        "financials": 1,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT Bank Central Asia Tbk (BBCA) Facilitates 5,000 Halal Certifications for UMKM and Posts 13% YoY Net Profit Growth in August 2026",
+      "body": "PT Bank Central Asia Tbk (BBCA) is facilitating roughly 5,000 halal certifications for micro, small and medium enterprises (UMKM) through its Workshop Sertifikasi Halal program that began in 2023. The initiative, which includes business model canvas training, aims to boost UMKM competitiveness and has coincided with an average 8.5% revenue increase for certified UMKM according to Ministry data. In August 2026, PT Bank Central Asia Tbk (BBCA) reported net profit of Rp4.9 trillion, up 13% year‑on‑year and down 3% month‑to‑month, while net profit for the first eight months reached Rp40.2 trillion, 3% higher YoY and representing 67% of consensus estimates. Net interest income grew 8% YoY, credit expanded 2% month‑to‑month to Rp1,018 trillion (11% YoY) and credit cost stayed at 0.3%, below the 0.4‑0.5% guidance for 2026.",
+      "source": "https://finansial.bisnis.com/read/20260924/90/2006810/sertifikasi-halal-dorong-omzet-umkm-intip-strategi-bca-bbca",
+      "thumbnail": "https://images.bisnis.com/thumb/posts/2026/09/24/2006810/23022023-bi-arf-22-bca-expoversary-7.jpg?w=368&h=208",
+      "timestamp": "2026-09-24T09:45:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Halal",
+        "Financial Metrics",
+        "Sharia Economy",
+        "Credit",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 1
+      }
+    },
+    {
+      "title": "Stock Market Outlook After Bank Indonesia Holds Benchmark Rate at 5.75%",
+      "body": "Bank Indonesia kept the benchmark BI Rate at 5.75% in its 22‑23 September 2026 meeting, a decision analysts view as neutral to slightly positive for equities. The analysts note that the move was largely priced in, but external pressures from the U.S. Federal Reserve’s 3.75‑4.00% policy and the risk of a 25‑basis‑point BI hike to 6.00% by year‑end keep the market volatile. They project the Jakarta Composite Index (IHSG) to trade between 6,186 and 6,500 in the short term and cite target prices of Rp 3,430 for BBRI, Rp 4,500 for BMRI, Rp 6,800 for BBCA, Rp 212‑Rp 268 for BUMI, Rp 1,400‑Rp 1,900 for ENRG, and Rp 2,060‑Rp 2,280 for TPIA. The outlook remains sideways to negative in the near term unless the Fed pauses rate hikes and the rupiah stabilizes.",
+      "source": "https://investasi.kontan.co.id/news/begini-arah-pasar-saham-usai-bank-indonesia-pertahankan-suku-bunga-575",
+      "thumbnail": "https://foto.kontan.co.id/4ZnWvZF-StjsYsSfy-G58j10gbo=/smart/2026/09/15/888696368t.jpg",
+      "timestamp": "2026-09-23T19:36:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "oil-gas-coal",
+        "basic-materials"
+      ],
+      "tags": [
+        "Central Bank",
+        "Interest Rate",
+        "Market Sentiment",
+        "Bearish"
+      ],
+      "symbols": [
+        "BBRI.JK",
+        "BMRI.JK",
+        "BBCA.JK",
+        "BUMI.JK",
+        "ENRG.JK",
+        "TPIA.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Big Bank Stocks Rise Cohesively After BI-Rate Held at 5.75%",
+      "body": "Following Bank Indonesia's decision to keep the BI-Rate at 5.75%, the shares of Indonesia's four big banks moved higher on 23 September 2026. PT Bank Central Asia Tbk (BBCA) led the rally, up 1.61% to Rp 6,300, while PT Bank Mandiri Tbk (BMRI) rose 0.72% to Rp 4,190, PT Bank Negara Indonesia Tbk (BBNI) gained 0.56% to Rp 3,590, and PT Bank Rakyat Indonesia Tbk (BBRI) increased 0.31% to Rp 3,190. Analysts from Kiwoom Sekuritas and Mirae Asset Sekuritas said the rate hold offers short‑term neutral‑positive sentiment but noted that cost‑of‑fund pressures, net interest margin dynamics, and external factors such as rupiah stability and US Treasury yields could limit further upside. Target prices were set at Rp 8,075 (BBCA), Rp 5,400 (BMRI) and Rp 4,000 (BBRI) by Kiwoom, and at Rp 7,900 (BBCA), Rp 4,720 (BMRI) and Rp 4,020 (BBNI) by Mirae Asset, while net foreign selling from 14‑18 September amounted to roughly Rp 798 billion for BBCA and Rp 443.2 billion for BMRI.",
+      "source": "https://keuangan.kontan.co.id/news/saham-big-banks-kompak-menguat-pasca-bi-rate-ditahan-di-575",
+      "thumbnail": "https://foto.kontan.co.id/IZ1_Qv5dLHX8dTYOC7otoGcOW5I=/smart/2024/07/14/1906414445t.jpg",
+      "timestamp": "2026-09-23T19:02:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks"
+      ],
+      "tags": [
+        "Central Bank",
+        "Interest Rate",
+        "Market Sentiment",
+        "Analyst Ratings",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BMRI.JK",
+        "BBNI.JK",
+        "BBRI.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "IHSG drops over 1% as PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) drags the index",
+      "body": "The Jakarta Composite Index (IHSG) fell 84.62 points, or 1.33%, to 6,300.11 on 22 September 2026, extending the decline from the previous session. The drop was led by PT Bank Rakyat Indonesia (Persero) Tbk (BBRI), which alone pulled the index down 14.6 points, followed by PT Bayan Resources Tbk (BYAN) (-7.74 points), PT Bumi Resources Minerals Tbk (BRMS) (-2.98 points), PT Telkom Indonesia (Persero) Tbk (TLKM) (-2.77 points), PT Bank Mandiri (Persero) Tbk (BMRI) (-2.45 points), PT Bank Central Asia Tbk (BBCA) (-2.21 points), PT Bumi Resources Tbk (BUMI) (-2.21 points), PT Dian Swastatika Sentosa Tbk (DSSA) (-2.15 points), PT Impack Pratama Industri Tbk (IMPC) (-2.11 points) and PT Bank Negara Indonesia (Persero) Tbk (BBNI) (-1.98 points). In contrast, PT Amman Mineral Internasional Tbk (AMMN) added the most positive impact with +2.11 points, while PT Medco Energi Internasional Tbk (MEDC) and PT Indosat Tbk (ISAT) contributed +0.38 and +0.36 points respectively. Broad sector weakness saw energy, utilities and property lead the red zone, and the market remained sensitive to domestic uncertainty over the upcoming Bank Indonesia rate decision and global oil price and geopolitical tensions.",
+      "source": "https://www.cnbcindonesia.com/market/20260922104651-17-769794/tiba-tiba-ihsg-turun-1-lebih-ini-penyebabnya",
+      "thumbnail": "https://awsimages.detik.net.id/visual/2025/09/10/layar-menampilkan-pergerakan-indeks-harga-saham-gabungan-ihsg-di-kantor-bursa-efek-indonesia-bei-jakarta-rabu-1092025-cnbc-ind-1757492880264_43.jpeg?w=200&q=90",
+      "timestamp": "2026-09-22T10:54:06",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "oil-gas-coal",
+        "basic-materials",
+        "telecommunication",
+        "industrial-goods"
+      ],
+      "tags": [
+        "Central Bank",
+        "Global Economy",
+        "Interest Rate",
+        "Bearish"
+      ],
+      "symbols": [
+        "BBRI.JK",
+        "BYAN.JK",
+        "BRMS.JK",
+        "TLKM.JK",
+        "BMRI.JK",
+        "BBCA.JK",
+        "BUMI.JK",
+        "DSSA.JK",
+        "IMPC.JK",
+        "BBNI.JK",
+        "AMMN.JK",
+        "MEDC.JK",
+        "ISAT.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Stocks to Watch as the Fed Raises Interest Rates",
+      "body": "Analysts from Mirae Asset Sekuritas Indonesia and RHB Sekuritas Indonesia recommend focusing on BBCA, BBRI, ELSA, MYOR, MDKA, MIKA, SMSM, LSIP and EXCL, citing consensus 12‑month target prices of Rp8,154, Rp3,851, Rp1,103, Rp2,483, Rp3,961, Rp2,715, Rp2,250, Rp1,933 and Rp3,267 respectively as of 21 September 2026, and noting that a majority of analysts rate BBCA and BBRI as buys. These recommendations follow the Federal Reserve’s 25‑basis‑point rate hike to a 3.75‑4 % target range last week, which is expected to tighten global monetary policy and increase funding costs for Indonesian equities.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122254/saham-saham-ini-menarik-dicermati-kala-the-fed-kerek-suku-bunga",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2026/06/image-20260604121843.jpeg",
+      "timestamp": "2026-09-22T07:12:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "oil-gas-coal",
+        "food-beverage",
+        "basic-materials",
+        "healthcare-equipment-providers",
+        "automobiles-components",
+        "telecommunication"
+      ],
+      "tags": [
+        "Interest Rate",
+        "Analyst Ratings",
+        "Capital & Funding",
+        "Bullish"
+      ],
+      "symbols": [
+        "BBCA.JK",
+        "BBRI.JK",
+        "ELSA.JK",
+        "MYOR.JK",
+        "MDKA.JK",
+        "MIKA.JK",
+        "SMSM.JK",
+        "LSIP.JK",
+        "EXCL.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 0,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Foreign investors net sold Rp 510.07 bn of Indonesian stocks, led by PT Bank Mandiri Tbk (BMRI)",
+      "body": "Foreign investors recorded a net sell of Rp 510.07 bn on Monday, sending the Indonesia Composite Index (IHSG) down 0.88% to 6,384.72 points. The ten stocks with the largest foreign net outflows were PT Bank Mandiri Tbk (BMRI) (Rp 140.61 bn), PT Aneka Tambang Tbk (ANTM) (Rp 139.93 bn), PT Bank Central Asia Tbk (BBCA) (Rp 131.34 bn), PT Telkom Indonesia Tbk (TLKM) (Rp 114.62 bn), PT Merdeka Copper Gold Tbk (MDKA) (Rp 32.42 bn), PT Astra International Tbk (ASII) (Rp 26.38 bn), PT Charoen Pokphand Indonesia Tbk (CPIN) (Rp 25.81 bn), PT Alamtri Resoruces Indonesia Tbk (ADRO) (Rp 22.32 bn), PT Bank Negara Indonesia Tbk (BBNI) (Rp 21.98 bn), and PT Energi Mega Persada Tbk (ENRG) (Rp 16.65 bn). Overall market activity was high, with 26.78 billion shares traded for a total value of Rp 11.77 trillion. Sectorally, infrastructure fell 1.38% while transport rose 0.55%, health gained 0.21% and property remained flat.",
+      "source": "https://investasi.kontan.co.id/news/asing-net-sell-jumbo-rp-510-miliar-cek-saham-yang-banyak-dijual-di-awal-pekan",
+      "thumbnail": "https://foto.kontan.co.id/zt9Y6Pj0XV6SoZ93eJ4ihynhZE8=/smart/2026/09/15/128947954t.jpg",
+      "timestamp": "2026-09-21T21:14:00",
+      "sector": "financials",
+      "sub_sector": [
+        "banks",
+        "basic-materials",
+        "telecommunication",
+        "multi-sector-holdings",
+        "food-beverage",
+        "oil-gas-coal"
+      ],
+      "tags": [
+        "Foreign Investment",
+        "Market Sentiment",
+        "Bearish"
+      ],
+      "symbols": [
+        "BMRI.JK",
+        "ANTM.JK",
+        "BBCA.JK",
+        "TLKM.JK",
+        "MDKA.JK",
+        "ASII.JK",
+        "CPIN.JK",
+        "ADRO.JK",
+        "BBNI.JK",
+        "ENRG.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 1,
+        "technical": 1,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    }
+  ],
+  "pagination": {
+    "total_count": 229,
+    "showing": 20,
+    "limit": 20,
+    "offset": 0,
+    "has_next": true,
+    "has_previous": false,
+    "next_offset": 20,
+    "previous_offset": null
+  }
+}

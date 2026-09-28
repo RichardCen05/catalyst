@@ -887,7 +887,11 @@ def evidence_state(symbol):
         return "Insufficient Evidence"
     if not events_by_symbol[symbol]:
         return "Insufficient Evidence"
-    directions = {l["direction"] for e in event_list for l in e["impactLinks"] if l["symbol"] == symbol}
+    # An attention event counts news items; its "Unverified" says it has no
+    # direction, not that it points against the case. Letting it vote made a
+    # busy news week read as contradicting evidence (ANTM, 25 Sep 2026).
+    directions = {l["direction"] for e in event_list if e["category"] != "sentiment"
+                  for l in e["impactLinks"] if l["symbol"] == symbol}
     return "Mixed Evidence" if {"Adverse", "Unverified"} & directions else "Corroborated"
 
 

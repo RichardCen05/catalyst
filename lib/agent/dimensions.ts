@@ -130,3 +130,24 @@ export function recordedFocusRanking(symbol?: SymbolCode): BusinessImpactDimensi
 export function defaultFocusFor(symbol?: SymbolCode): BusinessImpactDimension {
   return recordedFocusRanking(symbol)[0];
 }
+
+/**
+ * The business-impact rows a case tests, in the order its plan ranked them.
+ *
+ * The impact table lists every dimension in one stable order, so a reader can
+ * find a row in the same place on every case. "The first primary test" is a
+ * different question — which dimension the case leads with — and the table
+ * order answers it only when the plan's lead happens to sit earlier in the
+ * table. When a refresh moved ANTM's recorded paths from volume to margin,
+ * the causal map kept heading with volume.
+ */
+export function primaryTestsInFocusOrder<T extends { dimension: BusinessImpactDimension; status: string }>(
+  impacts: readonly T[],
+  focuses: readonly BusinessImpactDimension[],
+): T[] {
+  const rank = (item: T) => {
+    const at = focuses.indexOf(item.dimension);
+    return at === -1 ? focuses.length : at;
+  };
+  return impacts.filter((item) => item.status === "Primary test").sort((a, b) => rank(a) - rank(b));
+}

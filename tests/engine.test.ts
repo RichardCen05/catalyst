@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, coverageInfo, demoProfiles, events } from "@/lib/data/fixtures";
 import { isCompleteCitation } from "@/lib/agent/gates";
-import { defaultFocusFor, DIMENSION_LABELS } from "@/lib/agent/dimensions";
+import { defaultFocusFor, DIMENSION_LABELS, primaryTestsInFocusOrder } from "@/lib/agent/dimensions";
 
 describe("Catalyst agent engine", async () => {
   it("personalizes explanation order without changing facts or verdict", async () => {
@@ -183,7 +183,11 @@ describe("Catalyst agent engine", async () => {
     // still say which dimension a claim belongs to.
     const primaries = ambiguous?.researchPlan.hypothesisTree.filter((item) => item.state === "primary") ?? [];
     expect(primaries).toHaveLength(2);
-    expect(ambiguous?.businessImpact.filter((item) => item.status === "Primary test").map((item) => item.dimension))
+    // The table keeps its stable row order; which dimension leads is the
+    // plan's order, read through primaryTestsInFocusOrder.
+    expect(ambiguous?.businessImpact.filter((item) => item.status === "Primary test").map((item) => item.dimension).sort())
+      .toEqual([...(ambiguous?.researchPlan.focuses ?? [])].sort());
+    expect(primaryTestsInFocusOrder(ambiguous!.businessImpact, ambiguous!.researchPlan.focuses).map((item) => item.dimension))
       .toEqual(ambiguous?.researchPlan.focuses);
   });
 

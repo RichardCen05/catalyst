@@ -1,0 +1,655 @@
+{
+  "results": [
+    {
+      "title": "Removal of Rp 50 Floor Price Sends Penny Stocks Soaring to Auto Rejection Top Amid IHSG Pressure",
+      "body": "The removal of the Rp 50 floor price for stocks on the Indonesia Stock Exchange made penny stocks the market's favorites, with several hitting Auto Rejection Top (ARA) even as the IHSG fell 1.51% to 6,147.86. PT Pelayaran Tamarin Samudra Tbk (TAMU) led gains, rising 34.62% to Rp 35, followed by PT Berlian Laju Tanker Tbk (BLTA) up 34.38% to Rp 43, while PT Mitra International Resources Tbk (MIRA), PT Pan Brothers Tbk (PBRX), and PT PP Properti Tbk (PPRO) each rose 33.33%. Meanwhile, stocks previously locked at Rp 50 faced heavy selling pressure, with PT GoTo Gojek Tokopedia Tbk (GOTO), PT MNC Tourism Indonesia Tbk (KPIG), and PT Lippo Karawaci Tbk (LPKR) each dropping 14% to Rp 43. Analysts noted the declines reflect price discovery rather than deteriorating fundamentals, and warned investors to still consider fundamentals, valuation, and liquidity, as the penny stock rally may be temporary momentum trading.",
+      "source": "https://investasi.kontan.co.id/news/batasan-bawah-harga-saham-rp-50-dihapus-saham-recehan-jadi-primadona",
+      "thumbnail": "https://foto.kontan.co.id/4ZnWvZF-StjsYsSfy-G58j10gbo=/smart/2026/09/15/888696368t.jpg",
+      "timestamp": "2026-09-28T19:06:00",
+      "sector": "energy",
+      "sub_sector": [
+        "oil-gas-coal",
+        "software-it-services",
+        "consumer-services",
+        "properties-real-estate"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Politics & Regulation",
+        "Undervalued",
+        "Neutral"
+      ],
+      "symbols": [
+        "TAMU.JK",
+        "GOTO.JK",
+        "KPIG.JK",
+        "LPKR.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "IDX Chief Dismisses Removal of Rp50 Floor Price as Negative Catalyst for JCI",
+      "body": "Indonesia Stock Exchange (BEI) President Director Jeffrey Hendrik dismissed claims that the removal of the Rp50 floor price for penny stocks (gocap) was a negative catalyst for the Jakarta Composite Index (JCI), arguing the weight of long-standing Rp50 stocks on the composite index is relatively small. The JCI fell 1.51% to 6,147 at the close on Monday (28/9/2026), touching an intraday low of 6,140, on the first trading day of the policy that lowered the floor price from Rp50 to Rp1 under BEI Board of Directors Decision Number Kep-00136/BEI/09-2026, dated 21 September 2026. Main pressure came from PT GoTo Gojek Tokopedia Tbk (GOTO), which dragged the JCI down by as much as 12.9 points, a -32% point-to-point impact, with its sell queue exceeding 1 billion lots at Rp43 per share after hitting its latest Auto Reject Bottom (ARB). GOTO, which once reached a market capitalization of US$32 billion shortly after its April 2022 IPO, carries the largest weight among penny stocks, though Jeffrey attributed the index correction to varied factors amid a volatile global economy rather than solely the floor price removal.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122939/tanggapan-bos-bei-soal-ihsg-lanjut-melemah-usai-lepas-saham-gocap",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2026/02/image-20260215181034.jpeg",
+      "timestamp": "2026-09-28T18:20:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Politics & Regulation",
+        "Neutral"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) Slumps 14% to Auto Rejection Bottom as IDX Lowers Floor Price to Rp 1",
+      "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to the auto rejection bottom (ARB) at Rp 43 on Monday (28/9/2026), the first day the Indonesia Stock Exchange (IDX) applied the Rp 1 minimum share price (floor price), and closed at Rp 43. Mirae Asset Sekuritas Senior Market Analyst Nafan Aji Gusta said the decline reflects price discovery and technical pressure rather than deteriorating fundamentals, with support seen at Rp 36-Rp 27 per share. GOTO's fundamentals improved, posting a net profit of Rp 252 billion, net revenue of Rp 5.7 trillion, and adjusted EBITDA of Rp 1.01 trillion in Q2-2026, and a net profit of Rp 423 billion with adjusted EBITDA of Rp 1,917 trillion in the first half of 2026. He advised existing holders to reassess risk profiles and prospective investors to wait and see for new support levels and consistent buying accumulation before considering bottom fishing.",
+      "source": "https://investasi.kontan.co.id/news/saham-goto-tertekan-usai-bei-turunkan-batas-harga-jadi-rp-1-cek-support-berikutnya",
+      "thumbnail": "https://foto.kontan.co.id/UUde4V2FyTzXm3gDS0Qsqo8TLpY=/smart/2026/04/28/1189179154t.jpg",
+      "timestamp": "2026-09-28T17:26:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Government Policy",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 1,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 1,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "IHSG Plunges 1.51% and Rupiah Nears Rp18,000/US$ as Fed Rate Hike and BEI Rule Changes Weigh on Markets",
+      "body": "Indonesian financial markets weakened in tandem on Monday (28/9/2026), with the Jakarta Composite Index (IHSG) falling 1.51%, or 94 points, to 6,147.86, while the rupiah depreciated 0.53% to Rp17,965/US$, just 35 points from the psychological level of Rp18,000/US$. All sectors declined, with the deepest corrections in consumer non-primaries, property, and technology, and the smallest in energy; 532 stocks fell, 180 rose, and 81 were unchanged, with total transactions of Rp12.58 trillion. Top index drags included PT GoTo Gojek Tokopedia Tbk (GOTO), PT Amman Mineral Internasional Tbk (AMMN), and PT Bumi Resources Minerals Tbk (BRMS). The rupiah's weakness was driven by a strengthening US dollar after the Federal Reserve raised rates 25 basis points to 3.75%-4.00%, with Bank Indonesia Governor Destry Damayanti citing high global inflation of 4.6% and oil prices reaching US$125.53 per barrel on 24 September 2026. The IHSG decline also came as the Indonesia Stock Exchange (BEI) lowered the minimum stock trading price from Rp50 to Rp1 per share in the regular and cash markets, effective 28 September 2026, while adjusting Auto Rejection Top (ARA) and Auto Rejection Bottom (ARB) limits, retaining an asymmetric 15% ARB for equities above Rp10 until 31 December 2026 and setting ARA/ARB at Rp1 for stocks priced Rp1-Rp10.",
+      "source": "https://www.cnbcindonesia.com/market/20260928161806-17-771517/ihsg-anjlok-1-dan-dolar-as-nyaris-rp-18000-ini-penyebabnya",
+      "thumbnail": "https://awsimages.detik.net.id/visual/2026/06/30/layar-menampilkan-pergerakan-indeks-harga-saham-gabungan-ihsg-di-bursa-efek-indonesia-bei-jakarta-selasa-3062026-1782797018756_43.jpeg?w=200&q=90",
+      "timestamp": "2026-09-28T17:17:19",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services",
+        "basic-materials"
+      ],
+      "tags": [
+        "Interest Rate",
+        "Currency & FX",
+        "Central Bank",
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK",
+        "AMMN.JK",
+        "BRMS.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) Hits Auto Reject Bottom on First Day After Rp50 Floor Removal as Sell Queue Reaches 1.03 Billion Lots",
+      "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to Rp43 on Monday (28/9/2026), hitting Auto Reject Bottom (ARB) on the first trading day after the Indonesia Stock Exchange removed the Rp50 minimum price floor. The sell queue at Rp43 piled up to 103,583,225,300 shares, equivalent to 1.03 billion lots, while the bid column was empty. The pressure coincided with a divestment by major shareholder Morgan Stanley And Co International Plc, which sold 450 million GOTO shares in a negotiated market transaction on 23 September 2026 at Rp27 per share, worth about Rp12.15 billion. Following the transaction, Morgan Stanley's holdings fell from 80.86 billion to 80.41 billion shares, reducing its ownership from 7,0233% to 6,9842%. GOTO was previously pressured to the Rp50 floor price on 5 May 2026 amid new ride-hailing regulations and commission-cap discussions, and the IDX stated it is one of 69 stocks now trading below Rp50 as it seeks a new equilibrium price.",
+      "source": "https://emitennews.com/news/goto-arb-day-1-dibanjiri-1-miliar-lot-jual-morgan-stanley-juga-jualan",
+      "thumbnail": "https://ap-south-1.linodeobjects.com/emitennews-02/bank_images/goto/img_1781368528.jpg?25119ab",
+      "timestamp": "2026-09-28T17:15:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Suspension",
+        "Ownership",
+        "Market Sentiment",
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 2,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Morgan Stanley Sells 450 Million GOTO Shares Before Rp1 Minimum Price Rule Takes Effect",
+      "body": "Morgan Stanley and Co International PLC reduced its shareholding in PT GoTo Gojek Tokopedia Tbk (GOTO) by selling 450 million shares at Rp27 per share on 23 September 2026. Following the transaction, Morgan Stanley's ownership fell to 80.41 billion shares (6,9842%) from 80.8 billion shares (7,0233%). The sale occurred before the minimum share price rule changed from Rp50 to Rp1, effective Monday, 28 September 2026. On that day, GOTO shares topped the LQ45 losers list after falling 14% to Rp43 per share.",
+      "source": "https://emitennews.com/news/batas-harga-rp1-belum-berlaku-morgan-stanley-jual-450-juta-saham-goto",
+      "thumbnail": "https://ap-south-1.linodeobjects.com/emitennews-02/uploads/news/thumb_1790589296.png?25119ab",
+      "timestamp": "2026-09-28T16:57:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Ownership",
+        "Government Policy",
+        "Market Sentiment",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 2,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "Morgan Stanley And Co International Plc Sell Shares of GoTo Gojek Tokopedia",
+      "body": "Morgan Stanley And Co International Plc sold 450,000,000 GoTo Gojek Tokopedia shares at IDR 27 per share on 2026-09-23, generating proceeds of IDR 12,150,000,000. The disposition reduced its holding to 80,413,391,484 shares, lowering ownership from 7.023% to 6.984%. The sale, cited as for investment purposes, follows earlier modest sell orders by the same institution in CTRA and AMRT during the past six months, indicating a broader portfolio adjustment.",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-28092026-8273-00.pdf-0.pdf",
+      "thumbnail": null,
+      "timestamp": "2026-09-28T15:46:37",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Insider Trading"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": null
+    },
+    {
+      "title": "GoTo, MNC Group Shares Fall Below Rp50 as IDX Lowers Minimum Share Price to Rp1",
+      "body": "Indonesian stocks fell sharply on Monday after the Indonesia Stock Exchange (IDX) lowered its minimum share price to Rp1 from Rp50, effective the same day. MNC Kapital Indonesia (BCAP), MDTV Media Technologies (NETV), Lippo Karawaci (LPKR), MNC Tourism Indonesia (KPIG), Bank MNC Internasional (BABP), and GoTo Gojek Tokopedia (GOTO) each dropped 14% to Rp43 in the first session. The Jakarta Composite Index fell 0.97% to 6,181.43 by midday, led by a 4.1% decline in technology stocks, while energy and industrial stocks each gained 0.79%. Under the new rules, stocks priced between Rp1 and Rp10 face a Rp1 auto-rejection limit on both sides, the asymmetric 15% Auto Reject Bottom (ARB) applies to stocks above Rp10 through Dec. 31, 2026, and 92 stocks previously on the Special Monitoring Board returned to their original listing boards.",
+      "source": "https://jakartaglobe.id/business/how-low-can-they-go-goto-mnc-group-shares-fall-below-rp50",
+      "thumbnail": "https://jakartaglobe.id/img/jakartaglobe-logo.webp",
+      "timestamp": "2026-09-28T14:36:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services",
+        "holding-investment-companies",
+        "media-entertainment",
+        "properties-real-estate",
+        "consumer-services",
+        "banks"
+      ],
+      "tags": [
+        "Politics & Regulation",
+        "Market Sentiment",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK",
+        "BCAP.JK",
+        "NETV.JK",
+        "LPKR.JK",
+        "KPIG.JK",
+        "BABP.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "28 Stocks Fall Below Rp50 as Indonesia Stock Exchange Lowers Minimum Price to Rp1",
+      "body": "On Monday (28/9), the first day of the Indonesia Stock Exchange (BEI)'s new rule lowering the minimum stock price from Rp50 to Rp1 per share in the regular and cash markets, 28 stocks fell below Rp50. Falling to Rp43, down 14 percent, were PT MNC Tourism Indonesia Tbk (KPIG), PT Buyung Poetra Sembada Tbk (HOKI), PT Hensel Davest Indonesia Tbk (HDIT), PT GoTo Gojek Tokopedia Tbk (GOTO), PT Megalestari Epack Sentosaraya Tbk (EPAC), PT Diamond Citra Propertindo Tbk (DADA), PT Central Proteina Prima Tbk (CPRO), PT Wulandari Bangun Laksana Tbk (BSBK), PT MNC Kapital Indonesia Tbk (BCAP), PT Bank KB Indonesia Tbk (BBKP), PT Bank MNC Internasional Tbk (BABP), PT Atlantis Subsea Indonesia Tbk (ATLA), PT Cilacap Samudera Fishing Industry Tbk (ASHA), PT Widodo Makmur Unggas Tbk (WMUU), PT Wijaya Karya Bangunan Gedung Tbk (WEGE), PT Repower Asia Indonesia Tbk (REAL), PT Ristia Bintang Mahkotasejati Tbk (RBMS), PT Bank Panin Dubai Syariah Tbk (PNBS), PT Minna Padi Investama Sekuritas Tbk (PADI), PT MDTV Media Technologies Tbk (NETV), PT Modernland Realty Tbk (MDLN), PT Maxindo Karya Anugerah Tbk (MAXI), and PT Lippo Karawaci Tbk (LPKR). PT Lovina Beach Brewery Tbk (STRK), PT MNC Sky Vision Tbk (MSKY), and PT Bangun Karya Perkasa Jaya Tbk (KRYA) each fell to Rp46, while PT Pikko Land Development Tbk (RODA) and PT Mitra Pack Tbk (PTMP) reached Rp45. The change, set under BEI Director Decree Number Kep-00136/BEI/09-2026, aims to widen trading price ranges, improve price discovery, and boost liquidity, and is accompanied by revised Auto Rejection Top (ARA) and Auto Rejection Bottom (ARB) limits: during a transition period until 31 December 2026, stocks priced Rp1-Rp10 have ARA and ARB of Rp1, stocks above Rp10 to Rp200 have ARA of 35 percent and ARB of 15 percent, stocks above Rp200 to Rp5,000 have ARA of 25 percent and ARB of 15 percent, and stocks above Rp5,000 have ARA of 20 percent and ARB of 15 percent; from 1 January 2027, ARB becomes 35 percent for stocks above Rp10 to Rp200, 25 percent for stocks above Rp200 to Rp5,000, and both ARA and ARB become 20 percent for stocks above Rp5,000.",
+      "source": "https://www.cnnindonesia.com/ekonomi/20260928125122-92-1409000/28-saham-nyungsep-ke-bawah-level-gocap-ini-daftarnya",
+      "thumbnail": "https://akcdn.detik.net.id/visual/2026/04/24/pergerakan-indeks-harga-saham-gabungan-1777037178716_169.jpeg?w=280&q=90",
+      "timestamp": "2026-09-28T14:17:32",
+      "sector": "consumer-cyclicals",
+      "sub_sector": [
+        "consumer-services",
+        "food-beverage",
+        "software-it-services",
+        "basic-materials",
+        "properties-real-estate",
+        "holding-investment-companies",
+        "banks",
+        "oil-gas-coal",
+        "heavy-constructions-civil-engineering",
+        "investment-service",
+        "media-entertainment",
+        "industrial-goods"
+      ],
+      "tags": [
+        "Politics & Regulation",
+        "Market Sentiment",
+        "Bearish"
+      ],
+      "symbols": [
+        "KPIG.JK",
+        "HOKI.JK",
+        "HDIT.JK",
+        "GOTO.JK",
+        "EPAC.JK",
+        "DADA.JK",
+        "CPRO.JK",
+        "BSBK.JK",
+        "BCAP.JK",
+        "BBKP.JK",
+        "BABP.JK",
+        "ATLA.JK",
+        "ASHA.JK",
+        "WMUU.JK",
+        "WEGE.JK",
+        "REAL.JK",
+        "RBMS.JK",
+        "PNBS.JK",
+        "PADI.JK",
+        "NETV.JK",
+        "MDLN.JK",
+        "MAXI.JK",
+        "LPKR.JK",
+        "STRK.JK",
+        "MSKY.JK",
+        "KRYA.JK",
+        "RODA.JK",
+        "PTMP.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "GoTo Gojek Tokopedia (GOTO) Shares Fall 14% to Rp 43 After IDX Removes Rp 50 Minimum Price",
+      "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to Rp 43 on Monday, September 28, 2026, after the Indonesia Stock Exchange (IDX) removed the Rp 50 minimum share price, a floor that had held the stock for nearly four months. GoTo management, through Head of Corporate Affairs Audrey Petriny, said the price movement was technical and does not reflect the company's strengthening fundamentals. The company reported a net profit of Rp 252 billion in Q2-2026, its second consecutive quarterly profit, on net revenue of Rp 5.7 trillion and adjusted EBITDA of over Rp 1 trillion. GoTo affirmed it remains on track to meet its full-year adjusted EBITDA guidance of Rp 3.2 trillion to Rp 3.4 trillion.",
+      "source": "https://investasi.kontan.co.id/news/saham-goto-anjlok-ke-rp-43-begini-kata-manajemen-goto-gojek-tokopedia",
+      "thumbnail": "https://foto.kontan.co.id/Sj6hsxyEoamxKSpIAYRAg7Qao7I=/smart/2026/07/28/1825387209t.jpg",
+      "timestamp": "2026-09-28T14:07:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Financial Metrics",
+        "Neutral"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 2,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "IHSG Weakens 0.97% to 6,181 in Session I as PT GoTo Gojek Tokopedia Tbk (GOTO) Hits Auto Reject Bottom After Rp50 Floor Price Removal",
+      "body": "The Jakarta Composite Index (IHSG) fell 0.97% to 6,181 in Session I trading on Monday (28/9/2026), dragged down by PT GoTo Gojek Tokopedia Tbk (GOTO), which entered Auto Reject Bottom (ARB) after the Indonesia Stock Exchange (BEI) opened the Rp50 minimum share price limit, allowing prices to move down to Rp1 to improve liquidity and price discovery. The floor removal triggered significant selling pressure of 1 billion lots in GOTO shares, pulling the index into the red throughout the session, which traded in a range of 6,227 to a low of 6,174. Trading value reached Rp6.41 trillion on 23.38 billion shares with 1.02 million transactions, as 193 stocks advanced, 496 declined, and 102 were unchanged. Technology, non-primary consumer, and infrastructure stocks weighed on the index, falling 4.09%, 2.71%, and 1.61% respectively, while Panin Sekuritas attributed the weakness partly to heightened geopolitical tension after US President Donald Trump rejected Iran's ceasefire proposal, pushing crude oil back to US$107 per barrel.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122891/penyebab-ihsg-turun-nyaris-1-diperberat-saham-gocap",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2026/06/image-20260604121604.jpeg",
+      "timestamp": "2026-09-28T13:10:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) Slumps 14% to Auto Reject Bottom as Minimum Price Rule Takes Effect",
+      "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% and hit Auto Reject Bottom (ARB) at Rp 43 in the first trading session on Monday (28/9/2026), coinciding with the implementation of the minimum share price change from Rp 50 to Rp 1. Sell queues at Rp 43 exceeded 1 billion shares, worth around Rp 4.3 trillion. Pluang Maju Sekuritas Head of Research Jason Gozali said the move is a real test of whether the price reflects fundamental changes or remains held back by limited real buying interest. Kiwoom Sekuritas Head of Research Liza Camelia Suryanata expects selling pressure to continue, with technical support in the Rp 36-27 range within a parallel channel pattern.",
+      "source": "https://investor.id/market/455770/goto-di-turunan-panjang-dan-curam",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2024/09/1725444805-720x454.webp",
+      "timestamp": "2026-09-28T11:49:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Market Sentiment",
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) stock falls below new floor price as company issues statement",
+      "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) shares hit the Auto Reject Bottom (ARB) at Rp 43, a 14% drop below the new floor price after Bursa Efek Indonesia removed the Rp 50 minimum on 28 Sep 2026, leading the company to issue a statement. GoTo reported Q2‑2026 net profit of Rp 252 billion on revenue of Rp 5.7 trillion and adjusted EBITDA exceeding Rp 1 trillion, and it reaffirmed its full‑year adjusted EBITDA target of Rp 3.2‑3.4 trillion despite a 14% three‑month and 32.81% YTD share decline.",
+      "source": "https://finance.detik.com/bursa-dan-valas/d-8682160/harga-saham-nyungsep-di-bawah-gocap-goto-buka-suara",
+      "thumbnail": "https://awsimages.detik.net.id/community/media/visual/2026/08/13/tanggapi-msci-goto-tegaskan-fokus-pada-fundamental-bisnis-dan-target-2026-1786600068906_43.jpeg?w=210&q=90",
+      "timestamp": "2026-09-28T10:43:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Neutral",
+        "Financial Metrics",
+        "Market Sentiment"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 2,
+        "management": 1,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) responds to BEI’s floor‑price removal as shares trade at Rp43",
+      "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) issued a statement after the Indonesia Stock Exchange (BEI) officially lowered the floor price for regular and cash markets from Rp50 to Rp1 per share on 28 September 2026. On that morning the stock opened at Rp43, down about 14% with a transaction value of roughly Rp2.5 billion and volume of 58 million shares, while the composite index fell 0.5% to 6,210. Management emphasized that the price movement reflects technical effects of the new rule, noting that the company posted Q2‑2026 net profit of Rp252 billion, net revenue of Rp5.7 trillion and adjusted EBITDA above Rp1 trillion, and remains on track for full‑year adjusted EBITDA of Rp3.2‑3.4 trillion. The firm also reaffirmed its plan to cancel more than 32 billion treasury shares, about 2.7% of the outstanding share count, pending shareholder approval at the RUPSLB on 14 October 2026, and referenced BEI’s adjustments to Auto Rejection Atas (ARA) and Auto Rejection Bawah (ARB) under the new floor‑price regime.",
+      "source": "https://www.cnbcindonesia.com/market/20260928093247-17-771353/begini-tanggapan-goto-usai-gembok-saham-resmi-dibuka",
+      "thumbnail": "https://awsimages.detik.net.id/visual/2026/08/04/dok-goto-1785833212922_43.jpeg?w=200&q=90",
+      "timestamp": "2026-09-28T10:17:17",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Stock Buyback",
+        "Neutral"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 1,
+        "dividend": 0,
+        "ownership": 1,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 1,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) says share weakness does not reflect strengthening fundamentals",
+      "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) issued a statement after its shares weakened again on Monday, 28 September 2026. The stock touched the auto reject bottom (ARB) at Rp43 per share with a sell queue of 1 billion lot, following the new Bursa Efek Indonesia rule that removed the Rp50 lower price bound. Despite the price pressure, GOTO reported Q2 2026 net profit of Rp252 billion, net revenue of Rp5.7 trillion and adjusted EBITDA exceeding Rp1 trillion, and reaffirmed its full‑year adjusted EBITDA target of Rp3.2‑3.4 trillion. The decline also contributed to the composite index (IHSG) falling 12.9 points, reflecting GOTO’s sizable weight in the index.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122855/tanggapan-goto-usai-saham-kembali-melemah",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2026/07/image-20260729184551.jpg",
+      "timestamp": "2026-09-28T10:10:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Financial Metrics",
+        "Bullish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 2,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 2,
+        "management": 1,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) shares forecast to continue sliding",
+      "body": "The article predicts that PT GoTo Gojek Tokopedia Tbk (GOTO) shares will keep falling in the near term. On Monday 28 September 2026 the stock dropped 14 % to the Auto Reject Bottom (ARB) level of Rp 43 after the floor‑price limit was lowered from Rp 50 to Rp 1. At 09:41 WIB the sell queue at Rp 43 exceeded one billion lots, valued at about Rp 4.3 trillion, while regular‑market trading volume was only around Rp 3.19 billion. Analysts from Kiwoom Sekuritas and MNC Sekuritas note that the price may test the 36‑27 Rp support range within a parallel‑channel pattern, and that the floor‑price change could ease trading constraints but does not immediately reflect deteriorating fundamentals.",
+      "source": "https://investor.id/market/455753/saham-goto-diramal-longsor-kesini",
+      "thumbnail": "https://img2.beritasatu.com/cache/investor/253x142-2/2025/07/1752890746-905x583.webp",
+      "timestamp": "2026-09-28T09:51:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Bearish",
+        "Market Sentiment",
+        "Analyst Ratings"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 1,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) and PT Diamond Citra Propertindo Tbk (DADA) plunge to Auto Reject Bottom following BEI’s removal of the floor‑price lock",
+      "body": "GOTO and DADA stocks fell to the Auto Reject Bottom (ARB) after the Indonesia Stock Exchange opened the floor‑price restriction for gocap shares. The move coincided with the Jakarta Composite Index (IHSG) slipping about 1% to 6,179.85, with GOTO alone pulling the index down 12.9 points. GOTO traded at Rp43, generating sell orders exceeding 1 billion lots, while DADA also hit Rp43 with roughly 4.85 million lots sold, both reflecting large sell queues after the floor price was reduced from Rp50 to Rp1 per share. The floor‑price change was implemented under BEI Decision No. Kep‑00136/BEI/09‑2026 dated 21 September 2026, allowing price formation down to Rp1.",
+      "source": "https://www.bloombergtechnoz.com/detail-news/122851/goto-dan-dada-langsung-arb-usai-gembok-saham-gocap-dibuka",
+      "thumbnail": "https://images.bloombergtechnoz.com/data/2026/01/image-20260129130239.jpeg",
+      "timestamp": "2026-09-28T09:43:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services",
+        "properties-real-estate"
+      ],
+      "tags": [
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK",
+        "DADA.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 0,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "GOTO, DADA and BABP stocks plunge 14% after BEI removes Rp50 minimum price limit",
+      "body": "On Monday 28 September 2026, PT GoTo Gojek Tokopedia Tbk (GOTO), PT Diamond Citra Propertindo Tbk (DADA) and PT Bank MNC International Tbk (BABP) each fell about 14% to Rp43 after the Indonesia Stock Exchange (BEI) eliminated the Rp50 minimum price (gocap) and set it at Rp1. GOTO reached an Auto Reject Bottom (ARB) of 14% at 09:15 WIB, with a trading volume of 59.45 million shares, total transactions of Rp2.56 billion and 2,562 trades; the stock has declined 14% over the past three months and 32.81% year‑to‑date, while DADA and BABP also recorded 14% declines for the day and year. BEI said the removal aims to improve liquidity and price discovery for previously illiquid Rp50‑priced stocks, as quoted by Jeffrey.",
+      "source": "https://finance.detik.com/bursa-dan-valas/d-8682083/saham-goto-dada-anjlok-usai-batas-saham-gocap-dihapus",
+      "thumbnail": "https://awsimages.detik.net.id/community/media/visual/2025/04/08/dibuka-usai-libur-lebaran-ihsg-anjlok-9-1744082618172_43.jpeg?w=210&q=90",
+      "timestamp": "2026-09-28T09:38:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services",
+        "properties-real-estate",
+        "banks"
+      ],
+      "tags": [
+        "Bearish",
+        "Politics & Regulation",
+        "Market Sentiment"
+      ],
+      "symbols": [
+        "GOTO.JK",
+        "DADA.JK",
+        "BABP.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) shares plunge 14% to Rp 43",
+      "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) shares fell 14% to Rp 43 in early trading on 28 Sept 2026. The decline followed the Bursa Efek Indonesia’s removal of the Rp 50 minimum price floor, a rule that had previously limited trading of low‑priced stocks and triggered broader sell pressure across more than 100 IHSG constituents. GOTO, supported by Alibaba Group Holding Ltd and valued at over US$32 billion, had recently posted two consecutive quarterly profits in July, yet the regulatory change and competitive pressure from rivals such as Grab Holding Ltd have dampened investor sentiment.",
+      "source": "https://investasi.kontan.co.id/news/saham-goto-gojek-tokopedia-goto-anjlok-14-jadi-rp-43-hari-ini-289",
+      "thumbnail": "https://foto.kontan.co.id/fxSv8iNIQLdEgjJ_vGupJryl-TI=/smart/2026/05/21/1788623023t.jpg",
+      "timestamp": "2026-09-28T09:29:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services"
+      ],
+      "tags": [
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 1,
+        "financials": 1,
+        "management": 0,
+        "sustainability": 0
+      }
+    },
+    {
+      "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) drops 14% to Rp43 as BEI’s Rp1 minimum price rule takes effect",
+      "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% (seven points) to Rp43 in morning trade after the Indonesia Stock Exchange applied the new minimum price rule of Rp1. The drop reduced GOTO’s market capitalization from Rp57.02 trillion on Friday to about Rp49.04 trillion, a loss of roughly Rp8 trillion. At the same time, other former Rp50 “gocap” stocks – PT Bank KB Indonesia Tbk (BBKP), PT MNC Tourism Indonesia Tbk (KPIG), PT Diamond Citra Propertindo Tbk (DADA) and PT Megalestari Epack Sentosaraya Tbk (EPAC) – each slipped 14% to Rp43, leaving market caps of Rp8.07 trillion, Rp4.61 trillion, Rp319.56 billion and Rp142.05 billion respectively. GOTO’s session recorded a volume of 48.78 million shares, turnover of Rp2.10 billion and 1,455 trades, with the price remaining flat at Rp43.",
+      "source": "https://emitennews.com/news/jebol-gocap-harga-rp1-berlaku-goto-anjlok-14-ke-rp43",
+      "thumbnail": "https://ap-south-1.linodeobjects.com/emitennews-02/uploads/news/thumb_1790561874.png?25119ab",
+      "timestamp": "2026-09-28T09:22:00",
+      "sector": "technology",
+      "sub_sector": [
+        "software-it-services",
+        "banks",
+        "consumer-services",
+        "properties-real-estate",
+        "basic-materials"
+      ],
+      "tags": [
+        "Politics & Regulation",
+        "Bearish"
+      ],
+      "symbols": [
+        "GOTO.JK",
+        "BBKP.JK",
+        "KPIG.JK",
+        "DADA.JK",
+        "EPAC.JK"
+      ],
+      "dimension": {
+        "future": 0,
+        "dividend": 0,
+        "ownership": 0,
+        "technical": 2,
+        "valuation": 2,
+        "financials": 0,
+        "management": 0,
+        "sustainability": 0
+      }
+    }
+  ],
+  "pagination": {
+    "total_count": 200,
+    "showing": 20,
+    "limit": 20,
+    "offset": 0,
+    "has_next": true,
+    "has_previous": false,
+    "next_offset": 20,
+    "previous_offset": null
+  }
+}

@@ -5,7 +5,7 @@ import { marketDataProvider, newsProvider } from "@/lib/data/providers";
 import { assertSafeOutput, enforceCitations, safeLanguage } from "@/lib/agent/gates";
 import { describeSignalStability } from "@/lib/agent/signal-history";
 import { RESEARCH_LIFECYCLE } from "@/lib/agent/lifecycle";
-import { defaultFocusFor, dimensionFromText, DIMENSION_LABELS, DIMENSION_OBSERVABLES, recordedFocusRanking } from "@/lib/agent/dimensions";
+import { defaultFocusFor, dimensionFromText, DIMENSION_LABELS, DIMENSION_OBSERVABLES, primaryTestsInFocusOrder, recordedFocusRanking } from "@/lib/agent/dimensions";
 import {
   calculateConcentration,
   calculateMomentum,
@@ -779,7 +779,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
   const businessImpact = createBusinessImpact(researchPlan.focuses, symbol, businessImpactCitations);
   const relevanceFloor = relevanceFloorFor(context?.playbook);
   const materiality = primaryLink && primaryLink.relevance >= relevanceFloor ? "High" as const : primaryLink ? "Medium" as const : "Low" as const;
-  const primaryBusinessImpact = businessImpact.find((item) => item.status === "Primary test") ?? businessImpact[0];
+  const primaryBusinessImpact = primaryTestsInFocusOrder(businessImpact, researchPlan.focuses)[0] ?? businessImpact[0];
   const researchDisposition = createResearchDisposition(evidenceState, materiality, primaryBusinessImpact, contradictions);
   // Task 10: RUPS pengurus terekam — jujur tanpa skor individu.
   // Pemicu primer jarang leadership (relevansi 88 < dividen 92), sehingga
@@ -1469,6 +1469,10 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // makes the handler ready without anchoring it.
   const figureNamed = Boolean(figureMatch?.named) || Boolean(matchFieldName(request.question));
   const event = eventFromQuestion(request.question);
+  // A question that quotes an event's whole title is about that event, even
+  // when words of a headline ("Net Profit Projection") loosely reach a figure
+  // on the page. Only a loose event match yields to a named figure.
+  const eventQuoted = Boolean(event) && question.includes(event!.title.toLowerCase());
   // What the question points at, settled before anything is scored. A pointer
   // that found nothing answers with the menu rather than guessing: naming the
   // wrong issuer confidently is worse than saying which one is meant.
@@ -1556,7 +1560,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     candidate("case-status", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: statusAsked, fuzzyPhrase: false, evidenceReady: caseReady && statusAsked }, statusAsked),
     candidate("provenance", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isProvenanceQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isProvenanceQuestion(question) }, isProvenanceQuestion(question)),
     candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure) || Boolean(matchFieldName(request.question)), exactPhrase: isExplainQuestion(question), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && isExplainQuestion(question) }, figureNamed),
-    candidate("event-impact", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && !namedFigure }, Boolean(event) || mentions(question, EVENT_SUBJECT_PHRASES)),
+    candidate("event-impact", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, EVENT_PHRASES), fuzzyPhrase: false, evidenceReady: (Boolean(event) || mentions(question, EVENT_PHRASES)) && (!namedFigure || eventQuoted) }, Boolean(event) || mentions(question, EVENT_SUBJECT_PHRASES)),
     candidate("missing", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, MISSING_PHRASES), fuzzyPhrase: false, evidenceReady: mentions(question, MISSING_PHRASES) }, mentions(question, MISSING_PHRASES)),
     candidate("explain", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: Boolean(namedFigure), exactPhrase: false, fuzzyPhrase: false, evidenceReady: Boolean(analysis) && Boolean(namedFigure) }, figureNamed),
     candidate("why-listed", { symbolNamedInQuestion: symbols.length > 0, figureNamedInQuestion: false, exactPhrase: mentions(question, WHY_PHRASES), fuzzyPhrase: false, evidenceReady: Boolean(analysis) && (mentions(question, WHY_PHRASES) || symbols.length > 0) }, subjectNamed && mentions(question, WHY_PHRASES)),
@@ -1963,10 +1967,9 @@ async function buildCausalGraph(
   const visible = ranked.slice(0, maxVisibleSources);
   // Every dimension the case tests, not just the first: the chain compares the
   // same causes against each of them, and the heading says so.
+  const primaryTests = analysis ? primaryTestsInFocusOrder(analysis.businessImpact, analysis.researchPlan.focuses) : [];
   const targetImpacts = analysis
-    ? (analysis.businessImpact.filter((item) => item.status === "Primary test").length
-        ? analysis.businessImpact.filter((item) => item.status === "Primary test")
-        : analysis.businessImpact.slice(0, 1))
+    ? (primaryTests.length ? primaryTests : analysis.businessImpact.slice(0, 1))
     : [];
   const targetImpact = targetImpacts[0];
   // Without a recorded business observable the chain must not name one.

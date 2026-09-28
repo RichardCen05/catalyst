@@ -5,7 +5,7 @@
 
 import type { BrokerEvidence, EvidenceState, ImpactDirection, InstitutionalFlow, MarketEvent, PricePoint, Sector, SymbolCode } from "@/lib/types";
 
-export const DATA_AS_OF = "2026-09-23T16:15:00+07:00";
+export const DATA_AS_OF = "2026-09-25T16:15:00+07:00";
 export const WINDOW_DATES = [
   "2026-08-03",
   "2026-08-04",
@@ -42,7 +42,9 @@ export const WINDOW_DATES = [
   "2026-09-18",
   "2026-09-21",
   "2026-09-22",
-  "2026-09-23"
+  "2026-09-23",
+  "2026-09-24",
+  "2026-09-25"
 ] as const;
 
 export interface RawCompany {
@@ -79,107 +81,107 @@ export const rawCompanies: RawCompany[] = [
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
     "price": 2600,
-    "changePct": -0.38,
+    "changePct": 1.56,
     "marketCap": 74.9,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.600 pada 2026-09-23; volume terakhir 1.70× median 35 sesi; 7 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.600 pada 2026-09-25; volume terakhir 0.65× median 37 sesi; 8 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "AMRT",
     "name": "PT Sumber Alfaria Trijaya Tbk.",
     "sector": "Consumer",
     "subsector": "Food & Staples Retailing",
-    "price": 1310,
-    "changePct": 0.38,
-    "marketCap": 54.4,
+    "price": 1305,
+    "changePct": 1.95,
+    "marketCap": 54.2,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 1.310 pada 2026-09-23; volume terakhir 0.44× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.305 pada 2026-09-25; volume terakhir 1.15× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ANTM",
     "name": "Aneka Tambang Tbk.",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 3280,
-    "changePct": 3.47,
-    "marketCap": 78.8,
+    "price": 3230,
+    "changePct": -1.22,
+    "marketCap": 77.6,
     "analyzed": true,
     "evidenceState": "Corroborated",
-    "summary": "Close 3.280 pada 2026-09-23; volume terakhir 0.75× median 35 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.230 pada 2026-09-25; volume terakhir 0.68× median 37 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBCA",
     "name": "PT Bank Central Asia Tbk.",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 6300,
-    "changePct": 1.61,
-    "marketCap": 768.9,
+    "price": 6250,
+    "changePct": 0.4,
+    "marketCap": 762.8,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 6.300 pada 2026-09-23; volume terakhir 1.01× median 35 sesi; 8 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.250 pada 2026-09-25; volume terakhir 0.94× median 37 sesi; 8 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBRI",
     "name": "PT Bank Rakyat Indonesia (Persero) Tbk",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 3190,
-    "changePct": 0.31,
-    "marketCap": 478.6,
+    "price": 3150,
+    "changePct": 0.32,
+    "marketCap": 472.6,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 3.190 pada 2026-09-23; volume terakhir 1.30× median 35 sesi; 6 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.150 pada 2026-09-25; volume terakhir 0.55× median 37 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BMRI",
     "name": "PT Bank Mandiri (Persero) Tbk",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 4190,
-    "changePct": 0.72,
-    "marketCap": 387.2,
+    "price": 4080,
+    "changePct": 0.25,
+    "marketCap": 377.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.190 pada 2026-09-23; volume terakhir 0.72× median 35 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.080 pada 2026-09-25; volume terakhir 0.57× median 37 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BUKA",
     "name": "PT Bukalapak.com Tbk",
     "sector": "Technology",
     "subsector": "Software & IT Services",
-    "price": 107,
-    "changePct": 0.94,
-    "marketCap": 11.0,
+    "price": 104,
+    "changePct": -0.95,
+    "marketCap": 10.7,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 107 pada 2026-09-23; volume terakhir 0.29× median 35 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 104 pada 2026-09-25; volume terakhir 0.55× median 37 sesi; 5 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EMTK",
     "name": "Elang Mahkota Teknologi Tbk",
     "sector": "Technology",
     "subsector": "Software & IT Services",
-    "price": 446,
-    "changePct": -0.45,
-    "marketCap": 27.4,
+    "price": 420,
+    "changePct": -2.33,
+    "marketCap": 25.8,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 446 pada 2026-09-23; volume terakhir 1.00× median 35 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 420 pada 2026-09-25; volume terakhir 0.63× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EXCL",
     "name": "PT XLSMART Telecom Sejahtera Tbk",
     "sector": "Infrastructure",
     "subsector": "Telecommunication",
-    "price": 2440,
-    "changePct": 1.24,
-    "marketCap": 44.4,
+    "price": 2330,
+    "changePct": -2.92,
+    "marketCap": 42.4,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.440 pada 2026-09-23; volume terakhir 0.90× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.330 pada 2026-09-25; volume terakhir 0.97× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "GOTO",
@@ -191,103 +193,103 @@ export const rawCompanies: RawCompany[] = [
     "marketCap": 57.0,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 50 pada 2026-09-23; volume terakhir 0.31× median 35 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 50 pada 2026-09-25; volume terakhir 0.41× median 37 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ICBP",
     "name": "Indofood CBP Sukses Makmur Tbk",
     "sector": "Consumer",
     "subsector": "Food & Beverage",
-    "price": 6875,
-    "changePct": 3.38,
-    "marketCap": 80.2,
+    "price": 6650,
+    "changePct": -4.66,
+    "marketCap": 77.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 6.875 pada 2026-09-23; volume terakhir 1.12× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.650 pada 2026-09-25; volume terakhir 0.84× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "INCO",
     "name": "Vale Indonesia Tbk",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 4790,
-    "changePct": 2.35,
-    "marketCap": 50.5,
+    "price": 4680,
+    "changePct": -0.85,
+    "marketCap": 49.3,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.790 pada 2026-09-23; volume terakhir 1.04× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.680 pada 2026-09-25; volume terakhir 0.47× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "JSMR",
     "name": "PT Jasa Marga Tbk",
     "sector": "Infrastructure",
     "subsector": "Transportation Infrastructure",
-    "price": 2800,
-    "changePct": 1.08,
-    "marketCap": 20.3,
+    "price": 2720,
+    "changePct": -0.37,
+    "marketCap": 19.7,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.800 pada 2026-09-23; volume terakhir 0.48× median 35 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.720 pada 2026-09-25; volume terakhir 0.29× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "MYOR",
     "name": "Mayora Indah Tbk",
     "sector": "Consumer",
     "subsector": "Food & Beverage",
-    "price": 1500,
-    "changePct": 1.01,
-    "marketCap": 33.5,
+    "price": 1435,
+    "changePct": -1.03,
+    "marketCap": 32.1,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 1.500 pada 2026-09-23; volume terakhir 0.78× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.435 pada 2026-09-25; volume terakhir 0.71× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PGAS",
     "name": "PT Perusahaan Gas Negara Tbk",
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
-    "price": 1440,
-    "changePct": -1.03,
-    "marketCap": 34.9,
+    "price": 1430,
+    "changePct": -0.69,
+    "marketCap": 34.7,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 1.440 pada 2026-09-23; volume terakhir 0.80× median 35 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.430 pada 2026-09-25; volume terakhir 0.48× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PTBA",
     "name": "Bukit Asam Tbk",
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
-    "price": 3050,
-    "changePct": 1.33,
-    "marketCap": 35.1,
+    "price": 3090,
+    "changePct": 1.31,
+    "marketCap": 35.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 3.050 pada 2026-09-23; volume terakhir 1.02× median 35 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.090 pada 2026-09-25; volume terakhir 1.41× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "TINS",
     "name": "PT Timah Tbk",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 4800,
-    "changePct": 4.12,
-    "marketCap": 35.7,
+    "price": 4720,
+    "changePct": -2.68,
+    "marketCap": 35.2,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.800 pada 2026-09-23; volume terakhir 0.83× median 35 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.720 pada 2026-09-25; volume terakhir 0.57× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "TLKM",
     "name": "PT Telkom Indonesia (Persero) Tbk",
     "sector": "Infrastructure",
     "subsector": "Telecommunication",
-    "price": 2440,
-    "changePct": -1.21,
-    "marketCap": 241.7,
+    "price": 2410,
+    "changePct": 0.0,
+    "marketCap": 238.7,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 2.440 pada 2026-09-23; volume terakhir 1.60× median 35 sesi; 8 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.410 pada 2026-09-25; volume terakhir 1.92× median 37 sesi; 9 peristiwa terhubung pada jendela ini."
   }
 ];
 
@@ -508,6 +510,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2600,
       "ihsg": 6375,
       "volume": 55005000
+    },
+    {
+      "date": "2026-09-24",
+      "close": 2560,
+      "ihsg": 6299,
+      "volume": 19671000
+    },
+    {
+      "date": "2026-09-25",
+      "close": 2600,
+      "ihsg": 6242,
+      "volume": 21107500
     }
   ],
   "AMRT": [
@@ -726,6 +740,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1310,
       "ihsg": 6375,
       "volume": 13899600
+    },
+    {
+      "date": "2026-09-24",
+      "close": 1280,
+      "ihsg": 6299,
+      "volume": 35826600
+    },
+    {
+      "date": "2026-09-25",
+      "close": 1305,
+      "ihsg": 6242,
+      "volume": 36005800
     }
   ],
   "ANTM": [
@@ -944,6 +970,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3280,
       "ihsg": 6375,
       "volume": 80259400
+    },
+    {
+      "date": "2026-09-24",
+      "close": 3270,
+      "ihsg": 6299,
+      "volume": 53729000
+    },
+    {
+      "date": "2026-09-25",
+      "close": 3230,
+      "ihsg": 6242,
+      "volume": 67544100
     }
   ],
   "BBCA": [
@@ -1162,6 +1200,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 6300,
       "ihsg": 6375,
       "volume": 96826100
+    },
+    {
+      "date": "2026-09-24",
+      "close": 6225,
+      "ihsg": 6299,
+      "volume": 75648600
+    },
+    {
+      "date": "2026-09-25",
+      "close": 6250,
+      "ihsg": 6242,
+      "volume": 89447400
     }
   ],
   "BBRI": [
@@ -1380,6 +1430,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3190,
       "ihsg": 6375,
       "volume": 205953900
+    },
+    {
+      "date": "2026-09-24",
+      "close": 3140,
+      "ihsg": 6299,
+      "volume": 129218800
+    },
+    {
+      "date": "2026-09-25",
+      "close": 3150,
+      "ihsg": 6242,
+      "volume": 87244800
     }
   ],
   "BMRI": [
@@ -1598,6 +1660,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4190,
       "ihsg": 6375,
       "volume": 88290300
+    },
+    {
+      "date": "2026-09-24",
+      "close": 4070,
+      "ihsg": 6299,
+      "volume": 182057400
+    },
+    {
+      "date": "2026-09-25",
+      "close": 4080,
+      "ihsg": 6242,
+      "volume": 70546200
     }
   ],
   "BUKA": [
@@ -1816,6 +1890,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 107,
       "ihsg": 6375,
       "volume": 27985000
+    },
+    {
+      "date": "2026-09-24",
+      "close": 105,
+      "ihsg": 6299,
+      "volume": 67805300
+    },
+    {
+      "date": "2026-09-25",
+      "close": 104,
+      "ihsg": 6242,
+      "volume": 52179400
     }
   ],
   "EMTK": [
@@ -2034,6 +2120,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 446,
       "ihsg": 6375,
       "volume": 43447900
+    },
+    {
+      "date": "2026-09-24",
+      "close": 430,
+      "ihsg": 6299,
+      "volume": 53465200
+    },
+    {
+      "date": "2026-09-25",
+      "close": 420,
+      "ihsg": 6242,
+      "volume": 27548200
     }
   ],
   "EXCL": [
@@ -2252,6 +2350,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2440,
       "ihsg": 6375,
       "volume": 5719700
+    },
+    {
+      "date": "2026-09-24",
+      "close": 2400,
+      "ihsg": 6299,
+      "volume": 4743700
+    },
+    {
+      "date": "2026-09-25",
+      "close": 2330,
+      "ihsg": 6242,
+      "volume": 5560500
     }
   ],
   "GOTO": [
@@ -2470,6 +2580,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 50,
       "ihsg": 6375,
       "volume": 4253400
+    },
+    {
+      "date": "2026-09-24",
+      "close": 50,
+      "ihsg": 6299,
+      "volume": 3472900
+    },
+    {
+      "date": "2026-09-25",
+      "close": 50,
+      "ihsg": 6242,
+      "volume": 4406200
     }
   ],
   "ICBP": [
@@ -2688,6 +2810,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 6875,
       "ihsg": 6375,
       "volume": 5701800
+    },
+    {
+      "date": "2026-09-24",
+      "close": 6975,
+      "ihsg": 6299,
+      "volume": 4221800
+    },
+    {
+      "date": "2026-09-25",
+      "close": 6650,
+      "ihsg": 6242,
+      "volume": 4281100
     }
   ],
   "INCO": [
@@ -2906,6 +3040,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4790,
       "ihsg": 6375,
       "volume": 12982700
+    },
+    {
+      "date": "2026-09-24",
+      "close": 4720,
+      "ihsg": 6299,
+      "volume": 11688800
+    },
+    {
+      "date": "2026-09-25",
+      "close": 4680,
+      "ihsg": 6242,
+      "volume": 5911900
     }
   ],
   "JSMR": [
@@ -3124,6 +3270,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2800,
       "ihsg": 6375,
       "volume": 1279700
+    },
+    {
+      "date": "2026-09-24",
+      "close": 2730,
+      "ihsg": 6299,
+      "volume": 1677700
+    },
+    {
+      "date": "2026-09-25",
+      "close": 2720,
+      "ihsg": 6242,
+      "volume": 755000
     }
   ],
   "MYOR": [
@@ -3342,6 +3500,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1500,
       "ihsg": 6375,
       "volume": 9185500
+    },
+    {
+      "date": "2026-09-24",
+      "close": 1450,
+      "ihsg": 6299,
+      "volume": 15658000
+    },
+    {
+      "date": "2026-09-25",
+      "close": 1435,
+      "ihsg": 6242,
+      "volume": 8382200
     }
   ],
   "PGAS": [
@@ -3560,6 +3730,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1440,
       "ihsg": 6375,
       "volume": 22476200
+    },
+    {
+      "date": "2026-09-24",
+      "close": 1440,
+      "ihsg": 6299,
+      "volume": 9655900
+    },
+    {
+      "date": "2026-09-25",
+      "close": 1430,
+      "ihsg": 6242,
+      "volume": 13088100
     }
   ],
   "PTBA": [
@@ -3778,6 +3960,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3050,
       "ihsg": 6375,
       "volume": 23188400
+    },
+    {
+      "date": "2026-09-24",
+      "close": 3050,
+      "ihsg": 6299,
+      "volume": 11206200
+    },
+    {
+      "date": "2026-09-25",
+      "close": 3090,
+      "ihsg": 6242,
+      "volume": 31882000
     }
   ],
   "TINS": [
@@ -3996,6 +4190,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4800,
       "ihsg": 6375,
       "volume": 37175000
+    },
+    {
+      "date": "2026-09-24",
+      "close": 4850,
+      "ihsg": 6299,
+      "volume": 34406900
+    },
+    {
+      "date": "2026-09-25",
+      "close": 4720,
+      "ihsg": 6242,
+      "volume": 24956000
     }
   ],
   "TLKM": [
@@ -4214,6 +4420,18 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2440,
       "ihsg": 6375,
       "volume": 140225800
+    },
+    {
+      "date": "2026-09-24",
+      "close": 2410,
+      "ihsg": 6299,
+      "volume": 114511100
+    },
+    {
+      "date": "2026-09-25",
+      "close": 2410,
+      "ihsg": 6242,
+      "volume": 170051400
     }
   ]
 };
@@ -4224,156 +4442,156 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 1949934417000,
-        "buyIdr": 1949934417000,
-        "sellIdr": 1542215338000,
-        "netIdr": 407719079000
+        "value": 2028598844000,
+        "buyIdr": 2028598844000,
+        "sellIdr": 1670376598000,
+        "netIdr": 358222246000
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 970614388000,
-        "buyIdr": 970614388000,
-        "sellIdr": 650650840000,
-        "netIdr": 319963548000
+        "value": 1016443943000,
+        "buyIdr": 1016443943000,
+        "sellIdr": 702209478000,
+        "netIdr": 314234465000
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 909893543000,
-        "buyIdr": 909893543000,
-        "sellIdr": 749982686000,
-        "netIdr": 159910857000
+        "value": 933560494000,
+        "buyIdr": 933560494000,
+        "sellIdr": 807357684000,
+        "netIdr": 126202810000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 434258779000,
-        "buyIdr": 434258779000,
-        "sellIdr": 344884810000,
-        "netIdr": 89373969000
+        "value": 451417408000,
+        "buyIdr": 451417408000,
+        "sellIdr": 380039356000,
+        "netIdr": 71378052000
+      },
+      {
+        "code": "LG",
+        "origin": "local",
+        "value": 351626437000,
+        "buyIdr": 351626437000,
+        "sellIdr": 332998023000,
+        "netIdr": 18628414000
       },
       {
         "code": "KK",
         "origin": "foreign",
-        "value": 220210867000,
-        "buyIdr": 220210867000,
-        "sellIdr": 166640364000,
-        "netIdr": 53570503000
+        "value": 229128719000,
+        "buyIdr": 229128719000,
+        "sellIdr": 175481616000,
+        "netIdr": 53647103000
+      },
+      {
+        "code": "GR",
+        "origin": "local",
+        "value": 213372163000,
+        "buyIdr": 213372163000,
+        "sellIdr": 184985237000,
+        "netIdr": 28386926000
       },
       {
         "code": "TP",
         "origin": "foreign",
-        "value": 144832814000,
-        "buyIdr": 144832814000,
-        "sellIdr": 83889528000,
-        "netIdr": 60943286000
-      },
-      {
-        "code": "SS",
-        "origin": "local",
-        "value": 101564174000,
-        "buyIdr": 101564174000,
-        "sellIdr": 47638145000,
-        "netIdr": 53926029000
-      },
-      {
-        "code": "RX",
-        "origin": "foreign",
-        "value": 89546824000,
-        "buyIdr": 89546824000,
-        "sellIdr": 72939365000,
-        "netIdr": 16607459000
+        "value": 153607637000,
+        "buyIdr": 153607637000,
+        "sellIdr": 103246921000,
+        "netIdr": 50360716000
       },
       {
         "code": "KI",
         "origin": "local",
-        "value": 86164015000,
-        "buyIdr": 86164015000,
-        "sellIdr": 43493802000,
-        "netIdr": 42670213000
+        "value": 93221297000,
+        "buyIdr": 93221297000,
+        "sellIdr": 43946251000,
+        "netIdr": 49275046000
       },
       {
-        "code": "RF",
-        "origin": "local",
-        "value": 73019917000,
-        "buyIdr": 73019917000,
-        "sellIdr": 41183182000,
-        "netIdr": 31836735000
+        "code": "DP",
+        "origin": "foreign",
+        "value": 22886893000,
+        "buyIdr": 22886893000,
+        "sellIdr": 3855893000,
+        "netIdr": 19031000000
       }
     ],
     "sellers": [
       {
         "code": "CC",
         "origin": "local",
-        "value": 1508884452000,
-        "buyIdr": 1353182369000,
-        "sellIdr": 1508884452000,
-        "netIdr": -155702083000
+        "value": 1593652467000,
+        "buyIdr": 1479843138000,
+        "sellIdr": 1593652467000,
+        "netIdr": -113809329000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 1259374968000,
-        "buyIdr": 1157200956000,
-        "sellIdr": 1259374968000,
-        "netIdr": -102174012000
+        "value": 1344394614000,
+        "buyIdr": 1240390420000,
+        "sellIdr": 1344394614000,
+        "netIdr": -104004194000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 522285094000,
-        "buyIdr": 357566647000,
-        "sellIdr": 522285094000,
-        "netIdr": -164718447000
+        "value": 565679222000,
+        "buyIdr": 392841685000,
+        "sellIdr": 565679222000,
+        "netIdr": -172837537000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 434947600000,
-        "buyIdr": 245298889000,
-        "sellIdr": 434947600000,
-        "netIdr": -189648711000
+        "value": 458206673000,
+        "buyIdr": 275436662000,
+        "sellIdr": 458206673000,
+        "netIdr": -182770011000
       },
       {
-        "code": "LG",
+        "code": "SQ",
         "origin": "local",
-        "value": 308583553000,
-        "buyIdr": 262600855000,
-        "sellIdr": 308583553000,
-        "netIdr": -45982698000
+        "value": 360632873000,
+        "buyIdr": 318971159000,
+        "sellIdr": 360632873000,
+        "netIdr": -41661714000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 303164937000,
-        "buyIdr": 210006524000,
-        "sellIdr": 303164937000,
-        "netIdr": -93158413000
+        "value": 329993315000,
+        "buyIdr": 233909706000,
+        "sellIdr": 329993315000,
+        "netIdr": -96083609000
       },
       {
         "code": "AZ",
         "origin": "local",
-        "value": 251152920000,
-        "buyIdr": 144795380000,
-        "sellIdr": 251152920000,
-        "netIdr": -106357540000
+        "value": 268010036000,
+        "buyIdr": 218258121000,
+        "sellIdr": 268010036000,
+        "netIdr": -49751915000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 222342337000,
-        "buyIdr": 110421304000,
-        "sellIdr": 222342337000,
-        "netIdr": -111921033000
+        "value": 224671286000,
+        "buyIdr": 118500344000,
+        "sellIdr": 224671286000,
+        "netIdr": -106170942000
       },
       {
         "code": "AG",
         "origin": "foreign",
-        "value": 85532395000,
-        "buyIdr": 32588230000,
-        "sellIdr": 85532395000,
-        "netIdr": -52944165000
+        "value": 89022857000,
+        "buyIdr": 34998963000,
+        "sellIdr": 89022857000,
+        "netIdr": -54023894000
       },
       {
         "code": "AF",
@@ -4384,169 +4602,169 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -49128015000
       }
     ],
-    "netForeign": 1174988789000,
-    "totalMarketValue": 12657565282000,
+    "netForeign": 1104653924000,
+    "totalMarketValue": 13051426555000,
     "freeFloatShares": 8410767653.749999,
     "sharesOutstanding": 24030764725.0,
-    "referencePrice": 3280,
+    "referencePrice": 3230,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23"
+    "windowEnd": "2026-09-25"
   },
   "BBCA": {
     "buyers": [
       {
-        "code": "ZP",
-        "origin": "foreign",
-        "value": 3998079022500,
-        "buyIdr": 3998079022500,
-        "sellIdr": 3925074955000,
-        "netIdr": 73004067500
-      },
-      {
         "code": "YU",
         "origin": "foreign",
-        "value": 3289016550000,
-        "buyIdr": 3289016550000,
-        "sellIdr": 1308375047500,
-        "netIdr": 1980641502500
-      },
-      {
-        "code": "CC",
-        "origin": "local",
-        "value": 2399958442500,
-        "buyIdr": 2399958442500,
-        "sellIdr": 2350451280000,
-        "netIdr": 49507162500
+        "value": 4105514502500,
+        "buyIdr": 4105514502500,
+        "sellIdr": 1511024120000,
+        "netIdr": 2594490382500
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 1150208120000,
-        "buyIdr": 1150208120000,
-        "sellIdr": 1129244565000,
-        "netIdr": 20963555000
+        "value": 1217970437500,
+        "buyIdr": 1217970437500,
+        "sellIdr": 1182871432500,
+        "netIdr": 35099005000
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 942835580000,
-        "buyIdr": 942835580000,
-        "sellIdr": 845225515000,
-        "netIdr": 97610065000
+        "value": 1001212677500,
+        "buyIdr": 1001212677500,
+        "sellIdr": 911077445000,
+        "netIdr": 90135232500
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 606398522500,
-        "buyIdr": 606398522500,
-        "sellIdr": 386153610000,
-        "netIdr": 220244912500
+        "value": 648740865000,
+        "buyIdr": 648740865000,
+        "sellIdr": 593648832500,
+        "netIdr": 55092032500
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 435271992500,
-        "buyIdr": 435271992500,
-        "sellIdr": 245149160000,
-        "netIdr": 190122832500
+        "value": 449287350000,
+        "buyIdr": 449287350000,
+        "sellIdr": 257092032500,
+        "netIdr": 192195317500
       },
       {
         "code": "AZ",
         "origin": "local",
-        "value": 344918927500,
-        "buyIdr": 344918927500,
-        "sellIdr": 76796472500,
-        "netIdr": 268122455000
+        "value": 349620165000,
+        "buyIdr": 349620165000,
+        "sellIdr": 85405575000,
+        "netIdr": 264214590000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 288688390000,
-        "buyIdr": 288688390000,
-        "sellIdr": 163271420000,
-        "netIdr": 125416970000
+        "value": 304442135000,
+        "buyIdr": 304442135000,
+        "sellIdr": 189146752500,
+        "netIdr": 115295382500
       },
       {
         "code": "IF",
         "origin": "local",
-        "value": 163092060000,
-        "buyIdr": 163092060000,
-        "sellIdr": 120478235000,
-        "netIdr": 42613825000
+        "value": 174510037500,
+        "buyIdr": 174510037500,
+        "sellIdr": 121886740000,
+        "netIdr": 52623297500
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 171709435000,
+        "buyIdr": 171709435000,
+        "sellIdr": 151478955000,
+        "netIdr": 20230480000
+      },
+      {
+        "code": "ES",
+        "origin": "local",
+        "value": 26945990000,
+        "buyIdr": 26945990000,
+        "sellIdr": 6478302500,
+        "netIdr": 20467687500
       }
     ],
     "sellers": [
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 3473902567500,
-        "buyIdr": 2883936687500,
-        "sellIdr": 3473902567500,
-        "netIdr": -589965880000
+        "value": 4068737885000,
+        "buyIdr": 3118903337500,
+        "sellIdr": 4068737885000,
+        "netIdr": -949834547500
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 1832535767500,
-        "buyIdr": 1764026305000,
-        "sellIdr": 1832535767500,
-        "netIdr": -68509462500
+        "value": 2002385085000,
+        "buyIdr": 1796369797500,
+        "sellIdr": 2002385085000,
+        "netIdr": -206015287500
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 1798064015000,
-        "buyIdr": 790334092500,
-        "sellIdr": 1798064015000,
-        "netIdr": -1007729922500
+        "value": 1930116855000,
+        "buyIdr": 803903967500,
+        "sellIdr": 1930116855000,
+        "netIdr": -1126212887500
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 1388281300000,
-        "buyIdr": 657846490000,
-        "sellIdr": 1388281300000,
-        "netIdr": -730434810000
+        "value": 1425106892500,
+        "buyIdr": 1097765825000,
+        "sellIdr": 1425106892500,
+        "netIdr": -327341067500
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 687300932500,
-        "buyIdr": 645756072500,
-        "sellIdr": 687300932500,
-        "netIdr": -41544860000
-      },
-      {
-        "code": "TP",
-        "origin": "foreign",
-        "value": 580261330000,
-        "buyIdr": 305718855000,
-        "sellIdr": 580261330000,
-        "netIdr": -274542475000
+        "value": 740307887500,
+        "buyIdr": 676274212500,
+        "sellIdr": 740307887500,
+        "netIdr": -64033675000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 569913967500,
-        "buyIdr": 468154712500,
-        "sellIdr": 569913967500,
-        "netIdr": -101759255000
+        "value": 604134827500,
+        "buyIdr": 496528282500,
+        "sellIdr": 604134827500,
+        "netIdr": -107606545000
+      },
+      {
+        "code": "TP",
+        "origin": "foreign",
+        "value": 602200702500,
+        "buyIdr": 309743265000,
+        "sellIdr": 602200702500,
+        "netIdr": -292457437500
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 394425627500,
-        "buyIdr": 309127267500,
-        "sellIdr": 394425627500,
-        "netIdr": -85298360000
+        "value": 410554265000,
+        "buyIdr": 338380725000,
+        "sellIdr": 410554265000,
+        "netIdr": -72173540000
       },
       {
-        "code": "LG",
+        "code": "DX",
         "origin": "local",
-        "value": 197998495000,
-        "buyIdr": 167198072500,
-        "sellIdr": 197998495000,
-        "netIdr": -30800422500
+        "value": 366003885000,
+        "buyIdr": 287329882500,
+        "sellIdr": 366003885000,
+        "netIdr": -78674002500
       },
       {
         "code": "PP",
@@ -4557,13 +4775,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -52772555000
       }
     ],
-    "netForeign": -806075097500,
-    "totalMarketValue": 25509191350000,
+    "netForeign": -695982985000,
+    "totalMarketValue": 26539150135000,
     "freeFloatShares": 54482123342.79,
     "sharesOutstanding": 122042299500.0,
-    "referencePrice": 6300,
+    "referencePrice": 6250,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23",
+    "windowEnd": "2026-09-25",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -4612,173 +4830,173 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 3235972908000,
-        "buyIdr": 3235972908000,
-        "sellIdr": 2778544817000,
-        "netIdr": 457428091000
+        "value": 3395856792000,
+        "buyIdr": 3395856792000,
+        "sellIdr": 2967940283000,
+        "netIdr": 427916509000
       },
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 2963747711000,
-        "buyIdr": 2963747711000,
-        "sellIdr": 2390900805000,
-        "netIdr": 572846906000
+        "value": 3269318702000,
+        "buyIdr": 3269318702000,
+        "sellIdr": 2747020603000,
+        "netIdr": 522298099000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 1715950567000,
-        "buyIdr": 1715950567000,
-        "sellIdr": 1322744800000,
-        "netIdr": 393205767000
+        "value": 1824019524000,
+        "buyIdr": 1824019524000,
+        "sellIdr": 1545621407000,
+        "netIdr": 278398117000
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 1518842193000,
-        "buyIdr": 1518842193000,
-        "sellIdr": 1389160259000,
-        "netIdr": 129681934000
+        "value": 1586018488000,
+        "buyIdr": 1586018488000,
+        "sellIdr": 1510509100000,
+        "netIdr": 75509388000
       },
       {
         "code": "RX",
         "origin": "foreign",
-        "value": 870336107000,
-        "buyIdr": 870336107000,
-        "sellIdr": 767135053000,
-        "netIdr": 103201054000
+        "value": 897592460000,
+        "buyIdr": 897592460000,
+        "sellIdr": 797547658000,
+        "netIdr": 100044802000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 668529825000,
-        "buyIdr": 668529825000,
-        "sellIdr": 309384035000,
-        "netIdr": 359145790000
+        "value": 740524736000,
+        "buyIdr": 740524736000,
+        "sellIdr": 342450249000,
+        "netIdr": 398074487000
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 364959427000,
-        "buyIdr": 364959427000,
-        "sellIdr": 102208652000,
-        "netIdr": 262750775000
+        "value": 370573771000,
+        "buyIdr": 370573771000,
+        "sellIdr": 107373661000,
+        "netIdr": 263200110000
       },
       {
         "code": "LG",
         "origin": "local",
-        "value": 253047862000,
-        "buyIdr": 253047862000,
-        "sellIdr": 171564603000,
-        "netIdr": 81483259000
+        "value": 266998745000,
+        "buyIdr": 266998745000,
+        "sellIdr": 176304444000,
+        "netIdr": 90694301000
       },
       {
         "code": "DR",
         "origin": "foreign",
-        "value": 198498907000,
-        "buyIdr": 198498907000,
-        "sellIdr": 132993591000,
-        "netIdr": 65505316000
+        "value": 214681462000,
+        "buyIdr": 214681462000,
+        "sellIdr": 143296525000,
+        "netIdr": 71384937000
       },
       {
         "code": "IF",
         "origin": "local",
-        "value": 108374530000,
-        "buyIdr": 108374530000,
-        "sellIdr": 37090949000,
-        "netIdr": 71283581000
+        "value": 112722921000,
+        "buyIdr": 112722921000,
+        "sellIdr": 38812402000,
+        "netIdr": 73910519000
       }
     ],
     "sellers": [
       {
         "code": "CC",
         "origin": "local",
-        "value": 2659517480000,
-        "buyIdr": 1960455326000,
-        "sellIdr": 2659517480000,
-        "netIdr": -699062154000
+        "value": 2765746468000,
+        "buyIdr": 2177737787000,
+        "sellIdr": 2765746468000,
+        "netIdr": -588008681000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 1694176417000,
-        "buyIdr": 1331648784000,
-        "sellIdr": 1694176417000,
-        "netIdr": -362527633000
+        "value": 1762878447000,
+        "buyIdr": 1460190358000,
+        "sellIdr": 1762878447000,
+        "netIdr": -302688089000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 1100123277000,
-        "buyIdr": 752394393000,
-        "sellIdr": 1100123277000,
-        "netIdr": -347728884000
+        "value": 1164776148000,
+        "buyIdr": 846844510000,
+        "sellIdr": 1164776148000,
+        "netIdr": -317931638000
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 825514892000,
-        "buyIdr": 535385300000,
-        "sellIdr": 825514892000,
-        "netIdr": -290129592000
+        "value": 861258439000,
+        "buyIdr": 609104952000,
+        "sellIdr": 861258439000,
+        "netIdr": -252153487000
       },
       {
         "code": "XC",
         "origin": "local",
-        "value": 676352888000,
-        "buyIdr": 565952602000,
-        "sellIdr": 676352888000,
-        "netIdr": -110400286000
+        "value": 718252528000,
+        "buyIdr": 622838760000,
+        "sellIdr": 718252528000,
+        "netIdr": -95413768000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 605439059000,
-        "buyIdr": 390266165000,
-        "sellIdr": 605439059000,
-        "netIdr": -215172894000
+        "value": 638412262000,
+        "buyIdr": 427098129000,
+        "sellIdr": 638412262000,
+        "netIdr": -211314133000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 485549630000,
-        "buyIdr": 424001791000,
-        "sellIdr": 485549630000,
-        "netIdr": -61547839000
+        "value": 518044103000,
+        "buyIdr": 457252579000,
+        "sellIdr": 518044103000,
+        "netIdr": -60791524000
       },
       {
         "code": "TP",
         "origin": "foreign",
-        "value": 353992397000,
-        "buyIdr": 142952356000,
-        "sellIdr": 353992397000,
-        "netIdr": -211040041000
+        "value": 361882066000,
+        "buyIdr": 151947288000,
+        "sellIdr": 361882066000,
+        "netIdr": -209934778000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 235073145000,
-        "buyIdr": 161520483000,
-        "sellIdr": 235073145000,
-        "netIdr": -73552662000
+        "value": 244232493000,
+        "buyIdr": 170941026000,
+        "sellIdr": 244232493000,
+        "netIdr": -73291467000
       },
       {
         "code": "GR",
         "origin": "local",
-        "value": 149619914000,
-        "buyIdr": 88366680000,
-        "sellIdr": 149619914000,
-        "netIdr": -61253234000
+        "value": 162853939000,
+        "buyIdr": 99491893000,
+        "sellIdr": 162853939000,
+        "netIdr": -63362046000
       }
     ],
-    "netForeign": 1270308722000,
-    "totalMarketValue": 22119480683000,
+    "netForeign": 1066334735000,
+    "totalMarketValue": 22800048835000,
     "freeFloatShares": 70160299258.0812,
     "sharesOutstanding": 150043411587.0,
-    "referencePrice": 3190,
+    "referencePrice": 3150,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23",
+    "windowEnd": "2026-09-25",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -4827,18 +5045,34 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "CC",
         "origin": "local",
-        "value": 5163370000,
-        "buyIdr": 5163370000,
+        "value": 6093941000,
+        "buyIdr": 6093941000,
         "sellIdr": 0,
-        "netIdr": 5163370000
+        "netIdr": 6093941000
       },
       {
         "code": "PD",
         "origin": "local",
-        "value": 4245915000,
-        "buyIdr": 4245915000,
+        "value": 4745933600,
+        "buyIdr": 4745933600,
         "sellIdr": 0,
-        "netIdr": 4245915000
+        "netIdr": 4745933600
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 2963880900,
+        "buyIdr": 2963880900,
+        "sellIdr": 600000000,
+        "netIdr": 2363880900
+      },
+      {
+        "code": "SQ",
+        "origin": "local",
+        "value": 2807950000,
+        "buyIdr": 2807950000,
+        "sellIdr": 0,
+        "netIdr": 2807950000
       },
       {
         "code": "AK",
@@ -4849,126 +5083,110 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": 2731135000
       },
       {
-        "code": "XC",
-        "origin": "local",
-        "value": 2357380000,
-        "buyIdr": 2357380000,
-        "sellIdr": 600000000,
-        "netIdr": 1757380000
+        "code": "YP",
+        "origin": "foreign",
+        "value": 1850121700,
+        "buyIdr": 1850121700,
+        "sellIdr": 250000000,
+        "netIdr": 1600121700
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 1747135000,
-        "buyIdr": 1747135000,
-        "sellIdr": 135000,
-        "netIdr": 1747000000
-      },
-      {
-        "code": "SQ",
-        "origin": "local",
-        "value": 1687335000,
-        "buyIdr": 1687335000,
-        "sellIdr": 0,
-        "netIdr": 1687335000
-      },
-      {
-        "code": "YP",
-        "origin": "foreign",
-        "value": 1679090000,
-        "buyIdr": 1679090000,
-        "sellIdr": 250000000,
-        "netIdr": 1429090000
-      },
-      {
-        "code": "BK",
-        "origin": "foreign",
-        "value": 1555100000,
-        "buyIdr": 1555100000,
-        "sellIdr": 0,
-        "netIdr": 1555100000
+        "value": 1776018800,
+        "buyIdr": 1776018800,
+        "sellIdr": 344135000,
+        "netIdr": 1431883800
       },
       {
         "code": "DP",
         "origin": "foreign",
-        "value": 1100000000,
-        "buyIdr": 1100000000,
+        "value": 1753600000,
+        "buyIdr": 1753600000,
         "sellIdr": 0,
-        "netIdr": 1100000000
+        "netIdr": 1753600000
+      },
+      {
+        "code": "BK",
+        "origin": "foreign",
+        "value": 1715730100,
+        "buyIdr": 1715730100,
+        "sellIdr": 0,
+        "netIdr": 1715730100
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 939360000,
-        "buyIdr": 939360000,
-        "sellIdr": 0,
-        "netIdr": 939360000
+        "value": 1064223600,
+        "buyIdr": 1064223600,
+        "sellIdr": 17200,
+        "netIdr": 1064206400
       }
     ],
     "sellers": [
       {
         "code": "XL",
         "origin": "local",
-        "value": 10438635000,
-        "buyIdr": 6850815000,
-        "sellIdr": 10438635000,
-        "netIdr": -3587820000
+        "value": 11976260000,
+        "buyIdr": 7914202800,
+        "sellIdr": 11976260000,
+        "netIdr": -4062057200
       },
       {
         "code": "YB",
         "origin": "local",
         "value": 4765220000,
-        "buyIdr": 62350000,
+        "buyIdr": 66693000,
         "sellIdr": 4765220000,
-        "netIdr": -4702870000
+        "netIdr": -4698527000
+      },
+      {
+        "code": "MU",
+        "origin": "local",
+        "value": 3861310000,
+        "buyIdr": 9300,
+        "sellIdr": 3861310000,
+        "netIdr": -3861300700
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 3037145000,
-        "buyIdr": 781160000,
-        "sellIdr": 3037145000,
-        "netIdr": -2255985000
+        "value": 3623201900,
+        "buyIdr": 843515900,
+        "sellIdr": 3623201900,
+        "netIdr": -2779686000
       },
       {
         "code": "MG",
         "origin": "local",
-        "value": 2752365000,
-        "buyIdr": 500575000,
-        "sellIdr": 2752365000,
-        "netIdr": -2251790000
+        "value": 2952730000,
+        "buyIdr": 521030800,
+        "sellIdr": 2952730000,
+        "netIdr": -2431699200
       },
       {
         "code": "HD",
         "origin": "foreign",
         "value": 2604330000,
-        "buyIdr": 2530000,
+        "buyIdr": 2573000,
         "sellIdr": 2604330000,
-        "netIdr": -2601800000
-      },
-      {
-        "code": "MU",
-        "origin": "local",
-        "value": 2141310000,
-        "buyIdr": 5000,
-        "sellIdr": 2141310000,
-        "netIdr": -2141305000
+        "netIdr": -2601757000
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 2049395000,
-        "buyIdr": 67000000,
-        "sellIdr": 2049395000,
-        "netIdr": -1982395000
+        "value": 2187810700,
+        "buyIdr": 78495400,
+        "sellIdr": 2187810700,
+        "netIdr": -2109315300
       },
       {
         "code": "RB",
         "origin": "local",
-        "value": 1973120000,
-        "buyIdr": 10000,
-        "sellIdr": 1973120000,
-        "netIdr": -1973110000
+        "value": 2028461000,
+        "buyIdr": 15000,
+        "sellIdr": 2028461000,
+        "netIdr": -2028446000
       },
       {
         "code": "IU",
@@ -4981,151 +5199,151 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "PI",
         "origin": "local",
-        "value": 1216620000,
+        "value": 1245415000,
         "buyIdr": 505000,
-        "sellIdr": 1216620000,
-        "netIdr": -1216115000
+        "sellIdr": 1245415000,
+        "netIdr": -1244910000
       }
     ],
-    "netForeign": 8835535000,
-    "totalMarketValue": 37525690000,
+    "netForeign": 8872585000,
+    "totalMarketValue": 37919645000,
     "freeFloatShares": 921811314567.204,
     "sharesOutstanding": 1140573267220.0,
     "referencePrice": 50,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23"
+    "windowEnd": "2026-09-25"
   },
   "PGAS": {
     "buyers": [
       {
         "code": "XL",
         "origin": "local",
-        "value": 160819051000,
-        "buyIdr": 160819051000,
-        "sellIdr": 118143764000,
-        "netIdr": 42675287000
+        "value": 171743302500,
+        "buyIdr": 171743302500,
+        "sellIdr": 125852464000,
+        "netIdr": 45890838500
       },
       {
         "code": "ZP",
         "origin": "foreign",
-        "value": 121239552000,
-        "buyIdr": 121239552000,
-        "sellIdr": 83757336000,
-        "netIdr": 37482216000
+        "value": 132330234000,
+        "buyIdr": 132330234000,
+        "sellIdr": 86488524000,
+        "netIdr": 45841710000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 89829673000,
-        "buyIdr": 89829673000,
-        "sellIdr": 63583556500,
-        "netIdr": 26246116500
-      },
-      {
-        "code": "GR",
-        "origin": "local",
-        "value": 61587115000,
-        "buyIdr": 61587115000,
-        "sellIdr": 13923371500,
-        "netIdr": 47663743500
+        "value": 93887191500,
+        "buyIdr": 93887191500,
+        "sellIdr": 65651083000,
+        "netIdr": 28236108500
       },
       {
         "code": "CP",
         "origin": "foreign",
-        "value": 61417733500,
-        "buyIdr": 61417733500,
-        "sellIdr": 45059922000,
-        "netIdr": 16357811500
+        "value": 62096518500,
+        "buyIdr": 62096518500,
+        "sellIdr": 49342341500,
+        "netIdr": 12754177000
+      },
+      {
+        "code": "GR",
+        "origin": "local",
+        "value": 61952363000,
+        "buyIdr": 61952363000,
+        "sellIdr": 14374171000,
+        "netIdr": 47578192000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 46523019000,
-        "buyIdr": 46523019000,
-        "sellIdr": 29450291500,
-        "netIdr": 17072727500
+        "value": 47957122500,
+        "buyIdr": 47957122500,
+        "sellIdr": 31439576500,
+        "netIdr": 16517546000
       },
       {
         "code": "KK",
         "origin": "foreign",
-        "value": 33509296500,
-        "buyIdr": 33509296500,
-        "sellIdr": 20699324500,
-        "netIdr": 12809972000
+        "value": 34543947500,
+        "buyIdr": 34543947500,
+        "sellIdr": 21116156000,
+        "netIdr": 13427791500
       },
       {
         "code": "DH",
         "origin": "local",
-        "value": 23691419000,
-        "buyIdr": 23691419000,
-        "sellIdr": 13529605500,
-        "netIdr": 10161813500
+        "value": 28234506500,
+        "buyIdr": 28234506500,
+        "sellIdr": 13839793000,
+        "netIdr": 14394713500
       },
       {
         "code": "IH",
         "origin": "local",
         "value": 21528990000,
         "buyIdr": 21528990000,
-        "sellIdr": 4964271000,
-        "netIdr": 16564719000
+        "sellIdr": 6414271000,
+        "netIdr": 15114719000
       },
       {
         "code": "MG",
         "origin": "local",
-        "value": 15771326500,
-        "buyIdr": 15771326500,
-        "sellIdr": 2914869000,
-        "netIdr": 12856457500
+        "value": 15855386000,
+        "buyIdr": 15855386000,
+        "sellIdr": 2983631500,
+        "netIdr": 12871754500
       }
     ],
     "sellers": [
       {
         "code": "AK",
         "origin": "foreign",
-        "value": 287051149500,
-        "buyIdr": 262133072000,
-        "sellIdr": 287051149500,
-        "netIdr": -24918077500
+        "value": 309700183000,
+        "buyIdr": 271552961500,
+        "sellIdr": 309700183000,
+        "netIdr": -38147221500
       },
       {
         "code": "BK",
         "origin": "foreign",
-        "value": 155004230000,
-        "buyIdr": 74439118500,
-        "sellIdr": 155004230000,
-        "netIdr": -80565111500
+        "value": 160410045500,
+        "buyIdr": 75958522500,
+        "sellIdr": 160410045500,
+        "netIdr": -84451523000
       },
       {
         "code": "SQ",
         "origin": "local",
-        "value": 78647652000,
-        "buyIdr": 60322554500,
-        "sellIdr": 78647652000,
-        "netIdr": -18325097500
-      },
-      {
-        "code": "YU",
-        "origin": "foreign",
-        "value": 71811787000,
-        "buyIdr": 47722610500,
-        "sellIdr": 71811787000,
-        "netIdr": -24089176500
-      },
-      {
-        "code": "BB",
-        "origin": "foreign",
-        "value": 71371149000,
-        "buyIdr": 18101709000,
-        "sellIdr": 71371149000,
-        "netIdr": -53269440000
+        "value": 80069242500,
+        "buyIdr": 63639449000,
+        "sellIdr": 80069242500,
+        "netIdr": -16429793500
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 68378247000,
-        "buyIdr": 44638358500,
-        "sellIdr": 68378247000,
-        "netIdr": -23739888500
+        "value": 73863429000,
+        "buyIdr": 47089088500,
+        "sellIdr": 73863429000,
+        "netIdr": -26774340500
+      },
+      {
+        "code": "YU",
+        "origin": "foreign",
+        "value": 73414514000,
+        "buyIdr": 53483726500,
+        "sellIdr": 73414514000,
+        "netIdr": -19930787500
+      },
+      {
+        "code": "BB",
+        "origin": "foreign",
+        "value": 71887002500,
+        "buyIdr": 18126765000,
+        "sellIdr": 71887002500,
+        "netIdr": -53760237500
       },
       {
         "code": "KZ",
@@ -5138,18 +5356,18 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
       {
         "code": "AG",
         "origin": "foreign",
-        "value": 18288810500,
-        "buyIdr": 12396570500,
-        "sellIdr": 18288810500,
-        "netIdr": -5892240000
+        "value": 18440981500,
+        "buyIdr": 12761077000,
+        "sellIdr": 18440981500,
+        "netIdr": -5679904500
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 17399813000,
-        "buyIdr": 1998181000,
-        "sellIdr": 17399813000,
-        "netIdr": -15401632000
+        "value": 18101588500,
+        "buyIdr": 2148137000,
+        "sellIdr": 18101588500,
+        "netIdr": -15953451500
       },
       {
         "code": "SS",
@@ -5160,186 +5378,186 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -8664110500
       }
     ],
-    "netForeign": -128718050500,
-    "totalMarketValue": 1753236224000,
+    "netForeign": -132711232000,
+    "totalMarketValue": 1785856703000,
     "freeFloatShares": 10431363391.82076,
     "sharesOutstanding": 24241508196.0,
-    "referencePrice": 1440,
+    "referencePrice": 1430,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23"
+    "windowEnd": "2026-09-25"
   },
   "TLKM": {
     "buyers": [
       {
-        "code": "ZP",
-        "origin": "foreign",
-        "value": 1214287977000,
-        "buyIdr": 1214287977000,
-        "sellIdr": 949955064000,
-        "netIdr": 264332913000
-      },
-      {
         "code": "CC",
         "origin": "local",
-        "value": 1098870318000,
-        "buyIdr": 1098870318000,
-        "sellIdr": 750846245000,
-        "netIdr": 348024073000
+        "value": 1443603235000,
+        "buyIdr": 1443603235000,
+        "sellIdr": 861100771000,
+        "netIdr": 582502464000
+      },
+      {
+        "code": "ZP",
+        "origin": "foreign",
+        "value": 1340172716000,
+        "buyIdr": 1340172716000,
+        "sellIdr": 1131689788000,
+        "netIdr": 208482928000
       },
       {
         "code": "YU",
         "origin": "foreign",
-        "value": 549109283000,
-        "buyIdr": 549109283000,
-        "sellIdr": 409428517000,
-        "netIdr": 139680766000
+        "value": 566824274000,
+        "buyIdr": 566824274000,
+        "sellIdr": 440186633000,
+        "netIdr": 126637641000
       },
       {
         "code": "XL",
         "origin": "local",
-        "value": 448551955000,
-        "buyIdr": 448551955000,
-        "sellIdr": 358655067000,
-        "netIdr": 89896888000
-      },
-      {
-        "code": "RX",
-        "origin": "foreign",
-        "value": 411436788000,
-        "buyIdr": 411436788000,
-        "sellIdr": 328537761000,
-        "netIdr": 82899027000
+        "value": 522143419000,
+        "buyIdr": 522143419000,
+        "sellIdr": 374018568000,
+        "netIdr": 148124851000
       },
       {
         "code": "YP",
         "origin": "foreign",
-        "value": 329957274000,
-        "buyIdr": 329957274000,
-        "sellIdr": 274711474000,
-        "netIdr": 55245800000
+        "value": 381097026000,
+        "buyIdr": 381097026000,
+        "sellIdr": 288964753000,
+        "netIdr": 92132273000
       },
       {
         "code": "BB",
         "origin": "foreign",
-        "value": 250384776000,
-        "buyIdr": 250384776000,
-        "sellIdr": 139690738000,
-        "netIdr": 110694038000
+        "value": 274418724000,
+        "buyIdr": 274418724000,
+        "sellIdr": 169899443000,
+        "netIdr": 104519281000
+      },
+      {
+        "code": "XC",
+        "origin": "local",
+        "value": 214896173000,
+        "buyIdr": 214896173000,
+        "sellIdr": 168660323000,
+        "netIdr": 46235850000
       },
       {
         "code": "NI",
         "origin": "local",
-        "value": 158629675000,
-        "buyIdr": 158629675000,
-        "sellIdr": 112439797000,
-        "netIdr": 46189878000
+        "value": 179860568000,
+        "buyIdr": 179860568000,
+        "sellIdr": 118861674000,
+        "netIdr": 60998894000
       },
       {
         "code": "OD",
         "origin": "local",
-        "value": 140199986000,
-        "buyIdr": 140199986000,
-        "sellIdr": 98620153000,
-        "netIdr": 41579833000
+        "value": 168165309000,
+        "buyIdr": 168165309000,
+        "sellIdr": 105882038000,
+        "netIdr": 62283271000
       },
       {
         "code": "TP",
         "origin": "foreign",
-        "value": 92531876000,
-        "buyIdr": 92531876000,
-        "sellIdr": 33713515000,
-        "netIdr": 58818361000
+        "value": 98052299000,
+        "buyIdr": 98052299000,
+        "sellIdr": 36397341000,
+        "netIdr": 61654958000
       }
     ],
     "sellers": [
       {
-        "code": "AK",
-        "origin": "foreign",
-        "value": 1566810248000,
-        "buyIdr": 1454147852000,
-        "sellIdr": 1566810248000,
-        "netIdr": -112662396000
-      },
-      {
         "code": "BK",
         "origin": "foreign",
-        "value": 1279549172000,
-        "buyIdr": 942485546000,
-        "sellIdr": 1279549172000,
-        "netIdr": -337063626000
+        "value": 1379743428000,
+        "buyIdr": 1033527826000,
+        "sellIdr": 1379743428000,
+        "netIdr": -346215602000
       },
       {
         "code": "KZ",
         "origin": "foreign",
-        "value": 1053163119000,
-        "buyIdr": 241491233000,
-        "sellIdr": 1053163119000,
-        "netIdr": -811671886000
+        "value": 1271465087000,
+        "buyIdr": 248836683000,
+        "sellIdr": 1271465087000,
+        "netIdr": -1022628404000
       },
       {
-        "code": "SQ",
-        "origin": "local",
-        "value": 212555956000,
-        "buyIdr": 198561183000,
-        "sellIdr": 212555956000,
-        "netIdr": -13994773000
+        "code": "RX",
+        "origin": "foreign",
+        "value": 527821087000,
+        "buyIdr": 448932439000,
+        "sellIdr": 527821087000,
+        "netIdr": -78888648000
+      },
+      {
+        "code": "AG",
+        "origin": "foreign",
+        "value": 183136632000,
+        "buyIdr": 67327036000,
+        "sellIdr": 183136632000,
+        "netIdr": -115809596000
       },
       {
         "code": "DX",
         "origin": "local",
-        "value": 111058938000,
-        "buyIdr": 41324100000,
-        "sellIdr": 111058938000,
-        "netIdr": -69734838000
+        "value": 124285942000,
+        "buyIdr": 42476851000,
+        "sellIdr": 124285942000,
+        "netIdr": -81809091000
       },
       {
         "code": "DR",
         "origin": "foreign",
-        "value": 90310775000,
-        "buyIdr": 72193929000,
-        "sellIdr": 90310775000,
-        "netIdr": -18116846000
+        "value": 100726224000,
+        "buyIdr": 81073202000,
+        "sellIdr": 100726224000,
+        "netIdr": -19653022000
       },
       {
         "code": "HP",
         "origin": "local",
-        "value": 61894779000,
-        "buyIdr": 50949054000,
-        "sellIdr": 61894779000,
-        "netIdr": -10945725000
+        "value": 68590937000,
+        "buyIdr": 58677640000,
+        "sellIdr": 68590937000,
+        "netIdr": -9913297000
       },
       {
         "code": "BQ",
         "origin": "foreign",
-        "value": 52111171000,
-        "buyIdr": 34145502000,
-        "sellIdr": 52111171000,
-        "netIdr": -17965669000
+        "value": 55827967000,
+        "buyIdr": 36995226000,
+        "sellIdr": 55827967000,
+        "netIdr": -18832741000
       },
       {
         "code": "IF",
         "origin": "local",
-        "value": 27725458000,
-        "buyIdr": 8975609000,
-        "sellIdr": 27725458000,
-        "netIdr": -18749849000
+        "value": 30242848000,
+        "buyIdr": 9430744000,
+        "sellIdr": 30242848000,
+        "netIdr": -20812104000
       },
       {
         "code": "DP",
         "origin": "foreign",
         "value": 19877406000,
-        "buyIdr": 2406512000,
+        "buyIdr": 4756512000,
         "sellIdr": 19877406000,
-        "netIdr": -17470894000
+        "netIdr": -15120894000
       }
     ],
-    "netForeign": -733570463000,
-    "totalMarketValue": 9497037945000,
+    "netForeign": -930923761000,
+    "totalMarketValue": 10182833570000,
     "freeFloatShares": 41259413213.9,
     "sharesOutstanding": 99062216600.0,
-    "referencePrice": 2440,
+    "referencePrice": 2410,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-23",
+    "windowEnd": "2026-09-25",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -5455,13 +5673,26 @@ export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
       "holderName": "Morgan Stanley And Co International Plc",
       "holderType": "institution",
       "transactionType": "sell",
-      "sharesBefore": 81695133384,
-      "sharesAfter": 80302509784,
-      "sharesDelta": -1392623600,
-      "filedAt": "2026-09-16T13:40:49+07:00",
-      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-16092026-5380-00.pdf-0.pdf",
-      "transactionValue": 40386084400.0,
-      "price": 29.0
+      "sharesBefore": 80863391484,
+      "sharesAfter": 80413391484,
+      "sharesDelta": -450000000,
+      "filedAt": "2026-09-28T15:46:37+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-28092026-8273-00.pdf-0.pdf",
+      "transactionValue": 12150000000.0,
+      "price": 27.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "buy",
+      "sharesBefore": 80539349984,
+      "sharesAfter": 80939349984,
+      "sharesDelta": 400000000,
+      "filedAt": "2026-09-23T14:36:55+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-23092026-9638-00.pdf-0.pdf",
+      "transactionValue": 10800000000.0,
+      "price": 27.0
     },
     {
       "symbol": "GOTO",
@@ -5475,6 +5706,19 @@ export const institutionalFlows: Record<string, InstitutionalFlow[]> = {
       "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-16092026-5380-00.pdf-0.pdf",
       "transactionValue": 11760000000.0,
       "price": 28.0
+    },
+    {
+      "symbol": "GOTO",
+      "holderName": "Morgan Stanley And Co International Plc",
+      "holderType": "institution",
+      "transactionType": "sell",
+      "sharesBefore": 81695133384,
+      "sharesAfter": 80302509784,
+      "sharesDelta": -1392623600,
+      "filedAt": "2026-09-16T13:40:49+07:00",
+      "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-16092026-5380-00.pdf-0.pdf",
+      "transactionValue": 40386084400.0,
+      "price": 29.0
     },
     {
       "symbol": "GOTO",
@@ -6237,23 +6481,23 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Technology": -0.010155,
-  "Basic Materials": -0.010704,
-  "Financials": -0.014507,
-  "Consumer": 9.8e-05,
-  "Energy": -0.016683,
-  "Infrastructure": -0.042294
+  "Consumer": -0.006594,
+  "Infrastructure": -0.025137,
+  "Basic Materials": 0.014238,
+  "Energy": 0.000438,
+  "Technology": -0.019399,
+  "Financials": -0.003447
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Software & IT Services": -0.010155,
-  "Oil, Gas & Coal": -0.016683,
-  "Basic Materials": -0.010704,
-  "Transportation Infrastructure": -0.027778,
-  "Food & Beverage": -0.003534,
-  "Banks": -0.014507,
-  "Food & Staples Retailing": 0.007692,
-  "Telecommunication": -0.043325
+  "Food & Staples Retailing": 0.0,
+  "Software & IT Services": -0.019399,
+  "Food & Beverage": -0.009853,
+  "Basic Materials": 0.014238,
+  "Transportation Infrastructure": -0.018051,
+  "Banks": -0.003447,
+  "Telecommunication": -0.025634,
+  "Oil, Gas & Coal": 0.000438
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
@@ -6337,35 +6581,290 @@ export const revenueSegments: Record<string, Array<{ segment: string; share: num
 };
 
 export const betas: Record<string, number> = {
-  "ADRO": 0.71,
-  "AMRT": 0.82,
-  "ANTM": 1.04,
-  "BBCA": 0.75,
-  "BBRI": 1.01,
-  "BMRI": 0.8,
-  "BUKA": 1.3,
-  "EMTK": 1.66,
-  "EXCL": 1.33,
+  "ADRO": 0.69,
+  "AMRT": 0.79,
+  "ANTM": 1.03,
+  "BBCA": 0.73,
+  "BBRI": 1.0,
+  "BMRI": 0.83,
+  "BUKA": 1.29,
+  "EMTK": 1.7,
+  "EXCL": 1.36,
   "GOTO": 0.0,
-  "ICBP": 0.46,
-  "INCO": 1.27,
-  "JSMR": 0.81,
-  "MYOR": 0.63,
-  "PGAS": 0.61,
-  "PTBA": 1.02,
-  "TINS": 0.79,
-  "TLKM": 0.44
+  "ICBP": 0.49,
+  "INCO": 1.25,
+  "JSMR": 0.85,
+  "MYOR": 0.7,
+  "PGAS": 0.58,
+  "PTBA": 0.97,
+  "TINS": 0.81,
+  "TLKM": 0.43
 };
 
 export const rawEvents: RawEvent[] = [
   {
-    "id": "flows-foreign-net-antm-2026-09-23",
-    "title": "Arus asing neto ANTM Rp1,2T pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp1,2T ≈ 9,3% dari nilai transaksi Rp12,7T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "news-kan-batas-harga-jadi-rp-1-cek-support-berikutnya",
+    "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) Slumps 14% to Auto Rejection Bottom as IDX Lowers Floor Price to Rp 1",
+    "summary": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to the auto rejection bottom (ARB) at Rp 43 on Monday (28/9/2026), the first day the Indonesia Stock Exchange (IDX) applied the Rp 1 minimum share price (floor price), and closed at Rp…",
+    "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to the auto rejection bottom (ARB) at Rp 43 on Monday (28/9/2026), the first day the Indonesia Stock Exchange (IDX) applied the Rp 1 minimum share price (floor price), and closed at Rp 43. Mirae Asset Sekuritas Senior Market Analyst Nafan Aji Gusta said the decline reflects price discovery and technical pressure rather than deteriorating fundamentals, with support seen at Rp 36-Rp 27 per share. GOTO's fundamentals improved, posting a net profit of Rp 252 billion, net revenue of Rp 5.7 trillion, and adjusted EBITDA of Rp 1.01 trillion in Q2-2026, and a net profit of Rp 423 billion with adjusted EBITDA of Rp 1,917 trillion in the first half of 2026. He advised existing holders to reassess risk profiles and prospective investors to wait and see for new support levels and consistent buying accumulation before considering bottom fishing.",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T17:26:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Adverse",
+        "relevance": 88,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Government Policy, Market Sentiment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/saham-goto-tertekan-usai-bei-turunkan-batas-harga-jadi-rp-1-cek-support-berikutnya",
+    "tags": [
+      "Bearish",
+      "Government Policy",
+      "Market Sentiment"
+    ]
+  },
+  {
+    "id": "news-k-1-dan-dolar-as-nyaris-rp-18000-ini-penyebabnya",
+    "title": "IHSG Plunges 1.51% and Rupiah Nears Rp18,000/US$ as Fed Rate Hike and BEI Rule Changes Weigh on Markets",
+    "summary": "Indonesian financial markets weakened in tandem on Monday (28/9/2026), with the Jakarta Composite Index (IHSG) falling 1.51%, or 94 points, to 6,147.86, while the rupiah depreciated 0.53% to Rp17,965/US$, just 35 points from the…",
+    "body": "Indonesian financial markets weakened in tandem on Monday (28/9/2026), with the Jakarta Composite Index (IHSG) falling 1.51%, or 94 points, to 6,147.86, while the rupiah depreciated 0.53% to Rp17,965/US$, just 35 points from the psychological level of Rp18,000/US$. All sectors declined, with the deepest corrections in consumer non-primaries, property, and technology, and the smallest in energy; 532 stocks fell, 180 rose, and 81 were unchanged, with total transactions of Rp12.58 trillion. Top index drags included PT GoTo Gojek Tokopedia Tbk (GOTO), PT Amman Mineral Internasional Tbk (AMMN), and PT Bumi Resources Minerals Tbk (BRMS). The rupiah's weakness was driven by a strengthening US dollar after the Federal Reserve raised rates 25 basis points to 3.75%-4.00%, with Bank Indonesia Governor Destry Damayanti citing high global inflation of 4.6% and oil prices reaching US$125.53 per barrel on 24 September 2026. The IHSG decline also came as the Indonesia Stock Exchange (BEI) lowered the minimum stock trading price from Rp50 to Rp1 per share in the regular and cash markets, effective 28 September 2026, while adjusting Auto Rejection Top (ARA) and Auto Rejection Bottom (ARB) limits, retaining an asymmetric 15% ARB for equities above Rp10 until 31 December 2026 and setting ARA/ARB at Rp1 for stocks priced Rp1-Rp10.",
+    "category": "rates",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T17:17:19+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Adverse",
+        "relevance": 76,
+        "path": "Suku bunga → biaya dana dan yield aset → margin bunga",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Central Bank, Currency & FX, Interest Rate, Politics & Regulation pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.cnbcindonesia.com/market/20260928161806-17-771517/ihsg-anjlok-1-dan-dolar-as-nyaris-rp-18000-ini-penyebabnya",
+    "tags": [
+      "Bearish",
+      "Central Bank",
+      "Currency & FX",
+      "Interest Rate",
+      "Politics & Regulation"
+    ]
+  },
+  {
+    "id": "news-iri-1-miliar-lot-jual-morgan-stanley-juga-jualan",
+    "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) Hits Auto Reject Bottom on First Day After Rp50 Floor Removal as Sell Queue Reaches 1.03 Billion Lots",
+    "summary": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to Rp43 on Monday (28/9/2026), hitting Auto Reject Bottom (ARB) on the first trading day after the Indonesia Stock Exchange removed the Rp50 minimum price floor. The sell queue at Rp43…",
+    "body": "Shares of PT GoTo Gojek Tokopedia Tbk (GOTO) fell 14% to Rp43 on Monday (28/9/2026), hitting Auto Reject Bottom (ARB) on the first trading day after the Indonesia Stock Exchange removed the Rp50 minimum price floor. The sell queue at Rp43 piled up to 103,583,225,300 shares, equivalent to 1.03 billion lots, while the bid column was empty. The pressure coincided with a divestment by major shareholder Morgan Stanley And Co International Plc, which sold 450 million GOTO shares in a negotiated market transaction on 23 September 2026 at Rp27 per share, worth about Rp12.15 billion. Following the transaction, Morgan Stanley's holdings fell from 80.86 billion to 80.41 billion shares, reducing its ownership from 7,0233% to 6,9842%. GOTO was previously pressured to the Rp50 floor price on 5 May 2026 amid new ride-hailing regulations and commission-cap discussions, and the IDX stated it is one of 69 stocks now trading below Rp50 as it seeks a new equilibrium price.",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T17:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Adverse",
+        "relevance": 88,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Market Sentiment, Ownership, Politics & Regulation, Suspension pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://emitennews.com/news/goto-arb-day-1-dibanjiri-1-miliar-lot-jual-morgan-stanley-juga-jualan",
+    "tags": [
+      "Bearish",
+      "Market Sentiment",
+      "Ownership",
+      "Politics & Regulation",
+      "Suspension"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-28092026-8273-00-pdf-0-pdf",
+    "title": "Morgan Stanley And Co International Plc sells shares of GoTo Gojek Tokopedia",
+    "summary": "Morgan Stanley And Co International Plc's disposal of GOTO shares is part of a larger exposure reduction that sees the firm trimming position across 3 companies in the last 6 months. Alongside GOTO, the firm has also disposed shares of…",
+    "body": "Morgan Stanley And Co International Plc's disposal of GOTO shares is part of a larger exposure reduction that sees the firm trimming position across 3 companies in the last 6 months. Alongside GOTO, the firm has also disposed shares of AMRT and CTRA, totaling IDR 13,896,762,000 across all disposals in this period.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-28T15:46:37+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini divestment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-28092026-8273-00.pdf-0.pdf",
+    "tags": [
+      "divestment"
+    ]
+  },
+  {
+    "id": "news-antm-gali-laba-lebih-dalam-ada-target-harga-baru",
+    "title": "MNC Sekuritas Raises PT Antam Tbk (ANTM) 2026 Net Profit Projection and Sets New Price Target",
+    "summary": "MNC Sekuritas raised its 2026 net profit projection for PT Antam Tbk (ANTM) to Rp 9.2 trillion from Rp 8.9 trillion, followed by a higher price target. Antam's H1-2026 net profit jumped 36% year-on-year to Rp 6.4 trillion, reaching 71.4%…",
+    "body": "MNC Sekuritas raised its 2026 net profit projection for PT Antam Tbk (ANTM) to Rp 9.2 trillion from Rp 8.9 trillion, followed by a higher price target. Antam's H1-2026 net profit jumped 36% year-on-year to Rp 6.4 trillion, reaching 71.4% of MNC Sekuritas' projection and 62.3% of consensus, while Q2-2026 net profit of Rp 3 trillion fell 12.5% quarter-on-quarter but grew 16.2% year-on-year, with net profit margin easing to 8.9% from 11.6% on weakening gold prices. The broker cut Antam's 2026 gold sales volume estimate by 9.5% to 36.2 tons but raised the average selling price assumption to US$4,535 per ounce from US$4,205. Supporting factors include an additional 900,000-ton nickel ore quota, bringing estimated 2026 total quota to 19 million tons, and the Mempawah smelter grade alumina (SGA) facility reaching 100% utilization in June 2026 with a 2026 production target of 700,000 tons versus 350,000 tons realized in H1.",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T14:34:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Commodities, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455791/antam-antm-gali-laba-lebih-dalam-ada-target-harga-baru",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Commodities",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-nvestor-id-market-455728-perubahan-dramatis-bbca",
+    "title": "PT Bank Central Asia Tbk (BBCA) records net foreign buying of IDR 103.17 bn after weeks of net selling",
+    "summary": "PT Bank Central Asia Tbk (BBCA) experienced a dramatic reversal in foreign investor flow, posting a net foreign buy of IDR 103.17 bn on 25 Sept 2026 after a prior net sell of IDR 2.59 tn during 9‑23 Sept and a monthly net sell of IDR 1.52…",
+    "body": "PT Bank Central Asia Tbk (BBCA) experienced a dramatic reversal in foreign investor flow, posting a net foreign buy of IDR 103.17 bn on 25 Sept 2026 after a prior net sell of IDR 2.59 tn during 9‑23 Sept and a monthly net sell of IDR 1.52 tn for September. UOB Kay Hian Sekuritas kept a buy rating with a target price of IDR 8,150 (≈30% upside), citing solid funding, capital and liquidity, while BBCA reported August 2026 net profit of IDR 4.92 tn (+13.1% YoY), cumulative profit of IDR 40.17 tn (+2.85%), forecasts profit of IDR 60 tn in 2026 and IDR 65 tn in 2027 with dividend yields of 5.7% and 6.1% respectively, and denied social‑media rumors of an acquisition.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T05:52:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Capital & Funding, Dividend Announcement, Financial Metrics, Ownership pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455728/perubahan-dramatis-bbca",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Capital & Funding",
+      "Dividend Announcement",
+      "Financial Metrics",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-ket-455662-bmri-dan-bbni-kompak-jadi-saham-murah",
+    "title": "BMRI and BBNI flagged as cheap stocks by BRI Danareksa",
+    "summary": "PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI) are highlighted as cheap big‑cap stocks, with trailing‑twelve‑months PE ratios of 6.1× and 6.3× respectively, closing at Rp 4,080 (+0.25%) and Rp 3,500 (‑0.5%) on 25 Sep…",
+    "body": "PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI) are highlighted as cheap big‑cap stocks, with trailing‑twelve‑months PE ratios of 6.1× and 6.3× respectively, closing at Rp 4,080 (+0.25%) and Rp 3,500 (‑0.5%) on 25 Sep 2026 and having slipped about 4 % over the prior week. BRI Danareksa Sekuritas also maintains an overweight view on the banking sector, recommends PT Bank Central Asia Tbk (BBCA) as the top pick due to a solid net interest margin and a roughly 50 % savings‑account share, and projects aggregate bank net‑profit growth of 4 % annually in 2026, down from 11 % in H1 2026.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-27T10:41:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Supported",
+        "relevance": 84,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455662/bmri-dan-bbni-kompak-jadi-saham-murah",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish"
+    ]
+  },
+  {
+    "id": "news-r-id-market-455653-saham-murah-emiten-boy-thohir",
+    "title": "PT Alamtri Resources Indonesia Tbk (ADRO) highlighted as a cheap big‑cap stock linked to Boy Thohir",
+    "summary": "The article spotlights PT Alamtri Resources Indonesia Tbk (ADRO) as a low‑priced big‑cap stock associated with Garibaldi “Boy” Thohir. It notes a trailing‑twelve‑months PE of 7.6× and a closing price of Rp 2,600 on 25 September 2026, with…",
+    "body": "The article spotlights PT Alamtri Resources Indonesia Tbk (ADRO) as a low‑priced big‑cap stock associated with Garibaldi “Boy” Thohir. It notes a trailing‑twelve‑months PE of 7.6× and a closing price of Rp 2,600 on 25 September 2026, with the share up 1.5% that day but down 1.5% over the prior week and 1.1% over the month, while YTD performance rose 43.6%. Financially, ADRO reported H1‑2026 revenue of US$999 million (+16.5% YoY), EBITDA of US$491 million (+56.8% YoY) and net profit of US$309 million (+76.9% YoY). The article also records a foreign net‑sell of Rp 78.3 billion during the week of 21‑25 September 2026 and identifies Garibaldi Thohir, Christian Ariano Rachmat, Michael WP Soeryadjaya and Arini Saraswaty Subianto as the individual beneficial owners of ADRO.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-27T06:01:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Ekspektasi analis → asumsi valuasi → multiple",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Ownership pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455653/saham-murah-emiten-boy-thohir",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-612-saham-bank-central-asia-bbca-kembali-disorot",
+    "title": "Bank Central Asia (PT Bank Central Asia Tbk (BBCA)) stock again draws investor focus",
+    "summary": "PT Bank Central Asia Tbk (BBCA) saw a foreign net buy of Rp 103.17 billion on 25 September 2026, lifting the share price 0.40% to Rp 6,250 with a volume of 89.45 million shares. UOB Kay Hian Sekuritas maintained a buy rating, setting a…",
+    "body": "PT Bank Central Asia Tbk (BBCA) saw a foreign net buy of Rp 103.17 billion on 25 September 2026, lifting the share price 0.40% to Rp 6,250 with a volume of 89.45 million shares. UOB Kay Hian Sekuritas maintained a buy rating, setting a target price of Rp 8,150 (≈30% upside) and citing solid funding, capital and liquidity, while reporting August 2026 net profit of Rp 4.92 trillion (+13.1% YoY) and forecasting 2026‑2027 profits of Rp 60 trillion and Rp 65 trillion with dividend yields of 5.7% and 6.1%. The bank also refuted social‑media rumors of an acquisition by Andi Syamsuddin Arsyad (Haji Isam), confirming no corporate action plans.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-26T11:41:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455612/saham-bank-central-asia-bbca-kembali-disorot",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish"
+    ]
+  },
+  {
+    "id": "news-ton-emas-freeport-semester-i-catat-sales-rp50-t",
+    "title": "PT Aneka Tambang Tbk (ANTM) reports 9‑ton gold purchase from Freeport and semester‑I sales of Rp50.39 trillion",
+    "summary": "PT Aneka Tambang Tbk (ANTM) bought 9 tonnes of gold from PT Freeport Indonesia between January and August 2026 to strengthen domestic supply. In the first half of 2026, ANTAM sold 18.08 tonnes of gold generating Rp50.39 trillion, about 80%…",
+    "body": "PT Aneka Tambang Tbk (ANTM) bought 9 tonnes of gold from PT Freeport Indonesia between January and August 2026 to strengthen domestic supply. In the first half of 2026, ANTAM sold 18.08 tonnes of gold generating Rp50.39 trillion, about 80% of its Rp62.71 trillion net sales, a 1% year‑on‑year increase, while its own gold production was 433 kg.",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T22:16:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Asset Purchase, Bullish, Business Expansion, Commodities pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.bloombergtechnoz.com/detail-news/122766/antam-serap-9-ton-emas-freeport-semester-i-catat-sales-rp50-t",
+    "tags": [
+      "Asset Purchase",
+      "Bullish",
+      "Business Expansion",
+      "Commodities"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-antm-2026-09-25",
+    "title": "Arus asing neto ANTM Rp1,1T pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp1,1T ≈ 8,5% dari nilai transaksi Rp13,1T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Basic Materials",
     "impactLinks": [
       {
@@ -6373,7 +6872,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Supported",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing ANTM Rp1,2T pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing ANTM Rp1,1T pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6382,13 +6881,13 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-bbca-2026-09-23",
-    "title": "Arus asing neto BBCA Rp-806,1M pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp-806,1M ≈ 3,2% dari nilai transaksi Rp25,5T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "flows-foreign-net-bbca-2026-09-25",
+    "title": "Arus asing neto BBCA Rp-696,0M pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp-696,0M ≈ 2,6% dari nilai transaksi Rp26,5T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Financials",
     "impactLinks": [
       {
@@ -6396,7 +6895,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Adverse",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing BBCA Rp-806,1M pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBCA Rp-696,0M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6405,13 +6904,13 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-bbri-2026-09-23",
-    "title": "Arus asing neto BBRI Rp1,3T pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp1,3T ≈ 5,7% dari nilai transaksi Rp22,1T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "flows-foreign-net-bbri-2026-09-25",
+    "title": "Arus asing neto BBRI Rp1,1T pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp1,1T ≈ 4,7% dari nilai transaksi Rp22,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Financials",
     "impactLinks": [
       {
@@ -6419,7 +6918,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Supported",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing BBRI Rp1,3T pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBRI Rp1,1T pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6428,13 +6927,13 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-goto-2026-09-23",
-    "title": "Arus asing neto GOTO Rp8,8M pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp8,8M ≈ 23,5% dari nilai transaksi Rp37,5M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "flows-foreign-net-goto-2026-09-25",
+    "title": "Arus asing neto GOTO Rp8,9M pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp8,9M ≈ 23,4% dari nilai transaksi Rp37,9M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Technology",
     "impactLinks": [
       {
@@ -6442,7 +6941,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Supported",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing GOTO Rp8,8M pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing GOTO Rp8,9M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6451,13 +6950,13 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-pgas-2026-09-23",
-    "title": "Arus asing neto PGAS Rp-128,7M pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp-128,7M ≈ 7,3% dari nilai transaksi Rp1,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "flows-foreign-net-pgas-2026-09-25",
+    "title": "Arus asing neto PGAS Rp-132,7M pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp-132,7M ≈ 7,4% dari nilai transaksi Rp1,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Energy",
     "impactLinks": [
       {
@@ -6465,7 +6964,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Adverse",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-128,7M pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-132,7M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6474,13 +6973,13 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "flows-foreign-net-tlkm-2026-09-23",
-    "title": "Arus asing neto TLKM Rp-733,6M pada jendela 2026-08-03–2026-09-23",
-    "summary": "Neto asing Rp-733,6M ≈ 7,7% dari nilai transaksi Rp9,5T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "id": "flows-foreign-net-tlkm-2026-09-25",
+    "title": "Arus asing neto TLKM Rp-930,9M pada jendela 2026-08-03–2026-09-25",
+    "summary": "Neto asing Rp-930,9M ≈ 9,1% dari nilai transaksi Rp10,2T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
     "body": null,
     "category": "flows",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Infrastructure",
     "impactLinks": [
       {
@@ -6488,7 +6987,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Adverse",
         "relevance": 80,
         "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-733,6M pada jendela 2026-08-03–2026-09-23. Fakta arus; bukan atribusi niat pembeli/penjual."
+        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-930,9M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
       }
     ],
     "source": null,
@@ -6497,13 +6996,59 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "sentiment-attention-bbca-2026-09-23",
-    "title": "Lonjakan liputan BBCA: 9 berita 7 hari terakhir (vs 4 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 9 item BBCA pada 2026-09-17–2026-09-23 vs 4 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "id": "sentiment-attention-adro-2026-09-25",
+    "title": "Lonjakan liputan ADRO: 9 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 9 item ADRO pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
     "body": null,
     "category": "sentiment",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk ADRO: 9 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-antm-2026-09-25",
+    "title": "Lonjakan liputan ANTM: 10 berita 7 hari terakhir (vs 3 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 10 item ANTM pada 2026-09-19–2026-09-25 vs 3 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk ANTM: 10 vs 3 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bbca-2026-09-25",
+    "title": "Lonjakan liputan BBCA: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BBCA pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Financials",
     "impactLinks": [
       {
@@ -6511,7 +7056,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Unverified",
         "relevance": 55,
         "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk BBCA: 9 vs 4 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+        "rationale": "Hitungan rekaman Sectors news untuk BBCA: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
       }
     ],
     "source": null,
@@ -6520,13 +7065,105 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "sentiment-attention-tlkm-2026-09-23",
-    "title": "Lonjakan liputan TLKM: 9 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 9 item TLKM pada 2026-09-17–2026-09-23 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "id": "sentiment-attention-bbri-2026-09-25",
+    "title": "Lonjakan liputan BBRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BBRI pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
     "body": null,
     "category": "sentiment",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T16:15:00+07:00",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BBRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bmri-2026-09-25",
+    "title": "Lonjakan liputan BMRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BMRI pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BMRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-goto-2026-09-25",
+    "title": "Lonjakan liputan GOTO: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item GOTO pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk GOTO: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-inco-2026-09-25",
+    "title": "Lonjakan liputan INCO: 5 berita 7 hari terakhir (vs 1 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 5 item INCO pada 2026-09-19–2026-09-25 vs 1 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk INCO: 5 vs 1 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-tlkm-2026-09-25",
+    "title": "Lonjakan liputan TLKM: 16 berita 7 hari terakhir (vs 2 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 16 item TLKM pada 2026-09-19–2026-09-25 vs 2 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T16:15:00+07:00",
     "sector": "Infrastructure",
     "impactLinks": [
       {
@@ -6534,7 +7171,7 @@ export const rawEvents: RawEvent[] = [
         "direction": "Unverified",
         "relevance": 55,
         "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 9 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 16 vs 2 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
       }
     ],
     "source": null,
@@ -6543,108 +7180,361 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-pus-32-18-miliar-saham-tresuri-buyback-berlanjut",
-    "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) seeks shareholder approval to cancel 32.18 billion treasury shares, with buyback program continuing",
-    "summary": "PT GoTo Gojek Tokopedia Tbk (GOTO) is requesting shareholder approval at an extraordinary general meeting on 14 October 2026 to cancel approximately 32.18 billion treasury shares, representing 80.89% of its total treasury holdings of 39.78…",
-    "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) is requesting shareholder approval at an extraordinary general meeting on 14 October 2026 to cancel approximately 32.18 billion treasury shares, representing 80.89% of its total treasury holdings of 39.78 billion shares. The treasury shares were acquired through a buyback program from 12 June 2024 to 11 June 2025 that cost Rp2.09 trillion, and the company plans to eliminate them via a capital reduction rather than the previously intended ESOP/MSOP allocation. PT GoTo Gojek Tokopedia Tbk (GOTO) also announced that a further buyback of up to Rp3.5 trillion will be carried out from 19 June 2026 to 18 June 2027, funded from internal resources and not from public offerings or debt. The cancellation is expected to increase earnings per share, and the meeting will also consider the resignation of Vice President Director Catherine Hindra Sutjahyo.",
+    "id": "news-market-455514-dividen-bbca-setelah-laba-melesat",
+    "title": "BBCA dividend outlook improves as profit surges",
+    "summary": "The article discusses the dividend outlook for PT Bank Central Asia Tbk (BBCA) following a sharp rise in earnings in August 2026. UOB Kay Hian Sekuritas reports that BBCA’s net interest margin increased to 5.7% in August from 5.3% in the…",
+    "body": "The article discusses the dividend outlook for PT Bank Central Asia Tbk (BBCA) following a sharp rise in earnings in August 2026. UOB Kay Hian Sekuritas reports that BBCA’s net interest margin increased to 5.7% in August from 5.3% in the first half of the year, while the corporate loan yield rose to 7.4% from 6.7‑6.8% in April, and the bank maintains its NIM guidance of 5.4‑5.6%. The bank’s loan‑to‑deposit ratio stands at 81% supported by a CASA ratio of 85.5%, giving it room to be selective in credit extension and potentially raise dividends.",
     "category": "company",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T10:20:00+07:00",
-    "sector": "Technology",
+    "publishedAt": "2026-09-25T15:40:00+07:00",
+    "sector": "Financials",
     "impactLinks": [
       {
-        "symbol": "GOTO",
+        "symbol": "BBCA",
         "direction": "Supported",
-        "relevance": 90,
-        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Executive Changes, Shareholders General Meeting, Stock Buyback pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+        "relevance": 88,
+        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Dividend Announcement pada dimensi dividend. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/122408/goto-mau-hapus-32-18-miliar-saham-tresuri-buyback-berlanjut",
+    "source": "https://investor.id/market/455514/dividen-bbca-setelah-laba-melesat-",
     "tags": [
       "Bullish",
-      "Executive Changes",
-      "Shareholders General Meeting",
-      "Stock Buyback"
+      "Dividend Announcement"
     ]
   },
   {
-    "id": "news-esa-merah-putih-menekan-profitabilitas-bank-bumn",
-    "title": "CreditSights: Village Co‑op Loan Program Pressures Profitability of Bank Mandiri and Bank Negara Indonesia (BNI)",
-    "summary": "CreditSights finds the Village Co‑op Loan Program (KDMP) is likely to pressure the profitability of Bank Mandiri and Bank Negara Indonesia (BNI), the state‑owned banks ('perbankan BUMN') involved. Both banks have each extended about Rp55…",
-    "body": "CreditSights finds the Village Co‑op Loan Program (KDMP) is likely to pressure the profitability of Bank Mandiri and Bank Negara Indonesia (BNI), the state‑owned banks ('perbankan BUMN') involved. Both banks have each extended about Rp55 trillion to PT Agrinas Pangan Nusantara, representing roughly 3 % of Bank Mandiri’s and 6 % of BNI’s gross loan portfolios, and the KDMP loan carries a net interest margin of about 1.4 % versus 4.4 % for Bank Mandiri and 3.6 % for BNI in Q2‑2026. The KDMP loan’s return on assets is estimated at 0.7 % compared with 2.1 % for Bank Mandiri and 1.4 % for BNI, making the loan dilutive to both banks’ margins and ROA. CreditSights notes that while direct credit‑risk is low due to government repayment mechanisms, the low‑yield lending could slow credit‑growth to low‑teens in H2‑2026 and pressure earnings despite strong capital positions.",
-    "category": "policy",
+    "id": "news-turun-ke-6200-asing-net-sell-jumbo-10-saham-ini",
+    "title": "IHSG falls to 6,298.61 as foreign investors net sell Rp1.49 trillion across ten stocks, led by PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) and PT…",
+    "summary": "On Thursday 24 September 2026, the Jakarta Composite Index (IHSG) closed at 6,298.61, down 1.20%, as foreign investors recorded a net sell of Rp1.49 trillion, comprising Rp1.42 trillion in the regular market and Rp71.85 billion in the…",
+    "body": "On Thursday 24 September 2026, the Jakarta Composite Index (IHSG) closed at 6,298.61, down 1.20%, as foreign investors recorded a net sell of Rp1.49 trillion, comprising Rp1.42 trillion in the regular market and Rp71.85 billion in the negotiation and cash market. The largest outflows were in PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) with Rp141.17 billion and PT Bumi Resources Tbk (BUMI) with Rp74.90 billion, placing them among the ten most heavily sold stocks that pressured the market.",
+    "category": "company",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T10:15:00+07:00",
+    "publishedAt": "2026-09-25T09:24:24+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Adverse",
+        "relevance": 82,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini Bearish, Foreign Investment, Market Sentiment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.cnbcindonesia.com/market/20260925083429-17-770792/ihsg-turun-ke-6200-asing-net-sell-jumbo-10-saham-ini",
+    "tags": [
+      "Bearish",
+      "Foreign Investment",
+      "Market Sentiment"
+    ]
+  },
+  {
+    "id": "news-rugi-kurs-biaya-bahan-baku-saham-disarankan-hold",
+    "title": "Indofood CBP (ICBP) profit pressured by foreign-exchange losses and raw-material costs, stock recommended Hold",
+    "summary": "Indofood CBP (ICBP) posted revenue of Rp 41.9 trillion in the first half of 2026, up 11.3% YoY, but net profit fell 33.1% to Rp 3.7 trillion as gross and operating margins narrowed to 34.3% and 21.9% amid a Rp 2.95 trillion…",
+    "body": "Indofood CBP (ICBP) posted revenue of Rp 41.9 trillion in the first half of 2026, up 11.3% YoY, but net profit fell 33.1% to Rp 3.7 trillion as gross and operating margins narrowed to 34.3% and 21.9% amid a Rp 2.95 trillion foreign‑exchange loss and high wheat (US$ 714 per bushel) and CPO (MYR 4,898 per ton) prices. MNC Sekuritas kept a Hold rating, citing limited pricing power despite strong volume growth, and set a target price of Rp 7,500 per share, implying a 2026 PE of about 10.5× and PBV of 1.1×. The firm also raised its 2026‑27 revenue outlook to Rp 80.1 trillion and Rp 84.6 trillion respectively, while cutting 2026‑27 net‑profit forecasts to Rp 8.3 trillion and Rp 9.7 trillion.",
+    "category": "currency",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T09:17:00+07:00",
+    "sector": "Consumer",
+    "impactLinks": [
+      {
+        "symbol": "ICBP",
+        "direction": "Adverse",
+        "relevance": 90,
+        "path": "Kurs → biaya input dan pendapatan valuta → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bearish, Commodities, Currency & FX, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/laba-indofood-cbp-icbp-tertekan-rugi-kurs-biaya-bahan-baku-saham-disarankan-hold",
+    "tags": [
+      "Analyst Ratings",
+      "Bearish",
+      "Commodities",
+      "Currency & FX",
+      "Financial Metrics"
+    ]
+  },
+  {
+    "id": "news-455439-saham-bank-mandiri-bmri-diamdiam-diserok",
+    "title": "PT Bank Mandiri Tbk (BMRI) Stock Quietly Shorted",
+    "summary": "PT Bank Mandiri Tbk (BMRI), the issuer of the shares, fell 2.66% to Rp 4,070 on 24 September 2026 as foreign investors recorded a net sell of Rp 531.94 billion. Domestic brokers Mandiri Sekuritas and Stockbit Sekuritas together logged a…",
+    "body": "PT Bank Mandiri Tbk (BMRI), the issuer of the shares, fell 2.66% to Rp 4,070 on 24 September 2026 as foreign investors recorded a net sell of Rp 531.94 billion. Domestic brokers Mandiri Sekuritas and Stockbit Sekuritas together logged a net purchase of about Rp 221.4 billion, while trading volume reached 182.06 million shares (value Rp 748.06 billion). KB Valbury Sekuritas analyst Akhmad Nurcahyadi projects 3Q26 net profit of Rp 13.46 trillion (below consensus of Rp 13.97 trillion) and expects cumulative 9-month profit growth of 16.3% YoY, supported by 17.6% credit and DPK growth, 8.2% CASA increase, cost of credit 0.5%, and ROE 21.6%. The broker maintains a buy recommendation with a target price of Rp 5,660, implying a 2026 price-to-book ratio of 1.8x versus the current 1.4x.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-25T05:30:00+07:00",
     "sector": "Financials",
     "impactLinks": [
       {
         "symbol": "BMRI",
-        "direction": "Adverse",
+        "direction": "Supported",
         "relevance": 90,
-        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Credit, Financial Metrics, Government Policy, Risk & Compliance pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Domestic Investor, Financial Metrics, Foreign Investment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
-    "source": "https://keuangan.kontan.co.id/news/creditsights-kredit-koperasi-desa-merah-putih-menekan-profitabilitas-bank-bumn",
+    "source": "https://investor.id/market/455439/saham-bank-mandiri-bmri-diamdiam-diserok",
     "tags": [
-      "Bearish",
-      "Credit",
+      "Analyst Ratings",
+      "Bullish",
+      "Domestic Investor",
       "Financial Metrics",
-      "Government Policy",
-      "Risk & Compliance"
+      "Foreign Investment"
     ]
   },
   {
-    "id": "news-ws-122396-bukti-bahwa-saham-bbri-layak-dikoleksi",
-    "title": "PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) posts strong H1 2026 earnings and receives buy ratings with target prices near IDR 4,000",
-    "summary": "PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) delivered solid first‑half 2026 results, posting net profit of Rp 31.18 trillion, up 17.5% YoY, and credit disbursements rising 16.2% YoY with corporate and commercial loan growth of 47.1% and…",
-    "body": "PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) delivered solid first‑half 2026 results, posting net profit of Rp 31.18 trillion, up 17.5% YoY, and credit disbursements rising 16.2% YoY with corporate and commercial loan growth of 47.1% and 58.1% respectively. Asset quality improved as the gross non‑performing loan ratio fell to 2.9% from 3.1% and the risk‑weighted asset ratio (LAR) declined to 9.1% from 10.8%. Kiwoom Sekuritas Indonesia and Maybank Sekuritas Indonesia each issued buy recommendations, setting 12‑month target prices of IDR 4,000 and IDR 3,900 respectively, implying upside of roughly 26% and 22% from the recent closing price of IDR 3,180. Bloomberg’s consensus of 33 analysts also favours a buy stance, with a median target price of IDR 3,856.83 and an implied upside of more than 21%, while management projects credit growth of 8‑10% and a net interest margin of 7.4‑7.8% for 2026.",
+    "id": "news-mber-cuan-baru-andy-hakim-hingga-daya-tahan-cdia",
+    "title": "Popular news roundup: Andy Hakim’s stake in PT Guna Timur Raya Tbk (TRUK), PT NexAI Digital Infrastruktur Tbk (MGLV)’s loan facility, PT Chandra Daya…",
+    "summary": "The article compiles the day’s most popular financial news, covering several corporate actions. Hakimson Growth Capital bought 5 % (21.75 million shares) of PT Guna Timur Raya Tbk (TRUK) at Rp 428 per share, a total of about Rp 9.3…",
+    "body": "The article compiles the day’s most popular financial news, covering several corporate actions. Hakimson Growth Capital bought 5 % (21.75 million shares) of PT Guna Timur Raya Tbk (TRUK) at Rp 428 per share, a total of about Rp 9.3 billion, well below the Rp 1,420 closing price on 18 September 2026. PT NexAI Digital Infrastruktur Tbk (MGLV) secured a loan facility from PT Bank Negara Indonesia Tbk (BBNI) for its subsidiaries PT Nextier Askara Center (NAC) and PT Nextier GenAI Center (NGC) with a maximum commitment of Rp 4,125 trillion within an overall facility of Rp 10.75 trillion. PT Chandra Daya Investasi Tbk (CDIA) posted a 22.8 % year‑on‑year revenue increase to US$81.2 million in the first half of 2026, PT Sinergi Inti Andalan Prima Tbk (INET) is expanding its digital infrastructure business, and PT Alamtri Resources Indonesia Tbk (ADRO), PT Medco Energi Internasional Tbk (MEDC) and PT Arkora Hydro Tbk (ARKO) are competing to supply green electricity to Singapore from the Batam‑Bintan islands.",
     "category": "company",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T08:57:00+07:00",
+    "publishedAt": "2026-09-25T05:00:00+07:00",
+    "sector": "Market",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 52,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Debt Issuance, ESG, Financial Metrics, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455437/berita-populer-sumber-cuan-baru-andy-hakim-hingga-daya-tahan-cdia",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Debt Issuance",
+      "ESG",
+      "Financial Metrics",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-investor-id-market-455388-nasib-sang-raja-nikel",
+    "title": "PT Vale Indonesia Tbk (INCO) reports operational recovery in Q2 2026 with higher nickel ore sales and matte production, prompting a new target price",
+    "summary": "PT Vale Indonesia Tbk (INCO), Indonesia’s largest nickel miner, is showing a gradual operational recovery in the second quarter of 2026, leading analysts to set a new target price for its shares. Nickel ore sales at the Bahodopi mine rose…",
+    "body": "PT Vale Indonesia Tbk (INCO), Indonesia’s largest nickel miner, is showing a gradual operational recovery in the second quarter of 2026, leading analysts to set a new target price for its shares. Nickel ore sales at the Bahodopi mine rose 21.3% quarter‑on‑quarter to 1.1 million wet metric tons, while sales from Pomalaa jumped to 496,000 wmt, almost four times the previous quarter. Nickel matte output increased 18.8% QoQ to 16.2 thousand tonnes, and the broker forecasts total matte production of 67.6 kt in 2026 and 71.0 kt in 2027. The implementation of the Harga Patokan Mineral (HPM) 363 policy is expected to boost INCO’s 2027 net profit by US$46 million, a 14.5% uplift, supported by integrated infrastructure and captive hydropower capacity of 365 MW.",
+    "category": "commodity",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T18:32:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Supported",
+        "relevance": 90,
+        "path": "Harga komoditas → realisasi harga → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Commodities, Financial Metrics, Government Policy, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455388/nasib-sang-raja-nikel",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Commodities",
+      "Financial Metrics",
+      "Government Policy",
+      "Production & Operations"
+    ]
+  },
+  {
+    "id": "news-ak-prospek-dan-rekomendasi-saham-jasa-marga-jsmr",
+    "title": "Jasa Marga (JSMR) Outlook Projects Positive Prospects Through BUMN Toll Acquisitions and Recommends the Stock",
+    "summary": "The article assesses PT Jasa Marga (Persero) Tbk (JSMR)'s outlook through 2026, focusing on potential acquisitions of toll road assets from state‑owned construction firms. JSMR plans to acquire profitable toll sections from PT Waskita…",
+    "body": "The article assesses PT Jasa Marga (Persero) Tbk (JSMR)'s outlook through 2026, focusing on potential acquisitions of toll road assets from state‑owned construction firms. JSMR plans to acquire profitable toll sections from PT Waskita Karya Tbk (WSKT), PT Wijaya Karya Tbk (WIKA) and PT Pembangunan Perumahan (Persero) Tbk (PTPP), targeting an internal rate of return on equity of 13‑15% and allocating Rp10‑12 trillion in capex for toll projects. Recent financing includes a Rp2.06 trillion bond issuance, cash rising to Rp7.08 trillion (up 11% YoY), total liabilities increasing 15% YoY to Rp99.98 trillion and long‑term debt climbing 21% YoY to Rp69.38 trillion. JSMR also raised its stake in PT Trans Lingkar Kita Jaya (TLKJ) to 21.29%, which could boost profit contribution, while analysts stress selective acquisition based on traffic, valuation and cash‑flow generation.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T18:25:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "JSMR",
+        "direction": "Supported",
+        "relevance": 72,
+        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, Capital & Funding, Debt Issuance, Mergers & Acquisitions pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investasi.kontan.co.id/news/akuisisi-tol-bumn-simak-prospek-dan-rekomendasi-saham-jasa-marga-jsmr",
+    "tags": [
+      "Analyst Ratings",
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "Debt Issuance",
+      "Mergers & Acquisitions"
+    ]
+  },
+  {
+    "id": "news-arket-455327-adro-medc-dan-arko-berebut-panggung",
+    "title": "ADRO, MEDC, and ARKO Compete for Green Power Export to Singapore",
+    "summary": "The three issuers PT Alamtri Resources Indonesia Tbk (ADRO), PT Medco Energi Internasional Tbk (MEDC) and PT Arkora Hydro Tbk (ARKO) are competing to become Singapore’s green electricity supplier from the Batam‑Bintan islands. ADRO,…",
+    "body": "The three issuers PT Alamtri Resources Indonesia Tbk (ADRO), PT Medco Energi Internasional Tbk (MEDC) and PT Arkora Hydro Tbk (ARKO) are competing to become Singapore’s green electricity supplier from the Batam‑Bintan islands. ADRO, through its subsidiary Adaro Solar International, has secured a 0.4 GW allocation from the Singapore regulator and plans a US$3.2 billion capital expenditure for the project. MEDC, via the Pacific Medco Solar Energy consortium with Grup Salim, obtained conditional approval for 600 MW within a 2 GWp Batam solar PV project. ARKO’s subsidiary Endorshine Energy Solutions received US$9.8 million financing from PT Sarana Multi Infrastruktur for a commercial PLTS project, positioning ARKO as a potential dark‑horse contender.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T11:43:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Supported",
+        "relevance": 76,
+        "path": "Komitmen keberlanjutan → biaya kepatuhan → margin",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Capital & Funding, ESG, Export, Partnerships & Agreements pada dimensi sustainability. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455327/adro-medc-dan-arko-berebut-panggung",
+    "tags": [
+      "Bullish",
+      "Business Expansion",
+      "Capital & Funding",
+      "ESG",
+      "Export",
+      "Partnerships & Agreements"
+    ]
+  },
+  {
+    "id": "news-rakyat-indonesia-bbri-ungkap-info-terkait-lapkeu",
+    "title": "Bank Rakyat Indonesia (BBRI) announces limited review and upcoming publication of its Q3‑2026 financial statements",
+    "summary": "PT Bank Rakyat Indonesia Tbk (BBRI) disclosed that its consolidated financial statements for the period ending 30 September 2026 will undergo a limited review by a public accountant and will be published in accordance with applicable…",
+    "body": "PT Bank Rakyat Indonesia Tbk (BBRI) disclosed that its consolidated financial statements for the period ending 30 September 2026 will undergo a limited review by a public accountant and will be published in accordance with applicable regulations. In the first half of 2026, BRI and its subsidiaries reported a net profit of Rp30.86 trillion, up 17.42 % YoY, driven by a 5.42 % increase in interest income to Rp107.92 trillion and a 5.87 % decline in interest expense to Rp27.39 trillion, yielding net interest income of Rp80.53 trillion (+9.91 %) while impairment provisions rose 9.64 % to Rp25.51 trillion. Profitability ratios improved, with pre‑tax ROA at 3.30 %, after‑tax ROA at 2.70 % and ROE at 22.59 %, although the net interest margin fell to 6.40 % from 6.58 %, reflecting broader banking‑sector margin pressures.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T08:37:00+07:00",
     "sector": "Financials",
     "impactLinks": [
       {
         "symbol": "BBRI",
         "direction": "Supported",
         "relevance": 90,
-        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Credit, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
+        "rationale": "Sectors menandai peristiwa ini Annual Report, Bullish, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/122396/bukti-bahwa-saham-bbri-layak-dikoleksi",
+    "source": "https://investor.id/market/455296/bank-rakyat-indonesia-bbri-ungkap-info-terkait-lapkeu",
     "tags": [
-      "Analyst Ratings",
+      "Annual Report",
       "Bullish",
-      "Credit",
       "Financial Metrics"
     ]
   },
   {
-    "id": "news-239-cek-rekomendasi-saham-pilihan-bni-sekuritas",
-    "title": "BNI Sekuritas forecasts short-term IHSG rebound and recommends six stocks",
-    "summary": "BNI Sekuritas' Head of Retail, Fanny Suherman, forecasts a short-term technical rebound for Indonesia's composite index (IHSG) to the 6,300-6,320 range, noting support at 6,200-6,220 and resistance at 6,300-6,320, and warning that failure…",
-    "body": "BNI Sekuritas' Head of Retail, Fanny Suherman, forecasts a short-term technical rebound for Indonesia's composite index (IHSG) to the 6,300-6,320 range, noting support at 6,200-6,220 and resistance at 6,300-6,320, and warning that failure to break above 6,320 may lead to a correction toward 5,850-6,100, after the index closed at 6,277.04 on 22 September 2026. The index fell 1.69% with a net foreign sell of Rp 672 billion, driven by heavy sales of BBRI, TINS, BBCA, BMRI and TPIA. BNI Sekuritas recommends six stocks: PT Intermedia Capital Tbk (MDIA) – speculative buy at Rp 175‑Rp 177, target Rp 184‑Rp 190; PT Bumi Resources Tbk (BUMI) – speculative buy at Rp 180‑Rp 184, target Rp 188‑Rp 190; PT Dian Swastatika Sentosa Tbk (DSSA) – speculative buy at Rp 970‑Rp 980, target Rp 1,015‑Rp 1,025. It also advises PT Merdeka Copper Gold Tbk (MDKA) – speculative buy at Rp 2,800‑Rp 2,830, target Rp 2,870‑Rp 2,940; PT Sinergi Inti Andalan Prima Tbk (INET) – buy on weakness at Rp 304‑Rp 316, target Rp 320‑Rp 330; and PT Alamtri Resources Indonesia Tbk (ADRO) – buy on weakness at Rp 2,580‑Rp 2,610, target Rp 2,630‑Rp 2,680.",
+    "id": "news-news-69316-emtek-perkuat-posisi-di-buka-dan-jecx",
+    "title": "PT Elang Mahkota Teknologi Tbk (EMTK) strengthens its position in PT Bukalapak.com Tbk (BUKA) and PT Nitrasanata Dharma Tbk (JECX)",
+    "summary": "The BEI disclosed on 22 Sep that PT Elang Mahkota Teknologi Tbk (EMTK) increased its holdings in PT Bukalapak.com Tbk (BUKA) by 188.70 million shares, raising its stake to 10.67%, and added 1.17 million shares of PT Nitrasanata Dharma Tbk…",
+    "body": "The BEI disclosed on 22 Sep that PT Elang Mahkota Teknologi Tbk (EMTK) increased its holdings in PT Bukalapak.com Tbk (BUKA) by 188.70 million shares, raising its stake to 10.67%, and added 1.17 million shares of PT Nitrasanata Dharma Tbk (JECX) through its health subsidiary PT Sarana Meditama Metropolitan Tbk (SAME), bringing its total shareholdings to 33%. PT Yulie Sekuritas Indonesia Tbk (YULE) raised its stake in PT Esa Medika Mandiri Tbk (EMMI) to about 10.19%; Samudra (Investment) Pte. Ltd boosted its holding in PT Mitra Adiperkasa Tbk (MAPI) to 30.19%; and Lo Kheng Hong increased his position in PT Intiland Development Tbk (DILD) to 7.54%. Edwin Soeryadjaya now controls 35.95% of PT Saratoga Investama Sedaya Tbk (SRTG), Ferry Sudjono holds roughly 6.02% of PT Fore Kopi Indonesia Tbk (FORE), while Dato Tahir reduced his stake in PT Maha Properti Indonesia Tbk (MPRO) to 10.46%. PT Global Mediacom Tbk (BMTR) sold 28.90 million shares of its subsidiary PT Media Nusantara Citra Tbk (MNCN), lowering its control to 38.23%, and The Bank of New York Mellon divested 6 million shares of PT Telkom Indonesia (Persero) Tbk (TLKM), retaining about 6.3% of the telecom firm.",
     "category": "company",
     "sourceType": "sectors",
-    "publishedAt": "2026-09-23T07:47:00+07:00",
+    "publishedAt": "2026-09-24T08:20:00+07:00",
     "sector": "Technology",
     "impactLinks": [
       {
-        "symbol": "ADRO",
+        "symbol": "BUKA",
         "direction": "Supported",
-        "relevance": 60,
-        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Foreign Investment, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+        "relevance": 40,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Foreign Investment, Institutional Investor, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      },
+      {
+        "symbol": "EMTK",
+        "direction": "Supported",
+        "relevance": 40,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Foreign Investment, Institutional Investor, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      },
+      {
+        "symbol": "TLKM",
+        "direction": "Supported",
+        "relevance": 40,
+        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
+        "rationale": "Sectors menandai peristiwa ini Bullish, Foreign Investment, Institutional Investor, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
       }
     ],
-    "source": "https://investasi.kontan.co.id/news/ihsg-berpotensi-rebound-hari-ini-239-cek-rekomendasi-saham-pilihan-bni-sekuritas",
+    "source": "https://www.idnfinancials.com/id/news/69316/emtek-perkuat-posisi-di-buka-dan-jecx",
+    "tags": [
+      "Bullish",
+      "Foreign Investment",
+      "Institutional Investor",
+      "Ownership"
+    ]
+  },
+  {
+    "id": "news-455283-saham-bank-rakyat-indonesia-bbri-diserok",
+    "title": "PT Bank Rakyat Indonesia Tbk (BBRI) shares see net foreign sell offset by domestic buying, closing up 0,31%",
+    "summary": "PT Bank Rakyat Indonesia Tbk (BBRI) shares recorded a net foreign sell of Rp 187.64 miliar on 23/9/2026, while domestic investors posted a net buy of Rp 187.6 miliar. Based on data from Stockbit Sekuritas, domestic investors net bought Rp…",
+    "body": "PT Bank Rakyat Indonesia Tbk (BBRI) shares recorded a net foreign sell of Rp 187.64 miliar on 23/9/2026, while domestic investors posted a net buy of Rp 187.6 miliar. Based on data from Stockbit Sekuritas, domestic investors net bought Rp 187.6 miliar, with Stokcbit Sekuritas (Rp 30.5 miliar), CGS International Sekuritas (Rp 26.7 miliar) and BCA Sekuritas (Rp 23.8 miliar) contributing, helping the stock close up 0.31% at Rp 3,190. For semester I‑2026 the bank reported PATMI of Rp 31.2 triliun, a 17.5% yoy increase, with net interest income up 9.9%, pre‑provision operating profit up 12.8%, cost of credit improving to 3.1%, total credit rising 16.2% yoy to Rp 1,645.5 triliun (corporate credit +47.1%, commercial credit +58.1%) and the micro‑credit portfolio at Rp 714.1 triliun, while gross NPL fell to 2.90% and loan at risk (LAR) improved to 9.1%. Kiwoom Sekuritas Indonesia maintains a buy recommendation with a 12‑month target price of Rp 4,000, implying a P/BV of 1.8 kali versus a three‑year average of 2.06 kali, while flagging risks from prolonged NIM pressure, tighter liquidity, slower credit growth, higher cost of credit and delayed micro‑asset quality recovery.",
+    "category": "company",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T07:03:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 88,
+        "path": "Ekspektasi analis → asumsi valuasi → multiple",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Domestic Investor, Financial Metrics, Foreign Investment pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://investor.id/market/455283/saham-bank-rakyat-indonesia-bbri-diserok",
     "tags": [
       "Analyst Ratings",
       "Bullish",
-      "Foreign Investment",
-      "Market Sentiment"
+      "Domestic Investor",
+      "Financial Metrics",
+      "Foreign Investment"
+    ]
+  },
+  {
+    "id": "news-form-untuk-obligasi-himbara-soroti-kredit-kopdes",
+    "title": "CreditSights maintains Underperform rating on senior bonds of PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI) amid KDMP credit risk",
+    "summary": "CreditSights kept its Underperform view on the senior bonds of PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI), noting that the bonds trade at only 100 bps and 68 bps above US Treasury yields respectively—well below the…",
+    "body": "CreditSights kept its Underperform view on the senior bonds of PT Bank Mandiri Tbk (BMRI) and PT Bank Negara Indonesia Tbk (BBNI), noting that the bonds trade at only 100 bps and 68 bps above US Treasury yields respectively—well below the 25‑30 bps fair‑value spread to comparable Indian bank bonds—while each bank has extended Rp 55 trillion to PT Agrinas Pangan Nusantara (Agrinas) for the government‑backed KDMP program, representing 3 % of BMRI’s gross loan book and 6 % of BBNI’s. The firm highlighted the resulting pressure on capital ratios (CET1 of 16.7 % for BMRI and 15.7 % for BBNI, with projected reductions of roughly 25 bps and 43 bps) and net interest margins (KDMP loan NIM 2.2 % versus overall NIM 4.4 % for BMRI and 3.6 % for BBNI).",
+    "category": "policy",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-24T05:27:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Adverse",
+        "relevance": 84,
+        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
+        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bearish, Bonds, Capital & Funding, Credit, Government Policy pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://keuangan.kontan.co.id/news/creditsights-rekomendasi-underperform-untuk-obligasi-himbara-soroti-kredit-kopdes",
+    "tags": [
+      "Analyst Ratings",
+      "Bearish",
+      "Bonds",
+      "Capital & Funding",
+      "Credit",
+      "Government Policy"
+    ]
+  },
+  {
+    "id": "filing-entstock-from-ksei-lk-23092026-9638-00-pdf-0-pdf",
+    "title": "Morgan Stanley And Co International Plc buys shares of GoTo Gojek Tokopedia",
+    "summary": "This is Morgan Stanley And Co International Plc's 4th insider purchase in the last 6 months, totaling an accumulation of 13,179,699,826 shares transacted at an average price of IDR 25. Morgan Stanley And Co International Plc's ownership in…",
+    "body": "This is Morgan Stanley And Co International Plc's 4th insider purchase in the last 6 months, totaling an accumulation of 13,179,699,826 shares transacted at an average price of IDR 25. Morgan Stanley And Co International Plc's ownership in GoTo Gojek Tokopedia has increased from 6.995% to 7.03% in this period.",
+    "category": "company",
+    "sourceType": "filing",
+    "publishedAt": "2026-09-23T14:36:55+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 95,
+        "path": "Gerak harga terlapor → belum ada jalur operasional",
+        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
+      }
+    ],
+    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-23092026-9638-00.pdf-0.pdf",
+    "tags": [
+      "investment"
     ]
   },
   {
@@ -6701,85 +7591,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-besar-kuota-fisik-rupslb-goto-dibatasi-80-orang",
-    "title": "PT GoTo Gojek Tokopedia Tbk (GOTO) to hold Oct 14 extraordinary shareholders meeting with 80‑person physical attendance limit",
-    "summary": "PT GoTo Gojek Tokopedia Tbk (GOTO) announced that its extraordinary shareholders meeting (RUPSLB) will be held on 14 October 2026 with a hybrid format and a physical attendance cap of 80 participants on a first‑come‑first‑served basis. The…",
-    "body": "PT GoTo Gojek Tokopedia Tbk (GOTO) announced that its extraordinary shareholders meeting (RUPSLB) will be held on 14 October 2026 with a hybrid format and a physical attendance cap of 80 participants on a first‑come‑first‑served basis. The meeting agenda includes approval to repurchase 32.18 billion Series A treasury shares bought back in 2024‑2025, thereby reducing the company's paid‑in capital, and the cancellation of a planned ESOP/MSOP share‑ownership transfer. Shareholders will also vote on the resignation of Catherine Hindra Sutjahyo from her position as Vice Director (Wakil Direktur Utama) of PT GoTo Gojek Tokopedia Tbk (GOTO). At the close of trading on 22 September 2026, GOTO’s shares were unchanged at Rp50 per share, and the company recorded 464,713 single‑investor shareholders as of the end of August 2026.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-22T17:30:00+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "GOTO",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Executive Changes, Shareholders General Meeting, Stock Buyback pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idnfinancials.com/id/news/69247/bahas-dua-agenda-besar-kuota-fisik-rupslb-goto-dibatasi-80-orang",
-    "tags": [
-      "Bullish",
-      "Executive Changes",
-      "Shareholders General Meeting",
-      "Stock Buyback"
-    ]
-  },
-  {
-    "id": "news-piah-melemah-terhadap-dolar-as-ihsg-merosot-1-69",
-    "title": "Rupiah weakens and IHSG falls 1.69% as PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) and PT Bumi Resources Tbk (BUMI) record the largest transaction…",
-    "summary": "The Indonesian rupiah weakened 0.21% to IDR 17,884 per US dollar and the Jakarta Composite Index (IHSG) fell 1.69% to 6,277.04 on Tuesday. Trading volume reached Rp14.45 trillion across 33.71 billion shares, with PT Bank Rakyat Indonesia…",
-    "body": "The Indonesian rupiah weakened 0.21% to IDR 17,884 per US dollar and the Jakarta Composite Index (IHSG) fell 1.69% to 6,277.04 on Tuesday. Trading volume reached Rp14.45 trillion across 33.71 billion shares, with PT Bank Rakyat Indonesia (Persero) Tbk (BBRI) and PT Bumi Resources Tbk (BUMI) recording the largest transaction values of Rp875.45 billion and Rp714.09 billion respectively, while BUMI’s share price fell 3.64% and also fell 4.17% as reported. All sector indices slipped, led by energy down 2.76% and consumer‑cyclical up only 0.33%, and the IHSG broke below its 100‑day and 60‑day moving averages, potentially testing the psychological 6,200 level. Analysts noted that investors await the Bank Indonesia board meeting, with consensus expecting the BI Rate to stay at 5.75%, and the IHSG was the worst‑performing emerging‑market index in the Asia‑Pacific region that day.",
-    "category": "rates",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-22T17:05:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBRI",
-        "direction": "Adverse",
-        "relevance": 82,
-        "path": "Suku bunga → biaya dana dan yield aset → margin bunga",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Central Bank, Currency & FX, Market Sentiment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idnfinancials.com/id/news/69243/rupiah-melemah-terhadap-dolar-as-ihsg-merosot-1-69",
-    "tags": [
-      "Bearish",
-      "Central Bank",
-      "Currency & FX",
-      "Market Sentiment"
-    ]
-  },
-  {
-    "id": "news-kan-utang-rp-654-triliun-begini-prospek-sahamnya",
-    "title": "PT Jasa Marga Tbk (JSMR) announces Rp 6.54 trillion shareholder loan to PT Jasamarga Jalanlayang Cikampek (JJC)",
-    "summary": "PT Jasa Marga Tbk (JSMR) disclosed an internal affiliate transaction in which its subsidiary PT Jasamarga Transjawa Tol (JTT) extended a shareholder loan of Rp 6.54 trillion to PT Jasamarga Jalanlayang Cikampek (JJC). The loan reduces…",
-    "body": "PT Jasa Marga Tbk (JSMR) disclosed an internal affiliate transaction in which its subsidiary PT Jasamarga Transjawa Tol (JTT) extended a shareholder loan of Rp 6.54 trillion to PT Jasamarga Jalanlayang Cikampek (JJC). The loan reduces JSMR’s cash balance from Rp 7.08 trillion (June 2026) and increases other receivables by the same amount, with no immediate effect on consolidated revenue or expenses. For the first half of 2026, JSMR reported toll revenue of Rp 9.50 trillion (up 6.8%) and net profit of Rp 1.91 trillion (up 2.01%), while total liabilities stood at Rp 99.98 trillion. Mirae Asset Sekuritas recommends PT Jasa Marga Tbk (JSMR) with a target price of Rp 3,240 per share, noting that the loan is a neutral short‑term liquidity move and that future stock performance will depend on traffic growth, tariff adjustments, and new projects.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-22T14:17:00+07:00",
-    "sector": "Infrastructure",
-    "impactLinks": [
-      {
-        "symbol": "JSMR",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Capital & Funding, Credit, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://investasi.kontan.co.id/news/anak-usaha-jasa-marga-jsmr-kucurkan-utang-rp-654-triliun-begini-prospek-sahamnya",
-    "tags": [
-      "Analyst Ratings",
-      "Bullish",
-      "Capital & Funding",
-      "Credit",
-      "Financial Metrics"
-    ]
-  },
-  {
     "id": "news-00-saham-telkomsigma-di-tde-intip-arah-bisnisnya",
     "title": "PT Telkom Indonesia (Persero) Tbk (TLKM) regains 100% ownership of PT Telkom Data Ekosistem (TDE)",
     "summary": "PT Telkom Indonesia (Persero) Tbk (TLKM) completed a transaction on 17 September 2026 to acquire the remaining shares of PT Telkom Data Ekosistem (TDE), bringing its ownership to 100%. TLKM purchased 1,445,020 Series A shares and…",
@@ -6804,31 +7615,6 @@ export const rawEvents: RawEvent[] = [
       "OJK",
       "Ownership",
       "Subsidiaries"
-    ]
-  },
-  {
-    "id": "news-m-yang-dijual-investor-asing-pekan-lalu-ada-pack",
-    "title": "Foreign Investors Net Sold Rp2.9 trillion in the Week of 14–18 September 2026, Led by PT Bank Mandiri (Persero) Tbk (BMRI) and PT Bumi Resources…",
-    "summary": "Foreign investors recorded a net sell of Rp2.9 trillion during the week of 14–18 September 2026, pushing the Jakarta Composite Index (IHSG) down 1.53% to 6,441. The largest net outflow was in PT Bank Mandiri (Persero) Tbk (BMRI), which saw…",
-    "body": "Foreign investors recorded a net sell of Rp2.9 trillion during the week of 14–18 September 2026, pushing the Jakarta Composite Index (IHSG) down 1.53% to 6,441. The largest net outflow was in PT Bank Mandiri (Persero) Tbk (BMRI), which saw a sell of Rp702.5 billion and a 2.29% price decline to Rp4,260 per share. In contrast, PT Bumi Resources Minerals Tbk (BRMS) attracted the biggest net purchase of Rp367.13 billion, lifting its share price 6.67% to Rp720. The weekly activity contributed to a cumulative foreign net sell of Rp101 trillion in the regular market for 2026.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-21T09:10:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BMRI",
-        "direction": "Adverse",
-        "relevance": 82,
-        "path": "Gerak harga terlapor → belum ada jalur operasional",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Foreign Investment, Market Sentiment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/122171/daftar-saham-yang-dijual-investor-asing-pekan-lalu-ada-pack",
-    "tags": [
-      "Bearish",
-      "Foreign Investment",
-      "Market Sentiment"
     ]
   },
   {
@@ -6858,33 +7644,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-rekomendasi-saham-hari-ini-antm-vktr-hingga-mapi",
-    "title": "Today's Stock Recommendations: ANTM, VKTR, and MAPI",
-    "summary": "The article recommends buying ANTM, VKTR, and MAPI while noting that the Jakarta Composite Index (IHSG) closed at 6,441.16, down 0.33% on 18 September 2026, with foreign investors net selling about Rp1.79 trillion. It points out that the…",
-    "body": "The article recommends buying ANTM, VKTR, and MAPI while noting that the Jakarta Composite Index (IHSG) closed at 6,441.16, down 0.33% on 18 September 2026, with foreign investors net selling about Rp1.79 trillion. It points out that the technology sector was the only sector to gain (+0.27%) as most other sectors weakened, and that FTSE rebalancing triggered the largest net sell since 19 June, affecting micro‑cap stocks BSDE, SCMA and BBYB. Corporate updates include ERAA’s plan to expand its food‑and‑beverage portfolio through its subsidiary Erajaya Food & Nourishment (EFN), BIKE’s subsidiary Ratu Karya signing a MoU with Perumda Pasar Jaya for a Rp1 trillion Pasar Minggu development, and ULTJ’s rights issue to fund the acquisition of 100 % of Frisian Flag Indonesia for Rp14.57 trillion, after which FrieslandCampina International Holding B.V. (FCIH) will become the controlling shareholder. The rights issue will issue up to 7.88 billion new shares at Rp2,150 each, representing 43.11 % of post‑issue capital and raising up to Rp16.94 trillion, with the transaction valued at 178.24 % of ULTJ’s equity and pending approval at the RUPSLB on 27 October 2026.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-21T08:38:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "ANTM",
-        "direction": "Supported",
-        "relevance": 40,
-        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Business Expansion, MoU, Rights Issue pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://finance.detik.com/bursa-dan-valas/d-8671790/rekomendasi-saham-hari-ini-antm-vktr-hingga-mapi",
-    "tags": [
-      "Analyst Ratings",
-      "Bullish",
-      "Business Expansion",
-      "MoU",
-      "Rights Issue"
-    ]
-  },
-  {
     "id": "news-tlkm-perkuat-kendali-atas-telkom-data-ekosistem",
     "title": "PT Telkom Indonesia Tbk (TLKM) Acquires Remaining Shares of PT Telkom Data Ekosistem (TDE), Achieving Full Ownership",
     "summary": "PT Telkom Indonesia Tbk (TLKM) completed the purchase of the remaining shares of its subsidiary PT Telkom Data Ekosistem (TDE), raising its ownership to 100% (10.5 trillion shares) after buying 1.44 million series A and 2.01 trillion…",
@@ -6908,81 +7667,6 @@ export const rawEvents: RawEvent[] = [
       "Financial Metrics",
       "Mergers & Acquisitions",
       "Ownership"
-    ]
-  },
-  {
-    "id": "filing-entstock-from-ksei-lk-16092026-5380-00-pdf-0-pdf",
-    "title": "Morgan Stanley And Co International Plc buys shares of GoTo Gojek Tokopedia",
-    "summary": "This is Morgan Stanley And Co International Plc's 3rd insider purchase in the last 6 months, totaling an accumulation of 12,779,699,826 shares transacted at an average price of IDR 25. Morgan Stanley And Co International Plc's ownership in…",
-    "body": "This is Morgan Stanley And Co International Plc's 3rd insider purchase in the last 6 months, totaling an accumulation of 12,779,699,826 shares transacted at an average price of IDR 25. Morgan Stanley And Co International Plc's ownership in GoTo Gojek Tokopedia has increased from 7.059% to 7.095% in this period.",
-    "category": "company",
-    "sourceType": "filing",
-    "publishedAt": "2026-09-16T13:40:49+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "GOTO",
-        "direction": "Unverified",
-        "relevance": 95,
-        "path": "Gerak harga terlapor → belum ada jalur operasional",
-        "rationale": "Sectors menandai peristiwa ini investment pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_KSEI/LK-16092026-5380-00.pdf-0.pdf",
-    "tags": [
-      "investment"
-    ]
-  },
-  {
-    "id": "news-ni-cum-dividen-interim-bmri-rp66-per-saham-minat",
-    "title": "PT Bank Mandiri (Persero) Tbk (BMRI) enters cum dividend period with interim payout of Rp66 per share",
-    "summary": "PT Bank Mandiri (Persero) Tbk (BMRI) announced that the cum‑dividend period for its 2026 interim dividend began on 15 September, with a payout of Rp66 per share amounting to Rp6.16 trillion, or 20.26 % of first‑half net profit. The board…",
-    "body": "PT Bank Mandiri (Persero) Tbk (BMRI) announced that the cum‑dividend period for its 2026 interim dividend began on 15 September, with a payout of Rp66 per share amounting to Rp6.16 trillion, or 20.26 % of first‑half net profit. The board of directors approved the dividend on 3 September, and the company stated that the distribution will not materially affect its operations, legal standing, financial condition, or business continuity. For the first half of 2026, BMRI reported consolidated net profit of Rp30.4 trillion, up 24.4 % YoY, with a bank‑only ROE of 24.3 % and fee‑based income growth of 15.5 % driven by digital platforms Livin' by Mandiri and Kopra by Mandiri. The bank expects to maintain healthy and sustainable growth in the second half of 2026.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-15T08:00:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BMRI",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Dividend Announcement, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://emitennews.com/news/hari-ini-cum-dividen-interim-bmri-rp66-per-saham-minat",
-    "tags": [
-      "Bullish",
-      "Dividend Announcement",
-      "Financial Metrics"
-    ]
-  },
-  {
-    "id": "news-82-laba-bersih-antm-tumbuh-34-margin-makin-tebal",
-    "title": "PT Aneka Tambang Tbk reports 34% net profit growth and higher margin in H1 2026",
-    "summary": "PT Aneka Tambang Tbk reported net profit of Rp6.9 trillion for the first half of 2026, a 34% increase year‑on‑year. Revenue rose about 6% to Rp62.7 trillion and the net profit margin expanded to 11% from 8.7% in the same period. CFO Arini…",
-    "body": "PT Aneka Tambang Tbk reported net profit of Rp6.9 trillion for the first half of 2026, a 34% increase year‑on‑year. Revenue rose about 6% to Rp62.7 trillion and the net profit margin expanded to 11% from 8.7% in the same period. CFO Arini Kasmira said the company will focus on optimizing gold and nickel production, cost control, and a Rp6 trillion capital expenditure program that targets EV‑battery and gold‑related projects, including a 30%‑owned HPAL project with a US$1.9 billion investment and a 40%‑owned RKEF project with a US$1.4 billion investment. The HPAL project is at final investment decision stage, while the RKEF project remains in pre‑IPC and pre‑financing phases, and a new gold‑metal facility in Gresik is slated for commercial operation by 2028.",
-    "category": "commodity",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-13T10:30:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "ANTM",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Harga komoditas → realisasi harga → margin",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Business Expansion, Capital & Funding, Commodities, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/121382/laba-bersih-antm-tumbuh-34-margin-makin-tebal",
-    "tags": [
-      "Bullish",
-      "Business Expansion",
-      "Capital & Funding",
-      "Commodities",
-      "Financial Metrics"
     ]
   },
   {
@@ -7092,33 +7776,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
-    "title": "Indonesian rupiah and IHSG pressured by surge in oil prices amid US-Iran tensions.",
-    "summary": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline…",
-    "body": "The Indonesian stock market (IHSG) fell 1.33% to 6,589.34 and the rupiah weakened 0.2% to 17,547 per US dollar on Thursday, pressured by a surge in Brent crude oil prices above $100 per barrel amid escalating US-Iran tensions. The decline marked the IHSG's lowest level in a week and made it the worst-performing emerging market index in Asia Pacific, with all sectoral indices down, led by energy (-2.06%) and transportation (-1.80%). Trading value reached Rp21.58 trillion with 51 billion shares exchanged, with PT Dian Swastatika Sentosa Tbk, PT Bank Central Asia Tbk, and PT Petrindo Jaya Kreasi Tbk among the most actively traded stocks. Most Asian emerging market currencies weakened against the dollar, though the Malaysian ringgit and Chinese yuan edged higher.",
-    "category": "currency",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-10T17:10:00+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "BBCA",
-        "direction": "Adverse",
-        "relevance": 76,
-        "path": "Kurs → biaya input dan pendapatan valuta → margin",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Commodities, Currency & FX, Market Sentiment, Politics & Regulation pada dimensi technical. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idnfinancials.com/id/news/68664/rupiah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
-    "tags": [
-      "Bearish",
-      "Commodities",
-      "Currency & FX",
-      "Market Sentiment",
-      "Politics & Regulation"
-    ]
-  },
-  {
     "id": "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
     "title": "Vale Indonesia aims for full production at the Pomalaa HPAL smelter by 2027",
     "summary": "Vale Indonesia (PT Vale Indonesia Tbk) announced that its Pomalaa High-Pressure Acid Leach (HPAL) smelter is slated to reach full production in 2027. The US$4.5 billion project will have an annual capacity of 120,000 tons of mixed…",
@@ -7142,34 +7799,6 @@ export const rawEvents: RawEvent[] = [
       "Business Expansion",
       "Commodities",
       "Partnerships & Agreements",
-      "Production & Operations"
-    ]
-  },
-  {
-    "id": "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
-    "title": "PT Vale Indonesia Tbk does not promise dividend amid 2026‑27 expansion plans",
-    "summary": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026…",
-    "body": "PT Vale Indonesia Tbk said it has not provided a dividend commitment as it concentrates on its 2026‑27 expansion programme. The company is targeting first feed at the Pomalaa high‑pressure acid leach (HPAL) plant around 15 September 2026 and full‑scale production of 120,000 tonnes of mixed hydroxide precipitate (MHP) in 2027, while also advancing the Bahodopi HPAL project and other growth initiatives. Management reiterated a cash‑cost goal of below US$10,000 per tonne and intends to keep new loan drawdowns low to preserve liquidity, noting that any dividend would only be considered if sufficient space remains after funding the capex. The dividend outlook therefore remains an aspiration, pending evaluation of nickel prices, financing efficiency and capital‑expenditure needs.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-10T16:50:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "INCO",
-        "direction": "Adverse",
-        "relevance": 90,
-        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Business Expansion, Capital & Funding, Dividend Announcement, Financial Metrics, Production & Operations pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/121175/inco-belum-janjikan-dividen-di-tengah-ekspansi-bisnis",
-    "tags": [
-      "Bearish",
-      "Business Expansion",
-      "Capital & Funding",
-      "Dividend Announcement",
-      "Financial Metrics",
       "Production & Operations"
     ]
   },
@@ -7222,86 +7851,6 @@ export const rawEvents: RawEvent[] = [
       "Capital & Funding",
       "Financial Metrics",
       "Production & Operations"
-    ]
-  },
-  {
-    "id": "news-ncana-pembagian-dividen-interim-secara-kuartalan",
-    "title": "PT Bank Central Asia Tbk announces quarterly interim dividend plan for 2026",
-    "summary": "PT Bank Central Asia Tbk announced that it will pay interim dividends on a quarterly basis in 2026. The next interim dividend of Rp25 per share is scheduled for 16 September 2026, up from Rp20 per share paid in June 2026, with a further…",
-    "body": "PT Bank Central Asia Tbk announced that it will pay interim dividends on a quarterly basis in 2026. The next interim dividend of Rp25 per share is scheduled for 16 September 2026, up from Rp20 per share paid in June 2026, with a further interim dividend planned for December 2026. The company reported a dividend payout ratio of 72% for the most recent period, up from 68%, and total profit of Rp29.5 trillion for the first half of 2026, including its subsidiaries. Credit grew 8% year‑on‑year to Rp1,036 trillion and CASA rose 10.2% year‑on‑year to Rp1,082 trillion, supporting the dividend policy.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-09T21:29:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBCA",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Credit, Dividend Announcement, Financial Metrics pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.antaranews.com/berita/5733832/bca-ungkap-rencana-pembagian-dividen-interim-secara-kuartalan",
-    "tags": [
-      "Bullish",
-      "Credit",
-      "Dividend Announcement",
-      "Financial Metrics"
-    ]
-  },
-  {
-    "id": "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
-    "title": "PT Bank Central Asia Tbk Reports Credit Growth to Rp1,036 Trillion and NPL Decline to 1.9% in First Half 2026",
-    "summary": "PT Bank Central Asia Tbk (BCA) disclosed in its 2026 public expose that credit expanded 8% year-on-year to Rp1,036 trillion as of June 2026, driven by productive credit growth of 11% to Rp802 trillion and corporate lending growth of 13.6%…",
-    "body": "PT Bank Central Asia Tbk (BCA) disclosed in its 2026 public expose that credit expanded 8% year-on-year to Rp1,036 trillion as of June 2026, driven by productive credit growth of 11% to Rp802 trillion and corporate lending growth of 13.6% to Rp513.4 trillion. Asset quality improved with the non-performing loan ratio falling to 1.9% from 2.2% a year earlier and the loan-at-risk ratio easing to 4.9% from 5.7%. Third-party funds rose 7.9% to Rp1,284 trillion, supported by a current account savings account (CASA) ratio of 85.2%. The bank and its subsidiaries recorded a net profit of Rp29.5 trillion for the first half of 2026, while green financing grew 19% to Rp123 trillion. Meanwhile, BBCA shares have declined 18.69% year-to-date to Rp6,525.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-09T20:30:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBCA",
-        "direction": "Supported",
-        "relevance": 90,
-        "path": "Kinerja kuartalan → pendapatan dan laba → valuasi",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Credit, ESG, Financial Metrics pada dimensi financials. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idnfinancials.com/id/news/68603/kredit-bbca-tembus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
-    "tags": [
-      "Bullish",
-      "Capital & Funding",
-      "Credit",
-      "ESG",
-      "Financial Metrics"
-    ]
-  },
-  {
-    "id": "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
-    "title": "Indonesian government allocates Rp11 trillion to Bank Rakyat Indonesia and Bank Syariah Indonesia for a program giving citizens Rp50,000 opening…",
-    "summary": "The Indonesian government announced a program to open bank accounts for up to 200 million citizens with an initial Rp50,000 balance, funded by an Rp11 trillion allocation from the state budget (APBN). The accounts will be provided through…",
-    "body": "The Indonesian government announced a program to open bank accounts for up to 200 million citizens with an initial Rp50,000 balance, funded by an Rp11 trillion allocation from the state budget (APBN). The accounts will be provided through the two state‑owned banks, Bank Rakyat Indonesia and Bank Syariah Indonesia. Implementation will be coordinated with Bank Indonesia, the Financial Services Authority and the civil registration agency to enable automatic account creation, and the funding may be drawn from the 2026 or 2027 APBN. The rollout will be phased, and the initial balance will be withdrawable by account holders.",
-    "category": "policy",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-09T19:10:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBRI",
-        "direction": "Supported",
-        "relevance": 84,
-        "path": "Kebijakan → biaya kepatuhan dan kapasitas operasi → margin",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Capital & Funding, Government Policy, OJK, Sharia Economy pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.bloombergtechnoz.com/detail-news/121071/wni-dapat-rekening-bank-rp50-000-dari-apbn-total-rp11-triliun",
-    "tags": [
-      "Bullish",
-      "Capital & Funding",
-      "Government Policy",
-      "OJK",
-      "Sharia Economy"
     ]
   },
   {
@@ -7400,32 +7949,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50",
-    "title": "Morgan Stanley And Co International Plc purchases 21.67 billion GOTO shares at 50% discount via negotiated market",
-    "summary": "Morgan Stanley And Co International Plc acquired 21.67 billion shares of PT GoTo Gojek Tokopedia Tbk through three negotiated market transactions on September 2, 2026, at Rp25 per share, a 50% discount to the regular market price of Rp50.…",
-    "body": "Morgan Stanley And Co International Plc acquired 21.67 billion shares of PT GoTo Gojek Tokopedia Tbk through three negotiated market transactions on September 2, 2026, at Rp25 per share, a 50% discount to the regular market price of Rp50. The total outlay reached Rp541.97 billion, raising Morgan Stanley's ownership in GOTO to 7.59% from 5.71% at the end of August 2026. Morgan Stanley stated the purchases were not intended to maintain control over GOTO. The accumulation occurred just before GOTO's removal from the Morgan Stanley Capital International (MSCI) global index on August 31, 2026, after MSCI determined the stock no longer met liquidity criteria and had stagnated at Rp50 for over three months.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-08T09:10:00+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "GOTO",
-        "direction": "Adverse",
-        "relevance": 88,
-        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
-        "rationale": "Sectors menandai peristiwa ini Bearish, Global Index, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://www.idnfinancials.com/id/news/68500/morgan-stanley-borong-saham-goto-lagi-di-harga-diskon-50",
-    "tags": [
-      "Bearish",
-      "Global Index",
-      "Mergers & Acquisitions",
-      "Ownership"
-    ]
-  },
-  {
     "id": "news-ngi-pendapatan-batu-bara-target-diversifikasi-20",
     "title": "PT Bukit Asam Tbk targets 20% non‑coal revenue share by 2030 and reports H1 2026 net profit of Rp4.06 trillion",
     "summary": "PT Bukit Asam Tbk said it will increase the contribution of non‑coal and green‑energy revenue to 20% of total earnings by 2030, up from about 3% currently. The plan relies on securing 842 million tonnes of coal reserves for a 20‑year…",
@@ -7499,39 +8022,6 @@ export const rawEvents: RawEvent[] = [
       }
     ],
     "source": "https://emitennews.com/news/grup-emtek-pertebal-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
-    "tags": [
-      "Bullish",
-      "Domestic Investor",
-      "Mergers & Acquisitions",
-      "Ownership"
-    ]
-  },
-  {
-    "id": "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
-    "title": "PT Kreatif Media Karya increases its stake in PT Bukalapak.com Tbk to 45.68%",
-    "summary": "PT Kreatif Media Karya, the controlling shareholder of PT Bukalapak.com Tbk, increased its ownership to 45.68% by buying additional shares. On 4 September 2026 it purchased 803,287,800 shares at Rp126 each, costing about Rp101.21 billion…",
-    "body": "PT Kreatif Media Karya, the controlling shareholder of PT Bukalapak.com Tbk, increased its ownership to 45.68% by buying additional shares. On 4 September 2026 it purchased 803,287,800 shares at Rp126 each, costing about Rp101.21 billion and raising its holding to 47,125,034,185 shares out of 46,321,746,385 total shares. The filing also shows that PT Elang Mahkota and PT Bukalapak each hold over 10% of PT Bukalapak.com Tbk’s shares, with 10,821,706,040 (10.48%) and 11,333,437,507 (10.986%) shares respectively. Following the transaction, PT Bukalapak.com Tbk’s shares closed at 113 on 7 September, down 1.74% (‑2 points), and the stock carries a special notation I.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-07T16:43:00+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "BUKA",
-        "direction": "Supported",
-        "relevance": 82,
-        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Domestic Investor, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      },
-      {
-        "symbol": "EMTK",
-        "direction": "Supported",
-        "relevance": 82,
-        "path": "Perubahan kepemilikan → free float dan arus → likuiditas",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Domestic Investor, Mergers & Acquisitions, Ownership pada dimensi ownership. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://emitennews.com/news/pengendali-borong-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
     "tags": [
       "Bullish",
       "Domestic Investor",
@@ -7617,31 +8107,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
-    "title": "IHSG Still Has Opportunity to Strengthen on Monday (7/9), Here Are Analyst-Recommended Stocks",
-    "summary": "The article discusses the potential for the Indonesian Composite Index (IHSG) to strengthen on Monday, 7 September 2026, after a 0.47% decline to 6,636 on Friday, 4 September 2026, and a weekly gain of 1.82%. Analyst William Hartanto…",
-    "body": "The article discusses the potential for the Indonesian Composite Index (IHSG) to strengthen on Monday, 7 September 2026, after a 0.47% decline to 6,636 on Friday, 4 September 2026, and a weekly gain of 1.82%. Analyst William Hartanto projects the index to trade between 6,612 and 6,704 on Monday, citing a gap at 6,704 formed on 13 May 2026 and the index remaining above the 5‑period moving average as evidence of a strong uptrend. He recommends buying PT Alamtri Resources Indonesia Tbk (ADRO) with a target price of Rp 2,800–Rp 2,820 per share and PT Baramulti Suksessarana Tbk (BSSR) with a target price of Rp 5,000 per share.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-06T14:00:00+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "ADRO",
-        "direction": "Supported",
-        "relevance": 84,
-        "path": "Rencana ke depan → kapasitas dan belanja modal → arus kas",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://investasi.kontan.co.id/news/ihsg-masih-berpeluang-menguat-pada-senin-79-ini-saham-rekomendasi-analis",
-    "tags": [
-      "Analyst Ratings",
-      "Bullish",
-      "Market Sentiment"
-    ]
-  },
-  {
     "id": "news-ed-capex-2026-jadi-rp20-t-ini-fokus-investasinya",
     "title": "XLSMART Telecom Sejahtera Tbk raises 2026 capitalized capex guidance to Rp20 trillion from Rp15 trillion to fund 5G expansion and spectrum…",
     "summary": "PT XLSMART Telecom Sejahtera Tbk increased its 2026 capitalized capital expenditure guidance to Rp20 trillion from Rp15 trillion, directing the additional investment toward network infrastructure strengthening, 5G service expansion, and…",
@@ -7667,32 +8132,6 @@ export const rawEvents: RawEvent[] = [
       "Business Expansion",
       "Capital & Funding",
       "Digital Transformation"
-    ]
-  },
-  {
-    "id": "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
-    "title": "Energy Stock Rally Targets ADRO and BUMI",
-    "summary": "Energy stocks are rallying, with ADRO and BUMI among the companies targeted by the surge. The IDX Energy index rose 12.6% in the past month and gained 1.36% on 3 September 2026, outpacing the broader market. Analysts say the rally is…",
-    "body": "Energy stocks are rallying, with ADRO and BUMI among the companies targeted by the surge. The IDX Energy index rose 12.6% in the past month and gained 1.36% on 3 September 2026, outpacing the broader market. Analysts say the rally is driven by improving earnings prospects, stronger valuations, and investor funds returning to commodity stocks with solid fundamentals, rather than commodity price euphoria alone, and they expect the energy sector to remain a support for the IHSG until the end of 2026. The next phase will focus on stock picking, favoring companies with low production costs, healthy balance sheets, strong cash flows, large reserves, and the ability to maintain production volumes.",
-    "category": "commodity",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-04T06:22:25+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "ADRO",
-        "direction": "Supported",
-        "relevance": 84,
-        "path": "Sales of Coal (55% pendapatan ADRO) → realisasi harga → margin",
-        "rationale": "Sectors menandai peristiwa ini Bullish, Commodities, Financial Metrics, Market Sentiment pada dimensi future. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://investor.id/market/452777/reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
-    "tags": [
-      "Bullish",
-      "Commodities",
-      "Financial Metrics",
-      "Market Sentiment"
     ]
   },
   {
@@ -8004,32 +8443,6 @@ export const rawEvents: RawEvent[] = [
       "Bullish",
       "Business Expansion",
       "Digital Transformation"
-    ]
-  },
-  {
-    "id": "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
-    "title": "PT Indofood CBP Sukses Makmur Tbk shares deemed cheap with target price of Rp 12,000",
-    "summary": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a…",
-    "body": "The article notes that PT Indofood CBP Sukses Makmur Tbk (ICBP) shares are considered cheap and are forecast to reach Rp 12,000. Foreign investors recorded a net purchase of IDR 221.70 billion between 16 July and 12 August 2026, with a small net sell of IDR 599.21 million on 13 August. The stock rose 13.53% over the past month, trades at Rp 7,550, down nearly 21% year‑to‑date, and shows a price‑to‑book ratio of 1.67× (below the –1 SD level of 1.99×) and a price‑earnings ratio of 11.91× (around the –1 SD level of 11.32×). Mandiri Sekuritas maintains a buy recommendation with a target price of Rp 12,000, implying roughly 60% upside.",
-    "category": "company",
-    "sourceType": "sectors",
-    "publishedAt": "2026-08-14T06:52:56+07:00",
-    "sector": "Consumer",
-    "impactLinks": [
-      {
-        "symbol": "ICBP",
-        "direction": "Supported",
-        "relevance": 88,
-        "path": "Ekspektasi analis → asumsi valuasi → multiple",
-        "rationale": "Sectors menandai peristiwa ini Analyst Ratings, Bullish, Financial Metrics, Foreign Investment pada dimensi valuation. Label sumber dipakai apa adanya; jalur eksposur dan observable operasional masih harus diverifikasi."
-      }
-    ],
-    "source": "https://investor.id/market/450304/saham-emiten-anthoni-salim-lagi-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000",
-    "tags": [
-      "Analyst Ratings",
-      "Bullish",
-      "Financial Metrics",
-      "Foreign Investment"
     ]
   },
   {
@@ -8423,9 +8836,10 @@ export const rawEvents: RawEvent[] = [
 
 export const eventIdsBySymbol: Record<string, string[]> = {
   "ADRO": [
-    "news-239-cek-rekomendasi-saham-pilihan-bni-sekuritas",
-    "news-nguat-pada-senin-79-ini-saham-rekomendasi-analis",
-    "news-reli-saham-energi-adro-hingga-bumi-dalam-bidikan",
+    "news-r-id-market-455653-saham-murah-emiten-boy-thohir",
+    "sentiment-attention-adro-2026-09-25",
+    "news-mber-cuan-baru-andy-hakim-hingga-daya-tahan-cdia",
+    "news-arket-455327-adro-medc-dan-arko-berebut-panggung",
     "filing-corporate-action-buyback-adro-2026-04-17",
     "filing-corporate-action-leadership-adro-2026-04-17",
     "filing-corporate-action-dividend-adro",
@@ -8437,46 +8851,49 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli"
   ],
   "ANTM": [
-    "flows-foreign-net-antm-2026-09-23",
+    "news-antm-gali-laba-lebih-dalam-ada-target-harga-baru",
+    "news-ton-emas-freeport-semester-i-catat-sales-rp50-t",
+    "flows-foreign-net-antm-2026-09-25",
+    "sentiment-attention-antm-2026-09-25",
     "news-i-6633-pekan-ini-cek-saham-antm-mtel-hingga-impc",
-    "news-rekomendasi-saham-hari-ini-antm-vktr-hingga-mapi",
-    "news-82-laba-bersih-antm-tumbuh-34-margin-makin-tebal",
     "commodity-gold-2025-12-01"
   ],
   "BBCA": [
-    "flows-foreign-net-bbca-2026-09-23",
-    "sentiment-attention-bbca-2026-09-23",
-    "news-ah-dan-ihsg-tertekan-imbas-lonjakan-harga-minyak",
-    "news-ncana-pembagian-dividen-interim-secara-kuartalan",
-    "news-embus-sebesar-rp1-036-triliun-npl-turun-jadi-1-9",
+    "news-nvestor-id-market-455728-perubahan-dramatis-bbca",
+    "news-612-saham-bank-central-asia-bbca-kembali-disorot",
+    "flows-foreign-net-bbca-2026-09-25",
+    "sentiment-attention-bbca-2026-09-25",
+    "news-market-455514-dividen-bbca-setelah-laba-melesat",
     "filing-corporate-action-dividend-bbca",
     "filing-corporate-action-buyback-bbca-2026-03-12",
     "filing-corporate-action-leadership-bbca-2026-03-12"
   ],
   "BBRI": [
-    "flows-foreign-net-bbri-2026-09-23",
-    "news-ws-122396-bukti-bahwa-saham-bbri-layak-dikoleksi",
-    "news-piah-melemah-terhadap-dolar-as-ihsg-merosot-1-69",
-    "news-ening-bank-rp50-000-dari-apbn-total-rp11-triliun",
+    "flows-foreign-net-bbri-2026-09-25",
+    "sentiment-attention-bbri-2026-09-25",
+    "news-turun-ke-6200-asing-net-sell-jumbo-10-saham-ini",
+    "news-rakyat-indonesia-bbri-ungkap-info-terkait-lapkeu",
+    "news-455283-saham-bank-rakyat-indonesia-bbri-diserok",
     "filing-corporate-action-dividend-bbri",
     "filing-corporate-action-leadership-bbri-2026-04-10"
   ],
   "BMRI": [
-    "news-esa-merah-putih-menekan-profitabilitas-bank-bumn",
-    "news-m-yang-dijual-investor-asing-pekan-lalu-ada-pack",
-    "news-ni-cum-dividen-interim-bmri-rp66-per-saham-minat",
+    "news-ket-455662-bmri-dan-bbni-kompak-jadi-saham-murah",
+    "sentiment-attention-bmri-2026-09-25",
+    "news-455439-saham-bank-mandiri-bmri-diamdiam-diserok",
+    "news-form-untuk-obligasi-himbara-soroti-kredit-kopdes",
     "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
     "filing-entstock-from-ksei-lk-08092026-7905-00-pdf-0-pdf"
   ],
   "BUKA": [
+    "news-news-69316-emtek-perkuat-posisi-di-buka-dan-jecx",
     "news-ha-emtek-borong-803-juta-buka-kuasai-45-68-saham",
     "filing-entstock-from-ksei-lk-08092026-6401-00-pdf-0-pdf",
     "news-porsi-saham-buka-serok-803-juta-harga-atas-pasar",
-    "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
     "filing-entstock-from-ksei-lk-07092026-8071-00-pdf-0-pdf"
   ],
   "EMTK": [
-    "news-saham-buka-tambah-porsi-kepemilikan-jadi-segini",
+    "news-news-69316-emtek-perkuat-posisi-di-buka-dan-jecx",
     "news-masih-lesu-simak-prospeknya-di-semester-ii-2026",
     "news-bhimata-citra-abadi-ini-alasan-dibalik-divestasi",
     "news-kan-ai-untuk-tingkatkan-efisiensi-dan-daya-saing"
@@ -8487,26 +8904,29 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-ndasi-saham-pilihan-ipot-untuk-trading-pekan-ini"
   ],
   "GOTO": [
-    "flows-foreign-net-goto-2026-09-23",
-    "news-pus-32-18-miliar-saham-tresuri-buyback-berlanjut",
-    "news-besar-kuota-fisik-rupslb-goto-dibatasi-80-orang",
-    "filing-entstock-from-ksei-lk-16092026-5380-00-pdf-0-pdf",
-    "news-tanley-borong-saham-goto-lagi-di-harga-diskon-50"
+    "news-kan-batas-harga-jadi-rp-1-cek-support-berikutnya",
+    "news-k-1-dan-dolar-as-nyaris-rp-18000-ini-penyebabnya",
+    "news-iri-1-miliar-lot-jual-morgan-stanley-juga-jualan",
+    "filing-entstock-from-ksei-lk-28092026-8273-00-pdf-0-pdf",
+    "flows-foreign-net-goto-2026-09-25",
+    "sentiment-attention-goto-2026-09-25",
+    "filing-entstock-from-ksei-lk-23092026-9638-00-pdf-0-pdf"
   ],
   "ICBP": [
+    "news-rugi-kurs-biaya-bahan-baku-saham-disarankan-hold",
     "news-am-hari-ini-kamis-27-agustus-2026-smil-mapa-icbp",
-    "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40",
-    "news-murahmurahnya-dicicil-terus-ramalan-ke-rp-12000"
+    "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40"
   ],
   "INCO": [
+    "sentiment-attention-inco-2026-09-25",
+    "news-investor-id-market-455388-nasib-sang-raja-nikel",
     "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
-    "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027",
-    "news-belum-janjikan-dividen-di-tengah-ekspansi-bisnis"
+    "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027"
   ],
   "JSMR": [
+    "news-ak-prospek-dan-rekomendasi-saham-jasa-marga-jsmr",
     "news-rga-jsmr-usai-gelar-transaksi-shl-rp-654-triliun",
     "news-si-shl-rp-654-triliun-simak-rekomendasi-sahamnya",
-    "news-kan-utang-rp-654-triliun-begini-prospek-sahamnya",
     "filing-entstock-from-ksei-lk-02092026-8460-00-pdf-0-pdf"
   ],
   "MYOR": [
@@ -8515,7 +8935,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000"
   ],
   "PGAS": [
-    "flows-foreign-net-pgas-2026-09-23",
+    "flows-foreign-net-pgas-2026-09-25",
     "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
     "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
     "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor"
@@ -8532,8 +8952,9 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
   ],
   "TLKM": [
-    "flows-foreign-net-tlkm-2026-09-23",
-    "sentiment-attention-tlkm-2026-09-23",
+    "flows-foreign-net-tlkm-2026-09-25",
+    "sentiment-attention-tlkm-2026-09-25",
+    "news-news-69316-emtek-perkuat-posisi-di-buka-dan-jecx",
     "news-00-saham-telkomsigma-di-tde-intip-arah-bisnisnya",
     "news-tlkm-perkuat-kendali-atas-telkom-data-ekosistem",
     "news-jumbo-emiten-telko-bawa-peluang-sekaligus-risiko",
