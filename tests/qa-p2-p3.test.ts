@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { agentEngine } from "@/lib/agent/engine";
 import { safeLanguage } from "@/lib/agent/gates";
@@ -6,6 +8,7 @@ import { findSymbolsRobust, matchEventForQuestion } from "@/lib/agent/query";
 import { resolveThresholds } from "@/lib/agent/thresholds";
 import { shownDisposition } from "@/lib/case-disposition";
 import { companies, coverageInfo, demoProfiles, events, WINDOW_START } from "@/lib/data/fixtures";
+import { companyHref } from "@/lib/company-href";
 import { defaultImpactSymbol } from "@/lib/impact-symbol";
 import { buildDefaultPlaybook } from "@/lib/playbook-defaults";
 import { bandForArticle } from "@/lib/web-watch/proposals";
@@ -237,6 +240,27 @@ describe("routing · a question naming one issuer is never answered from another
     for (const symbol of symbols) {
       const event = matchEventForQuestion(`berapa volume ${symbol} terbaru?`, events, symbols);
       if (event) expect(event.impactLinks.some((link) => link.symbol === symbol && link.direction !== "Unrelated"), `${symbol} → ${event.title}`).toBe(true);
+    }
+  });
+});
+
+describe("P2-1 · a link to an issuer names its destination, never the redirect route", () => {
+  const sources = ["app", "components", "lib"].flatMap((dir) =>
+    readdirSync(dir, { recursive: true, encoding: "utf8" })
+      .filter((file) => /\.tsx?$/.test(file))
+      .map((file) => join(dir, file)),
+  );
+
+  it("an issuer without a case links straight to its impact map; one with a case, to the case", () => {
+    for (const company of companies) {
+      expect(companyHref(company.symbol), company.symbol).toBe(company.analyzed ? `/cases/${company.symbol}` : `/impact?company=${company.symbol}`);
+    }
+    expect(companies.some((company) => !company.analyzed)).toBe(true);
+  });
+
+  it("no page or component links into /companies/[symbol], whose only job is a server redirect", () => {
+    for (const file of sources) {
+      expect(readFileSync(file, "utf8"), file).not.toMatch(/href=\{`\/companies\/\$\{|["'`]\/companies\/\$\{/);
     }
   });
 });

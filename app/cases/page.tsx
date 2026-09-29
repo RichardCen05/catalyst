@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { agentEngine } from "@/lib/agent/engine";
 import { companies, DATA_AS_OF_LABEL, missingList } from "@/lib/data/fixtures";
+import { companyHref } from "@/lib/company-href";
 import { useCatalystStore } from "@/lib/store";
 import type { SymbolCode, AnalysisCase } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -185,7 +186,7 @@ function ResearchCasesContent() {
                       <span className="lg:text-right">
                         {row.status === "case" ? <Link href={`/cases/${row.symbol}`} className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium hover:underline">Buka kasus<IconArrowRight aria-hidden="true" className="size-4" /></Link>
                           : row.status === "recorded" ? <button type="button" onClick={() => setWatchlist([...profile.watchlist, row.symbol])} className="inline-flex min-h-9 cursor-pointer items-center whitespace-nowrap rounded-lg border border-border-strong bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Tambah ke pantauan</button>
-                          : <Link href={`/companies/${row.symbol}`} className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium hover:underline">Lihat emiten<IconArrowRight aria-hidden="true" className="size-4" /></Link>}
+                          : <Link href={companyHref(row.symbol)} className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium hover:underline">Lihat emiten<IconArrowRight aria-hidden="true" className="size-4" /></Link>}
                       </span>
                     </li>;
                   })}

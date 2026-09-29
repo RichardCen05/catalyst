@@ -1,5 +1,6 @@
 "use client";
 import { fuzzyIncludes } from "@/lib/text/fuzzy";
+import { companyHref } from "@/lib/company-href";
 import { companies, primarySymbol } from "@/lib/data/fixtures";
 
 import { useEffect, useState } from "react";
@@ -65,7 +66,7 @@ export function CommandPalette() {
         .slice(0, 8)
         .map((company) => ({
           label: `${company.symbol} — ${company.name}`,
-          href: company.analyzed ? `/cases/${company.symbol}` : `/impact?company=${company.symbol}`,
+          href: companyHref(company.symbol),
           icon: Building2,
         }))
     : [];
