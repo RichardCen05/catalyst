@@ -505,7 +505,9 @@ Each try:
 4. **stage-recordings** — only on `deploy`, before the gate: copies `data/sectors` to
    `staged-recordings`, so a red gate or a failed deploy no longer throws away what was bought.
    On 28 Sep 2026 the 17:30 and 19:30 tries each paid 85 credits for the same recordings, failed
-   the gate, and published nothing.
+   the gate, and published nothing. The first try with staging (29 Sep, build `822cf1c4`) paid
+   37 credits for 28 Sep, went red on a test, and staged the set. The retry after the test fix
+   (build `5dae68e2`) adopted it instead of buying it again.
 5. **install → gate → deploy → publish-recordings** — only on `deploy`. Publishing removes the
    staged copy.
 
