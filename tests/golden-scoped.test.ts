@@ -20,6 +20,15 @@ const P2 = profileWith(analysed.slice(0, 3));
 const P3 = profileWith([]);
 const P4 = profileWith([analysed[0], unanalysed[0]]);
 
+/**
+ * The registry count said as a count. A substring check read BBCA's
+ * "Volume 1,18×" as the 18-issuer registry once the 28 Sep session landed, so
+ * digits that belong to a decimal or a longer number do not count.
+ */
+function statesCount(text: string, count: number): boolean {
+  return new RegExp(`(?<![\\d.,])${count}(?!\\d|[.,]\\d)`).test(text);
+}
+
 const ask = (question: string, profile: UserProfile, extra: Record<string, unknown> = {}) =>
   agentEngine.answerFollowUp({ question, profile, ...extra }) as Promise<ChatAnswer>;
 
@@ -41,7 +50,7 @@ describe("golden: daftar yang dicakup pembaca", () => {
     const answer = await ask("kasus apa saja yang aktif", P1);
     expect(answer.intent).toBe("scoped-list");
     expect(new Set(symbolsIn(answer))).toEqual(new Set(P1.watchlist));
-    expect(answer.text).not.toContain(String(companies.length));
+    expect(statesCount(answer.text, companies.length)).toBe(false);
   });
 
   it("2. denominator mengikuti kardinalitas pantauan yang ditanya", async () => {
@@ -80,7 +89,13 @@ describe("golden: daftar yang dicakup pembaca", () => {
   it("5. pertanyaan tentang kontrol layar dijawab sebagai kontrol layar", async () => {
     const answer = await ask("maksudnya tab Kasus aktif apa", P1, { view: "cases" });
     // Bukan daftar seluruh registry: yang ditanya adalah arti sebuah kontrol.
-    expect(answer.text).not.toContain(String(companies.length));
+    expect(statesCount(answer.text, companies.length)).toBe(false);
+  });
+
+  it("the count check ignores digits inside a decimal", () => {
+    expect(statesCount("Volume 1,18× median 38 sesi.", 18)).toBe(false);
+    expect(statesCount("dari 18 emiten.", 18)).toBe(true);
+    expect(statesCount("dari 18.", 18)).toBe(true);
   });
 
   it("6. 'yang satunya' menunjuk emiten kedua pada daftar sebelumnya", async () => {

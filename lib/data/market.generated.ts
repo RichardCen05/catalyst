@@ -5,7 +5,7 @@
 
 import type { BrokerEvidence, EvidenceState, ImpactDirection, InstitutionalFlow, MarketEvent, PricePoint, Sector, SymbolCode } from "@/lib/types";
 
-export const DATA_AS_OF = "2026-09-25T16:15:00+07:00";
+export const DATA_AS_OF = "2026-09-28T16:15:00+07:00";
 export const WINDOW_DATES = [
   "2026-08-03",
   "2026-08-04",
@@ -44,7 +44,8 @@ export const WINDOW_DATES = [
   "2026-09-22",
   "2026-09-23",
   "2026-09-24",
-  "2026-09-25"
+  "2026-09-25",
+  "2026-09-28"
 ] as const;
 
 export interface RawCompany {
@@ -80,120 +81,120 @@ export const rawCompanies: RawCompany[] = [
     "name": "Alamtri Resources Indonesia Tbk",
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
-    "price": 2600,
-    "changePct": 1.56,
-    "marketCap": 74.9,
+    "price": 2590,
+    "changePct": -0.38,
+    "marketCap": 74.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.600 pada 2026-09-25; volume terakhir 0.65× median 37 sesi; 8 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.590 pada 2026-09-28; volume terakhir 0.80× median 38 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "AMRT",
     "name": "PT Sumber Alfaria Trijaya Tbk.",
     "sector": "Consumer",
     "subsector": "Food & Staples Retailing",
-    "price": 1305,
-    "changePct": 1.95,
-    "marketCap": 54.2,
+    "price": 1330,
+    "changePct": 1.92,
+    "marketCap": 55.2,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 1.305 pada 2026-09-25; volume terakhir 1.15× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.330 pada 2026-09-28; volume terakhir 0.82× median 38 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ANTM",
     "name": "Aneka Tambang Tbk.",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 3230,
-    "changePct": -1.22,
-    "marketCap": 77.6,
+    "price": 3100,
+    "changePct": -4.02,
+    "marketCap": 74.5,
     "analyzed": true,
     "evidenceState": "Corroborated",
-    "summary": "Close 3.230 pada 2026-09-25; volume terakhir 0.68× median 37 sesi; 6 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.100 pada 2026-09-28; volume terakhir 0.78× median 38 sesi; 5 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBCA",
     "name": "PT Bank Central Asia Tbk.",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 6250,
-    "changePct": 0.4,
-    "marketCap": 762.8,
+    "price": 6225,
+    "changePct": -0.4,
+    "marketCap": 759.7,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 6.250 pada 2026-09-25; volume terakhir 0.94× median 37 sesi; 8 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.225 pada 2026-09-28; volume terakhir 1.17× median 38 sesi; 8 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BBRI",
     "name": "PT Bank Rakyat Indonesia (Persero) Tbk",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 3150,
-    "changePct": 0.32,
-    "marketCap": 472.6,
+    "price": 3140,
+    "changePct": -0.32,
+    "marketCap": 471.1,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 3.150 pada 2026-09-25; volume terakhir 0.55× median 37 sesi; 7 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.140 pada 2026-09-28; volume terakhir 0.65× median 38 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BMRI",
     "name": "PT Bank Mandiri (Persero) Tbk",
     "sector": "Financials",
     "subsector": "Banks",
-    "price": 4080,
-    "changePct": 0.25,
-    "marketCap": 377.0,
+    "price": 4020,
+    "changePct": -1.47,
+    "marketCap": 371.4,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.080 pada 2026-09-25; volume terakhir 0.57× median 37 sesi; 6 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.020 pada 2026-09-28; volume terakhir 1.02× median 38 sesi; 6 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "BUKA",
     "name": "PT Bukalapak.com Tbk",
     "sector": "Technology",
     "subsector": "Software & IT Services",
-    "price": 104,
-    "changePct": -0.95,
-    "marketCap": 10.7,
+    "price": 103,
+    "changePct": -0.96,
+    "marketCap": 10.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 104 pada 2026-09-25; volume terakhir 0.55× median 37 sesi; 5 peristiwa terhubung pada jendela ini."
+    "summary": "Close 103 pada 2026-09-28; volume terakhir 0.89× median 38 sesi; 5 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EMTK",
     "name": "Elang Mahkota Teknologi Tbk",
     "sector": "Technology",
     "subsector": "Software & IT Services",
-    "price": 420,
-    "changePct": -2.33,
-    "marketCap": 25.8,
+    "price": 408,
+    "changePct": -2.86,
+    "marketCap": 25.1,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 420 pada 2026-09-25; volume terakhir 0.63× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 408 pada 2026-09-28; volume terakhir 0.79× median 38 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "EXCL",
     "name": "PT XLSMART Telecom Sejahtera Tbk",
     "sector": "Infrastructure",
     "subsector": "Telecommunication",
-    "price": 2330,
-    "changePct": -2.92,
-    "marketCap": 42.4,
+    "price": 2310,
+    "changePct": -0.86,
+    "marketCap": 42.0,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.330 pada 2026-09-25; volume terakhir 0.97× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.310 pada 2026-09-28; volume terakhir 1.48× median 38 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "GOTO",
     "name": "PT GoTo Gojek Tokopedia Tbk",
     "sector": "Technology",
     "subsector": "Software & IT Services",
-    "price": 50,
-    "changePct": 0.0,
-    "marketCap": 57.0,
+    "price": 43,
+    "changePct": -14.0,
+    "marketCap": 49.0,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 50 pada 2026-09-25; volume terakhir 0.41× median 37 sesi; 7 peristiwa terhubung pada jendela ini."
+    "summary": "Close 43 pada 2026-09-28; volume terakhir 12.50× median 38 sesi; 7 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "ICBP",
@@ -201,95 +202,95 @@ export const rawCompanies: RawCompany[] = [
     "sector": "Consumer",
     "subsector": "Food & Beverage",
     "price": 6650,
-    "changePct": -4.66,
+    "changePct": 0.0,
     "marketCap": 77.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 6.650 pada 2026-09-25; volume terakhir 0.84× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 6.650 pada 2026-09-28; volume terakhir 0.72× median 38 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "INCO",
     "name": "Vale Indonesia Tbk",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 4680,
-    "changePct": -0.85,
-    "marketCap": 49.3,
+    "price": 4400,
+    "changePct": -5.98,
+    "marketCap": 46.4,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.680 pada 2026-09-25; volume terakhir 0.47× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.400 pada 2026-09-28; volume terakhir 1.61× median 38 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "JSMR",
     "name": "PT Jasa Marga Tbk",
     "sector": "Infrastructure",
     "subsector": "Transportation Infrastructure",
-    "price": 2720,
-    "changePct": -0.37,
-    "marketCap": 19.7,
+    "price": 2690,
+    "changePct": -1.1,
+    "marketCap": 19.5,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 2.720 pada 2026-09-25; volume terakhir 0.29× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.690 pada 2026-09-28; volume terakhir 0.59× median 38 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "MYOR",
     "name": "Mayora Indah Tbk",
     "sector": "Consumer",
     "subsector": "Food & Beverage",
-    "price": 1435,
-    "changePct": -1.03,
-    "marketCap": 32.1,
+    "price": 1405,
+    "changePct": -2.09,
+    "marketCap": 31.4,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 1.435 pada 2026-09-25; volume terakhir 0.71× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.405 pada 2026-09-28; volume terakhir 0.73× median 38 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PGAS",
     "name": "PT Perusahaan Gas Negara Tbk",
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
-    "price": 1430,
-    "changePct": -0.69,
-    "marketCap": 34.7,
+    "price": 1440,
+    "changePct": 0.7,
+    "marketCap": 34.9,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 1.430 pada 2026-09-25; volume terakhir 0.48× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 1.440 pada 2026-09-28; volume terakhir 0.47× median 38 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "PTBA",
     "name": "Bukit Asam Tbk",
     "sector": "Energy",
     "subsector": "Oil, Gas & Coal",
-    "price": 3090,
-    "changePct": 1.31,
-    "marketCap": 35.6,
+    "price": 3180,
+    "changePct": 2.91,
+    "marketCap": 36.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 3.090 pada 2026-09-25; volume terakhir 1.41× median 37 sesi; 4 peristiwa terhubung pada jendela ini."
+    "summary": "Close 3.180 pada 2026-09-28; volume terakhir 2.62× median 38 sesi; 4 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "TINS",
     "name": "PT Timah Tbk",
     "sector": "Basic Materials",
     "subsector": "Basic Materials",
-    "price": 4720,
-    "changePct": -2.68,
-    "marketCap": 35.2,
+    "price": 4510,
+    "changePct": -4.45,
+    "marketCap": 33.6,
     "analyzed": false,
     "evidenceState": "Insufficient Evidence",
-    "summary": "Close 4.720 pada 2026-09-25; volume terakhir 0.57× median 37 sesi; 3 peristiwa terhubung pada jendela ini."
+    "summary": "Close 4.510 pada 2026-09-28; volume terakhir 0.84× median 38 sesi; 3 peristiwa terhubung pada jendela ini."
   },
   {
     "symbol": "TLKM",
     "name": "PT Telkom Indonesia (Persero) Tbk",
     "sector": "Infrastructure",
     "subsector": "Telecommunication",
-    "price": 2410,
-    "changePct": 0.0,
-    "marketCap": 238.7,
+    "price": 2370,
+    "changePct": -1.66,
+    "marketCap": 234.8,
     "analyzed": true,
     "evidenceState": "Mixed Evidence",
-    "summary": "Close 2.410 pada 2026-09-25; volume terakhir 1.92× median 37 sesi; 9 peristiwa terhubung pada jendela ini."
+    "summary": "Close 2.370 pada 2026-09-28; volume terakhir 1.46× median 38 sesi; 8 peristiwa terhubung pada jendela ini."
   }
 ];
 
@@ -522,6 +523,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2600,
       "ihsg": 6242,
       "volume": 21107500
+    },
+    {
+      "date": "2026-09-28",
+      "close": 2590,
+      "ihsg": 6148,
+      "volume": 26031800
     }
   ],
   "AMRT": [
@@ -752,6 +759,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1305,
       "ihsg": 6242,
       "volume": 36005800
+    },
+    {
+      "date": "2026-09-28",
+      "close": 1330,
+      "ihsg": 6148,
+      "volume": 26524400
     }
   ],
   "ANTM": [
@@ -982,6 +995,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3230,
       "ihsg": 6242,
       "volume": 67544100
+    },
+    {
+      "date": "2026-09-28",
+      "close": 3100,
+      "ihsg": 6148,
+      "volume": 77533400
     }
   ],
   "BBCA": [
@@ -1212,6 +1231,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 6250,
       "ihsg": 6242,
       "volume": 89447400
+    },
+    {
+      "date": "2026-09-28",
+      "close": 6225,
+      "ihsg": 6148,
+      "volume": 112107600
     }
   ],
   "BBRI": [
@@ -1442,6 +1467,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3150,
       "ihsg": 6242,
       "volume": 87244800
+    },
+    {
+      "date": "2026-09-28",
+      "close": 3140,
+      "ihsg": 6148,
+      "volume": 102848000
     }
   ],
   "BMRI": [
@@ -1672,6 +1703,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4080,
       "ihsg": 6242,
       "volume": 70546200
+    },
+    {
+      "date": "2026-09-28",
+      "close": 4020,
+      "ihsg": 6148,
+      "volume": 124768400
     }
   ],
   "BUKA": [
@@ -1902,6 +1939,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 104,
       "ihsg": 6242,
       "volume": 52179400
+    },
+    {
+      "date": "2026-09-28",
+      "close": 103,
+      "ihsg": 6148,
+      "volume": 84635100
     }
   ],
   "EMTK": [
@@ -2132,6 +2175,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 420,
       "ihsg": 6242,
       "volume": 27548200
+    },
+    {
+      "date": "2026-09-28",
+      "close": 408,
+      "ihsg": 6148,
+      "volume": 34360900
     }
   ],
   "EXCL": [
@@ -2362,6 +2411,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2330,
       "ihsg": 6242,
       "volume": 5560500
+    },
+    {
+      "date": "2026-09-28",
+      "close": 2310,
+      "ihsg": 6148,
+      "volume": 8445800
     }
   ],
   "GOTO": [
@@ -2592,6 +2647,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 50,
       "ihsg": 6242,
       "volume": 4406200
+    },
+    {
+      "date": "2026-09-28",
+      "close": 43,
+      "ihsg": 6148,
+      "volume": 132941200
     }
   ],
   "ICBP": [
@@ -2822,6 +2883,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 6650,
       "ihsg": 6242,
       "volume": 4281100
+    },
+    {
+      "date": "2026-09-28",
+      "close": 6650,
+      "ihsg": 6148,
+      "volume": 3636400
     }
   ],
   "INCO": [
@@ -3052,6 +3119,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4680,
       "ihsg": 6242,
       "volume": 5911900
+    },
+    {
+      "date": "2026-09-28",
+      "close": 4400,
+      "ihsg": 6148,
+      "volume": 20109500
     }
   ],
   "JSMR": [
@@ -3282,6 +3355,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2720,
       "ihsg": 6242,
       "volume": 755000
+    },
+    {
+      "date": "2026-09-28",
+      "close": 2690,
+      "ihsg": 6148,
+      "volume": 1519600
     }
   ],
   "MYOR": [
@@ -3512,6 +3591,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1435,
       "ihsg": 6242,
       "volume": 8382200
+    },
+    {
+      "date": "2026-09-28",
+      "close": 1405,
+      "ihsg": 6148,
+      "volume": 8624800
     }
   ],
   "PGAS": [
@@ -3742,6 +3827,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 1430,
       "ihsg": 6242,
       "volume": 13088100
+    },
+    {
+      "date": "2026-09-28",
+      "close": 1440,
+      "ihsg": 6148,
+      "volume": 12877600
     }
   ],
   "PTBA": [
@@ -3972,6 +4063,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 3090,
       "ihsg": 6242,
       "volume": 31882000
+    },
+    {
+      "date": "2026-09-28",
+      "close": 3180,
+      "ihsg": 6148,
+      "volume": 60648500
     }
   ],
   "TINS": [
@@ -4202,6 +4299,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 4720,
       "ihsg": 6242,
       "volume": 24956000
+    },
+    {
+      "date": "2026-09-28",
+      "close": 4510,
+      "ihsg": 6148,
+      "volume": 36567100
     }
   ],
   "TLKM": [
@@ -4432,6 +4535,12 @@ export const priceSeries: Record<string, PricePoint[]> = {
       "close": 2410,
       "ihsg": 6242,
       "volume": 170051400
+    },
+    {
+      "date": "2026-09-28",
+      "close": 2370,
+      "ihsg": 6148,
+      "volume": 131894200
     }
   ]
 };
@@ -4602,13 +4711,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -49128015000
       }
     ],
-    "netForeign": 1104653924000,
-    "totalMarketValue": 13051426555000,
+    "netForeign": 1072684638000,
+    "totalMarketValue": 13291780095000,
     "freeFloatShares": 8410767653.749999,
     "sharesOutstanding": 24030764725.0,
-    "referencePrice": 3230,
+    "referencePrice": 3100,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25"
+    "windowEnd": "2026-09-28"
   },
   "BBCA": {
     "buyers": [
@@ -4775,13 +4884,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -52772555000
       }
     ],
-    "netForeign": -695982985000,
-    "totalMarketValue": 26539150135000,
+    "netForeign": -678053515000,
+    "totalMarketValue": 27237019945000,
     "freeFloatShares": 54482123342.79,
     "sharesOutstanding": 122042299500.0,
-    "referencePrice": 6250,
+    "referencePrice": 6225,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25",
+    "windowEnd": "2026-09-28",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -4990,13 +5099,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -63362046000
       }
     ],
-    "netForeign": 1066334735000,
-    "totalMarketValue": 22800048835000,
+    "netForeign": 1116018078000,
+    "totalMarketValue": 23122991555000,
     "freeFloatShares": 70160299258.0812,
     "sharesOutstanding": 150043411587.0,
-    "referencePrice": 3150,
+    "referencePrice": 3140,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25",
+    "windowEnd": "2026-09-28",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -5205,13 +5314,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -1244910000
       }
     ],
-    "netForeign": 8872585000,
-    "totalMarketValue": 37919645000,
+    "netForeign": 9289650600,
+    "totalMarketValue": 43636116600,
     "freeFloatShares": 921811314567.204,
     "sharesOutstanding": 1140573267220.0,
-    "referencePrice": 50,
+    "referencePrice": 43,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25"
+    "windowEnd": "2026-09-28"
   },
   "PGAS": {
     "buyers": [
@@ -5378,13 +5487,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -8664110500
       }
     ],
-    "netForeign": -132711232000,
-    "totalMarketValue": 1785856703000,
+    "netForeign": -126439531000,
+    "totalMarketValue": 1804400447000,
     "freeFloatShares": 10431363391.82076,
     "sharesOutstanding": 24241508196.0,
-    "referencePrice": 1430,
+    "referencePrice": 1440,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25"
+    "windowEnd": "2026-09-28"
   },
   "TLKM": {
     "buyers": [
@@ -5551,13 +5660,13 @@ export const brokerEvidence: Record<string, BrokerEvidence & { windowStart: stri
         "netIdr": -15120894000
       }
     ],
-    "netForeign": -930923761000,
-    "totalMarketValue": 10182833570000,
+    "netForeign": -1052599606000,
+    "totalMarketValue": 10495422824000,
     "freeFloatShares": 41259413213.9,
     "sharesOutstanding": 99062216600.0,
-    "referencePrice": 2410,
+    "referencePrice": 2370,
     "windowStart": "2026-08-03",
-    "windowEnd": "2026-09-25",
+    "windowEnd": "2026-09-28",
     "ownershipSeries": [
       {
         "date": "2026-01-30",
@@ -6481,23 +6590,23 @@ export const financialRows: Record<string, Array<{ label: string; value: string;
 };
 
 export const sectorReturns: Record<string, number> = {
-  "Technology": -0.019399,
-  "Financials": -0.003447,
-  "Basic Materials": 0.014238,
-  "Infrastructure": -0.025137,
-  "Consumer": -0.006594,
-  "Energy": 0.000438
+  "Energy": 0.008722,
+  "Technology": -0.110923,
+  "Financials": -0.019659,
+  "Basic Materials": -0.064051,
+  "Infrastructure": -0.032875,
+  "Consumer": -0.02244
 };
 
 export const subsectorReturns: Record<string, number> = {
-  "Transportation Infrastructure": -0.018051,
-  "Banks": -0.003447,
-  "Food & Beverage": -0.009853,
-  "Food & Staples Retailing": 0.0,
-  "Telecommunication": -0.025634,
-  "Basic Materials": 0.014238,
-  "Software & IT Services": -0.019399,
-  "Oil, Gas & Coal": 0.000438
+  "Oil, Gas & Coal": 0.008722,
+  "Transportation Infrastructure": -0.039286,
+  "Food & Staples Retailing": 0.015267,
+  "Banks": -0.019659,
+  "Basic Materials": -0.064051,
+  "Food & Beverage": -0.041551,
+  "Software & IT Services": -0.110923,
+  "Telecommunication": -0.032423
 };
 
 export const subsectorContext: Record<string, { totalCompanies: number; medianPe: number; weightedAvgPe: number; sampleCompanies: number }> = {
@@ -6581,24 +6690,24 @@ export const revenueSegments: Record<string, Array<{ segment: string; share: num
 };
 
 export const betas: Record<string, number> = {
-  "ADRO": 0.69,
-  "AMRT": 0.79,
-  "ANTM": 1.03,
-  "BBCA": 0.73,
-  "BBRI": 1.0,
-  "BMRI": 0.83,
-  "BUKA": 1.29,
-  "EMTK": 1.7,
-  "EXCL": 1.36,
-  "GOTO": 0.0,
-  "ICBP": 0.49,
-  "INCO": 1.25,
-  "JSMR": 0.85,
-  "MYOR": 0.7,
-  "PGAS": 0.58,
-  "PTBA": 0.97,
-  "TINS": 0.81,
-  "TLKM": 0.43
+  "ADRO": 0.67,
+  "AMRT": 0.68,
+  "ANTM": 1.14,
+  "BBCA": 0.7,
+  "BBRI": 0.96,
+  "BMRI": 0.84,
+  "BUKA": 1.24,
+  "EMTK": 1.69,
+  "EXCL": 1.31,
+  "GOTO": 0.5,
+  "ICBP": 0.46,
+  "INCO": 1.39,
+  "JSMR": 0.84,
+  "MYOR": 0.72,
+  "PGAS": 0.52,
+  "PTBA": 0.84,
+  "TINS": 0.95,
+  "TLKM": 0.45
 };
 
 export const rawEvents: RawEvent[] = [
@@ -6679,6 +6788,282 @@ export const rawEvents: RawEvent[] = [
       "Ownership",
       "Politics & Regulation",
       "Suspension"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-antm-2026-09-28",
+    "title": "Arus asing neto ANTM Rp1,1T pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp1,1T ≈ 8,1% dari nilai transaksi Rp13,3T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "ANTM",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing ANTM Rp1,1T pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-bbca-2026-09-28",
+    "title": "Arus asing neto BBCA Rp-678,1M pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp-678,1M ≈ 2,5% dari nilai transaksi Rp27,2T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBCA Rp-678,1M pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-bbri-2026-09-28",
+    "title": "Arus asing neto BBRI Rp1,1T pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp1,1T ≈ 4,8% dari nilai transaksi Rp23,1T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing BBRI Rp1,1T pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-goto-2026-09-28",
+    "title": "Arus asing neto GOTO Rp9,3M pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp9,3M ≈ 21,3% dari nilai transaksi Rp43,6M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Supported",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing GOTO Rp9,3M pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-pgas-2026-09-28",
+    "title": "Arus asing neto PGAS Rp-126,4M pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp-126,4M ≈ 7,0% dari nilai transaksi Rp1,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "PGAS",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-126,4M pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "flows-foreign-net-tlkm-2026-09-28",
+    "title": "Arus asing neto TLKM Rp-1,1T pada jendela 2026-08-03–2026-09-28",
+    "summary": "Neto asing Rp-1,1T ≈ 10,0% dari nilai transaksi Rp10,5T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
+    "body": null,
+    "category": "flows",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Infrastructure",
+    "impactLinks": [
+      {
+        "symbol": "TLKM",
+        "direction": "Adverse",
+        "relevance": 80,
+        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
+        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-1,1T pada jendela 2026-08-03–2026-09-28. Fakta arus; bukan atribusi niat pembeli/penjual."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Foreign Flow"
+    ]
+  },
+  {
+    "id": "sentiment-attention-adro-2026-09-28",
+    "title": "Lonjakan liputan ADRO: 7 berita 7 hari terakhir (vs 2 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 7 item ADRO pada 2026-09-22–2026-09-28 vs 2 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Energy",
+    "impactLinks": [
+      {
+        "symbol": "ADRO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk ADRO: 7 vs 2 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bbca-2026-09-28",
+    "title": "Lonjakan liputan BBCA: 19 berita 7 hari terakhir (vs 1 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 19 item BBCA pada 2026-09-22–2026-09-28 vs 1 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBCA",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BBCA: 19 vs 1 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bbri-2026-09-28",
+    "title": "Lonjakan liputan BBRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BBRI pada 2026-09-22–2026-09-28 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BBRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BBRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-bmri-2026-09-28",
+    "title": "Lonjakan liputan BMRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item BMRI pada 2026-09-22–2026-09-28 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Financials",
+    "impactLinks": [
+      {
+        "symbol": "BMRI",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk BMRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-goto-2026-09-28",
+    "title": "Lonjakan liputan GOTO: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 20 item GOTO pada 2026-09-22–2026-09-28 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Technology",
+    "impactLinks": [
+      {
+        "symbol": "GOTO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk GOTO: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
+    ]
+  },
+  {
+    "id": "sentiment-attention-inco-2026-09-28",
+    "title": "Lonjakan liputan INCO: 5 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
+    "summary": "Sectors news API mencatat 5 item INCO pada 2026-09-22–2026-09-28 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
+    "body": null,
+    "category": "sentiment",
+    "sourceType": "sectors",
+    "publishedAt": "2026-09-28T16:15:00+07:00",
+    "sector": "Basic Materials",
+    "impactLinks": [
+      {
+        "symbol": "INCO",
+        "direction": "Unverified",
+        "relevance": 55,
+        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
+        "rationale": "Hitungan rekaman Sectors news untuk INCO: 5 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
+      }
+    ],
+    "source": null,
+    "tags": [
+      "Attention"
     ]
   },
   {
@@ -6855,328 +7240,6 @@ export const rawEvents: RawEvent[] = [
       "Bullish",
       "Business Expansion",
       "Commodities"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-antm-2026-09-25",
-    "title": "Arus asing neto ANTM Rp1,1T pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp1,1T ≈ 8,5% dari nilai transaksi Rp13,1T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "ANTM",
-        "direction": "Supported",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing ANTM Rp1,1T pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-bbca-2026-09-25",
-    "title": "Arus asing neto BBCA Rp-696,0M pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp-696,0M ≈ 2,6% dari nilai transaksi Rp26,5T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBCA",
-        "direction": "Adverse",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing BBCA Rp-696,0M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-bbri-2026-09-25",
-    "title": "Arus asing neto BBRI Rp1,1T pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp1,1T ≈ 4,7% dari nilai transaksi Rp22,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBRI",
-        "direction": "Supported",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing BBRI Rp1,1T pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-goto-2026-09-25",
-    "title": "Arus asing neto GOTO Rp8,9M pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp8,9M ≈ 23,4% dari nilai transaksi Rp37,9M pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "GOTO",
-        "direction": "Supported",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing GOTO Rp8,9M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-pgas-2026-09-25",
-    "title": "Arus asing neto PGAS Rp-132,7M pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp-132,7M ≈ 7,4% dari nilai transaksi Rp1,8T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "PGAS",
-        "direction": "Adverse",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing PGAS Rp-132,7M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "flows-foreign-net-tlkm-2026-09-25",
-    "title": "Arus asing neto TLKM Rp-930,9M pada jendela 2026-08-03–2026-09-25",
-    "summary": "Neto asing Rp-930,9M ≈ 9,1% dari nilai transaksi Rp10,2T pada jendela aplikasi, Fakta arus partisipan; kelanjutan atau pembalikan diuji pada sesi berikutnya,",
-    "body": null,
-    "category": "flows",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Infrastructure",
-    "impactLinks": [
-      {
-        "symbol": "TLKM",
-        "direction": "Adverse",
-        "relevance": 80,
-        "path": "Arus asing dan konsentrasi broker → tekanan beli/jual → likuiditas",
-        "rationale": "Sectors foreign-flow API mencatat neto asing TLKM Rp-930,9M pada jendela 2026-08-03–2026-09-25. Fakta arus; bukan atribusi niat pembeli/penjual."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Foreign Flow"
-    ]
-  },
-  {
-    "id": "sentiment-attention-adro-2026-09-25",
-    "title": "Lonjakan liputan ADRO: 9 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 9 item ADRO pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "ADRO",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk ADRO: 9 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-antm-2026-09-25",
-    "title": "Lonjakan liputan ANTM: 10 berita 7 hari terakhir (vs 3 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 10 item ANTM pada 2026-09-19–2026-09-25 vs 3 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "ANTM",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk ANTM: 10 vs 3 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-bbca-2026-09-25",
-    "title": "Lonjakan liputan BBCA: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 20 item BBCA pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBCA",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk BBCA: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-bbri-2026-09-25",
-    "title": "Lonjakan liputan BBRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 20 item BBRI pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BBRI",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk BBRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-bmri-2026-09-25",
-    "title": "Lonjakan liputan BMRI: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 20 item BMRI pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Financials",
-    "impactLinks": [
-      {
-        "symbol": "BMRI",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk BMRI: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-goto-2026-09-25",
-    "title": "Lonjakan liputan GOTO: 20 berita 7 hari terakhir (vs 0 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 20 item GOTO pada 2026-09-19–2026-09-25 vs 0 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Technology",
-    "impactLinks": [
-      {
-        "symbol": "GOTO",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk GOTO: 20 vs 0 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-inco-2026-09-25",
-    "title": "Lonjakan liputan INCO: 5 berita 7 hari terakhir (vs 1 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 5 item INCO pada 2026-09-19–2026-09-25 vs 1 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Basic Materials",
-    "impactLinks": [
-      {
-        "symbol": "INCO",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk INCO: 5 vs 1 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
-    ]
-  },
-  {
-    "id": "sentiment-attention-tlkm-2026-09-25",
-    "title": "Lonjakan liputan TLKM: 16 berita 7 hari terakhir (vs 2 pekan sebelumnya)",
-    "summary": "Sectors news API mencatat 16 item TLKM pada 2026-09-19–2026-09-25 vs 2 pada 7 hari sebelumnya. Proksi perhatian, bukan isi berita: batal bila volume/arus tidak diikuti perubahan operasional.",
-    "body": null,
-    "category": "sentiment",
-    "sourceType": "sectors",
-    "publishedAt": "2026-09-25T16:15:00+07:00",
-    "sector": "Infrastructure",
-    "impactLinks": [
-      {
-        "symbol": "TLKM",
-        "direction": "Unverified",
-        "relevance": 55,
-        "path": "Volume liputan → perhatian ritel → volume tanpa perubahan operasional",
-        "rationale": "Hitungan rekaman Sectors news untuk TLKM: 16 vs 2 pekan sebelumnya. Proksi liputan — bukan sentimen terukur dan bukan sinyal arah. Keyakinan dibatasi Rendah; wajib gugur bila tidak ada perubahan volume, arus, atau operasional."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Attention"
     ]
   },
   {
@@ -8757,29 +8820,6 @@ export const rawEvents: RawEvent[] = [
     ]
   },
   {
-    "id": "filing-corporate-action-dividend-adro",
-    "title": "ADRO dividen tunai Rp145,14 per saham",
-    "summary": "Ex-date 2025-12-30, pembayaran 2026-01-15. Jadwal distribusi tunai, bukan sinyal arah harga.",
-    "body": null,
-    "category": "company",
-    "sourceType": "filing",
-    "publishedAt": "2025-12-30T09:00:00+07:00",
-    "sector": "Energy",
-    "impactLinks": [
-      {
-        "symbol": "ADRO",
-        "direction": "Mixed",
-        "relevance": 92,
-        "path": "Kebijakan dividen → arus kas ke pemegang saham → neraca",
-        "rationale": "Sectors corporate-actions API mencatat dividen ex-date 2025-12-30, dibayar 2026-01-15. Fakta jadwal distribusi, bukan sinyal arah harga."
-      }
-    ],
-    "source": null,
-    "tags": [
-      "Dividend"
-    ]
-  },
-  {
     "id": "commodity-coal-2025-12-15",
     "title": "Harga acuan batu bara 2025-12-15: USD100,81",
     "summary": "Harga referensi batu bara (price_usd_per_ton) bergerak 2,6% dari 2025-12-01 ke 2025-12-15, rekaman Sectors mining-commodities.",
@@ -8836,13 +8876,12 @@ export const rawEvents: RawEvent[] = [
 
 export const eventIdsBySymbol: Record<string, string[]> = {
   "ADRO": [
+    "sentiment-attention-adro-2026-09-28",
     "news-r-id-market-455653-saham-murah-emiten-boy-thohir",
-    "sentiment-attention-adro-2026-09-25",
     "news-mber-cuan-baru-andy-hakim-hingga-daya-tahan-cdia",
     "news-arket-455327-adro-medc-dan-arko-berebut-panggung",
     "filing-corporate-action-buyback-adro-2026-04-17",
     "filing-corporate-action-leadership-adro-2026-04-17",
-    "filing-corporate-action-dividend-adro",
     "commodity-coal-2025-12-15"
   ],
   "AMRT": [
@@ -8851,26 +8890,25 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-a-amrt-di-tengah-efisiensi-dan-tekanan-daya-beli"
   ],
   "ANTM": [
+    "flows-foreign-net-antm-2026-09-28",
     "news-antm-gali-laba-lebih-dalam-ada-target-harga-baru",
     "news-ton-emas-freeport-semester-i-catat-sales-rp50-t",
-    "flows-foreign-net-antm-2026-09-25",
-    "sentiment-attention-antm-2026-09-25",
     "news-i-6633-pekan-ini-cek-saham-antm-mtel-hingga-impc",
     "commodity-gold-2025-12-01"
   ],
   "BBCA": [
+    "flows-foreign-net-bbca-2026-09-28",
+    "sentiment-attention-bbca-2026-09-28",
     "news-nvestor-id-market-455728-perubahan-dramatis-bbca",
     "news-612-saham-bank-central-asia-bbca-kembali-disorot",
-    "flows-foreign-net-bbca-2026-09-25",
-    "sentiment-attention-bbca-2026-09-25",
     "news-market-455514-dividen-bbca-setelah-laba-melesat",
     "filing-corporate-action-dividend-bbca",
     "filing-corporate-action-buyback-bbca-2026-03-12",
     "filing-corporate-action-leadership-bbca-2026-03-12"
   ],
   "BBRI": [
-    "flows-foreign-net-bbri-2026-09-25",
-    "sentiment-attention-bbri-2026-09-25",
+    "flows-foreign-net-bbri-2026-09-28",
+    "sentiment-attention-bbri-2026-09-28",
     "news-turun-ke-6200-asing-net-sell-jumbo-10-saham-ini",
     "news-rakyat-indonesia-bbri-ungkap-info-terkait-lapkeu",
     "news-455283-saham-bank-rakyat-indonesia-bbri-diserok",
@@ -8878,8 +8916,8 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "filing-corporate-action-leadership-bbri-2026-04-10"
   ],
   "BMRI": [
+    "sentiment-attention-bmri-2026-09-28",
     "news-ket-455662-bmri-dan-bbni-kompak-jadi-saham-murah",
-    "sentiment-attention-bmri-2026-09-25",
     "news-455439-saham-bank-mandiri-bmri-diamdiam-diserok",
     "news-form-untuk-obligasi-himbara-soroti-kredit-kopdes",
     "filing-entstock-from-ksei-lk-08092026-3898-00-pdf-0-pdf",
@@ -8907,9 +8945,9 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-kan-batas-harga-jadi-rp-1-cek-support-berikutnya",
     "news-k-1-dan-dolar-as-nyaris-rp-18000-ini-penyebabnya",
     "news-iri-1-miliar-lot-jual-morgan-stanley-juga-jualan",
+    "flows-foreign-net-goto-2026-09-28",
+    "sentiment-attention-goto-2026-09-28",
     "filing-entstock-from-ksei-lk-28092026-8273-00-pdf-0-pdf",
-    "flows-foreign-net-goto-2026-09-25",
-    "sentiment-attention-goto-2026-09-25",
     "filing-entstock-from-ksei-lk-23092026-9638-00-pdf-0-pdf"
   ],
   "ICBP": [
@@ -8918,7 +8956,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-dapur-cuan-emiten-grup-salim-saham-bisa-naik-40"
   ],
   "INCO": [
-    "sentiment-attention-inco-2026-09-25",
+    "sentiment-attention-inco-2026-09-28",
     "news-investor-id-market-455388-nasib-sang-raja-nikel",
     "news-3-tambang-segera-beroperasi-morowali-lebih-dulu",
     "news-ejar-proyek-hpal-pomalaa-full-produksi-pada-2027"
@@ -8935,7 +8973,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-fe-haven-sektor-konsumer-saat-rupiah-di-rp-18000"
   ],
   "PGAS": [
-    "flows-foreign-net-pgas-2026-09-25",
+    "flows-foreign-net-pgas-2026-09-28",
     "news-m-naik-ini-prospek-saham-medc-elsa-pgas-dan-tpia",
     "news-trase-kompensasi-awal-pgas-ke-gunvor-9-kargo-lng",
     "news-ws-pgas-beber-latar-pembayaran-kompensasi-gunvor"
@@ -8952,8 +8990,7 @@ export const eventIdsBySymbol: Record<string, string[]> = {
     "news-tan-melonjak-timah-tins-siapkan-revisi-rkap-2026"
   ],
   "TLKM": [
-    "flows-foreign-net-tlkm-2026-09-25",
-    "sentiment-attention-tlkm-2026-09-25",
+    "flows-foreign-net-tlkm-2026-09-28",
     "news-news-69316-emtek-perkuat-posisi-di-buka-dan-jecx",
     "news-00-saham-telkomsigma-di-tde-intip-arah-bisnisnya",
     "news-tlkm-perkuat-kendali-atas-telkom-data-ekosistem",
