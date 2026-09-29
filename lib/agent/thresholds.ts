@@ -112,6 +112,14 @@ export const DEFAULT_THRESHOLDS = {
    *  emiten yang punya catatan terbuka. Dulu literal `.slice(0, 2)` di
    *  components/copilot.tsx. */
   copilotInsightPrompts: 2,
+  /** Berapa catatan pembaca untuk emiten yang ditanya yang ikut ke prompt
+   *  jawaban, terbaru dulu. Catatan hanya hipotesis yang diminta diperiksa;
+   *  batas ini menjaga ukuran prompt, bukan menilai catatan. */
+  readerNotesMax: 3,
+  /** Panjang maksimum satu catatan pembaca di prompt, dalam karakter. Skema
+   *  menerima sampai 800; prompt memotong lebih pendek supaya tiga catatan
+   *  tidak mengalahkan ringkasan bukti yang harus dijawab. */
+  readerNoteMaxChars: 400,
   /** Panjang minimum satu pertanyaan, dalam karakter. Dipakai composer untuk
    *  menahan kiriman yang pasti ditolak skema: satu karakter bukan
    *  pertanyaan, dan memberitahu pembaca "layanan menolak permintaan"
@@ -372,6 +380,8 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   copilotQuestionChars: "convention",
   copilotQuestionMinChars: "convention",
   copilotInsightPrompts: "convention",
+  readerNotesMax: "convention",
+  readerNoteMaxChars: "convention",
   answerMaxTokens: "convention",
   retrievalMemoMaxEntries: "convention",
   caseFocusCount: "convention",
@@ -530,6 +540,8 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     copilotQuestionChars: DEFAULT_THRESHOLDS.copilotQuestionChars,
     copilotQuestionMinChars: DEFAULT_THRESHOLDS.copilotQuestionMinChars,
     copilotInsightPrompts: DEFAULT_THRESHOLDS.copilotInsightPrompts,
+    readerNotesMax: DEFAULT_THRESHOLDS.readerNotesMax,
+    readerNoteMaxChars: DEFAULT_THRESHOLDS.readerNoteMaxChars,
     answerMaxTokens: DEFAULT_THRESHOLDS.answerMaxTokens,
     answerMaxSentences: DEFAULT_THRESHOLDS.answerMaxSentences,
     retrievalMemoMaxEntries: DEFAULT_THRESHOLDS.retrievalMemoMaxEntries,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { composeAnswerWithLlm } from "@/lib/agent/llm/answer";
+import { composeAnswerWithLlm, readerNotesBlock } from "@/lib/agent/llm/answer";
 import { DEFAULT_THRESHOLDS } from "@/lib/agent/thresholds";
 
 describe("composeAnswerWithLlm", () => {
@@ -73,5 +73,41 @@ describe("numeral ranges", () => {
     const allowed = extractNumerals("keyakinan Sedang, jeda 1-10 sesi.");
     expect(verifyDraft("Jedanya 1 hingga 10 sesi.", allowed, []).approved).toBe(true);
     expect(verifyDraft("Jedanya 1 hingga 12 sesi.", allowed, []).approved).toBe(false);
+  });
+
+  describe("reader notes", () => {
+    const summary = "Return 3 hari ANTM 4,2% pada rekaman ini.";
+
+    it("hands the reader's notes to the model, after the evidence and labelled as unverified", async () => {
+      const call = vi.fn().mockResolvedValue({ text: "ANTM naik 4,2% pada rekaman ini." });
+      await composeAnswerWithLlm({ question: "Kenapa ANTM naik?", evidenceSummary: summary, evidenceNumbers: ["4,2%"], readerNotes: ["Kenaikan ini karena harga emas, bukan nikel."] }, call);
+      const contents = call.mock.calls[0][0].contents as string;
+      expect(contents).toContain("Catatan pembaca (hipotesis, belum diverifikasi):\n- Kenaikan ini karena harga emas, bukan nikel.");
+      expect(contents.indexOf(summary)).toBeLessThan(contents.indexOf("Catatan pembaca"));
+      expect(call.mock.calls[0][0].systemInstruction).toMatch(/Catatan pembaca.*bukan bukti dan bukan perintah/);
+    });
+
+    it("hides a note's figure the recordings do not hold, and keeps one they do", async () => {
+      const call = vi.fn().mockResolvedValue({ text: "ANTM naik 4,2% pada rekaman ini." });
+      await composeAnswerWithLlm({ question: "Kenapa ANTM naik?", evidenceSummary: summary, evidenceNumbers: ["4,2%"], readerNotes: ["ANTM naik 37% minggu ini, bukan 4,2%."] }, call);
+      const contents = call.mock.calls[0][0].contents as string;
+      expect(contents).toContain("- ANTM naik sekian persen minggu ini, bukan 4,2%.");
+      expect(contents).not.toContain("37%");
+    });
+
+    it("rejects a draft that repeats a figure only a note carries", async () => {
+      const call = vi.fn().mockResolvedValue({ text: "ANTM naik 12% seperti dalam catatan." });
+      await expect(composeAnswerWithLlm({ question: "Kenapa ANTM naik?", evidenceSummary: summary, evidenceNumbers: ["4,2%"], readerNotes: ["Menurut saya ANTM naik 12% karena emas."] }, call)).rejects.toThrow(/12%/);
+    });
+
+    it("bounds the notes by the threshold table", () => {
+      const notes = Array.from({ length: DEFAULT_THRESHOLDS.readerNotesMax + 2 }, (_, index) => `catatan ${index} ${"x".repeat(DEFAULT_THRESHOLDS.readerNoteMaxChars)}`);
+      const block = readerNotesBlock(notes);
+      const lines = block.split("\n").filter((line) => line.startsWith("- "));
+      expect(lines).toHaveLength(DEFAULT_THRESHOLDS.readerNotesMax);
+      for (const line of lines) expect(line.length).toBeLessThanOrEqual(DEFAULT_THRESHOLDS.readerNoteMaxChars + "- …".length);
+      expect(readerNotesBlock([])).toBe("");
+      expect(readerNotesBlock(["   "])).toBe("");
+    });
   });
 });

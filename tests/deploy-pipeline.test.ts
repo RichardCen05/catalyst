@@ -98,6 +98,23 @@ describe("cloudbuild-refresh.yaml", () => {
     expect(script).not.toContain("--set-env-vars");
     expect(script).not.toContain("--set-secrets");
   });
+
+  // 28 Sep 2026: two tries bought the same 85 credits of recordings, failed
+  // the gate, and published nothing, so the next try paid again.
+  it("stages what a try paid for before the gate, and the next try starts from it", () => {
+    const ids = stepIds(refresh);
+    expect(ids.indexOf("stage-recordings")).toBeGreaterThan(ids.indexOf("refresh"));
+    expect(ids.indexOf("stage-recordings")).toBeLessThan(ids.indexOf("gate"));
+    expect(step(refresh, "stage-recordings")).toMatch(/rsync data\/sectors "\$\{_STAGED\}"/);
+    const restore = step(refresh, "restore");
+    // The ledger comes from the published set first; the staged copy carries
+    // an older one.
+    expect(restore.indexOf("_ledger.jsonl data/sectors/_ledger.jsonl")).toBeGreaterThan(0);
+    expect(restore.indexOf('rsync "${_STAGED}" /workspace/published')).toBeGreaterThan(restore.indexOf("_ledger.jsonl data/sectors/_ledger.jsonl"));
+    expect(step(refresh, "publish-recordings")).toMatch(/gcloud storage rm "\$\{_STAGED\}\/\*\*"/);
+    expect(refresh).toMatch(/^ {2}_STAGED: gs:\/\/\S+$/m);
+    expect(refresh.match(/^ {2}_STAGED: (\S+)$/m)?.[1]).not.toBe(refresh.match(/^ {2}_RECORDINGS: (\S+)$/m)?.[1]);
+  });
 });
 
 describe("cloudbuild-screen.yaml", () => {

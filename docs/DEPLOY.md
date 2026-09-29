@@ -483,16 +483,18 @@ red gate aborts the build and leaves the serving revision untouched.
 
 | What | Value |
 |---|---|
-| Scheduler job | `catalyst-data-refresh`, `30 17,19,21 * * 1-5` Asia/Jakarta, region `us-central1` |
+| Scheduler job | `catalyst-data-refresh`, `30 7,17,19,21 * * 1-5` Asia/Jakarta, region `us-central1` |
 | Target | Cloud Build REST `projects/ada-sectors-508410/locations/us-central1/builds`, inline build body |
 | Build identity | `1019003607640-compute@developer.gserviceaccount.com` |
 | Source | `gs://ada-sectors-508410_cloudbuild/catalyst/refresh-source.tgz` |
-| State between runs | `gs://ada-sectors-508410_cloudbuild/catalyst/recordings` — the recordings last deployed, and `_ledger.jsonl` |
+| State between runs | `gs://ada-sectors-508410_cloudbuild/catalyst/recordings` — the recordings last deployed, and `_ledger.jsonl`; `…/catalyst/staged-recordings` — recordings a try paid for but could not deploy |
 | Cost per try | 37 credits when it lands a new session (prices, IHSG, foreign flow); 85 when news, filings and broker summaries are 3+ days old and come along; 1 when Sectors has not published yet; 0 once landed |
 
 Each try:
 
-1. **restore** — pulls the published recordings and the ledger.
+1. **restore** — pulls the published recordings and the ledger, then overlays the staged
+   recordings when an earlier try left some (after the ledger, which the staged copy carries an
+   older version of).
 2. **refresh** — `refresh_sectors.py --adopt --probe --slow-every 3`: takes the published
    recordings when they reach a later session than the snapshot, asks the one-credit IHSG window
    first, and only if IHSG holds a session the recordings lack fetches daily prices and foreign
@@ -500,9 +502,17 @@ Each try:
    (48 more — about twice a week). Then compares the last
    session on disk with `dataAsOf` from `/api/health` and writes `deploy` or `skip`.
 3. **save-ledger** — always, so probe credits are counted too.
-4. **install → gate → deploy → publish-recordings** — only on `deploy`.
+4. **stage-recordings** — only on `deploy`, before the gate: copies `data/sectors` to
+   `staged-recordings`, so a red gate or a failed deploy no longer throws away what was bought.
+   On 28 Sep 2026 the 17:30 and 19:30 tries each paid 85 credits for the same recordings, failed
+   the gate, and published nothing.
+5. **install → gate → deploy → publish-recordings** — only on `deploy`. Publishing removes the
+   staged copy.
 
-Three tries an evening because Sectors does not say when a session is published. "Already
+Three tries an evening and one the next morning, because Sectors does not say when a session is
+published. On 28 Sep 2026 the 21:30 try still found IHSG ending on 25 Sep; before the 07:30 try
+existed, a session published after 21:30 reached the board only the next evening. The morning try
+costs the one-credit probe when nothing is new. "Already
 current" is judged by the rows, not the filename: on 23 Sep 2026 a hand refresh at 13:05 WIB
 asked for `end-2026-09-23` while the market was open and got only the 22 Sep close; the 17:30 run
 read the filename, spent nothing, and left the board on 22 Sep. Comparing with `/api/health` also
@@ -544,7 +554,7 @@ coverage). To stretch the grant, raise `_SLOW_EVERY` or thin the cadence, not th
 
 ```bash
 gcloud scheduler jobs update http catalyst-data-refresh --location=us-central1 \
-  --schedule="30 17,19,21 * * 1,4"  # twice a week instead of five times
+  --schedule="30 7,17,19,21 * * 1,4"  # twice a week instead of five times
 gcloud scheduler jobs pause catalyst-data-refresh --location=us-central1
 ```
 

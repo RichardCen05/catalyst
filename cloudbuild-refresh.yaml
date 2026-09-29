@@ -53,6 +53,9 @@ substitutions:
   _MAX_CREDITS: "120"
   _SLOW_EVERY: "3"
   _RECORDINGS: gs://ada-sectors-508410_cloudbuild/catalyst/recordings
+  # Recordings a try paid for but could not deploy (red gate, failed deploy).
+  # Kept apart from _RECORDINGS, which only ever holds what readers are served.
+  _STAGED: gs://ada-sectors-508410_cloudbuild/catalyst/staged-recordings
   _LIVE_HEALTH: https://catalyst-web-ibyebnreqa-uc.a.run.app/api/health
 
 steps:
@@ -72,6 +75,12 @@ steps:
           fi
         else
           echo "nothing published yet — starting from the snapshot"
+        fi
+        # After the ledger is copied: the staged set carries the ledger of the
+        # try that staged it, which save-ledger has since moved past.
+        if gcloud storage ls "${_STAGED}/_requests.json" > /dev/null 2>&1; then
+          echo "staged: an earlier try paid for recordings it could not deploy — adopting them instead of fetching again"
+          gcloud storage rsync "${_STAGED}" /workspace/published --recursive --delete-unmatched-destination-objects
         fi
 
   - id: refresh
@@ -99,6 +108,20 @@ steps:
         if [ -f data/sectors/_ledger.jsonl ]; then
           gcloud storage cp data/sectors/_ledger.jsonl "${_RECORDINGS}/_ledger.jsonl"
         fi
+
+  # Before the gate, so a red gate no longer throws away what the refresh paid
+  # for. On 28 Sep 2026 the 17:30 and 19:30 tries each bought the same 85
+  # credits of recordings, failed the gate, and published nothing; the next
+  # try starts from this copy (restore) and spends nothing it already bought.
+  - id: stage-recordings
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: nothing to stage"; exit 0; }
+        gcloud storage rsync data/sectors "${_STAGED}" --recursive --delete-unmatched-destination-objects
 
   - id: install
     name: node:22
@@ -157,6 +180,10 @@ steps:
         set -euo pipefail
         [ "$$(cat /workspace/refresh-status)" = deploy ] || { echo "skip: nothing new to publish"; exit 0; }
         gcloud storage rsync data/sectors "${_RECORDINGS}" --recursive --delete-unmatched-destination-objects
+        # Published now, so the staged copy is spent.
+        if gcloud storage ls "${_STAGED}/_requests.json" > /dev/null 2>&1; then
+          gcloud storage rm "${_STAGED}/**"
+        fi
 
 availableSecrets:
   secretManager:

@@ -37,3 +37,6 @@ scripts/screen/.model/
 scripts/screen/__pycache__/
 scripts/screen/.pytest_cache/
 .pytest_cache/
+
+# Local Strix pentest runs: findings stay off git and out of deploy uploads.
+strix_runs/

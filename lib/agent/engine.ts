@@ -909,11 +909,20 @@ function relevantInsights(insights: UserInsight[] | undefined, symbol?: SymbolCo
   return (insights ?? []).filter((insight) => insight.symbol === symbol && insight.status !== "dismissed");
 }
 
+/** The notes the model is asked to weigh: the reader's own words, newest
+ *  first. The count and length caps live in `readerNotesBlock`. */
+function readerNotesFor(insights: UserInsight[]): string[] {
+  return [...insights].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((insight) => insight.note);
+}
+
 function insightTraces(insights: UserInsight[]): HypothesisTrace[] {
   const pillarLabels = PILLAR_LABELS;
+  // The note itself, quoted: "Periksa jawaban" used to say only that some
+  // note asked for a re-check, so a reader could not tell which of their
+  // notes the answer had weighed.
   return insights.map((insight) => ({
     id: insight.id,
-    hypothesis: `Catatan pengguna meminta pemeriksaan ulang${insight.pillar ? ` pada pilar ${pillarLabels[insight.pillar] ?? insight.pillar}` : ""}.`,
+    hypothesis: `Catatan Anda${insight.pillar ? ` pada pilar ${pillarLabels[insight.pillar] ?? insight.pillar}` : ""}: "${insight.note}"`,
     query: "Bandingkan catatan pengguna dengan sumber produksi sebelum menggabungkannya.",
     verification: "Belum diverifikasi. Catatan disimpan sebagai hipotesis personal, bukan fakta pasar.",
     outcome: "open",
@@ -953,7 +962,14 @@ function preferenceNote(request: ChatRequest, symbol: SymbolCode | undefined, in
   const depthName = profile.config.depth === "forensic" ? "forensik" : profile.config.depth === "compact" ? "ringkas" : "standar";
   const collaboration = insightCount ? ` ${insightCount} catatan pengguna terkait dimasukkan sebagai hipotesis terbuka.` : "";
   const comparables = symbol ? playbook?.preferredComparables[symbol]?.join(" · ") : undefined;
-  const explicitRules = playbook?.materialityRules[0] ? ` Aturan materialitas: ${playbook.materialityRules[0]}` : "";
+  // The rule the case itself applies, in the order `appliedPlaybookRules`
+  // uses: the reader's approved rule for this emiten first, then the first
+  // general one. `materialityRules[0]` was always the default rule — an
+  // approved rule is appended — or another emiten's approved rule.
+  const materiality = playbook?.materialityRules ?? [];
+  const own = symbol ? materiality.find((rule) => rule.startsWith(`[Disetujui ${symbol}]`) || rule.startsWith(`[Hasil ${symbol}]`)) : undefined;
+  const rule = own ?? materiality.find((item) => !item.startsWith("[Hasil ") && !item.startsWith("[Disetujui "));
+  const explicitRules = rule ? ` Aturan materialitas: ${rule}` : "";
   const mandate = caseMandate ? ` Pertanyaan aktif: ${caseMandate}` : "";
   return `Urutan dimulai dari ${pillarName}. Profil ${profile.name} memilih kedalaman ${depthName}.${comparables ? ` Pembanding pilihan: ${comparables}.` : ""}${explicitRules}${mandate} Fakta dan ambang tidak berubah.${collaboration}`;
 }
@@ -982,6 +998,7 @@ async function rewriteWithLlm(
   visibleFigures: string[] = [],
   languageSource?: string,
   mustQuote?: string[],
+  readerNotes?: string[],
 ): Promise<Composed> {
   if (agentMode() !== "llm") return { text: deterministicText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   try {
@@ -995,7 +1012,7 @@ async function rewriteWithLlm(
     // guarantee that matters — no number the recordings never produced.
     const evidenceNumbers = extractNumerals(deterministicText, ...visibleFigures);
     const draft = await Promise.race([
-      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers, ...(languageSource ? { languageSource } : {}), ...(mustQuote?.length ? { mustQuote } : {}) }),
+      composeAnswerWithLlm({ question, evidenceSummary: deterministicText, evidenceNumbers, ...(languageSource ? { languageSource } : {}), ...(mustQuote?.length ? { mustQuote } : {}), ...(readerNotes?.length ? { readerNotes } : {}) }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
     ]);
     return { text: draft.text, generator: "llm" };
@@ -1032,6 +1049,7 @@ async function composeRetrieved(
   question: string,
   retrieved: RetrievedContext,
   cacheable: boolean,
+  readerNotes: string[] = [],
 ): Promise<Composed> {
   if (agentMode() !== "llm") return { text: retrieved.readerText, generator: "deterministic", fallbackReason: MODEL_OFF_REASON };
   const cheap = cheapModel();
@@ -1046,7 +1064,9 @@ async function composeRetrieved(
     // Only a first turn is cacheable. A follow-up's meaning depends on turns
     // the key does not carry, so "dan yang satunya?" would otherwise be served
     // an answer written for a different conversation.
-    const key = cacheable ? answerCacheKey(question, retrieved.text, model) : null;
+    // Notes are the reader's own and the key does not carry them: an answer
+    // that weighed one reader's note must not be served to another reader.
+    const key = cacheable && !readerNotes.length ? answerCacheKey(question, retrieved.text, model) : null;
     if (key) {
       const hit = await readAnswerCache(key);
       if (hit?.text) return { text: hit.text, generator: "llm" };
@@ -1054,7 +1074,7 @@ async function composeRetrieved(
     try {
       const draft = await Promise.race([
         composeAnswerWithLlm(
-          { question, evidenceSummary: retrieved.text, evidenceNumbers: retrieved.figures },
+          { question, evidenceSummary: retrieved.text, evidenceNumbers: retrieved.figures, ...(readerNotes.length ? { readerNotes } : {}) },
           withModel(model),
         ),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LLM answer timeout")), LLM_ANSWER_TIMEOUT_MS)),
@@ -1438,6 +1458,9 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   const analysis = primary ? await buildAnalysis(primary, request.profile) : null;
   const insights = relevantInsights(request.userInsights, primary);
   const openInsightTraces = insightTraces(insights);
+  const readerNotes = readerNotesFor(insights);
+  const rewrite = (question: string, text: string, figures?: string[], languageSource?: string, mustQuote?: string[]) =>
+    rewriteWithLlm(question, text, figures, languageSource, mustQuote, readerNotes);
   const personalizedNote = () => preferenceNote(request, primary, insights.length);
   if (guarded.refused) {
     return {
@@ -1596,7 +1619,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
       // volume, momentum or what triggered either case.
       const material = compareMaterial(first, second);
       return {
-        ...(await rewriteWithLlm(request.question, material.text, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
+        ...(await rewrite(request.question, material.text, [...visibleFiguresFor(first), ...visibleFiguresFor(second)])),
         refused: false, intent: "compare", hypotheses: [...first.hypotheses.slice(0, 1), ...second.hypotheses.slice(0, 1)],
         citations: material.citations, preferenceNote: personalizedNote(), relatedSymbols: compareSymbols.slice(0, 2),
       };
@@ -1606,7 +1629,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   if (winner.id === "causal-path" && pathHit) {
     const material = causalPathMaterial(pathHit.graph, pathHit.node);
     return {
-      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(analysis), readerWords)),
+      ...(await rewrite(request.question, material.text, visibleFiguresFor(analysis), readerWords)),
       refused: false, intent: "causal-path", hypotheses: openInsightTraces, citations: material.citations,
       preferenceNote: personalizedNote(), relatedSymbols: [pathHit.graph.targetSymbol],
     };
@@ -1624,7 +1647,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
         : winner.id === "falsifier" ? falsifierMaterial(analysis, request.playbook)
           : playbookMaterial(ruled, request.profile, request.playbook);
     return {
-      ...(await rewriteWithLlm(request.question, material.text, visibleFiguresFor(ruled), undefined, material.mustQuote)),
+      ...(await rewrite(request.question, material.text, visibleFiguresFor(ruled), undefined, material.mustQuote)),
       refused: false, intent: winner.id, hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: material.citations,
       preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
@@ -1713,7 +1736,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     const text = scoped.length
       ? `${header} ${scoped.map((link) => `${link.symbol}: ${direction(link.direction)}. ${link.path}.`).join(" ")}`
       : `${header} Peristiwa ini tidak memiliki jalur dampak ke saham pantauan aktif pada rekaman ini.`;
-    return { ...(await rewriteWithLlm(request.question, text, visibleFiguresFor(analysis))), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
+    return { ...(await rewrite(request.question, text, visibleFiguresFor(analysis))), refused: false, intent: "event-impact", hypotheses: openInsightTraces, citations: selected.citations, preferenceNote: personalizedNote(), relatedSymbols: scoped.map((link) => link.symbol) };
   }
 
   if (winner.id === "missing") {
@@ -1727,7 +1750,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
         ? `Data yang belum ada untuk ${primary}: ${missingList(partial.missing)}. Tanpa rekaman itu ${primary} belum punya kasus riset lengkap pada rekaman ${DATA_AS_OF_LABEL}.`
         : "Data intrahari, transaksi pihak terafiliasi, dan detail kontrak belum tersedia dalam prototipe.";
     return {
-      ...(await rewriteWithLlm(request.question, material, visibleFiguresFor(analysis))),
+      ...(await rewrite(request.question, material, visibleFiguresFor(analysis))),
       refused: false, intent: "missing", hypotheses: [...(analysis?.hypotheses.filter((item) => item.outcome === "open") ?? []), ...openInsightTraces], citations: analysis?.sources.slice(0, 3) ?? partialCitations.slice(0, 3), preferenceNote: personalizedNote(), relatedSymbols: primary ? [primary] : [],
     };
   }
@@ -1752,7 +1775,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
   // phrase or a symbol the reader actually named.
   if (analysis && winner.id === "why-listed") {
     return {
-      ...(await rewriteWithLlm(request.question, `${analysis.company.symbol} masuk karena ${withoutSymbolPrefix(analysis.materialChange.whatChanged, analysis.company.symbol)} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
+      ...(await rewrite(request.question, `${analysis.company.symbol} masuk karena ${withoutSymbolPrefix(analysis.materialChange.whatChanged, analysis.company.symbol)} Pembanding: ${analysis.materialChange.baseline} Perubahan ini penting karena ${analysis.materialChange.whyMaterial} Tindakan riset saat ini: ${analysis.researchDisposition.label}.`, visibleFiguresFor(analysis))),
       refused: false, intent: "why-listed", hypotheses: [...analysis.hypotheses, ...openInsightTraces], citations: analysis.sources, preferenceNote: personalizedNote(), relatedSymbols: [analysis.company.symbol],
     };
   }
@@ -1763,7 +1786,7 @@ async function routeFollowUp(request: ChatRequest): Promise<ChatAnswer> {
     // wrong the moment something did: two conversations that arrive at the
     // same resolved question over the same material have the same answer.
     // A pointer that failed never reaches here, so it is never written.
-    const composed = await composeRetrieved(followUp.question, retrieved, !followUp.anaphoric || followUp.resolved);
+    const composed = await composeRetrieved(followUp.question, retrieved, !followUp.anaphoric || followUp.resolved, readerNotes);
     return {
       text: composed.text, refused: false,
       // Two different answers wear two different names. A list computed over

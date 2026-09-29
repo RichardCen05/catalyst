@@ -883,7 +883,7 @@ function SuspectedCard({ item, onResolved, onDisputed }: { item: SuspectedRow; o
       <div className="mt-4 border-t border-border pt-4">
         <h4 className="text-sm font-semibold">Keputusan Anda</h4>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Lihat berita ini di media sosial dan ingin memeriksa ulang dengan Catalyst? Pilih Bukan rumor bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan. Pilih Tolak bila memang rumor.
+          Pilih Bukan rumor bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan. Pilih Tolak bila memang rumor.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           <input
@@ -987,7 +987,7 @@ export function WebWatchReview() {
     <div>
       <PageHeader
         title="Pantau"
-        description="Berita yang dipakai dalam analisis, dan berita baru yang menunggu keputusan Anda. Melihat kabar di media sosial? Cari di tab Terindikasi Rumor atau Antrean, lalu terima atau tolak."
+        description="Berita yang dipakai dalam analisis, dan berita baru dari sumber yang dipantau yang menunggu keputusan Anda. Media sosial tidak ikut dipantau."
         action={<Button variant="secondary" onClick={load}>Muat ulang</Button>}
       />
       {error ? (
@@ -1134,7 +1134,7 @@ export function WebWatchReview() {
             <div className="mb-3">
               <h2 className="editorial text-xl">Terindikasi Rumor ({suspected.length})</h2>
               <p className="text-xs text-muted-foreground">
-                Penyaring menandai calon ini sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor.
+                Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor.
               </p>
             </div>
             {suspected.length ? (
@@ -1147,7 +1147,7 @@ export function WebWatchReview() {
                 />
               </div>
             ) : (
-              <Panel className="p-6 text-sm text-muted-foreground">Tidak ada temuan yang ditandai rumor. Berita yang Anda lihat di media sosial tetapi tidak ada di sini kemungkinan belum masuk pantauan atau sudah diterima di tab Diterima.</Panel>
+              <Panel className="p-6 text-sm text-muted-foreground">Tidak ada temuan yang ditandai rumor dari {data?.sources.length ?? 0} sumber yang dipantau. Kabar dari media sosial tidak masuk pantauan, jadi tidak akan muncul di sini.</Panel>
             )}
           </section>
           ) : null}

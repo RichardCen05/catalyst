@@ -651,7 +651,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:keputusan-anda",
     heading: "Keputusan Anda",
     view: "pantau",
-    description: "Lihat berita ini di media sosial dan ingin memeriksa ulang dengan Catalyst? Pilih Bukan rumor bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan. Pilih Tolak bila memang rumor.",
+    description: "Pilih Bukan rumor bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan. Pilih Tolak bila memang rumor.",
     file: "components/web-watch-review.tsx",
   },
   {
@@ -672,7 +672,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:pantau",
     heading: "Pantau",
     view: "pantau",
-    description: "Berita yang dipakai dalam analisis, dan berita baru yang menunggu keputusan Anda. Melihat kabar di media sosial? Cari di tab Terindikasi Rumor atau Antrean, lalu terima atau tolak.",
+    description: "Berita yang dipakai dalam analisis, dan berita baru dari sumber yang dipantau yang menunggu keputusan Anda. Media sosial tidak ikut dipantau.",
     file: "components/web-watch-review.tsx",
   },
   {
@@ -706,7 +706,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:terindikasi-rumor",
     heading: "Terindikasi rumor",
     view: "pantau",
-    labels: ["Terindikasi Rumor (","Penyaring menandai calon ini sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor."],
+    labels: ["Terindikasi Rumor (","Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor."],
     file: "components/web-watch-review.tsx",
   },
   {
