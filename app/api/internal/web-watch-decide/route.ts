@@ -39,6 +39,7 @@ import {
   normalizeQueue,
   PENDING_MAX,
   saveQueue,
+  SCREEN_VERDICT_CHECKS,
   type ReviewQueue,
   type ScreenVerdict,
   type VerdictResult,
@@ -56,7 +57,7 @@ const verdictSchema = z
   .object({
     candidateId: z.string().min(1).max(120),
     verdict: z.enum(["accept", "reject", "residual"]),
-    check: z.enum(["rumor", "misleading-title", "figure", "substance", "relevance"]).optional(),
+    check: z.enum(SCREEN_VERDICT_CHECKS).optional(),
     reason: z.string().trim().min(1).max(500),
     span: z.string().max(2000).optional(),
     score: z.number().min(0).max(1).optional(),

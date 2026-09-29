@@ -5,7 +5,7 @@ import { Check, ChevronDown, Circle } from "lucide-react";
 import { buildInvestmentMemo } from "@/lib/memo";
 import { deriveMonitorTriggers } from "@/lib/monitor";
 import { useCatalystStore } from "@/lib/store";
-import { displayFigure, withStop } from "@/lib/utils";
+import { displayFigure, withStop, displayText } from "@/lib/utils";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
 
 // Verdict, audit trail, monitor queue and memo export. These were the parts of
@@ -27,7 +27,7 @@ export function CaseAuditDetails({ researchCase, symbol }: { researchCase: Resea
       <div className="grid gap-6 border-t border-border bg-background p-4 sm:p-5 lg:grid-cols-2">
         <section><h3 className="text-xs font-semibold">Aturan yang memengaruhi urutan</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{trace.map((item) => <li key={item.id}><strong className="text-foreground">{displayFigure(withStop(item.rule))}</strong> {displayFigure(item.effect)}</li>)}</ul></section>
         <section><h3 className="text-xs font-semibold">Hal yang belum terjawab</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.unresolvedQuestions.slice(0, 3).map((item) => <li key={item}>{item}</li>)}</ul></section>
-        <section><h3 className="text-xs font-semibold">Bukti penyangkal dan catatan</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.counterEvidence.slice(0, 2).map((item) => <li key={item}>{item}</li>)}{researchCase.userNotes.map((item) => <li key={item.id} className="text-attention-foreground">Catatan Anda: {item.note}</li>)}</ul></section>
+        <section><h3 className="text-xs font-semibold">Bukti penyangkal dan catatan</h3><ul className="mt-2 space-y-2 text-xs leading-5 text-muted-foreground">{researchCase.counterEvidence.slice(0, 2).map((item) => <li key={item}>{displayText(item)}</li>)}{researchCase.userNotes.map((item) => <li key={item.id} className="text-attention-foreground">Catatan Anda: {item.note}</li>)}</ul></section>
         <section><h3 className="text-xs font-semibold">Tahap kasus</h3><ol className="mt-2 space-y-2">{researchCase.lifecycle.map((step) => { const complete = status === "closed" || step.state === "complete"; return <li key={step.key} className="flex items-center gap-2 text-xs"><span className={`grid size-5 place-items-center rounded-full border ${complete ? "border-positive/40 text-positive" : "border-primary/40 text-primary"}`}>{complete ? <Check aria-hidden="true" className="size-3" /> : <Circle aria-hidden="true" className="size-2.5" />}</span>{step.label}</li>; })}</ol></section>
       </div>
     </details>
@@ -59,8 +59,8 @@ export function CaseMemoActions({ researchCase, symbol }: { researchCase: Resear
   const shareSummary = async () => {
     const text = [
       `${symbol} · ${researchCase.trigger.title}`,
-      `Pembanding: ${researchCase.materialChange.baseline}`,
-      `Alasan material: ${researchCase.materialChange.whyMaterial}`,
+      `Pembanding: ${displayText(researchCase.materialChange.baseline)}`,
+      `Alasan material: ${displayText(researchCase.materialChange.whyMaterial)}`,
       `Tindakan riset: ${researchCase.researchDisposition.label} — ${researchCase.researchDisposition.reason}`,
       `Pantau: ${researchCase.researchDisposition.monitorObservable}`,
       `Buka kembali bila: ${researchCase.researchDisposition.reopenWhen}`,

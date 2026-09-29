@@ -134,8 +134,8 @@ describe("P2-7 · a watched page is read as its article, and a proposal claims n
   });
 
   it("an article that states no figure is proposed at the lowest band", () => {
-    expect(bandForArticle("medium", `${headline}\n\n${prose}`)).toBe("low");
-    expect(bandForArticle("high", "BI-Rate turun 25 bps menjadi 5,75% pada rapat dewan gubernur.")).toBe("high");
+    expect(bandForArticle("medium", `${headline}\n\n${prose}`, "Festival memperluas transaksi digital bank.")).toBe("low");
+    expect(bandForArticle("high", "BI-Rate turun 25 bps menjadi 5,75% pada rapat dewan gubernur.", "BI-Rate 5,75% menurunkan biaya dana.")).toBe("high");
   });
 
   it("a stored proposal on a figureless article reads at the lowest band", () => {

@@ -137,7 +137,7 @@ def main(argv=None) -> int:
             "counts": {k: sum(1 for v in golden_verdicts if v["verdict"] == k) for k in ("accept", "reject", "residual")},
             "verdicts": [{"id": v["candidateId"], "verdict": v["verdict"], "check": v.get("check"), "reason": v["reason"]} for v in golden_verdicts],
         },
-        "rejectsByCheck": {c: sum(1 for v in queue_verdicts if v.get("check") == c) for c in ("rumor", "misleading-title", "substance", "relevance")},
+        "rejectsByCheck": {c: sum(1 for v in queue_verdicts if v.get("check") == c) for c in ("rumor", "rumor-answered", "misleading-title", "substance", "relevance")},
         "falseRejects": false_rejects(queue_verdicts, golden_verdicts, pending_labels, golden_labels),
         "calibration": {k: {f: v.get(f) for f in ("n", "positives", "T", "ece_before", "ece_after")} for k, v in calibration.items()},
         "watch": watch,

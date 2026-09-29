@@ -7,7 +7,7 @@ import { metricDerivation } from "@/lib/agent/explain";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceFeedback } from "@/components/evidence-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { displayFigure } from "@/lib/utils";
+import { displayFigure, displayText } from "@/lib/utils";
 
 /** The recordings behind one figure, named. One label reads; a list counts. */
 function sourceSummary(citations: Citation[]): string {
@@ -113,8 +113,8 @@ export function EvidenceCard({ pillar, symbol, trailing }: { pillar: PillarResul
         <p className="mt-2 max-w-3xl text-sm leading-6">{pillar.protocol.claim}</p>
         <p className="mt-1 text-xs text-muted-foreground">Klaim ini diperiksa, bukan disimpulkan. Hasil pemeriksaan: <span className="font-semibold text-foreground">{uiLabel(pillar.status)}</span>.</p>
         <div className="mt-5 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
-          <div className="bg-background p-4"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.supportingEvidence}</p></div>
-          <div className="bg-background p-4"><p className="text-xs font-medium text-attention-foreground">Bukti penyangkal</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.protocol.challengingEvidence}</p></div>
+          <div className="bg-background p-4"><p className="text-xs font-medium text-positive">Bukti pendukung</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{displayText(pillar.protocol.supportingEvidence)}</p></div>
+          <div className="bg-background p-4"><p className="text-xs font-medium text-attention-foreground">Bukti penyangkal</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{displayText(pillar.protocol.challengingEvidence)}</p></div>
         </div>
       </section>
 

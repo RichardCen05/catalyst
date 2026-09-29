@@ -42,7 +42,7 @@ export const LAYERS: Layer[] = [
     question: "Apa yang Anda anggap penting?",
     analogy: "Seperti memberi tahu asisten baru: “kalau nilainya di bawah sekian, tidak usah naik ke meja saya.” Itu cara kerja yang Anda tetapkan, bukan fakta tentang dunia.",
     example: "Anda menutup kasus dengan catatan “kenaikan harga nikel di bawah dua minggu belum berarti apa-apa”. Catalyst mengusulkan aturannya; Anda yang menerima.",
-    changes: "Aturan yang dipakai analisis berikutnya.",
+    changes: "Aturan yang dicatat dan dikutip pada kasus berikutnya. Aturan materialitas belum dievaluasi otomatis: tingkatnya tetap dihitung dari relevansi eksposur.",
     keeps: "Fakta pasar. Koreksi Anda tetap hipotesis sampai sumber memverifikasinya.",
   },
   {

@@ -41,6 +41,17 @@ export function displayFigure(value: string): string {
 }
 
 /**
+ * Engine prose as the reader sees it: a hyphen standing for a minus before a
+ * number becomes the true minus, so "-1,7%" never sits beside "−1,2%" (QA P3-1).
+ * Only a hyphen at the start of a word counts; a date (`2025-12-01`), a range
+ * (`24-26`) or a compound (`Non-USD`) keeps its hyphen. Display only, like
+ * `displayFigure`: the engine's strings stay ASCII for the verifier.
+ */
+export function displayText(text: string): string {
+  return text.replace(/(^|[\s(\[])-(?=\d)/g, "$1\u2212");
+}
+
+/**
  * A signed percentage in the display figure's own style.
  *
  * `−0,0%` claims a fall the recording did not have — the move simply rounded

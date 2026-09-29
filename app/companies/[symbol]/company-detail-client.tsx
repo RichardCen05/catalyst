@@ -8,6 +8,7 @@ import { useCatalystStore } from "@/lib/store";
 import type { ResearchCase, SymbolCode } from "@/lib/types";
 import { formatAsOf, formatCurrency } from "@/lib/utils";
 import { uiLabel } from "@/lib/ui-labels";
+import { materialityNote } from "@/lib/materiality-note";
 import { CitationDialog } from "@/components/citation-dialog";
 import { ResearchCaseWorkspace } from "@/components/research-case-workspace";
 import { Panel } from "@/components/ui/panel";
@@ -52,7 +53,7 @@ export function CompanyDetailClient({ symbol }: { symbol: SymbolCode }) {
 
       <header className="mb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0"><div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h1 className="editorial text-[28px]">{company.symbol}</h1><p className="text-base text-muted-foreground">{company.name}</p></div><div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2"><StatusBadge status={analysis.evidenceState} /><span aria-hidden="true" className="text-border-strong">|</span><span className="text-sm text-muted-foreground">{uiLabel(company.subsector) && uiLabel(company.subsector) !== uiLabel(company.sector) ? `${uiLabel(company.sector)} · ${uiLabel(company.subsector)}` : uiLabel(company.sector)}</span><span aria-hidden="true" className="hidden text-border-strong sm:inline">|</span><span className="inline-flex h-6 items-center rounded-lg border border-foreground px-2 text-xs font-medium">Materialitas {uiLabel(analysis.priority.materiality).toLowerCase()}</span></div></div>
+          <div className="min-w-0"><div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h1 className="editorial text-[28px]">{company.symbol}</h1><p className="text-base text-muted-foreground">{company.name}</p></div><div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2"><StatusBadge status={analysis.evidenceState} /><span aria-hidden="true" className="text-border-strong">|</span><span className="text-sm text-muted-foreground">{uiLabel(company.subsector) && uiLabel(company.subsector) !== uiLabel(company.sector) ? `${uiLabel(company.sector)} · ${uiLabel(company.subsector)}` : uiLabel(company.sector)}</span><span aria-hidden="true" className="hidden text-border-strong sm:inline">|</span><span className="inline-flex h-6 items-center rounded-lg border border-foreground px-2 text-xs font-medium">Materialitas {uiLabel(analysis.priority.materiality).toLowerCase()}</span>{materialityNote(analysis.priority) ? <span className="text-xs text-attention-foreground">{materialityNote(analysis.priority)}</span> : null}</div></div>
           <div className="shrink-0 sm:text-right"><p className="font-mono text-[28px] font-medium leading-9 tabular-nums">{formatCurrency(company.price).replace("Rp", "Rp ")}</p><p className="mt-1 flex items-center gap-2 sm:justify-end"><PriceChange value={company.changePct} /><span className="flex items-center gap-1 text-xs text-subtle-foreground"><IconClock aria-hidden="true" className="size-3" />Penutupan {formatAsOf(analysis.asOf)} WIB</span></p></div>
         </div>
       </header>

@@ -98,15 +98,22 @@ export interface ReviewDecision {
   fromResidual?: boolean;
 }
 
+/** Every check a screen verdict may name. The decide route validates against
+ *  this list, so a new check is added here and nowhere else. `rumor-answered`
+ *  is an article that reports a market rumor together with an official answer
+ *  to it (a denial, a confirmation): not a rumor itself, but about one. */
+export const SCREEN_VERDICT_CHECKS = ["rumor", "rumor-answered", "misleading-title", "figure", "substance", "relevance"] as const;
+
 /** Which screen check decided a verdict. */
-export type ScreenCheck = "rumor" | "misleading-title" | "figure" | "substance" | "relevance";
+export type ScreenCheck = (typeof SCREEN_VERDICT_CHECKS)[number];
 
 /**
- * Screen checks that quarantine instead of finally rejecting. A rumor or
- * misleading-title verdict moves the item to `suspected` for a person to
- * confirm or dispute; every other reject check stays final.
+ * Screen checks that quarantine instead of finally rejecting. A rumor, a
+ * reported-and-answered rumor or a misleading-title verdict moves the item to
+ * `suspected` for a person to confirm or dispute; every other reject check
+ * stays final.
  */
-export const QUARANTINE_CHECKS: ReadonlySet<ScreenCheck> = new Set(["rumor", "misleading-title"]);
+export const QUARANTINE_CHECKS: ReadonlySet<ScreenCheck> = new Set(["rumor", "rumor-answered", "misleading-title"]);
 
 export function isQuarantineCheck(check: ScreenCheck | undefined): check is ScreenCheck {
   return check !== undefined && QUARANTINE_CHECKS.has(check);
@@ -245,7 +252,7 @@ export function normalizeQueue(raw: Partial<ReviewQueue> | null | undefined): Re
       if (!event || !Array.isArray(proposal?.impacts)) return [id, proposal];
       const text = matchText(event);
       const impacts = proposal.impacts.map((impact) => {
-        const band = bandForArticle(impact.band, text);
+        const band = bandForArticle(impact.band, text, `${impact.path} ${impact.rationale}`);
         return band === impact.band ? impact : { ...impact, band };
       });
       return [id, impacts.every((impact, index) => impact === proposal.impacts[index]) ? proposal : { ...proposal, impacts }];

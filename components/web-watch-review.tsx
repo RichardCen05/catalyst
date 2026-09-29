@@ -153,6 +153,7 @@ const matchLabel: Record<MatchKind, string> = {
 /** Names for the screen checks a verdict records. Field labels, true of every case. */
 const checkLabel: Record<ScreenCheck, string> = {
   rumor: "rumor",
+  "rumor-answered": "memberitakan rumor + bantahan",
   "misleading-title": "judul tidak sesuai isi",
   figure: "angka bertentangan dengan rekaman",
   substance: "tanpa isi konkret",
@@ -668,7 +669,7 @@ function AutoAcceptSwitch({ status, lastScreenAt, onChanged }: { status: AutoAcc
       <div className="mt-2 text-xs leading-5 text-muted-foreground">
         <p>Penyaring membaca setiap calon di antrean, lalu:</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5">
-          <li>Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.</li>
+          <li>Terindikasi rumor, memberitakan rumor beserta bantahan atau tanggapan resmi, atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.</li>
           <li>Bertentangan dengan angka rekaman: ditolak langsung. Tanpa isi konkret atau tidak relevan: ditolak langsung hanya bila pemeriksaannya sudah terkalibrasi pada label peninjau; sebelum itu menunggu keputusan Anda. Penolakan yang keliru bisa Anda kembalikan ke antrean.</li>
           <li>Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.</li>
           <li>Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan.</li>
@@ -1134,7 +1135,7 @@ export function WebWatchReview() {
             <div className="mb-3">
               <h2 className="editorial text-xl">Terindikasi Rumor ({suspected.length})</h2>
               <p className="text-xs text-muted-foreground">
-                Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor.
+                Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor, berita tentang rumor beserta bantahan atau tanggapan resminya, atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor.
               </p>
             </div>
             {suspected.length ? (

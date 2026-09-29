@@ -35,7 +35,7 @@ export function EvidenceFeedback({ symbol, pillar, label }: { symbol: SymbolCode
       >
         <ThumbsDown aria-hidden="true" className="size-3.5" />Kurang relevan
       </button>
-      <span className="basis-full text-xs leading-4 text-muted-foreground sm:basis-auto">Memengaruhi urutan pemeriksaan serupa di Riset & Analisis.</span>
+      <span className="basis-full text-xs leading-4 text-muted-foreground sm:basis-auto">Hanya mengubah urutan kasus di Riset & Analisis. Angka, status bukti, dan kesimpulan tidak berubah.</span>
     </div>
   );
 }

@@ -21,8 +21,9 @@ function event(id: string, publishedAt = NOW): MarketEvent {
     id,
     title: `Berita ${id}`,
     summary: "Ringkasan.",
-    // States a figure: a figureless article is proposed at the lowest band
-    // (`bandForArticle`) and could never be auto-accepted.
+    // States a figure the proposal quotes: a proposal that names no figure
+    // from its article reads at the lowest band (`bandForArticle`) and could
+    // never be auto-accepted.
     body: "Harga naik 5%.",
     category: "company",
     sourceType: "macro",
@@ -36,7 +37,7 @@ function event(id: string, publishedAt = NOW): MarketEvent {
 
 const match: TriageMatch = { symbols: [A], matchedBy: [{ symbol: A, by: "symbol", term: A }], at: NOW };
 const proposal: TriageProposal = {
-  impacts: [{ symbol: A, direction: "Adverse", band: "high", path: `Harga naik → biaya ${A} naik → margin`, rationale: "Teks menyebut biaya." }],
+  impacts: [{ symbol: A, direction: "Adverse", band: "high", path: `Harga naik → biaya ${A} naik → margin`, rationale: "Teks menyebut harga naik 5%." }],
   model: "test",
   verifiedAt: NOW,
 };

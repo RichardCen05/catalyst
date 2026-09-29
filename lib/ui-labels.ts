@@ -1,3 +1,8 @@
+/** What a commodity reading dated before the daily window is (`isStaleReading`).
+ *  One wording for the map badge and the assistant's material, so the same
+ *  reading never reads as stale on screen and as a live cause in chat (QA P2-3). */
+export const STALE_READING_LABEL = "Rekaman basi · sebelum jendela harian, tidak dihitung sebagai penyebab";
+
 const labels: Record<string, string> = {
   "Corroborated": "Bukti selaras",
   "Mixed Evidence": "Bukti bercampur",

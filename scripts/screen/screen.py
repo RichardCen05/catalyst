@@ -273,6 +273,9 @@ def verdict_for(item: dict, scores: ItemScores, gate: Gate, labels: dict[str, in
     """One item's verdict, from the decisions table. An item with no prose
     window is residual. Otherwise:
     - rumor: P(rumor) >= bar and P(official) < 1 - bar -> reject.
+    - rumor-answered: P(rumor) >= bar and P(official) >= bar -> reject to
+      the Rumor tab. The article reports a rumor and an official answer to
+      it; it is not a rumor, but a person reads it there (QA P0-3).
     - title: contradicted (>= bar) with a body that is confidently not
       substantive -> reject; with a substantive body -> accept path with the
       `misleadingTitle` marker. Skipped for a headline cut from the address.
@@ -315,6 +318,13 @@ def verdict_for(item: dict, scores: ItemScores, gate: Gate, labels: dict[str, in
 
     if rumor_hit:
         return reject("rumor", f"rumor: klaim hanya bersumber kabar tanpa nama (p={p_rumor:.2f})", p_rumor, _span(scores.rumor, i_rumor))
+    if p_rumor >= b_rumor and p_official >= b_rumor:
+        return reject(
+            "rumor-answered",
+            f"memberitakan rumor dan tanggapan resmi atasnya (p={min(p_rumor, p_official):.2f})",
+            min(p_rumor, p_official),
+            _span(scores.rumor, i_rumor),
+        )
     if title_hit and not_substantive:
         return reject(
             "misleading-title",

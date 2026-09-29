@@ -11,7 +11,7 @@ import { CaseResolutionPanel } from "@/components/case-resolution";
 import { CitationDialog } from "@/components/citation-dialog";
 import { EvidenceCard } from "@/components/evidence-card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { cn } from "@/lib/utils";
+import { cn, displayText } from "@/lib/utils";
 import { uiLabel } from "@/lib/ui-labels";
 
 /** `review` stays the URL value so links and the tour keep working; the
@@ -109,7 +109,7 @@ export function ResearchCaseWorkspace({ analysis, symbol }: {
               <section aria-label="Ringkasan kasus" className="rounded-lg border border-border p-4">
                 <div className="flex items-center justify-between gap-3"><h3 className="text-base font-semibold">Ringkasan</h3><StatusBadge status={analysis.evidenceState} /></div>
                 <p className="mt-2 text-sm">{analysis.thesis}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{analysis.materialChange.whyMaterial}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{displayText(analysis.materialChange.whyMaterial)}</p>
               </section>
               <section aria-label="Pertanyaan yang belum terjawab" className="rounded-lg border border-border p-4">
                 <h3 className="text-base font-semibold">Pertanyaan yang belum terjawab</h3>

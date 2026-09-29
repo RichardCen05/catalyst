@@ -16,7 +16,8 @@ import { PriceChange } from "@/components/ui/price-change";
 import { IconArrowRight, IconClose, IconSearch } from "@/components/ui/icons";
 import { TickerAvatar } from "@/components/ui/ticker-avatar";
 import { SymbolCombobox } from "@/components/ui/symbol-combobox";
-import { cn, displayFigure, formatCurrency, withStop } from "@/lib/utils";
+import { cn, displayFigure, displayText, formatCurrency, withStop } from "@/lib/utils";
+import { materialityNote } from "@/lib/materiality-note";
 import { shownDisposition } from "@/lib/case-disposition";
 import { dispositionLabel, uiLabel } from "@/lib/ui-labels";
 import { orderByFeedback } from "@/lib/learning";
@@ -125,8 +126,8 @@ function ResearchCasesContent() {
     { label: "Volume (skor z, 0 = biasa)", render: (item) => figureOf(item, "volume", "Skor z tahan pencilan"), score: (item) => magnitudeOf(item, "volume", "Skor z tahan pencilan") },
     { label: "Gerak di luar IHSG", render: (item) => figureOf(item, "momentum", "Residual setelah beta"), score: (item) => magnitudeOf(item, "momentum", "Residual setelah beta") },
     { label: "Imbal hasil sektor", render: (item) => figureOf(item, "momentum", "Imbal hasil sektor") },
-    { label: "Materialitas", render: (item) => `${uiLabel(item.priority.materiality)} · ${item.priority.reason}` },
-    { label: "Tantangan utama", render: (item) => item.counterEvidence[0] },
+    { label: "Materialitas", render: (item) => `${uiLabel(item.priority.materiality)} · ${displayText(item.priority.reason)}` },
+    { label: "Tantangan utama", render: (item) => displayText(item.counterEvidence[0] ?? "") },
   ];
 
   return (
@@ -145,8 +146,8 @@ function ResearchCasesContent() {
             const materiality = uiLabel(analysis.priority.materiality);
             return <li key={analysis.company.symbol}><Link href={`/cases/${analysis.company.symbol}`} className="grid gap-3 px-4 py-4 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:grid-cols-[200px_minmax(0,1fr)_120px_150px_140px_110px_20px] lg:items-start lg:gap-4">
               <span className="min-w-0"><strong className="block text-base font-semibold">{analysis.company.symbol}</strong><span className="block truncate text-xs text-subtle-foreground">{analysis.company.name}</span></span>
-              <span className="min-w-0"><span className="block text-sm font-medium">{analysis.trigger.title}</span><span className="mt-1 line-clamp-2 block text-xs text-subtle-foreground">{analysis.materialChange.baseline}</span></span>
-              <span className="flex flex-wrap gap-1.5"><span className={cn("inline-flex h-6 items-center rounded-lg border px-2 text-xs font-medium", analysis.priority.materiality === "High" ? "border-foreground" : "border-border text-muted-foreground")}>{materiality}</span>{status === "closed" ? <span className="inline-flex h-6 items-center rounded-lg border border-border px-2 text-xs font-medium text-muted-foreground">Selesai</span> : null}</span>
+              <span className="min-w-0"><span className="block text-sm font-medium">{analysis.trigger.title}</span><span className="mt-1 line-clamp-2 block text-xs text-subtle-foreground">{displayText(analysis.materialChange.baseline)}</span></span>
+              <span className="flex flex-wrap gap-1.5"><span className={cn("inline-flex h-6 items-center rounded-lg border px-2 text-xs font-medium", analysis.priority.materiality === "High" ? "border-foreground" : "border-border text-muted-foreground")}>{materiality}</span>{materialityNote(analysis.priority) ? <span className="text-xs text-attention-foreground">{materialityNote(analysis.priority)}</span> : null}{status === "closed" ? <span className="inline-flex h-6 items-center rounded-lg border border-border px-2 text-xs font-medium text-muted-foreground">Selesai</span> : null}</span>
               <span><StatusBadge status={analysis.evidenceState} /></span>
               <span className="text-sm font-medium">{dispositionLabel(shownDisposition(analysis.researchDisposition.kind, caseResolutions[analysis.company.symbol]))}</span>
               <span className="flex items-center gap-2 lg:flex-col lg:items-end lg:gap-0.5"><span className="font-mono text-sm font-medium tabular-nums">{formatCurrency(analysis.company.price)}</span><PriceChange value={analysis.company.changePct} className="text-xs" /></span>

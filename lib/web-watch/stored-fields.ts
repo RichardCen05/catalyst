@@ -1,4 +1,5 @@
 import { resolveThresholds } from "@/lib/agent/thresholds";
+import { statesFigure } from "@/lib/web-watch/figure-band";
 import { titleFromUrl } from "@/lib/web-watch/fetching";
 import type { MarketEvent } from "@/lib/types";
 
@@ -65,28 +66,64 @@ function crawlStampRepaired(event: MarketEvent): string | null {
 }
 
 /**
- * Text with the page controls between its headline and its first sentence
- * dropped, or null when there are none.
+ * Text with the page's menus and footer dropped, or null when there are none.
  *
  * The fetcher now drops them from the markup (dead links, `<nav>`), but an
  * item stored before that still shows "Turn on more accessible mode… Skip
  * Ribbon Commands… Karier… Edukasi" under its headline (QA P2-7). With no
- * markup left, the shape is what remains: a run of at least `minRun` lines,
- * each shorter than a sentence, before the first line that is one. A single
- * short line is a dateline and stays; a text with no sentence at all is left
- * as it is, since there is nothing to tell chrome from content by.
+ * markup left, the shape is what remains.
+ *
+ * A sentence line has at least `sentenceWords` words and ends like a
+ * sentence. The article is the stretch of paragraphs where sentence lines
+ * follow one another, with at most `paragraphGap` short lines (a subheading,
+ * a dateline) between two of them; a stretch needs two sentence lines, so the
+ * one-sentence blurb under each menu of a site ("Informasi seputar organisasi,
+ * transformasi dan sejarah Bank Indonesia…") is not taken for it. Before the
+ * first stretch and after the last, a run of at least `minRun` lines is page
+ * chrome and goes; the headline stays. A single short line is a dateline and
+ * stays, a tail that states a figure stays, and between two stretches nothing is touched: a list of figures in
+ * the middle of an article is the article.
+ *
+ * A text with no such stretch falls back to the older reading: the first line
+ * of at least `sentenceWords` words starts the article. A text with no long
+ * line at all is left as it is, since there is nothing to tell chrome from
+ * content by.
  */
-function withoutLeadingChrome(text: string, sentenceWords: number, minRun: number): string | null {
-  const lines = text.split("\n");
-  const filled = (line: string) => line.trim().length > 0;
-  const words = (line: string) => line.trim().split(/\s+/).filter(Boolean).length;
-  const first = lines.findIndex(filled);
-  if (first < 0) return null;
-  const prose = lines.findIndex((line, index) => index > first && words(line) >= sentenceWords);
-  if (prose < 0) return null;
-  const run = lines.slice(first + 1, prose).filter(filled);
-  if (run.length < minRun) return null;
-  return [lines[first], ...lines.slice(prose)].join("\n\n").replace(/\n{3,}/g, "\n\n");
+function withoutPageChrome(text: string, sentenceWords: number, minRun: number, paragraphGap: number): string | null {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const words = (line: string) => line.split(/\s+/).filter(Boolean).length;
+  const isSentence = (line: string) => words(line) >= sentenceWords && /[.!?]["'”’)]?$/.test(line);
+  const sentences = lines.map((line, index) => (index > 0 && isSentence(line) ? index : -1)).filter((index) => index > 0);
+  // Stretches of sentence lines no more than `paragraphGap` short lines apart.
+  const stretches: Array<[number, number, number]> = [];
+  for (const index of sentences) {
+    const last = stretches[stretches.length - 1];
+    if (last && index - last[1] - 1 <= paragraphGap) {
+      last[1] = index;
+      last[2] += 1;
+    } else stretches.push([index, index, 1]);
+  }
+  const articles = stretches.filter(([, , count]) => count >= 2);
+  let start: number;
+  let end: number;
+  if (articles.length) {
+    start = articles[0][0];
+    end = articles[articles.length - 1][1];
+  } else {
+    start = lines.findIndex((line, index) => index > 0 && words(line) >= sentenceWords);
+    if (start < 0) return null;
+    end = lines.length - 1;
+  }
+  const lead = start - 1;
+  const tail = lines.length - 1 - end;
+  const cutLead = lead >= minRun;
+  // A footer never states a figure; a table closing the article does, and
+  // the figure check reads it.
+  const cutTail = tail >= minRun && !lines.slice(end + 1).some(statesFigure);
+  if (!cutLead && !cutTail) return null;
+  const kept = [lines[0], ...lines.slice(cutLead ? start : 1, cutTail ? end + 1 : lines.length)];
+  return kept.join("\n\n");
 }
 
 /** One stored event with the fields above read the way new items are
@@ -97,10 +134,10 @@ export function repairStoredEvent<T extends MarketEvent>(event: T, minWords: num
   const title = repairedTitle(event, minWords);
   const dateChanged = publishedAt !== null && publishedAt !== event.publishedAt;
   const t = resolveThresholds();
-  const body = event.body ? withoutLeadingChrome(event.body, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines) : null;
+  const body = event.body ? withoutPageChrome(event.body, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines, t.webWatchParagraphGapLines) : null;
   // A stored summary is the head of the page, often cut before any sentence:
   // read from its own sentences when it has one, else from the repaired body.
-  const summary = withoutLeadingChrome(event.summary, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines)
+  const summary = withoutPageChrome(event.summary, t.webWatchProseSentenceMinWords, t.webWatchChromeRunMinLines, t.webWatchParagraphGapLines)
     ?? (body ? body.slice(0, Math.max(event.summary.length, 1)) : null);
   if (!dateChanged && !title && !body && !summary) return event;
   return {

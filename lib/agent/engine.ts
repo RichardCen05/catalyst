@@ -63,6 +63,7 @@ import { brokerChurnRatio, detectDistributionDivergence, netInstitutionalFlow } 
 import { detectContagionCandidates } from "@/lib/agent/contagion";
 import { checkNarrativeAgainstFinancials } from "@/lib/agent/fundamental-check";
 import { attributionMaterial, causalPathMaterial, compareMaterial, falsifierMaterial, playbookMaterial, statusMaterial } from "@/lib/agent/case-answers";
+import { deriveEvidenceState, MARKET_UNCONFIRMED, marketConfirms } from "@/lib/agent/evidence-state";
 
 /**
  * A percentage in the one shape the reader sees everywhere: id-ID, one
@@ -668,13 +669,15 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
 
   enforceCitations(pillars);
   const ordered = profile.config.pillarOrder.map((key) => pillars.find((pillar) => pillar.key === key)!);
-  const evidenceState: EvidenceState = conflict || timingAgainst
-    ? "Mixed Evidence"
-    : volume.status === "Insufficient Data" || catalystDirection === "Unverified"
-      ? "Insufficient Evidence"
-      : relatedEvents.some((event) => eventDirection(event, symbol) === "Adverse")
-        ? "Mixed Evidence"
-        : company.evidenceState;
+  const evidenceState: EvidenceState = deriveEvidenceState({
+    conflict: Boolean(conflict),
+    timingAgainst,
+    volume: volume.status,
+    momentum: momentum.status,
+    catalystDirection,
+    anyAdverse: relatedEvents.some((event) => eventDirection(event, symbol) === "Adverse"),
+    recorded: company.evidenceState,
+  });
   const thesis = evidenceState === "Corroborated"
     ? "Konfirmasi pasar dan dampak bisnis memberi bukti yang saling menguatkan pada jendela pengamatan."
     : evidenceState === "Mixed Evidence"
@@ -687,6 +690,7 @@ function buildAnalysisUncached(symbol: SymbolCode, profile: UserProfile, context
   const contradictions = pillars.flatMap((pillar) => pillar.conflict ? [pillar.conflict] : []);
   const timingLine = timing && timingAgainst ? `Uji waktu: ${timing.note} Puncak volume ${timing.spikeDate}, peristiwa ${timing.eventDate}.` : null;
   if (timingLine) contradictions.push(timingLine);
+  if (volume.status !== "Insufficient Data" && !marketConfirms(volume.status, momentum.status)) contradictions.push(MARKET_UNCONFIRMED);
   if (divergent) {
     contradictions.push(
       `Harga naik ${percent(stockReturn)} dalam 3 hari sementara aliran institusi neto negatif melampaui ambang. Apakah penguatan didukung partisipasi yang terekam atau tertahan oleh pelepasan yang belum dijelaskan?`,

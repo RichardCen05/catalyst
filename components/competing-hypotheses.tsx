@@ -5,7 +5,7 @@ import { ArrowRight, Scale } from "lucide-react";
 import type { CausalGraph } from "@/lib/types";
 import { AskAgentButton } from "@/components/ask-agent-button";
 import { CitationDialog } from "@/components/citation-dialog";
-import { cn } from "@/lib/utils";
+import { cn, displayText } from "@/lib/utils";
 import { uiLabel } from "@/lib/ui-labels";
 
 export function CompetingHypotheses({ graph }: { graph: CausalGraph }) {
@@ -43,7 +43,7 @@ export function CompetingHypotheses({ graph }: { graph: CausalGraph }) {
           <ul className="mt-3 flex flex-wrap gap-2">{selected.targetObservables.map((observable) => <li key={observable} className="rounded-lg bg-muted px-2 py-1 text-xs text-muted-foreground"><span className="font-medium text-foreground">Diuji pada</span> · {observable}</li>)}</ul>
           <dl className="mt-5 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
             <div className="bg-background p-3"><dt className="text-xs font-medium">Bukti pendukung</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{selected.supportingEvidence}</dd></div>
-            <div className="bg-background p-3"><dt className="text-xs font-medium">Bukti penyangkal</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{selected.counterEvidence}</dd></div>
+            <div className="bg-background p-3"><dt className="text-xs font-medium">Bukti penyangkal</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{displayText(selected.counterEvidence)}</dd></div>
             <div className="bg-background p-3"><dt className="text-xs font-medium">Pembeda utama</dt><dd className="mt-2 text-xs leading-5 text-muted-foreground">{selected.discriminator}</dd></div>
           </dl>
           <div className="mt-4 flex flex-wrap gap-2"><CitationDialog citations={selected.citations} label="Bukti hipotesis" /><AskAgentButton context={{ label: `${graph.targetSymbol} · hipotesis ${selected.rank}`, question: `Uji hipotesis ${selected.claim} terhadap bukti penyangkal dan pembeda utama.`, symbol: graph.targetSymbol }} label="Uji lewat asisten" /></div>

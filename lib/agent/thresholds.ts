@@ -182,6 +182,12 @@ export const DEFAULT_THRESHOLDS = {
    *  2026") dan tetap; tiga berturut-turut sudah menu. Halaman BI 25 Sep
    *  memuat lebih dari dua puluh. */
   webWatchChromeRunMinLines: 3,
+  /** Baris pendek yang boleh berada di antara dua kalimat dalam satu artikel
+   *  tersimpan (subjudul, dateline) sebelum bagian itu dibaca sebagai akhir
+   *  artikel. Siaran pers BI 25 Sep memuat satu subjudul huruf kapital di
+   *  tengah ("PERCEPATAN DAN PERLUASAN DIGITALISASI DAERAH (P2DD)"); menu dan
+   *  kaki halamannya berupa deret panjang baris pendek. */
+  webWatchParagraphGapLines: 2,
   /** Alias nama emiten (`SYMBOL_ALIASES`) yang muncul di lebih dari porsi ini
    *  dari seluruh kandidat antrean dipakai sebagai kata biasa, bukan nama, dan
    *  tidak dihitung sebagai kecocokan. Terukur 2026-09-24 pada 163 kandidat
@@ -392,6 +398,7 @@ export const THRESHOLD_PROVENANCE: Record<keyof typeof DEFAULT_THRESHOLDS, "deri
   webWatchProseSentenceMinWords: "convention",
   webWatchHeadlineMinWords: "convention",
   webWatchChromeRunMinLines: "convention",
+  webWatchParagraphGapLines: "convention",
   webWatchAliasMaxDocShare: "guess",
   webWatchAliasMinCorpus: "convention",
   webWatchDuplicateSentenceShare: "guess",
@@ -551,6 +558,7 @@ export function resolveThresholds(playbook?: PlaybookLike | null): ResolvedThres
     webWatchProseSentenceMinWords: DEFAULT_THRESHOLDS.webWatchProseSentenceMinWords,
     webWatchHeadlineMinWords: DEFAULT_THRESHOLDS.webWatchHeadlineMinWords,
     webWatchChromeRunMinLines: DEFAULT_THRESHOLDS.webWatchChromeRunMinLines,
+    webWatchParagraphGapLines: DEFAULT_THRESHOLDS.webWatchParagraphGapLines,
     webWatchAliasMaxDocShare: DEFAULT_THRESHOLDS.webWatchAliasMaxDocShare,
     webWatchAliasMinCorpus: DEFAULT_THRESHOLDS.webWatchAliasMinCorpus,
     webWatchDuplicateSentenceShare: DEFAULT_THRESHOLDS.webWatchDuplicateSentenceShare,

@@ -686,7 +686,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:putuskan-otomatis",
     heading: "Putuskan otomatis",
     view: "pantau",
-    labels: ["Putuskan otomatis","dari batas","keputusan otomatis dalam 24 jam terakhir","Penyaring membaca setiap calon di antrean, lalu:","Terindikasi rumor atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.","Bertentangan dengan angka rekaman: ditolak langsung. Tanpa isi konkret atau tidak relevan: ditolak langsung hanya bila pemeriksaannya sudah terkalibrasi pada label peninjau; sebelum itu menunggu keputusan Anda. Penolakan yang keliru bisa Anda kembalikan ke antrean.","Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.","Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
+    labels: ["Putuskan otomatis","dari batas","keputusan otomatis dalam 24 jam terakhir","Penyaring membaca setiap calon di antrean, lalu:","Terindikasi rumor, memberitakan rumor beserta bantahan atau tanggapan resmi, atau judul menyesatkan: masuk tab Terindikasi Rumor, Anda yang memutuskan.","Bertentangan dengan angka rekaman: ditolak langsung. Tanpa isi konkret atau tidak relevan: ditolak langsung hanya bila pemeriksaannya sudah terkalibrasi pada label peninjau; sebelum itu menunggu keputusan Anda. Penolakan yang keliru bisa Anda kembalikan ke antrean.","Diterima otomatis hanya bila semua pemeriksaan bersih dan setiap emitennya punya arah jelas (menguatkan atau menekan), dengan relevansi tinggi atau sedang bila disebut di teks, atau relevansi tinggi bila dicantumkan sumbernya.","Selebihnya menunggu keputusan Anda. Setiap penerimaan otomatis bisa dibatalkan."],
     file: "components/web-watch-review.tsx",
   },
   {
@@ -706,7 +706,7 @@ export const CHROME_BLOCKS: ChromeBlock[] = [
     id: "chrome:pantau:terindikasi-rumor",
     heading: "Terindikasi rumor",
     view: "pantau",
-    labels: ["Terindikasi Rumor (","Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor."],
+    labels: ["Terindikasi Rumor (","Calon dari sumber yang dipantau yang ditandai penyaring sebagai rumor, berita tentang rumor beserta bantahan atau tanggapan resminya, atau judul menyesatkan. Tidak ada yang dihapus otomatis: bantah dengan alasan bila beritanya layak ditelusuri — ia kembali ke Antrean untuk dipetakan — atau tolak bila memang rumor."],
     file: "components/web-watch-review.tsx",
   },
   {

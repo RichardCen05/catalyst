@@ -322,7 +322,7 @@ async function draftOne(
     impacts.push({
       symbol,
       direction: draft.direction,
-      band: bandForArticle(draft.relevanceBand, matchText(event)),
+      band: bandForArticle(draft.relevanceBand, matchText(event), `${draft.path} ${draft.rationale}`),
       path: draft.path.trim().slice(0, 300),
       rationale: draft.rationale.trim().slice(0, 500),
     });

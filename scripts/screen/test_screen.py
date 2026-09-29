@@ -76,9 +76,17 @@ def test_rumor_high_and_official_low_rejects_with_span():
     assert v["score"] >= 0.97
 
 
-def test_rumor_with_named_official_is_not_rejected():
+def test_rumor_with_named_official_goes_to_the_rumor_tab():
+    # An article that reports a rumor and the company's answer to it (QA P0-3,
+    # "BCA Bantah Bakal Diakuisisi") is not a rumor, but it is about one: a
+    # person reads it in the Rumor tab instead of it passing as clean.
     v = decide(item(), {**CLEAN, "H-RUMOR": SURE_YES, "H-OFFICIAL": SURE_YES})
-    assert v["verdict"] == "accept"
+    assert v["verdict"] == "reject" and v["check"] == "rumor-answered"
+    assert v["span"] == "Jendela satu."
+
+
+def test_official_news_without_a_rumor_is_accepted():
+    assert decide(item(), {**CLEAN, "H-RUMOR": SURE_NO, "H-OFFICIAL": SURE_YES})["verdict"] == "accept"
 
 
 def test_unsure_scores_go_to_residual():
